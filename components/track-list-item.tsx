@@ -38,6 +38,10 @@ interface TrackListItemProps {
   hideOptionsMenu?: boolean;
   /** Fallback artwork URL when track has no artwork (e.g., album artwork) */
   fallbackArtworkUrl?: string;
+  /** Queue of tracks for skip next/previous functionality */
+  queue?: Track[];
+  /** Index of this track in the queue */
+  queueIndex?: number;
 }
 
 export const TrackListItem = memo(function TrackListItem({
@@ -48,8 +52,10 @@ export const TrackListItem = memo(function TrackListItem({
   downloadInfo,
   hideOptionsMenu = false,
   fallbackArtworkUrl,
+  queue,
+  queueIndex,
 }: TrackListItemProps) {
-  const { play } = usePlayer();
+  const { play, playQueue } = usePlayer();
   const { removeDownload } = useDownloadActions();
   const { colors } = useAppTheme();
 
@@ -58,9 +64,13 @@ export const TrackListItem = memo(function TrackListItem({
       onPress(track);
     } else {
       router.push('/player');
-      play(track);
+      if (queue && queueIndex !== undefined) {
+        playQueue(queue, queueIndex);
+      } else {
+        play(track);
+      }
     }
-  }, [onPress, track, play]);
+  }, [onPress, track, play, playQueue, queue, queueIndex]);
 
   const handleLongPress = useCallback(() => {
     onLongPress?.(track);

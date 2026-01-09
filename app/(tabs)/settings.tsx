@@ -5,11 +5,19 @@
  * Uses M3 theming.
  */
 
-import { View, ScrollView, Alert, StyleSheet, Pressable } from 'react-native';
+import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
+import { useRef, useCallback, useState } from 'react';
 import { router } from 'expo-router';
-import { Text, Surface, SegmentedButtons } from 'react-native-paper';
+import { Text, Surface } from 'react-native-paper';
+import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { Icon } from '@/components/ui/icon';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { VersionDialog } from '@/components/ui/version-dialog';
 import { PageLayout } from '@/components/page-layout';
+import { SettingsSelect } from '@/components/settings/settings-select';
+import { AccentColorPicker } from '@/components/settings/accent-color-picker';
+import { TabOrderSetting } from '@/components/settings/tab-order-setting';
+import { EqualizerSheet } from '@/components/equalizer-sheet';
 import {
   ChevronRightIcon,
   TrashIcon,
@@ -18,6 +26,15 @@ import {
   PuzzleIcon,
   HardDriveIcon,
   SettingsIcon,
+  SunMoonIcon,
+  LayoutGridIcon,
+  SlidersHorizontalIcon,
+  MonitorSmartphoneIcon,
+  SunIcon,
+  MoonIcon,
+  MusicIcon,
+  CompassIcon,
+  DownloadIcon,
   type LucideIcon,
 } from 'lucide-react-native';
 import { useLibraryStore } from '@/src/application/state/library-store';
@@ -28,77 +45,72 @@ import {
   type DefaultTab,
 } from '@/src/application/state/settings-store';
 import { useDownloadQueue, formatFileSize } from '@/hooks/use-download-queue';
+import { useEqualizer } from '@/hooks/use-equalizer';
 import { clearAllDownloads } from '@/src/infrastructure/filesystem/download-manager';
 import { useToast } from '@/hooks/use-toast';
 import { useAppTheme } from '@/lib/theme';
 import Constants from 'expo-constants';
 
-const THEME_BUTTONS = [
-  { value: 'system', label: 'System' },
-  { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' },
+const THEME_OPTIONS: { value: ThemePreference; label: string; icon: LucideIcon }[] = [
+  { value: 'system', label: 'System', icon: MonitorSmartphoneIcon },
+  { value: 'light', label: 'Light', icon: SunIcon },
+  { value: 'dark', label: 'Dark', icon: MoonIcon },
 ];
 
-const DEFAULT_TAB_BUTTONS = [
-  { value: 'index', label: 'Library' },
-  { value: 'explore', label: 'Explore' },
-  { value: 'downloads', label: 'Downloads' },
-  { value: 'settings', label: 'Settings' },
+const DEFAULT_TAB_OPTIONS: { value: DefaultTab; label: string; icon: LucideIcon }[] = [
+  { value: 'index', label: 'Library', icon: MusicIcon },
+  { value: 'explore', label: 'Explore', icon: CompassIcon },
+  { value: 'downloads', label: 'Downloads', icon: DownloadIcon },
+  { value: 'settings', label: 'Settings', icon: SettingsIcon },
 ];
 
 export default function SettingsScreen() {
   const { tracks, playlists, favorites } = useLibraryStore();
-  const { themePreference, setThemePreference, defaultTab, setDefaultTab } = useSettingsStore();
+  const { themePreference, setThemePreference, defaultTab, setDefaultTab, accentColor, setAccentColor } = useSettingsStore();
   const { stats } = useDownloadQueue();
+  const { isEnabled: eqEnabled, currentPreset } = useEqualizer();
   const { success, error } = useToast();
   const { colors } = useAppTheme();
+  const equalizerSheetRef = useRef<BottomSheetMethods>(null);
+  const [clearLibraryDialogVisible, setClearLibraryDialogVisible] = useState(false);
+  const [clearDownloadsDialogVisible, setClearDownloadsDialogVisible] = useState(false);
+  const [versionDialogVisible, setVersionDialogVisible] = useState(false);
+
+  const openEqualizerSheet = useCallback(() => {
+    equalizerSheetRef.current?.expand();
+  }, []);
 
   const handleClearLibrary = () => {
-    Alert.alert(
-      'Clear Library',
-      'This will remove all tracks, playlists, and favorites. This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear',
-          style: 'destructive',
-          onPress: () => {
-            useLibraryStore.setState({
-              tracks: [],
-              playlists: [],
-              favorites: new Set(),
-            });
-            success('Library cleared', 'All tracks, playlists, and favorites have been removed');
-          },
-        },
-      ]
-    );
+    setClearLibraryDialogVisible(true);
+  };
+
+  const confirmClearLibrary = () => {
+    useLibraryStore.setState({
+      tracks: [],
+      playlists: [],
+      favorites: new Set(),
+    });
+    setClearLibraryDialogVisible(false);
+    success('Library cleared', 'All tracks, playlists, and favorites have been removed');
   };
 
   const handleClearDownloads = () => {
-    Alert.alert(
-      'Clear All Downloads',
-      'This will remove all downloaded files. This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear All',
-          style: 'destructive',
-          onPress: async () => {
-            const result = await clearAllDownloads();
-            if (result.success) {
-              useDownloadStore.setState({
-                downloads: new Map(),
-                downloadedTracks: new Map(),
-              });
-              success('Downloads cleared', 'All downloaded files have been removed');
-            } else {
-              error('Failed to clear downloads', result.error.message);
-            }
-          },
-        },
-      ]
-    );
+    setClearDownloadsDialogVisible(true);
+  };
+
+  const confirmClearDownloads = async () => {
+    const result = await clearAllDownloads();
+    if (result.success) {
+      useDownloadStore.setState({
+        downloads: new Map(),
+        downloadedTracks: new Map(),
+      });
+      setClearDownloadsDialogVisible(false);
+      success('Downloads cleared', 'All downloaded files have been removed');
+    } else {
+      setClearDownloadsDialogVisible(false);
+      error('Failed to clear downloads', result.error.message);
+    }
   };
 
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
@@ -107,29 +119,34 @@ export default function SettingsScreen() {
     <PageLayout header={{ icon: SettingsIcon, title: 'Settings' }}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         <SettingsSection title="Appearance">
-          <View style={styles.themeSelector}>
-            <Text variant="labelMedium" style={{ color: colors.onSurfaceVariant }}>
-              Theme
-            </Text>
-            <SegmentedButtons
-              value={themePreference}
-              onValueChange={(value) => setThemePreference(value as ThemePreference)}
-              buttons={THEME_BUTTONS}
-              style={styles.segmentedButtons}
-            />
-          </View>
-          <View style={styles.defaultTabSelector}>
-            <Text variant="labelMedium" style={{ color: colors.onSurfaceVariant }}>
-              Default Home Screen
-            </Text>
-            <SegmentedButtons
-              value={defaultTab}
-              onValueChange={(value) => setDefaultTab(value as DefaultTab)}
-              buttons={DEFAULT_TAB_BUTTONS}
-              style={styles.segmentedButtons}
-              density="small"
-            />
-          </View>
+          <SettingsSelect
+            icon={SunMoonIcon}
+            title="Theme"
+            options={THEME_OPTIONS}
+            value={themePreference}
+            onValueChange={setThemePreference}
+            portalName="theme-select"
+          />
+          <AccentColorPicker value={accentColor} onValueChange={setAccentColor} />
+          <SettingsSelect
+            icon={LayoutGridIcon}
+            title="Default Home Screen"
+            options={DEFAULT_TAB_OPTIONS}
+            value={defaultTab}
+            onValueChange={setDefaultTab}
+            portalName="default-tab-select"
+          />
+          <TabOrderSetting />
+        </SettingsSection>
+
+        <SettingsSection title="Playback">
+          <SettingsItem
+            icon={SlidersHorizontalIcon}
+            title="Equalizer"
+            subtitle={eqEnabled ? `${currentPreset.name} (On)` : 'Off'}
+            onPress={openEqualizerSheet}
+            showChevron
+          />
         </SettingsSection>
 
         <SettingsSection title="Plugins">
@@ -175,7 +192,13 @@ export default function SettingsScreen() {
         </SettingsSection>
 
         <SettingsSection title="About">
-          <SettingsItem icon={InfoIcon} title="Version" subtitle={appVersion} />
+          <SettingsItem
+            icon={InfoIcon}
+            title="Version"
+            subtitle={appVersion}
+            onPress={() => setVersionDialogVisible(true)}
+            showChevron
+          />
           <SettingsItem
             icon={HeartIcon}
             title="Made with love"
@@ -195,6 +218,35 @@ export default function SettingsScreen() {
           </Text>
         </View>
       </ScrollView>
+
+      <EqualizerSheet ref={equalizerSheetRef} />
+
+      <ConfirmationDialog
+        visible={clearLibraryDialogVisible}
+        title="Clear Library"
+        message="This will remove all tracks, playlists, and favorites. This action cannot be undone."
+        confirmLabel="Clear"
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={confirmClearLibrary}
+        onCancel={() => setClearLibraryDialogVisible(false)}
+      />
+
+      <ConfirmationDialog
+        visible={clearDownloadsDialogVisible}
+        title="Clear All Downloads"
+        message="This will remove all downloaded files. This action cannot be undone."
+        confirmLabel="Clear All"
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={confirmClearDownloads}
+        onCancel={() => setClearDownloadsDialogVisible(false)}
+      />
+
+      <VersionDialog
+        visible={versionDialogVisible}
+        onDismiss={() => setVersionDialogVisible(false)}
+      />
     </PageLayout>
   );
 }
@@ -235,7 +287,7 @@ function SettingsItem({
   const { colors } = useAppTheme();
 
   const content = (
-    <View style={[styles.settingsItem, { borderBottomColor: colors.outlineVariant }]}>
+    <View style={styles.settingsItem}>
       <View
         style={[
           styles.iconContainer,
@@ -300,9 +352,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
-    paddingVertical: 16,
+    paddingVertical: 14,
     paddingHorizontal: 16,
-    borderBottomWidth: 1,
   },
   iconContainer: {
     width: 40,
@@ -321,17 +372,5 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.7,
-  },
-  themeSelector: {
-    padding: 16,
-    gap: 12,
-  },
-  defaultTabSelector: {
-    padding: 16,
-    paddingTop: 0,
-    gap: 12,
-  },
-  segmentedButtons: {
-    alignSelf: 'stretch',
   },
 });

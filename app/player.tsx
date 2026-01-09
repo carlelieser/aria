@@ -8,15 +8,20 @@
 import { View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useEffect } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { router, usePathname } from 'expo-router';
 import { Text, IconButton } from 'react-native-paper';
+import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { Icon } from '@/components/ui/icon';
-import { ChevronLeftIcon } from 'lucide-react-native';
+import { ChevronLeftIcon, MicVocalIcon, TimerIcon } from 'lucide-react-native';
 import { PlayerControls } from '@/components/player-controls';
 import { ProgressBar } from '@/components/progress-bar';
 import { TrackOptionsMenu } from '@/components/track-options-menu';
+import { LyricsDisplay } from '@/components/lyrics-display';
+import { SleepTimerSheet } from '@/components/sleep-timer-sheet';
 import { usePlayer } from '@/hooks/use-player';
+import { useLyrics } from '@/hooks/use-lyrics';
+import { useSleepTimer } from '@/hooks/use-sleep-timer';
 import { getLargestArtwork } from '@/src/domain/value-objects/artwork';
 import { getArtistNames } from '@/src/domain/entities/track';
 import { PlayerArtworkSkeleton } from '@/components/skeletons';
@@ -25,7 +30,15 @@ import { useAppTheme } from '@/lib/theme';
 export default function PlayerScreen() {
   const pathname = usePathname();
   const { currentTrack, isLoading, error } = usePlayer();
+  const { hasAnyLyrics, isExpanded, toggleExpanded } = useLyrics();
+  const { isActive: sleepTimerActive, formatRemaining } = useSleepTimer();
   const { colors } = useAppTheme();
+  const [showLyrics, setShowLyrics] = useState(false);
+  const sleepTimerSheetRef = useRef<BottomSheetMethods>(null);
+
+  const openSleepTimerSheet = useCallback(() => {
+    sleepTimerSheetRef.current?.expand();
+  }, []);
 
   useEffect(() => {
     if (!currentTrack && pathname === '/player') {
@@ -51,17 +64,48 @@ export default function PlayerScreen() {
             onPress={() => router.back()}
           />
           <Text variant="labelLarge" style={{ color: colors.onSurfaceVariant }}>
-            Now Playing
+            {showLyrics ? 'Lyrics' : 'Now Playing'}
           </Text>
-          <TrackOptionsMenu
-            track={currentTrack}
-            source="player"
-            orientation="horizontal"
-          />
+          <View style={styles.headerRight}>
+            <IconButton
+              icon={() => (
+                <View>
+                  <Icon
+                    as={TimerIcon}
+                    size={20}
+                    color={sleepTimerActive ? colors.primary : colors.onSurfaceVariant}
+                  />
+                  {sleepTimerActive && (
+                    <View
+                      style={[styles.timerBadge, { backgroundColor: colors.primary }]}
+                    />
+                  )}
+                </View>
+              )}
+              onPress={openSleepTimerSheet}
+            />
+            <IconButton
+              icon={() => (
+                <Icon
+                  as={MicVocalIcon}
+                  size={20}
+                  color={showLyrics ? colors.primary : colors.onSurfaceVariant}
+                />
+              )}
+              onPress={() => setShowLyrics(!showLyrics)}
+            />
+            <TrackOptionsMenu
+              track={currentTrack}
+              source="player"
+              orientation="horizontal"
+            />
+          </View>
         </View>
 
         <View style={styles.artworkContainer}>
-          {isLoading ? (
+          {showLyrics ? (
+            <LyricsDisplay />
+          ) : isLoading ? (
             <PlayerArtworkSkeleton />
           ) : (
             <View style={styles.artworkShadow}>
@@ -117,6 +161,8 @@ export default function PlayerScreen() {
 
         <PlayerControls size="lg" />
       </View>
+
+      <SleepTimerSheet ref={sleepTimerSheetRef} />
     </SafeAreaView>
   );
 }
@@ -136,6 +182,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 32,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  timerBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   artworkContainer: {
     flex: 1,

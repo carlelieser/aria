@@ -22,10 +22,19 @@ import { M3Shapes } from '@/lib/theme';
 interface TrackCardProps {
   track: Track;
   onPress?: (track: Track) => void;
+  /** Queue of tracks for skip next/previous functionality */
+  queue?: Track[];
+  /** Index of this track in the queue */
+  queueIndex?: number;
 }
 
-export const TrackCard = memo(function TrackCard({ track, onPress }: TrackCardProps) {
-  const { play } = usePlayer();
+export const TrackCard = memo(function TrackCard({
+  track,
+  onPress,
+  queue,
+  queueIndex,
+}: TrackCardProps) {
+  const { play, playQueue } = usePlayer();
   const { colors } = useAppTheme();
 
   const handlePress = useCallback(() => {
@@ -33,9 +42,13 @@ export const TrackCard = memo(function TrackCard({ track, onPress }: TrackCardPr
       onPress(track);
     } else {
       router.push('/player');
-      play(track);
+      if (queue && queueIndex !== undefined) {
+        playQueue(queue, queueIndex);
+      } else {
+        play(track);
+      }
     }
-  }, [onPress, track, play]);
+  }, [onPress, track, play, playQueue, queue, queueIndex]);
 
   const artwork = getBestArtwork(track.artwork, 120);
   const artworkUrl = artwork?.url;

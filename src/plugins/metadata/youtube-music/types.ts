@@ -20,6 +20,8 @@ export interface YouTubeAlbum {
 export interface YouTubeDuration {
 	seconds?: number;
 	text?: string;
+	/** Some API responses use length_seconds */
+	length_seconds?: number;
 }
 
 export interface YouTubeMusicItem {
@@ -27,7 +29,7 @@ export interface YouTubeMusicItem {
 	title?: string;
 	artists?: YouTubeArtist[];
 	album?: YouTubeAlbum;
-	duration?: YouTubeDuration;
+	duration?: YouTubeDuration | string | number;
 	thumbnails?: YouTubeThumbnail[];
 	type?: string;
 
@@ -36,6 +38,21 @@ export interface YouTubeMusicItem {
 	video_id?: string;
 
 	browseId?: string;
+
+	/** Alternative duration field names used by some API responses */
+	length?: YouTubeDuration | string | number;
+	length_seconds?: number;
+
+	/** Subtitle text containing artist/year info for albums */
+	subtitle?: string | { text?: string; runs?: Array<{ text?: string }> };
+
+	/** Author info (alternative to artists) */
+	author?: { name?: string; id?: string } | string;
+
+	/** Flex columns containing artist info */
+	flex_columns?: Array<{
+		title?: { runs?: Array<{ text?: string; endpoint?: { browseId?: string } }> };
+	}>;
 
 	endpoint?: {
 		payload?: {

@@ -6,16 +6,39 @@ import type { Track } from '@/src/domain/entities/track';
 import { Duration } from '@/src/domain/value-objects/duration';
 
 export function usePlayer() {
-	const store = usePlayerStore();
+	const currentTrack = usePlayerStore((state) => state.currentTrack);
+	const status = usePlayerStore((state) => state.status);
+	const position = usePlayerStore((state) => state.position);
+	const duration = usePlayerStore((state) => state.duration);
+	const volume = usePlayerStore((state) => state.volume);
+	const isMuted = usePlayerStore((state) => state.isMuted);
+	const repeatMode = usePlayerStore((state) => state.repeatMode);
+	const isShuffled = usePlayerStore((state) => state.isShuffled);
+	const queue = usePlayerStore((state) => state.queue);
+	const queueIndex = usePlayerStore((state) => state.queueIndex);
+	const error = usePlayerStore((state) => state.error);
+
 	const addToHistory = useHistoryStore((state) => state.addToHistory);
 
 	const play = useCallback(
 		async (track: Track) => {
-			store.setQueue([track], 0);
+			usePlayerStore.getState().setQueue([track], 0);
 			addToHistory(track);
 			await playbackService.play(track);
 		},
-		[store, addToHistory]
+		[addToHistory]
+	);
+
+	const playQueue = useCallback(
+		async (tracks: Track[], startIndex: number) => {
+			if (tracks.length === 0 || startIndex < 0 || startIndex >= tracks.length) {
+				return;
+			}
+			usePlayerStore.getState().setQueue(tracks, startIndex);
+			addToHistory(tracks[startIndex]);
+			await playbackService.play(tracks[startIndex]);
+		},
+		[addToHistory]
 	);
 
 	const pause = useCallback(async () => {
@@ -27,12 +50,13 @@ export function usePlayer() {
 	}, []);
 
 	const togglePlayPause = useCallback(async () => {
-		if (store.status === 'playing') {
-			await pause();
-		} else if (store.status === 'paused') {
-			await resume();
+		const currentStatus = usePlayerStore.getState().status;
+		if (currentStatus === 'playing') {
+			await playbackService.pause();
+		} else if (currentStatus === 'paused') {
+			await playbackService.resume();
 		}
-	}, [store.status, pause, resume]);
+	}, []);
 
 	const seekTo = useCallback(async (position: Duration) => {
 		await playbackService.seekTo(position);
@@ -47,41 +71,42 @@ export function usePlayer() {
 	}, []);
 
 	const toggleShuffle = useCallback(() => {
-		store.toggleShuffle();
-	}, [store]);
+		usePlayerStore.getState().toggleShuffle();
+	}, []);
 
 	const cycleRepeatMode = useCallback(() => {
-		store.cycleRepeatMode();
-	}, [store]);
+		usePlayerStore.getState().cycleRepeatMode();
+	}, []);
 
 	const setVolume = useCallback(async (volume: number) => {
 		await playbackService.setVolume(volume);
 	}, []);
 
 	const toggleMute = useCallback(() => {
-		store.toggleMute();
-	}, [store]);
+		usePlayerStore.getState().toggleMute();
+	}, []);
 
 	return {
-		currentTrack: store.currentTrack,
-		status: store.status,
-		position: store.position,
-		duration: store.duration,
-		volume: store.volume,
-		isMuted: store.isMuted,
-		repeatMode: store.repeatMode,
-		isShuffled: store.isShuffled,
-		queue: store.queue,
-		queueIndex: store.queueIndex,
-		error: store.error,
+		currentTrack,
+		status,
+		position,
+		duration,
+		volume,
+		isMuted,
+		repeatMode,
+		isShuffled,
+		queue,
+		queueIndex,
+		error,
 
-		isPlaying: store.status === 'playing',
-		isPaused: store.status === 'paused',
-		isLoading: store.status === 'loading',
-		isBuffering: store.status === 'buffering',
-		isIdle: store.status === 'idle',
+		isPlaying: status === 'playing',
+		isPaused: status === 'paused',
+		isLoading: status === 'loading',
+		isBuffering: status === 'buffering',
+		isIdle: status === 'idle',
 
 		play,
+		playQueue,
 		pause,
 		resume,
 		togglePlayPause,

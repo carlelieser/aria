@@ -79,8 +79,13 @@ function ExploreSection({
 				showsHorizontalScrollIndicator={false}
 				contentContainerStyle={styles.horizontalScroll}
 			>
-				{tracks.map((track) => (
-					<TrackCard key={`${id}-${getTrackIdString(track.id)}`} track={track} />
+				{tracks.map((track, index) => (
+					<TrackCard
+						key={`${id}-${getTrackIdString(track.id)}`}
+						track={track}
+						queue={tracks}
+						queueIndex={index}
+					/>
 				))}
 			</ScrollView>
 		</View>
@@ -241,7 +246,7 @@ export default function ExploreScreen() {
 
 						{!isSearching && !error && hasSearchResults && (
 							<View style={styles.trackList}>
-								{filteredTracks.map((track) => (
+								{filteredTracks.map((track, index) => (
 									<SelectableTrackListItem
 										key={track.id.value}
 										track={track}
@@ -250,6 +255,8 @@ export default function ExploreScreen() {
 										isSelected={selectedTrackIds.has(track.id.value)}
 										onLongPress={handleLongPress}
 										onSelectionToggle={handleSelectionToggle}
+										queue={filteredTracks}
+										queueIndex={index}
 									/>
 								))}
 

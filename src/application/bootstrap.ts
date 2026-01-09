@@ -9,9 +9,73 @@ import { playbackService } from './services/playback-service';
 import { searchService } from './services/search-service';
 import { downloadService } from './services/download-service';
 import { albumService } from './services/album-service';
+import { artistService } from './services/artist-service';
+import { lyricsService } from './services/lyrics-service';
 import { getLogger } from '../shared/services/logger';
+import { getYouTubeMusicProvider } from '../plugins/metadata/youtube-music';
+import { expoAudioPlaybackProvider } from '../plugins/playback/expo-av';
+import { dashPlaybackProvider } from '../plugins/playback/dash';
 
 const logger = getLogger('Bootstrap');
+
+// Lazy bootstrap state
+let isBootstrapping = false;
+let isBootstrapped = false;
+let bootstrapPromise: Promise<BootstrapResult> | null = null;
+
+/**
+ * Non-blocking lazy bootstrap - starts initialization in background
+ * Safe to call multiple times, will only run once
+ */
+export function lazyBootstrap(): void {
+	if (isBootstrapped || isBootstrapping) return;
+
+	isBootstrapping = true;
+
+	const playbackProviders = [dashPlaybackProvider, expoAudioPlaybackProvider];
+
+	// Initialize providers in background
+	Promise.all(playbackProviders.map(p => p.onInit()))
+		.then(() => bootstrap({
+			playbackProviders,
+			metadataProviders: [getYouTubeMusicProvider()],
+		}))
+		.then(() => {
+			isBootstrapped = true;
+			isBootstrapping = false;
+			logger.info('Lazy bootstrap complete');
+		})
+		.catch((error) => {
+			isBootstrapping = false;
+			logger.error('Lazy bootstrap failed:', error instanceof Error ? error : undefined);
+		});
+}
+
+/**
+ * Ensures bootstrap is complete before continuing
+ * Returns immediately if already bootstrapped
+ */
+export async function ensureBootstrapped(): Promise<BootstrapResult | null> {
+	if (isBootstrapped && bootstrapPromise) {
+		return bootstrapPromise;
+	}
+
+	if (!isBootstrapping) {
+		lazyBootstrap();
+	}
+
+	// Wait for bootstrap to complete
+	return new Promise((resolve) => {
+		const check = () => {
+			if (isBootstrapped) {
+				resolve(bootstrapPromise);
+			} else {
+				setTimeout(check, 50);
+			}
+		};
+		check();
+	});
+}
 
 export interface BootstrapResult {
 	playbackService: typeof playbackService;
@@ -78,6 +142,8 @@ export async function bootstrap(options: BootstrapOptions = {}): Promise<Bootstr
 		if (initializedProviders.length > 0) {
 			searchService.setMetadataProviders(initializedProviders);
 			albumService.setMetadataProviders(initializedProviders);
+			artistService.setMetadataProviders(initializedProviders);
+			lyricsService.setMetadataProviders(initializedProviders);
 			logger.info(`${initializedProviders.length} metadata provider(s) ready for use`);
 		} else {
 			logger.warn('No metadata providers were successfully initialized');

@@ -36,6 +36,7 @@ Clean Architecture with Feature-First Organization
 
 **Rules:**
 - Maximum 20 lines per function — extract if longer
+- ALWAYS use aliased imports when appropriate.
 - Single responsibility — one function, one job
 - Avoid boolean parameters — use separate methods or options object
 - Return early to reduce nesting

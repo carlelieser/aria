@@ -3,9 +3,10 @@
  *
  * Material 3 bottom navigation with Library, Explore, Downloads, and Settings tabs.
  * Features a sliding animated indicator that transitions between tabs.
+ * Tab order is customizable via settings.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback, useMemo } from 'react';
 import { Tabs, router } from 'expo-router';
 import { View, Pressable, StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,14 +18,20 @@ import Animated, {
   FadeOut,
 } from 'react-native-reanimated';
 import {
-  LibraryIcon,
+  MusicIcon,
   CompassIcon,
   DownloadIcon,
   SettingsIcon,
+  type LucideIcon,
 } from 'lucide-react-native';
 import { useAppTheme } from '@/lib/theme';
 import { useDownloadQueue } from '@/hooks/use-download-queue';
-import { useDefaultTab } from '@/src/application/state/settings-store';
+import {
+  useDefaultTab,
+  useTabOrder,
+  type TabId,
+  DEFAULT_TAB_ORDER,
+} from '@/src/application/state/settings-store';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
 export const TAB_BAR_HEIGHT = 80;
@@ -33,46 +40,67 @@ const TAB_WIDTH = 84;
 const INDICATOR_WIDTH = 64;
 const INDICATOR_HEIGHT = 32;
 
-const TAB_ICONS = [LibraryIcon, CompassIcon, DownloadIcon, SettingsIcon];
-const TAB_LABELS = ['Library', 'Explore', 'Downloads', 'Settings'];
-const TAB_ROUTES = ['/', '/explore', '/downloads', '/settings'] as const;
-const TAB_ROUTE_MAP: Record<string, (typeof TAB_ROUTES)[number]> = {
-  index: '/',
-  explore: '/explore',
-  downloads: '/downloads',
-  settings: '/settings',
+interface TabConfig {
+  icon: LucideIcon;
+  label: string;
+  route: string;
+}
+
+export const TAB_CONFIG: Record<TabId, TabConfig> = {
+  index: { icon: MusicIcon, label: 'Library', route: '/' },
+  explore: { icon: CompassIcon, label: 'Explore', route: '/explore' },
+  downloads: { icon: DownloadIcon, label: 'Downloads', route: '/downloads' },
+  settings: { icon: SettingsIcon, label: 'Settings', route: '/settings' },
 };
 
 export default function TabLayout() {
   const defaultTab = useDefaultTab();
+  const tabOrder = useTabOrder();
   const hasNavigatedRef = useRef(false);
 
+  // Ensure tab order is valid and contains all tabs
+  const validTabOrder = useMemo(() => {
+    const validTabs = tabOrder.filter((id) => id in TAB_CONFIG);
+    if (validTabs.length !== DEFAULT_TAB_ORDER.length) {
+      return DEFAULT_TAB_ORDER;
+    }
+    return validTabs;
+  }, [tabOrder]);
+
   useEffect(() => {
-    if (!hasNavigatedRef.current && defaultTab !== 'index') {
+    if (!hasNavigatedRef.current && defaultTab !== validTabOrder[0]) {
       hasNavigatedRef.current = true;
-      const route = TAB_ROUTE_MAP[defaultTab];
-      if (route) {
-        router.replace(route);
+      const config = TAB_CONFIG[defaultTab];
+      if (config) {
+        const timer = setTimeout(() => {
+          router.replace(config.route as '/' | '/explore' | '/downloads' | '/settings');
+        }, 0);
+        return () => clearTimeout(timer);
       }
     }
-  }, [defaultTab]);
+  }, [defaultTab, validTabOrder]);
 
   return (
     <Tabs
       screenOptions={{ headerShown: false }}
-      tabBar={(props) => <CustomTabBar {...props} />}
+      tabBar={(props) => <CustomTabBar {...props} tabOrder={validTabOrder} />}
     >
-      <Tabs.Screen name="index" options={{ title: 'Library' }} />
-      <Tabs.Screen name="explore" options={{ title: 'Explore' }} />
-      <Tabs.Screen name="downloads" options={{ title: 'Downloads' }} />
-      <Tabs.Screen name="settings" options={{ title: 'Settings' }} />
+      {validTabOrder.map((tabId) => (
+        <Tabs.Screen
+          key={tabId}
+          name={tabId}
+          options={{ title: TAB_CONFIG[tabId].label }}
+        />
+      ))}
     </Tabs>
   );
 }
 
-const DOWNLOADS_TAB_INDEX = 2;
+interface CustomTabBarProps extends BottomTabBarProps {
+  tabOrder: TabId[];
+}
 
-function CustomTabBar({ state, navigation }: BottomTabBarProps) {
+function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const { hasActiveDownloads } = useDownloadQueue();
@@ -80,13 +108,22 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
 
   const indicatorX = useSharedValue(state.index * TAB_WIDTH + (TAB_WIDTH - INDICATOR_WIDTH) / 2);
 
+  useEffect(() => {
+    const newX = state.index * TAB_WIDTH + (TAB_WIDTH - INDICATOR_WIDTH) / 2;
+    indicatorX.value = withSpring(newX, {
+      damping: 25,
+      stiffness: 180,
+      mass: 0.5,
+    });
+  }, [state.index]);
+
   const animatedIndicatorStyle = useAnimatedStyle(() => {
     return {
       transform: [{ translateX: indicatorX.value }],
     };
   });
 
-  const handleTabPress = (index: number, routeName: string) => {
+  const handleTabPress = useCallback((index: number, routeName: string) => {
     const newX = index * TAB_WIDTH + (TAB_WIDTH - INDICATOR_WIDTH) / 2;
     indicatorX.value = withSpring(newX, {
       damping: 25,
@@ -103,7 +140,7 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
     if (!event.defaultPrevented) {
       navigation.navigate(routeName);
     }
-  };
+  }, [navigation, state.routes]);
 
   return (
     <View
@@ -117,7 +154,6 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
       ]}
     >
       <View style={styles.tabsContainer}>
-        {/* Sliding indicator */}
         <Animated.View
           style={[
             styles.indicator,
@@ -126,12 +162,12 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
           ]}
         />
 
-        {/* Tab buttons */}
         {state.routes.map((route, index) => {
+          const tabId = tabOrder[index];
+          const config = TAB_CONFIG[tabId];
           const isFocused = state.index === index;
-          const IconComponent = TAB_ICONS[index];
-          const label = TAB_LABELS[index];
-          const showNotificationDot = index === DOWNLOADS_TAB_INDEX && hasActiveDownloads;
+          const IconComponent = config.icon;
+          const showNotificationDot = tabId === 'downloads' && hasActiveDownloads;
 
           return (
             <Pressable
@@ -161,7 +197,7 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
                   { color: isFocused ? colors.primary : colors.onSurfaceVariant },
                 ]}
               >
-                {label}
+                {config.label}
               </Text>
             </Pressable>
           );

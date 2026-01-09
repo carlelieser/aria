@@ -4,11 +4,11 @@
  * Bottom sheet menu using @gorhom/bottom-sheet with M3 theming.
  */
 
-import React, { forwardRef, useCallback, useMemo } from 'react';
+import React, { forwardRef, useCallback } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import BottomSheet, {
   BottomSheetBackdrop,
-  BottomSheetScrollView,
+  BottomSheetView,
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet';
 import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
@@ -44,8 +44,6 @@ interface ActionSheetProps {
 export const ActionSheet = forwardRef<BottomSheetMethods, ActionSheetProps>(
   function ActionSheet({ groups, onSelect, onDismiss, header, portalName }, ref) {
     const { colors } = useAppTheme();
-
-    const snapPoints = useMemo(() => ['75%'], []);
 
     const handleSheetChanges = useCallback(
       (index: number) => {
@@ -84,7 +82,7 @@ export const ActionSheet = forwardRef<BottomSheetMethods, ActionSheetProps>(
         <BottomSheet
           ref={ref}
           index={-1}
-          snapPoints={snapPoints}
+          enableDynamicSizing
           enablePanDownToClose
           backdropComponent={renderBackdrop}
           onChange={handleSheetChanges}
@@ -97,7 +95,7 @@ export const ActionSheet = forwardRef<BottomSheetMethods, ActionSheetProps>(
             { backgroundColor: colors.outlineVariant },
           ]}
         >
-          <BottomSheetScrollView style={styles.contentContainer}>
+          <BottomSheetView style={styles.contentContainer}>
             {header && <View style={styles.header}>{header}</View>}
 
             <Divider style={{ backgroundColor: colors.outlineVariant }} />
@@ -121,7 +119,7 @@ export const ActionSheet = forwardRef<BottomSheetMethods, ActionSheetProps>(
             ))}
 
             <View style={styles.bottomPadding} />
-          </BottomSheetScrollView>
+          </BottomSheetView>
         </BottomSheet>
       </Portal>
     );
@@ -189,11 +187,10 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   contentContainer: {
-    paddingHorizontal: 8,
   },
   header: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
   },
   separator: {
     marginVertical: 8,
@@ -210,7 +207,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
   },
   iconWrapper: {
     width: 24,

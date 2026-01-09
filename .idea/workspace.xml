@@ -5,18 +5,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ed9a7930-ba4a-4932-8e16-66d000dad205" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/app.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CLAUDE.md" beforeDir="false" afterPath="$PROJECT_DIR$/CLAUDE.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(tabs)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(tabs)/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(tabs)/downloads.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(tabs)/downloads.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(tabs)/explore.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(tabs)/explore.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(tabs)/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(tabs)/settings.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(tabs)/settings.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/_layout.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/album/[id].tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/album/[id].tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/artist/[id].tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/artist/[id].tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/downloads.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/index.tsx" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/app/player.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/player.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/playlist-picker.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/playlist-picker.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/plugins.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/plugins.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/search.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/settings.tsx" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/assets/icon.svg" beforeDir="false" afterPath="$PROJECT_DIR$/assets/icon.svg" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/assets/images/android-icon-background.png" beforeDir="false" afterPath="$PROJECT_DIR$/assets/images/android-icon-background.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/assets/images/android-icon-foreground.png" beforeDir="false" afterPath="$PROJECT_DIR$/assets/images/android-icon-foreground.png" afterDir="false" />
@@ -24,57 +24,19 @@
       <change beforePath="$PROJECT_DIR$/assets/images/favicon.png" beforeDir="false" afterPath="$PROJECT_DIR$/assets/images/favicon.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/assets/images/icon.png" beforeDir="false" afterPath="$PROJECT_DIR$/assets/images/icon.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/assets/images/splash-icon.png" beforeDir="false" afterPath="$PROJECT_DIR$/assets/images/splash-icon.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/babel.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/babel.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/download-indicator.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/download-indicator.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/download-progress-bar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/download-progress-bar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/floating-player/floating-player.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/floating-player/floating-player.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/floating-player/floating-progress-bar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/floating-player/floating-progress-bar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/library/active-filters-bar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/library/active-filters-bar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/library/filter-chip.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/library/filter-chip.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/library/filter-section.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/library/filter-section.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/library/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/components/library/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/library/library-search-bar.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/library/library-sort-filter-sheet.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/library/library-sort-filter-sheet.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/library/sort-filter-fab.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/library/sort-filter-fab.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/library/sort-section.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/library/sort-section.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/player-controls.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/player-controls.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/progress-bar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/progress-bar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/responsive-list-item.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/responsive-list-item.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/skeletons/artist-item-skeleton.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/skeletons/artist-item-skeleton.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/skeletons/player-skeleton.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/skeletons/player-skeleton.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/skeletons/playlist-item-skeleton.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/skeletons/playlist-item-skeleton.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/skeletons/plugin-item-skeleton.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/skeletons/plugin-item-skeleton.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/skeletons/track-list-item-skeleton.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/skeletons/track-list-item-skeleton.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/themed-text.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/themed-view.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/selectable-track-list-item.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/selectable-track-list-item.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/track-card.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/track-card.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/track-list-item.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/track-list-item.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/track-options-menu/track-options-menu.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/track-options-menu/track-options-menu.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/ui/action-sheet.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/action-sheet.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/ui/button.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/button.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/ui/dropdown-menu.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/dropdown-menu.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/ui/icon.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/icon.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/ui/input.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/input.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/ui/native-only-animated-view.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/ui/skeleton.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/skeleton.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/ui/text.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/text.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/ui/toast.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/toast.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/constants/theme.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/global.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/hooks/use-color-scheme.ts" beforeDir="false" afterPath="$PROJECT_DIR$/hooks/use-color-scheme.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hooks/use-theme-color.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/theme.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/utils.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/metro.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/metro.config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hooks/use-player.ts" beforeDir="false" afterPath="$PROJECT_DIR$/hooks/use-player.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/theme/dynamic-theme.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/theme/dynamic-theme.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/application/services/download-service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/application/services/download-service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/application/state/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/application/state/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/application/state/library-store.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/application/state/library-store.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/infrastructure/filesystem/download-manager.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/infrastructure/filesystem/download-manager.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/plugins/metadata/youtube-music/streaming.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/plugins/metadata/youtube-music/streaming.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tailwind.config.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/tsconfig.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/application/bootstrap.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/application/bootstrap.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/application/state/settings-store.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/application/state/settings-store.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/plugins/metadata/youtube-music/mappers.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/plugins/metadata/youtube-music/mappers.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/plugins/metadata/youtube-music/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/plugins/metadata/youtube-music/types.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -83,6 +45,9 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="PackageJsonUpdateNotifier">
+    <dismissed value="$PROJECT_DIR$/package.json" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
@@ -133,7 +98,7 @@
       <workItem from="1767907019002" duration="24000" />
       <workItem from="1767907052424" duration="14584000" />
       <workItem from="1767924196037" duration="16010000" />
-      <workItem from="1767940369067" duration="16398000" />
+      <workItem from="1767940369067" duration="23948000" />
     </task>
     <servers />
   </component>

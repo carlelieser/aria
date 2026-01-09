@@ -6,8 +6,10 @@
  * purple/violet seed color on other platforms.
  */
 
+import { useEffect, useRef } from 'react';
 import { useMaterial3Theme } from '@pchmn/expo-material3-theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAccentColor } from '@/src/application/state/settings-store';
 import {
   MD3DarkTheme,
   MD3LightTheme,
@@ -67,10 +69,32 @@ const { LightTheme: AdaptedLightTheme, DarkTheme: AdaptedDarkTheme } =
 export function useDynamicTheme() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const accentColor = useAccentColor();
 
   const { theme: dynamicTheme, updateTheme, resetTheme } = useMaterial3Theme({
-    fallbackSourceColor: SEED_COLOR,
+    fallbackSourceColor: accentColor ?? SEED_COLOR,
   });
+
+  // Track previous accent color to avoid unnecessary updates
+  const prevAccentColorRef = useRef<string | null | undefined>(undefined);
+
+  // Update theme when accent color changes
+  useEffect(() => {
+    // Skip if accent color hasn't changed
+    if (prevAccentColorRef.current === accentColor) {
+      return;
+    }
+    prevAccentColorRef.current = accentColor;
+
+    if (accentColor) {
+      updateTheme(accentColor);
+    } else {
+      resetTheme();
+    }
+    // updateTheme and resetTheme are not stable references, so we intentionally
+    // omit them and use a ref to track changes instead
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accentColor]);
 
   // Use dynamic colors if available, otherwise fall back to static palette
   const colors = dynamicTheme

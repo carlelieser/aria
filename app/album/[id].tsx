@@ -6,13 +6,17 @@
  */
 
 import { useEffect } from 'react';
-import { View, ScrollView, Image, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ScrollView, Image, StyleSheet } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeftIcon, DiscIcon, SearchIcon } from 'lucide-react-native';
 import { Text, IconButton, Button } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
 import { TrackListItem } from '@/components/track-list-item';
+import {
+  AlbumHeaderSkeleton,
+  AlbumTrackListSkeleton,
+} from '@/components/skeletons/album-screen-skeleton';
 import { useTracks } from '@/src/application/state/library-store';
 import {
   useAlbumDetail,
@@ -70,6 +74,9 @@ export default function AlbumScreen() {
       }
     : getAlbumInfo(libraryTracks, id, name);
 
+  const hasData = albumDetail.album !== null || libraryTracks.length > 0;
+  const showHeaderSkeleton = isLoading && !hasData;
+
   const handleSearchAlbum = () => {
     router.push({
       pathname: '/explore',
@@ -97,34 +104,42 @@ export default function AlbumScreen() {
         </View>
 
         <View style={styles.albumInfo}>
-          {albumInfo.artwork ? (
-            <Image source={{ uri: albumInfo.artwork }} style={styles.albumArtwork} />
+          {showHeaderSkeleton ? (
+            <AlbumHeaderSkeleton />
           ) : (
-            <View style={[styles.albumArtwork, { backgroundColor: colors.surfaceContainerHighest }]}>
-              <Icon as={DiscIcon} size={64} color={colors.onSurfaceVariant} />
-            </View>
+            <>
+              {albumInfo.artwork ? (
+                <Image source={{ uri: albumInfo.artwork }} style={styles.albumArtwork} />
+              ) : (
+                <View
+                  style={[styles.albumArtwork, { backgroundColor: colors.surfaceContainerHighest }]}
+                >
+                  <Icon as={DiscIcon} size={64} color={colors.onSurfaceVariant} />
+                </View>
+              )}
+              <View style={styles.albumText}>
+                <Text
+                  variant="headlineSmall"
+                  style={{ color: colors.onSurface, fontWeight: '700', textAlign: 'center' }}
+                >
+                  {albumInfo.name}
+                </Text>
+                <Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant }}>
+                  {albumInfo.artists}
+                </Text>
+                <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
+                  {displayTracks.length} {displayTracks.length === 1 ? 'track' : 'tracks'}
+                </Text>
+              </View>
+              <Button
+                mode="outlined"
+                icon={() => <Icon as={SearchIcon} size={16} color={colors.primary} />}
+                onPress={handleSearchAlbum}
+              >
+                Search for more
+              </Button>
+            </>
           )}
-          <View style={styles.albumText}>
-            <Text
-              variant="headlineSmall"
-              style={{ color: colors.onSurface, fontWeight: '700', textAlign: 'center' }}
-            >
-              {albumInfo.name}
-            </Text>
-            <Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant }}>
-              {albumInfo.artists}
-            </Text>
-            <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
-              {displayTracks.length} {displayTracks.length === 1 ? 'track' : 'tracks'}
-            </Text>
-          </View>
-          <Button
-            mode="outlined"
-            icon={() => <Icon as={SearchIcon} size={16} color={colors.primary} />}
-            onPress={handleSearchAlbum}
-          >
-            Search for more
-          </Button>
         </View>
       </View>
 
@@ -132,12 +147,7 @@ export default function AlbumScreen() {
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 80 }]}
       >
         {isLoading ? (
-          <View style={styles.loadingState}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant, marginTop: 16 }}>
-              Loading album tracks...
-            </Text>
-          </View>
+          <AlbumTrackListSkeleton />
         ) : error ? (
           <View style={styles.emptyState}>
             <Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant, textAlign: 'center' }}>
@@ -157,8 +167,15 @@ export default function AlbumScreen() {
             </Button>
           </View>
         ) : (
-          displayTracks.map((track) => (
-            <TrackListItem key={track.id.value} track={track} source="search" />
+          displayTracks.map((track, index) => (
+            <TrackListItem
+              key={track.id.value}
+              track={track}
+              source="search"
+              fallbackArtworkUrl={albumInfo.artwork}
+              queue={displayTracks}
+              queueIndex={index}
+            />
           ))
         )}
       </ScrollView>
@@ -204,10 +221,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     gap: 8,
-  },
-  loadingState: {
-    paddingVertical: 48,
-    alignItems: 'center',
   },
   emptyState: {
     paddingVertical: 48,

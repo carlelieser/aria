@@ -14,7 +14,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "build:android:dev": "eas build --platform android --profile development"
+    "build:android": "eas build --platform android --profile production --local --output out/aria.apk"
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
@@ -28,6 +28,7 @@
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
     "@rn-primitives/portal": "^1.3.0",
+    "@shopify/flash-list": "2.0.2",
     "event-target-shim": "^6.0.2",
     "expo": "~54.0.31",
     "expo-asset": "~12.0.12",

@@ -28,6 +28,10 @@ interface SelectableTrackListItemProps {
 	isSelected: boolean;
 	onLongPress: (track: Track) => void;
 	onSelectionToggle: (track: Track) => void;
+	/** Queue of tracks for skip next/previous functionality */
+	queue?: Track[];
+	/** Index of this track in the queue */
+	queueIndex?: number;
 }
 
 export const SelectableTrackListItem = memo(function SelectableTrackListItem({
@@ -37,6 +41,8 @@ export const SelectableTrackListItem = memo(function SelectableTrackListItem({
 	isSelected,
 	onLongPress,
 	onSelectionToggle,
+	queue,
+	queueIndex,
 }: SelectableTrackListItemProps) {
 	const { colors } = useAppTheme();
 
@@ -92,6 +98,8 @@ export const SelectableTrackListItem = memo(function SelectableTrackListItem({
 					onPress={isSelectionMode ? handlePress : undefined}
 					onLongPress={!isSelectionMode ? handleLongPress : undefined}
 					hideOptionsMenu={isSelectionMode}
+					queue={queue}
+					queueIndex={queueIndex}
 				/>
 			</View>
 		</View>

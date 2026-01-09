@@ -6,7 +6,8 @@
  */
 
 import { useState, useMemo, useCallback } from 'react';
-import { View, FlatList, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
 import { Text, IconButton, SegmentedButtons, Portal, Dialog, Button } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
@@ -55,7 +56,7 @@ export default function DownloadsScreen() {
   const [selectedTab, setSelectedTab] = useState<TabType>('active');
   const [clearDialogVisible, setClearDialogVisible] = useState(false);
   const { success, error } = useToast();
-  const { play } = usePlayer();
+  const { playQueue } = usePlayer();
   const { colors } = useAppTheme();
 
   const { activeDownloads, completedDownloads, failedDownloads, stats } = useDownloadQueue();
@@ -87,14 +88,19 @@ export default function DownloadsScreen() {
     }
   }, [selectedTab, activeDownloads, completedDownloads, failedDownloads]);
 
+  const completedTracks = useMemo(
+    () => completedDownloads.map(createTrackFromDownloadInfo),
+    [completedDownloads]
+  );
+
   const handleTrackPress = useCallback(
-    (track: Track) => {
+    (track: Track, index: number) => {
       if (selectedTab === 'completed') {
         router.push('/player');
-        play(track);
+        playQueue(completedTracks, index);
       }
     },
-    [selectedTab, play]
+    [selectedTab, playQueue, completedTracks]
   );
 
   const getEmptyMessage = () => {
@@ -158,21 +164,25 @@ export default function DownloadsScreen() {
         {currentList.length === 0 ? (
           <EmptyState icon={DownloadIcon} {...getEmptyMessage()} />
         ) : (
-          <FlatList
+          <FlashList
             data={currentList}
             keyExtractor={(item) => item.trackId}
-            renderItem={({ item }) => (
-              <TrackListItem
-                track={createTrackFromDownloadInfo(item)}
-                downloadInfo={item}
-                onPress={selectedTab === 'completed' ? handleTrackPress : undefined}
-              />
-            )}
-            getItemLayout={(_, index) => ({
-              length: DOWNLOAD_ITEM_HEIGHT,
-              offset: DOWNLOAD_ITEM_HEIGHT * index,
-              index,
-            })}
+            renderItem={({ item, index }) => {
+              const track = createTrackFromDownloadInfo(item);
+              return (
+                <TrackListItem
+                  track={track}
+                  downloadInfo={item}
+                  onPress={
+                    selectedTab === 'completed'
+                      ? () => handleTrackPress(track, index)
+                      : undefined
+                  }
+                  queue={selectedTab === 'completed' ? completedTracks : undefined}
+                  queueIndex={selectedTab === 'completed' ? index : undefined}
+                />
+              );
+            }}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 20 }}
           />

@@ -5,7 +5,8 @@
  * Uses M3 theming.
  */
 
-import { View, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { Text, SegmentedButtons } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
 import { PageLayout } from '@/components/page-layout';
@@ -14,7 +15,6 @@ import {
   MusicIcon,
   ListMusicIcon,
   UsersIcon,
-  LibraryIcon,
 } from 'lucide-react-native';
 import { useState, useRef, useCallback, memo } from 'react';
 import { Image } from 'expo-image';
@@ -91,7 +91,7 @@ export default function HomeScreen() {
   ];
 
   return (
-    <PageLayout header={{ icon: LibraryIcon, title: 'Library', showBorder: false }}>
+    <PageLayout header={{ icon: MusicIcon, title: 'Library', showBorder: false }}>
       <View style={styles.tabsRow}>
         <SegmentedButtons
           value={selected}
@@ -179,15 +179,12 @@ function SongsList({
   }
 
   return (
-    <FlatList
+    <FlashList
       data={tracks}
       keyExtractor={(item) => item.id.value}
-      renderItem={({ item }) => <TrackListItem track={item} />}
-      getItemLayout={(_, index) => ({
-        length: TRACK_ITEM_HEIGHT,
-        offset: TRACK_ITEM_HEIGHT * index,
-        index,
-      })}
+      renderItem={({ item, index }) => (
+        <TrackListItem track={item} queue={tracks} queueIndex={index} />
+      )}
       showsVerticalScrollIndicator={false}
     />
   );
@@ -215,15 +212,10 @@ function PlaylistsList({
   }
 
   return (
-    <FlatList
+    <FlashList
       data={playlists}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => <PlaylistItem playlist={item} />}
-      getItemLayout={(_, index) => ({
-        length: PLAYLIST_ITEM_HEIGHT,
-        offset: PLAYLIST_ITEM_HEIGHT * index,
-        index,
-      })}
       showsVerticalScrollIndicator={false}
     />
   );
@@ -251,15 +243,10 @@ function ArtistsList({
   }
 
   return (
-    <FlatList
+    <FlashList
       data={artists}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => <ArtistItem artist={item} />}
-      getItemLayout={(_, index) => ({
-        length: ARTIST_ITEM_HEIGHT,
-        offset: ARTIST_ITEM_HEIGHT * index,
-        index,
-      })}
       showsVerticalScrollIndicator={false}
     />
   );
