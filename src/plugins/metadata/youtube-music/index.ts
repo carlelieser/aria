@@ -1,9 +1,3 @@
-/**
- * YouTube Music Plugin
- *
- * Barrel export for the YouTube Music metadata provider plugin
- */
-
 import { createYouTubeMusicProvider } from './youtube-music-provider';
 import type { YouTubeMusicConfig } from './config';
 import { getLogger } from '@shared/services/logger';
@@ -15,29 +9,22 @@ export * from './youtube-music-provider';
 
 const logger = getLogger('YouTubeMusic');
 
-/**
- * Singleton instance for convenience
- */
 let defaultInstance: ReturnType<typeof createYouTubeMusicProvider> | null = null;
 
-/**
- * Get or create the default YouTube Music provider instance
- */
-export function getYouTubeMusicProvider(config?: YouTubeMusicConfig): ReturnType<typeof createYouTubeMusicProvider> {
-  if (!defaultInstance) {
-    defaultInstance = createYouTubeMusicProvider(config);
-  }
-  return defaultInstance;
+export function getYouTubeMusicProvider(
+	config?: YouTubeMusicConfig
+): ReturnType<typeof createYouTubeMusicProvider> {
+	if (!defaultInstance) {
+		defaultInstance = createYouTubeMusicProvider(config);
+	}
+	return defaultInstance;
 }
 
-/**
- * Reset the default instance (useful for testing or reconfiguration)
- */
 export function resetYouTubeMusicProvider(): void {
-  if (defaultInstance) {
-    defaultInstance.onDestroy().catch((error) => {
-      logger.error('Failed to destroy provider', error instanceof Error ? error : undefined);
-    });
-    defaultInstance = null;
-  }
+	if (defaultInstance) {
+		defaultInstance.onDestroy().catch((error) => {
+			logger.error('Failed to destroy provider', error instanceof Error ? error : undefined);
+		});
+		defaultInstance = null;
+	}
 }

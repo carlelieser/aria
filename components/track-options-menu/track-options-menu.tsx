@@ -15,110 +15,104 @@ import { useTrackActions } from '@/hooks/use-track-actions';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import { getArtistNames } from '@/src/domain/entities/track';
 
+type Orientation = 'vertical' | 'horizontal';
+
 interface TrackOptionsMenuProps {
-  /** The track to show options for */
-  track: Track;
-  /** Where the menu was opened from */
-  source: TrackActionSource;
-  /** Additional class name for the trigger button */
-  triggerClassName?: string;
+	track: Track;
+	source: TrackActionSource;
+	triggerClassName?: string;
+	orientation?: Orientation;
 }
 
-/**
- * Look up a Lucide icon component by name
- */
 function getIconComponent(iconName: string): LucideIcon {
-  const icons = LucideIcons as unknown as Record<string, LucideIcon>;
-  return icons[iconName] || LucideIcons.Circle;
+	const icons = LucideIcons as unknown as Record<string, LucideIcon>;
+	return icons[iconName] || LucideIcons.Circle;
 }
 
-/**
- * Bottom sheet menu for track options
- * Displays core actions + plugin-contributed actions grouped with separators
- */
 export function TrackOptionsMenu({
-  track,
-  source,
-  triggerClassName,
+	track,
+	source,
+	triggerClassName,
+	orientation = 'vertical',
 }: TrackOptionsMenuProps) {
-  const bottomSheetRef = useRef<BottomSheetMethods>(null);
-  const { actions, executeAction } = useTrackActions({ track, source });
+	const bottomSheetRef = useRef<BottomSheetMethods>(null);
+	const { actions, executeAction } = useTrackActions({ track, source });
 
-  // Convert actions to ActionSheetGroup format
-  const groups = useMemo<ActionSheetGroup[]>(() => {
-    const groupMap = new Map<string, typeof actions>();
+	const groups = useMemo<ActionSheetGroup[]>(() => {
+		const groupMap = new Map<string, typeof actions>();
 
-    for (const action of actions) {
-      const group = groupMap.get(action.group) || [];
-      group.push(action);
-      groupMap.set(action.group, group);
-    }
+		for (const action of actions) {
+			const group = groupMap.get(action.group) || [];
+			group.push(action);
+			groupMap.set(action.group, group);
+		}
 
-    return ACTION_GROUP_ORDER
-      .filter((groupName) => groupMap.has(groupName))
-      .map((groupName) => ({
-        items: groupMap.get(groupName)!.map((action) => ({
-          id: action.id,
-          label: action.label,
-          icon: getIconComponent(action.icon),
-          variant: action.variant,
-          disabled: !action.enabled,
-          checked: action.checked,
-        })),
-      }));
-  }, [actions]);
+		return ACTION_GROUP_ORDER.filter((groupName) => groupMap.has(groupName)).map(
+			(groupName) => ({
+				items: groupMap.get(groupName)!.map((action) => ({
+					id: action.id,
+					label: action.label,
+					icon: getIconComponent(action.icon),
+					variant: action.variant,
+					disabled: !action.enabled,
+					checked: action.checked,
+				})),
+			})
+		);
+	}, [actions]);
 
-  const handleOpen = useCallback(() => {
-    bottomSheetRef.current?.snapToIndex(0);
-  }, []);
+	const handleOpen = useCallback(() => {
+		bottomSheetRef.current?.snapToIndex(0);
+	}, []);
 
-  const handleSelect = useCallback(
-    (itemId: string) => {
-      executeAction(itemId);
-    },
-    [executeAction]
-  );
+	const handleSelect = useCallback(
+		(itemId: string) => {
+			executeAction(itemId);
+		},
+		[executeAction]
+	);
 
-  // Track header for the action sheet
-  const artwork = getBestArtwork(track.artwork, 56);
-  const artistNames = getArtistNames(track);
+	const artwork = getBestArtwork(track.artwork, 56);
+	const artistNames = getArtistNames(track);
 
-  const header = (
-    <View className="flex-row items-center gap-3">
-      <Image
-        source={{ uri: artwork?.url }}
-        style={{ width: 48, height: 48, borderRadius: 8 }}
-        contentFit="cover"
-      />
-      <View className="flex-1">
-        <Text className="font-semibold" numberOfLines={1}>
-          {track.title}
-        </Text>
-        <Text variant="muted" className="text-sm" numberOfLines={1}>
-          {artistNames}
-        </Text>
-      </View>
-    </View>
-  );
+	const header = (
+		<View className="flex-row items-center gap-3">
+			<Image
+				source={{ uri: artwork?.url }}
+				style={{ width: 48, height: 48, borderRadius: 8 }}
+				contentFit="cover"
+			/>
+			<View className="flex-1">
+				<Text className="font-semibold" numberOfLines={1}>
+					{track.title}
+				</Text>
+				<Text variant="muted" className="text-sm" numberOfLines={1}>
+					{artistNames}
+				</Text>
+			</View>
+		</View>
+	);
 
-  return (
-    <>
-      <Button
-        variant="ghost"
-        size="icon"
-        className={triggerClassName}
-        onPress={handleOpen}
-      >
-        <Icon as={LucideIcons.MoreVertical} size={20} />
-      </Button>
+	return (
+		<>
+			<Button variant="ghost" size="icon" className={triggerClassName} onPress={handleOpen}>
+				<Icon
+					as={
+						orientation === 'horizontal'
+							? LucideIcons.MoreHorizontal
+							: LucideIcons.MoreVertical
+					}
+					size={20}
+				/>
+			</Button>
 
-      <ActionSheet
-        ref={bottomSheetRef}
-        groups={groups}
-        onSelect={handleSelect}
-        header={header}
-        portalName={track.id.value}
-      />
-    </>
-  );
+			<ActionSheet
+				ref={bottomSheetRef}
+				groups={groups}
+				onSelect={handleSelect}
+				header={header}
+				portalName={track.id.value}
+			/>
+		</>
+	);
 }

@@ -1,5 +1,5 @@
-import {createContext} from "react";
-import {MusicResponsiveListItem} from "@/node_modules/youtubei.js/dist/src/parser/nodes";
+import { createContext } from 'react';
+import { MusicResponsiveListItem } from '@/node_modules/youtubei.js/dist/src/parser/nodes';
 
 export interface AppContextType {
 	items: MusicResponsiveListItem[];
@@ -11,5 +11,5 @@ export interface AppContextType {
 export const AppContext = createContext<AppContextType>({
 	items: [],
 	playing: null,
-	setPlaying: () => {}
-})
+	setPlaying: () => {},
+});

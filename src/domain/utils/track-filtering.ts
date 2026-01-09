@@ -6,187 +6,146 @@ export type SortField = 'title' | 'artist' | 'dateAdded' | 'duration';
 export type SortDirection = 'asc' | 'desc';
 
 export interface LibraryFilters {
-  readonly artistIds: string[];
-  readonly albumIds: string[];
-  readonly favoritesOnly: boolean;
+	readonly artistIds: string[];
+	readonly albumIds: string[];
+	readonly favoritesOnly: boolean;
 }
 
 export const DEFAULT_FILTERS: LibraryFilters = {
-  artistIds: [],
-  albumIds: [],
-  favoritesOnly: false,
+	artistIds: [],
+	albumIds: [],
+	favoritesOnly: false,
 };
 
-/**
- * Sort tracks by the specified field and direction
- */
 export function sortTracks(
-  tracks: readonly Track[],
-  field: SortField,
-  direction: SortDirection
+	tracks: readonly Track[],
+	field: SortField,
+	direction: SortDirection
 ): Track[] {
-  const sorted = [...tracks].sort((a, b) => compareTracks(a, b, field));
-  return direction === 'desc' ? sorted.reverse() : sorted;
+	const sorted = [...tracks].sort((a, b) => compareTracks(a, b, field));
+	return direction === 'desc' ? sorted.reverse() : sorted;
 }
 
-/**
- * Compare two tracks by a specific field
- */
 export function compareTracks(a: Track, b: Track, field: SortField): number {
-  switch (field) {
-    case 'title':
-      return a.title.localeCompare(b.title);
-    case 'artist':
-      return getPrimaryArtistName(a).localeCompare(getPrimaryArtistName(b));
-    case 'dateAdded':
-      return compareDates(a.addedAt, b.addedAt);
-    case 'duration':
-      return a.duration.totalMilliseconds - b.duration.totalMilliseconds;
-    default:
-      return 0;
-  }
+	switch (field) {
+		case 'title':
+			return a.title.localeCompare(b.title);
+		case 'artist':
+			return getPrimaryArtistName(a).localeCompare(getPrimaryArtistName(b));
+		case 'dateAdded':
+			return compareDates(a.addedAt, b.addedAt);
+		case 'duration':
+			return a.duration.totalMilliseconds - b.duration.totalMilliseconds;
+		default:
+			return 0;
+	}
 }
 
 function getPrimaryArtistName(track: Track): string {
-  return track.artists[0]?.name ?? '';
+	return track.artists[0]?.name ?? '';
 }
 
 function compareDates(a: Date | undefined, b: Date | undefined): number {
-  if (!a && !b) return 0;
-  if (!a) return 1;
-  if (!b) return -1;
-  return a.getTime() - b.getTime();
+	if (!a && !b) return 0;
+	if (!a) return 1;
+	if (!b) return -1;
+	return a.getTime() - b.getTime();
 }
 
-/**
- * Filter tracks by search query and filters
- */
 export function filterTracks(
-  tracks: readonly Track[],
-  searchQuery: string,
-  filters: LibraryFilters,
-  favoriteIds: Set<string>
+	tracks: readonly Track[],
+	searchQuery: string,
+	filters: LibraryFilters,
+	favoriteIds: Set<string>
 ): Track[] {
-  const query = searchQuery.trim().toLowerCase();
+	const query = searchQuery.trim().toLowerCase();
 
-  return tracks.filter((track) => {
-    if (query && !matchesSearch(track, query)) {
-      return false;
-    }
-    return matchesFilters(track, filters, favoriteIds);
-  });
+	return tracks.filter((track) => {
+		if (query && !matchesSearch(track, query)) {
+			return false;
+		}
+		return matchesFilters(track, filters, favoriteIds);
+	});
 }
 
-/**
- * Check if a track matches the search query
- */
 export function matchesSearch(track: Track, query: string): boolean {
-  const lowerQuery = query.toLowerCase();
+	const lowerQuery = query.toLowerCase();
 
-  if (track.title.toLowerCase().includes(lowerQuery)) {
-    return true;
-  }
+	if (track.title.toLowerCase().includes(lowerQuery)) {
+		return true;
+	}
 
-  if (track.artists.some((a) => a.name.toLowerCase().includes(lowerQuery))) {
-    return true;
-  }
+	if (track.artists.some((a) => a.name.toLowerCase().includes(lowerQuery))) {
+		return true;
+	}
 
-  if (track.album?.name.toLowerCase().includes(lowerQuery)) {
-    return true;
-  }
+	if (track.album?.name.toLowerCase().includes(lowerQuery)) {
+		return true;
+	}
 
-  return false;
+	return false;
 }
 
-/**
- * Check if a track matches the active filters
- */
 export function matchesFilters(
-  track: Track,
-  filters: LibraryFilters,
-  favoriteIds: Set<string>
+	track: Track,
+	filters: LibraryFilters,
+	favoriteIds: Set<string>
 ): boolean {
-  if (filters.favoritesOnly && !favoriteIds.has(track.id.value)) {
-    return false;
-  }
+	if (filters.favoritesOnly && !favoriteIds.has(track.id.value)) {
+		return false;
+	}
 
-  if (filters.artistIds.length > 0) {
-    const trackArtistIds = track.artists.map((a) => a.id);
-    const hasMatchingArtist = filters.artistIds.some((id) =>
-      trackArtistIds.includes(id)
-    );
-    if (!hasMatchingArtist) {
-      return false;
-    }
-  }
+	if (filters.artistIds.length > 0) {
+		const trackArtistIds = track.artists.map((a) => a.id);
+		const hasMatchingArtist = filters.artistIds.some((id) => trackArtistIds.includes(id));
+		if (!hasMatchingArtist) {
+			return false;
+		}
+	}
 
-  if (filters.albumIds.length > 0) {
-    if (!track.album || !filters.albumIds.includes(track.album.id)) {
-      return false;
-    }
-  }
+	if (filters.albumIds.length > 0) {
+		if (!track.album || !filters.albumIds.includes(track.album.id)) {
+			return false;
+		}
+	}
 
-  return true;
+	return true;
 }
 
-/**
- * Check if any filters are active
- */
 export function hasActiveFilters(filters: LibraryFilters): boolean {
-  return (
-    filters.favoritesOnly ||
-    filters.artistIds.length > 0 ||
-    filters.albumIds.length > 0
-  );
+	return filters.favoritesOnly || filters.artistIds.length > 0 || filters.albumIds.length > 0;
 }
 
-/**
- * Count the number of active filters
- */
 export function countActiveFilters(filters: LibraryFilters): number {
-  let count = 0;
-  if (filters.favoritesOnly) count += 1;
-  count += filters.artistIds.length;
-  count += filters.albumIds.length;
-  return count;
+	let count = 0;
+	if (filters.favoritesOnly) count += 1;
+	count += filters.artistIds.length;
+	count += filters.albumIds.length;
+	return count;
 }
 
-/**
- * Extract unique artists from tracks
- */
-export function extractUniqueArtists(
-  tracks: readonly Track[]
-): ArtistReference[] {
-  const artistMap = new Map<string, ArtistReference>();
+export function extractUniqueArtists(tracks: readonly Track[]): ArtistReference[] {
+	const artistMap = new Map<string, ArtistReference>();
 
-  for (const track of tracks) {
-    for (const artist of track.artists) {
-      if (!artistMap.has(artist.id)) {
-        artistMap.set(artist.id, artist);
-      }
-    }
-  }
+	for (const track of tracks) {
+		for (const artist of track.artists) {
+			if (!artistMap.has(artist.id)) {
+				artistMap.set(artist.id, artist);
+			}
+		}
+	}
 
-  return Array.from(artistMap.values()).sort((a, b) =>
-    a.name.localeCompare(b.name)
-  );
+	return Array.from(artistMap.values()).sort((a, b) => a.name.localeCompare(b.name));
 }
 
-/**
- * Extract unique albums from tracks
- */
-export function extractUniqueAlbums(
-  tracks: readonly Track[]
-): AlbumReference[] {
-  const albumMap = new Map<string, AlbumReference>();
+export function extractUniqueAlbums(tracks: readonly Track[]): AlbumReference[] {
+	const albumMap = new Map<string, AlbumReference>();
 
-  for (const track of tracks) {
-    if (track.album && !albumMap.has(track.album.id)) {
-      albumMap.set(track.album.id, track.album);
-    }
-  }
+	for (const track of tracks) {
+		if (track.album && !albumMap.has(track.album.id)) {
+			albumMap.set(track.album.id, track.album);
+		}
+	}
 
-  return Array.from(albumMap.values()).sort((a, b) =>
-    a.name.localeCompare(b.name)
-  );
+	return Array.from(albumMap.values()).sort((a, b) => a.name.localeCompare(b.name));
 }

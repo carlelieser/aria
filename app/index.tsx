@@ -1,56 +1,60 @@
-import { View, FlatList, TouchableOpacity } from "react-native";
+import { View, FlatList, TouchableOpacity } from 'react-native';
 import { Icon } from '@/components/ui/icon';
-import { Text } from "@/components/ui/text";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Button } from "@/components/ui/button";
+import { Text } from '@/components/ui/text';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Button } from '@/components/ui/button';
 import {
 	CompassIcon,
 	MusicIcon,
 	ListMusicIcon,
 	UsersIcon,
 	SettingsIcon,
-	type LucideIcon
-} from "lucide-react-native";
-import { router } from "expo-router";
-import { useState, useMemo, useRef, useCallback } from "react";
-import { Image } from "expo-image";
-import { useTracks, usePlaylists, useIsLibraryLoading } from "@/src/application/state/library-store";
-import { TrackListItem } from "@/components/track-list-item";
+	DownloadIcon,
+	type LucideIcon,
+} from 'lucide-react-native';
+import { router } from 'expo-router';
+import { useState, useMemo, useRef, useCallback, memo } from 'react';
+import { Image } from 'expo-image';
+import {
+	useTracks,
+	usePlaylists,
+	useIsLibraryLoading,
+	useUniqueArtists,
+	type UniqueArtist,
+} from '@/src/application/state/library-store';
+import { TrackListItem } from '@/components/track-list-item';
 import {
 	TrackListSkeleton,
 	PlaylistListSkeleton,
 	ArtistListSkeleton,
-} from "@/components/skeletons";
+} from '@/components/skeletons';
 import {
 	LibrarySearchBar,
 	ActiveFiltersBar,
 	SortFilterFAB,
 	LibrarySortFilterSheet,
-} from "@/components/library";
-import { useLibraryFilter } from "@/hooks/use-library-filter";
-import { useUniqueFilterOptions } from "@/hooks/use-unique-filter-options";
-import type { Track } from "@/src/domain/entities/track";
-import type { Playlist } from "@/src/domain/entities/playlist";
-import type { BottomSheetMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
+} from '@/components/library';
+import { useLibraryFilter } from '@/hooks/use-library-filter';
+import { useUniqueFilterOptions } from '@/hooks/use-unique-filter-options';
+import type { Track } from '@/src/domain/entities/track';
+import type { Playlist } from '@/src/domain/entities/playlist';
+import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 
-const chips = ["playlists", "artists", "songs"] as const;
-type ChipType = typeof chips[number];
+const chips = ['playlists', 'artists', 'songs'] as const;
+type ChipType = (typeof chips)[number];
 
-interface UniqueArtist {
-	id: string;
-	name: string;
-	trackCount: number;
-	artworkUrl?: string;
-}
+const TRACK_ITEM_HEIGHT = 80;
+const PLAYLIST_ITEM_HEIGHT = 88;
+const ARTIST_ITEM_HEIGHT = 88;
 
 export default function HomeScreen() {
-	const [selected, setSelected] = useState<ChipType>("playlists");
+	const [selected, setSelected] = useState<ChipType>('playlists');
+	const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 	const allTracks = useTracks();
 	const playlists = usePlaylists();
 	const isLoading = useIsLibraryLoading();
 	const sheetRef = useRef<BottomSheetMethods>(null);
 
-	// Library filter hook for songs
 	const {
 		tracks: filteredTracks,
 		searchQuery,
@@ -69,54 +73,31 @@ export default function HomeScreen() {
 		clearAll,
 	} = useLibraryFilter();
 
-	// Get unique artists and albums for filter picker
 	const { artists: filterArtists, albums: filterAlbums } = useUniqueFilterOptions(allTracks);
 
-	// Extract unique artists from tracks for display
-	const artists = useMemo<UniqueArtist[]>(() => {
-		const artistMap = new Map<string, UniqueArtist>();
-
-		allTracks.forEach(track => {
-			track.artists.forEach(artist => {
-				const existing = artistMap.get(artist.id);
-				if (existing) {
-					existing.trackCount += 1;
-				} else {
-					const artworkUrl = track.artwork?.[0]?.url;
-					artistMap.set(artist.id, {
-						id: artist.id,
-						name: artist.name,
-						trackCount: 1,
-						artworkUrl,
-					});
-				}
-			});
-		});
-
-		return Array.from(artistMap.values()).sort((a, b) =>
-			a.name.localeCompare(b.name)
-		);
-	}, [allTracks]);
+	const artists = useUniqueArtists();
 
 	const handleSettingsPress = () => {
-		router.navigate("/settings" as const);
+		router.navigate('/settings' as const);
 	};
 
 	const handleOpenFilterSheet = useCallback(() => {
 		sheetRef.current?.snapToIndex(0);
 	}, []);
 
-	const isSongsTab = selected === "songs";
+	const handleToggleSearch = useCallback(() => {
+		setIsSearchExpanded((prev) => !prev);
+	}, []);
+
+	const isSongsTab = selected === 'songs';
 	const showActiveFilters = isSongsTab && hasFilters;
 
-	// Filter playlists by search query
 	const filteredPlaylists = useMemo(() => {
 		if (!searchQuery.trim()) return playlists;
 		const query = searchQuery.toLowerCase();
 		return playlists.filter((p) => p.name.toLowerCase().includes(query));
 	}, [playlists, searchQuery]);
 
-	// Filter artists by search query
 	const filteredArtists = useMemo(() => {
 		if (!searchQuery.trim()) return artists;
 		const query = searchQuery.toLowerCase();
@@ -124,41 +105,52 @@ export default function HomeScreen() {
 	}, [artists, searchQuery]);
 
 	return (
-		<SafeAreaView className={"bg-background flex-1"}>
+		<SafeAreaView className={'bg-background flex-1'}>
 			{/* Header */}
-			<View className={"flex-row items-center justify-between p-4"}>
+			<View className={'flex-row items-center justify-between p-4'}>
 				<Text className="text-2xl font-bold">Library</Text>
-				<View className={"flex-row gap-1"}>
-					<Button variant={"ghost"} size={"icon"} onPress={() => router.navigate("/search")}>
-						<Icon as={CompassIcon}/>
+				<View className={'flex-row gap-1'}>
+					<Button
+						variant={'ghost'}
+						size={'icon'}
+						onPress={() => router.navigate('/search')}
+					>
+						<Icon as={CompassIcon} />
 					</Button>
-					<Button variant={"ghost"} size={"icon"} onPress={handleSettingsPress}>
-						<Icon as={SettingsIcon}/>
+					<Button
+						variant={'ghost'}
+						size={'icon'}
+						onPress={() => router.navigate('/downloads')}
+					>
+						<Icon as={DownloadIcon} />
+					</Button>
+					<Button variant={'ghost'} size={'icon'} onPress={handleSettingsPress}>
+						<Icon as={SettingsIcon} />
 					</Button>
 				</View>
 			</View>
 
-			{/* Inline Search Bar */}
-			<View className="mb-2">
+			{/* Tabs row with search */}
+			<View className={'flex-row items-center justify-between px-4 mb-2'} style={{ zIndex: 10 }}>
+				<View className={'flex-row gap-2'}>
+					{chips.map((chip) => {
+						const variant = chip === selected ? 'default' : 'secondary';
+						return (
+							<Button key={chip} variant={variant} onPress={() => setSelected(chip)}>
+								<Text className={'capitalize'}>{chip}</Text>
+							</Button>
+						);
+					})}
+				</View>
 				<LibrarySearchBar
 					value={searchQuery}
 					onChangeText={setSearchQuery}
+					isExpanded={isSearchExpanded}
+					onToggle={handleToggleSearch}
 				/>
 			</View>
 
-			{/* Filter Chips */}
-			<View className={"flex-row gap-2 px-4 mb-2"}>
-				{chips.map((chip) => {
-					const variant = chip === selected ? 'default' : 'secondary';
-					return (
-						<Button key={chip} variant={variant} onPress={() => setSelected(chip)}>
-							<Text className={"capitalize"}>{chip}</Text>
-						</Button>
-					);
-				})}
-			</View>
-
-			{/* Active Filters Bar */}
+			{}
 			{showActiveFilters && (
 				<View className="mb-2">
 					<ActiveFiltersBar
@@ -173,23 +165,23 @@ export default function HomeScreen() {
 				</View>
 			)}
 
-			{/* Content */}
+			{}
 			<View className="flex-1 px-4">
-				{selected === "songs" && (
+				{selected === 'songs' && (
 					<SongsList
 						tracks={filteredTracks}
 						isLoading={isLoading}
 						hasFilters={hasFilters || searchQuery.length > 0}
 					/>
 				)}
-				{selected === "playlists" && (
+				{selected === 'playlists' && (
 					<PlaylistsList
 						playlists={filteredPlaylists}
 						isLoading={isLoading}
 						hasSearchQuery={searchQuery.length > 0}
 					/>
 				)}
-				{selected === "artists" && (
+				{selected === 'artists' && (
 					<ArtistsList
 						artists={filteredArtists}
 						isLoading={isLoading}
@@ -198,15 +190,12 @@ export default function HomeScreen() {
 				)}
 			</View>
 
-			{/* Sort/Filter FAB (songs tab only) */}
+			{}
 			{isSongsTab && (
-				<SortFilterFAB
-					filterCount={filterCount}
-					onPress={handleOpenFilterSheet}
-				/>
+				<SortFilterFAB filterCount={filterCount} onPress={handleOpenFilterSheet} />
 			)}
 
-			{/* Sort/Filter Bottom Sheet */}
+			{}
 			<LibrarySortFilterSheet
 				ref={sheetRef}
 				sortField={sortField}
@@ -225,7 +214,6 @@ export default function HomeScreen() {
 	);
 }
 
-// Songs List Component
 function SongsList({
 	tracks,
 	isLoading,
@@ -263,12 +251,16 @@ function SongsList({
 			data={tracks}
 			keyExtractor={(item) => item.id.value}
 			renderItem={({ item }) => <TrackListItem track={item} />}
+			getItemLayout={(_, index) => ({
+				length: TRACK_ITEM_HEIGHT,
+				offset: TRACK_ITEM_HEIGHT * index,
+				index,
+			})}
 			showsVerticalScrollIndicator={false}
 		/>
 	);
 }
 
-// Playlists List Component
 function PlaylistsList({
 	playlists,
 	isLoading,
@@ -306,12 +298,16 @@ function PlaylistsList({
 			data={playlists}
 			keyExtractor={(item) => item.id}
 			renderItem={({ item }) => <PlaylistItem playlist={item} />}
+			getItemLayout={(_, index) => ({
+				length: PLAYLIST_ITEM_HEIGHT,
+				offset: PLAYLIST_ITEM_HEIGHT * index,
+				index,
+			})}
 			showsVerticalScrollIndicator={false}
 		/>
 	);
 }
 
-// Artists List Component
 function ArtistsList({
 	artists,
 	isLoading,
@@ -349,13 +345,17 @@ function ArtistsList({
 			data={artists}
 			keyExtractor={(item) => item.id}
 			renderItem={({ item }) => <ArtistItem artist={item} />}
+			getItemLayout={(_, index) => ({
+				length: ARTIST_ITEM_HEIGHT,
+				offset: ARTIST_ITEM_HEIGHT * index,
+				index,
+			})}
 			showsVerticalScrollIndicator={false}
 		/>
 	);
 }
 
-// Playlist Item Component
-function PlaylistItem({ playlist }: { playlist: Playlist }) {
+const PlaylistItem = memo(function PlaylistItem({ playlist }: { playlist: Playlist }) {
 	const trackCount = playlist.tracks.length;
 	const artworkUrl = playlist.artwork?.[0]?.url;
 
@@ -374,6 +374,8 @@ function PlaylistItem({ playlist }: { playlist: Playlist }) {
 					}}
 					contentFit="cover"
 					transition={200}
+					cachePolicy="memory-disk"
+					recyclingKey={playlist.id}
 				/>
 			) : (
 				<View
@@ -394,10 +396,9 @@ function PlaylistItem({ playlist }: { playlist: Playlist }) {
 			</View>
 		</TouchableOpacity>
 	);
-}
+});
 
-// Artist Item Component
-function ArtistItem({ artist }: { artist: UniqueArtist }) {
+const ArtistItem = memo(function ArtistItem({ artist }: { artist: UniqueArtist }) {
 	return (
 		<TouchableOpacity
 			className="flex flex-row items-center w-full gap-4 py-4"
@@ -413,6 +414,8 @@ function ArtistItem({ artist }: { artist: UniqueArtist }) {
 					}}
 					contentFit="cover"
 					transition={200}
+					cachePolicy="memory-disk"
+					recyclingKey={artist.id}
 				/>
 			) : (
 				<View
@@ -433,13 +436,12 @@ function ArtistItem({ artist }: { artist: UniqueArtist }) {
 			</View>
 		</TouchableOpacity>
 	);
-}
+});
 
-// Empty State Component
 export function EmptyState({
 	icon: IconComponent,
 	title,
-	description
+	description,
 }: {
 	icon: LucideIcon;
 	title: string;

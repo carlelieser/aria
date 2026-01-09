@@ -1,10 +1,11 @@
-import { View, ScrollView, Switch, TouchableOpacity } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
-import { useState, useEffect, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { Text } from "@/components/ui/text";
-import { Icon } from "@/components/ui/icon";
+import { View, ScrollView, Switch, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { useState, useEffect, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { Text } from '@/components/ui/text';
+import { Icon } from '@/components/ui/icon';
+import { getLogger } from '@/src/shared/services/logger';
 import {
 	ChevronLeftIcon,
 	ChevronRightIcon,
@@ -17,10 +18,16 @@ import {
 	CloudIcon,
 	PuzzleIcon,
 	type LucideIcon,
-} from "lucide-react-native";
-import { PluginRegistry } from "@/src/plugins/core/registry/plugin-registry";
-import type { BasePlugin, PluginStatus, PluginCategory } from "@/src/plugins/core/interfaces/base-plugin";
-import { PluginListSkeleton } from "@/components/skeletons";
+} from 'lucide-react-native';
+import { PluginRegistry } from '@/src/plugins/core/registry/plugin-registry';
+import type {
+	BasePlugin,
+	PluginStatus,
+	PluginCategory,
+} from '@/src/plugins/core/interfaces/base-plugin';
+import { PluginListSkeleton } from '@/components/skeletons';
+
+const logger = getLogger('Plugins');
 
 interface PluginDisplayInfo {
 	id: string;
@@ -34,32 +41,36 @@ interface PluginDisplayInfo {
 }
 
 const categoryIcons: Record<PluginCategory, LucideIcon> = {
-	"metadata-provider": MusicIcon,
-	"audio-source-provider": MusicIcon,
-	"playback-provider": PlayCircleIcon,
-	"sync-provider": CloudIcon,
-	"lyrics-provider": MusicIcon,
-	"recommendation": MusicIcon,
-	"visualizer": MusicIcon,
+	'metadata-provider': MusicIcon,
+	'audio-source-provider': MusicIcon,
+	'playback-provider': PlayCircleIcon,
+	'sync-provider': CloudIcon,
+	'lyrics-provider': MusicIcon,
+	recommendation: MusicIcon,
+	visualizer: MusicIcon,
 };
 
 const categoryLabels: Record<PluginCategory, string> = {
-	"metadata-provider": "Music Sources",
-	"audio-source-provider": "Audio Sources",
-	"playback-provider": "Playback",
-	"sync-provider": "Sync & Backup",
-	"lyrics-provider": "Lyrics",
-	"recommendation": "Recommendations",
-	"visualizer": "Visualizer",
+	'metadata-provider': 'Music Sources',
+	'audio-source-provider': 'Audio Sources',
+	'playback-provider': 'Playback',
+	'sync-provider': 'Sync & Backup',
+	'lyrics-provider': 'Lyrics',
+	recommendation: 'Recommendations',
+	visualizer: 'Visualizer',
 };
 
 const statusConfig: Record<PluginStatus, { icon: LucideIcon; color: string; label: string }> = {
-	uninitialized: { icon: AlertCircleIcon, color: "text-muted-foreground", label: "Not initialized" },
-	initializing: { icon: LoaderIcon, color: "text-yellow-500", label: "Initializing..." },
-	ready: { icon: CheckCircleIcon, color: "text-muted-foreground", label: "Ready" },
-	active: { icon: CheckCircleIcon, color: "text-primary", label: "Active" },
-	error: { icon: XCircleIcon, color: "text-destructive", label: "Error" },
-	disabled: { icon: XCircleIcon, color: "text-muted-foreground", label: "Disabled" },
+	uninitialized: {
+		icon: AlertCircleIcon,
+		color: 'text-muted-foreground',
+		label: 'Not initialized',
+	},
+	initializing: { icon: LoaderIcon, color: 'text-yellow-500', label: 'Initializing...' },
+	ready: { icon: CheckCircleIcon, color: 'text-muted-foreground', label: 'Ready' },
+	active: { icon: CheckCircleIcon, color: 'text-primary', label: 'Active' },
+	error: { icon: XCircleIcon, color: 'text-destructive', label: 'Error' },
+	disabled: { icon: XCircleIcon, color: 'text-muted-foreground', label: 'Disabled' },
 };
 
 export default function PluginsScreen() {
@@ -79,7 +90,7 @@ export default function PluginsScreen() {
 				version: manifest.version,
 				description: manifest.description,
 				category: manifest.category,
-				status: registry.getStatus(manifest.id) ?? "uninitialized",
+				status: registry.getStatus(manifest.id) ?? 'uninitialized',
 				isActive: registry.isActive(manifest.id),
 				capabilities: manifest.capabilities || [],
 			};
@@ -92,7 +103,6 @@ export default function PluginsScreen() {
 	useEffect(() => {
 		loadPlugins();
 
-		// Subscribe to registry events
 		const registry = PluginRegistry.getInstance();
 		const unsubscribe = registry.on(() => {
 			loadPlugins();
@@ -108,26 +118,27 @@ export default function PluginsScreen() {
 			if (plugin.isActive) {
 				await registry.deactivate(plugin.id);
 			} else {
-				// Initialize if needed
-				if (plugin.status === "uninitialized") {
+				if (plugin.status === 'uninitialized') {
 					await registry.initialize(plugin.id);
 				}
 				await registry.activate(plugin.id);
 			}
 			loadPlugins();
 		} catch (error) {
-			console.error("Failed to toggle plugin:", error);
+			logger.error('Failed to toggle plugin:', error instanceof Error ? error : undefined);
 		}
 	};
 
-	// Group plugins by category
-	const pluginsByCategory = plugins.reduce((acc, plugin) => {
-		if (!acc[plugin.category]) {
-			acc[plugin.category] = [];
-		}
-		acc[plugin.category].push(plugin);
-		return acc;
-	}, {} as Record<PluginCategory, PluginDisplayInfo[]>);
+	const pluginsByCategory = plugins.reduce(
+		(acc, plugin) => {
+			if (!acc[plugin.category]) {
+				acc[plugin.category] = [];
+			}
+			acc[plugin.category].push(plugin);
+			return acc;
+		},
+		{} as Record<PluginCategory, PluginDisplayInfo[]>
+	);
 
 	if (selectedPlugin) {
 		return (
@@ -141,7 +152,7 @@ export default function PluginsScreen() {
 
 	return (
 		<SafeAreaView className="bg-background flex-1">
-			{/* Header */}
+			{}
 			<View className="flex-row items-center gap-2 p-4 border-b border-border">
 				<Button variant="ghost" size="icon" onPress={() => router.back()}>
 					<Icon as={ChevronLeftIcon} />
@@ -172,7 +183,6 @@ export default function PluginsScreen() {
 	);
 }
 
-// Plugin Section Component
 function PluginSection({
 	category,
 	plugins,
@@ -210,7 +220,6 @@ function PluginSection({
 	);
 }
 
-// Plugin Item Component
 function PluginItem({
 	plugin,
 	isLast,
@@ -227,16 +236,20 @@ function PluginItem({
 
 	return (
 		<TouchableOpacity
-			className={`flex-row items-center gap-4 py-4 ${!isLast ? "border-b border-border" : ""}`}
+			className={`flex-row items-center gap-4 py-4 ${!isLast ? 'border-b border-border' : ''}`}
 			onPress={onPress}
 			activeOpacity={0.7}
 		>
-			{/* Plugin Icon */}
+			{}
 			<View className="w-12 h-12 rounded-xl bg-primary/10 items-center justify-center">
-				<Icon as={categoryIcons[plugin.category] || PuzzleIcon} size={24} className="text-primary" />
+				<Icon
+					as={categoryIcons[plugin.category] || PuzzleIcon}
+					size={24}
+					className="text-primary"
+				/>
 			</View>
 
-			{/* Plugin Info */}
+			{}
 			<View className="flex-1">
 				<View className="flex-row items-center gap-2">
 					<Text className="font-medium">{plugin.name}</Text>
@@ -252,12 +265,12 @@ function PluginItem({
 				</View>
 			</View>
 
-			{/* Toggle / Arrow */}
+			{}
 			<View className="flex-row items-center gap-2">
 				<Switch
 					value={plugin.isActive}
 					onValueChange={onToggle}
-					trackColor={{ false: "#767577", true: "#3b82f6" }}
+					trackColor={{ false: '#767577', true: '#3b82f6' }}
 				/>
 				<Icon as={ChevronRightIcon} size={20} className="text-muted-foreground" />
 			</View>
@@ -265,7 +278,6 @@ function PluginItem({
 	);
 }
 
-// Plugin Detail Screen
 function PluginDetailScreen({
 	plugin,
 	onBack,
@@ -280,7 +292,7 @@ function PluginDetailScreen({
 
 	return (
 		<SafeAreaView className="bg-background flex-1">
-			{/* Header */}
+			{}
 			<View className="flex-row items-center gap-2 p-4 border-b border-border">
 				<Button variant="ghost" size="icon" onPress={onBack}>
 					<Icon as={ChevronLeftIcon} />
@@ -289,15 +301,19 @@ function PluginDetailScreen({
 				<Switch
 					value={plugin.isActive}
 					onValueChange={onToggle}
-					trackColor={{ false: "#767577", true: "#3b82f6" }}
+					trackColor={{ false: '#767577', true: '#3b82f6' }}
 				/>
 			</View>
 
 			<ScrollView className="flex-1" contentContainerClassName="pb-8">
-				{/* Plugin Header */}
+				{}
 				<View className="items-center py-8">
 					<View className="w-20 h-20 rounded-2xl bg-primary/10 items-center justify-center mb-4">
-						<Icon as={categoryIcons[plugin.category] || PuzzleIcon} size={40} className="text-primary" />
+						<Icon
+							as={categoryIcons[plugin.category] || PuzzleIcon}
+							size={40}
+							className="text-primary"
+						/>
 					</View>
 					<Text className="text-2xl font-bold">{plugin.name}</Text>
 					<Text variant="muted">Version {plugin.version}</Text>
@@ -307,7 +323,7 @@ function PluginDetailScreen({
 					</View>
 				</View>
 
-				{/* Description */}
+				{}
 				{plugin.description && (
 					<View className="mx-4 mb-6">
 						<Text className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">
@@ -319,7 +335,7 @@ function PluginDetailScreen({
 					</View>
 				)}
 
-				{/* Category */}
+				{}
 				<View className="mx-4 mb-6">
 					<Text className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">
 						Category
@@ -329,7 +345,7 @@ function PluginDetailScreen({
 					</View>
 				</View>
 
-				{/* Capabilities */}
+				{}
 				{plugin.capabilities.length > 0 && (
 					<View className="mx-4 mb-6">
 						<Text className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">
@@ -339,7 +355,7 @@ function PluginDetailScreen({
 							<View className="flex-row flex-wrap gap-2">
 								{plugin.capabilities.map((cap) => (
 									<View key={cap} className="bg-muted px-3 py-1 rounded-full">
-										<Text className="text-sm">{cap.replace(/-/g, " ")}</Text>
+										<Text className="text-sm">{cap.replace(/-/g, ' ')}</Text>
 									</View>
 								))}
 							</View>
@@ -351,7 +367,6 @@ function PluginDetailScreen({
 	);
 }
 
-// Empty State Component
 function EmptyState() {
 	return (
 		<View className="flex-1 items-center justify-center py-16">

@@ -1,99 +1,72 @@
-/**
- * Source type for track identification
- */
 export type SourceType = 'youtube-music' | 'local-file' | 'spotify' | 'apple-music' | string;
 
-/**
- * TrackId is a composite identifier that combines the source system
- * with the source-specific ID. This enables cross-source identification
- * and prevents ID collisions.
- *
- * Format: "source:id" (e.g., "youtube-music:dQw4w9WgXcQ")
- */
 export class TrackId {
-  private constructor(
-    /** The combined identifier string */
-    public readonly value: string,
-    /** The source system */
-    public readonly sourceType: SourceType,
-    /** The ID within the source system */
-    public readonly sourceId: string
-  ) {
-    Object.freeze(this);
-  }
+	private constructor(
+		public readonly value: string,
 
-  /**
-   * Create a TrackId from source type and source ID
-   */
-  static create(sourceType: SourceType, sourceId: string): TrackId {
-    const value = `${sourceType}:${sourceId}`;
-    return new TrackId(value, sourceType, sourceId);
-  }
+		public readonly sourceType: SourceType,
 
-  /**
-   * Parse a TrackId from its string representation
-   */
-  static fromString(value: string): TrackId {
-    const colonIndex = value.indexOf(':');
-    if (colonIndex === -1) {
-      throw new Error(`Invalid TrackId format: ${value}. Expected "source:id" format.`);
-    }
+		public readonly sourceId: string
+	) {
+		Object.freeze(this);
+	}
 
-    const sourceType = value.substring(0, colonIndex) as SourceType;
-    const sourceId = value.substring(colonIndex + 1);
+	static create(sourceType: SourceType, sourceId: string): TrackId {
+		const value = `${sourceType}:${sourceId}`;
+		return new TrackId(value, sourceType, sourceId);
+	}
 
-    if (!sourceType || !sourceId) {
-      throw new Error(`Invalid TrackId format: ${value}. Both source and id are required.`);
-    }
+	static fromString(value: string): TrackId {
+		const colonIndex = value.indexOf(':');
+		if (colonIndex === -1) {
+			throw new Error(`Invalid TrackId format: ${value}. Expected "source:id" format.`);
+		}
 
-    return new TrackId(value, sourceType, sourceId);
-  }
+		const sourceType = value.substring(0, colonIndex) as SourceType;
+		const sourceId = value.substring(colonIndex + 1);
 
-  /**
-   * Try to parse a TrackId, returning null if invalid
-   */
-  static tryFromString(value: string): TrackId | null {
-    try {
-      return TrackId.fromString(value);
-    } catch {
-      return null;
-    }
-  }
+		if (!sourceType || !sourceId) {
+			throw new Error(`Invalid TrackId format: ${value}. Both source and id are required.`);
+		}
 
-  /**
-   * Check if two TrackIds are equal
-   */
-  equals(other: TrackId): boolean {
-    return this.value === other.value;
-  }
+		return new TrackId(value, sourceType, sourceId);
+	}
 
-  /**
-   * Check if this track is from a specific source
-   */
-  isFromSource(sourceType: SourceType): boolean {
-    return this.sourceType === sourceType;
-  }
+	static tryFromString(value: string): TrackId | null {
+		try {
+			return TrackId.fromString(value);
+		} catch {
+			return null;
+		}
+	}
 
-  /**
-   * String representation
-   */
-  toString(): string {
-    return this.value;
-  }
+	equals(other: TrackId): boolean {
+		return this.value === other.value;
+	}
 
-  /**
-   * JSON serialization
-   */
-  toJSON(): string {
-    return this.value;
-  }
+	isFromSource(sourceType: SourceType): boolean {
+		return this.sourceType === sourceType;
+	}
+
+	toString(): string {
+		return this.value;
+	}
+
+	toJSON(): string {
+		return this.value;
+	}
+}
+
+export function isValidTrackIdString(value: unknown): value is string {
+	if (typeof value !== 'string') return false;
+	const colonIndex = value.indexOf(':');
+	return colonIndex > 0 && colonIndex < value.length - 1;
 }
 
 /**
- * Type guard to check if a value is a valid TrackId string
+ * Safely extracts the string value from a TrackId.
+ * Handles both TrackId instances and plain strings (from deserialization).
  */
-export function isValidTrackIdString(value: unknown): value is string {
-  if (typeof value !== 'string') return false;
-  const colonIndex = value.indexOf(':');
-  return colonIndex > 0 && colonIndex < value.length - 1;
+export function getTrackIdString(id: TrackId | string): string {
+	return typeof id === 'string' ? id : id.value;
 }
