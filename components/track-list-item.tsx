@@ -31,18 +31,23 @@ interface TrackListItemProps {
   track: Track;
   source?: TrackActionSource;
   onPress?: (track: Track) => void;
+  onLongPress?: (track: Track) => void;
   /** When provided, shows download-specific UI (progress, status, actions) */
   downloadInfo?: DownloadInfo;
   /** Hide the options menu (useful in download context) */
   hideOptionsMenu?: boolean;
+  /** Fallback artwork URL when track has no artwork (e.g., album artwork) */
+  fallbackArtworkUrl?: string;
 }
 
 export const TrackListItem = memo(function TrackListItem({
   track,
   source = 'library',
   onPress,
+  onLongPress,
   downloadInfo,
   hideOptionsMenu = false,
+  fallbackArtworkUrl,
 }: TrackListItemProps) {
   const { play } = usePlayer();
   const { removeDownload } = useDownloadActions();
@@ -57,6 +62,10 @@ export const TrackListItem = memo(function TrackListItem({
     }
   }, [onPress, track, play]);
 
+  const handleLongPress = useCallback(() => {
+    onLongPress?.(track);
+  }, [onLongPress, track]);
+
   const handleRemoveDownload = useCallback(async () => {
     if (downloadInfo) {
       await removeDownload(downloadInfo.trackId);
@@ -64,7 +73,7 @@ export const TrackListItem = memo(function TrackListItem({
   }, [removeDownload, downloadInfo]);
 
   const artwork = getBestArtwork(track.artwork, 48);
-  const artworkUrl = artwork?.url;
+  const artworkUrl = artwork?.url ?? fallbackArtworkUrl;
   const artistNames = getArtistNames(track);
   const albumName = track.album?.name;
   const duration = track.duration.format();
@@ -155,6 +164,8 @@ export const TrackListItem = memo(function TrackListItem({
     <TouchableOpacity
       style={styles.container}
       onPress={handlePress}
+      onLongPress={onLongPress ? handleLongPress : undefined}
+      delayLongPress={300}
       activeOpacity={0.7}
     >
       <View style={styles.artworkContainer}>

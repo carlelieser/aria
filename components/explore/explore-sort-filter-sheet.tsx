@@ -1,0 +1,184 @@
+/**
+ * ExploreSortFilterSheet Component
+ *
+ * Bottom sheet for explore sort and filter options.
+ * Uses M3 theming.
+ */
+
+import React, { forwardRef, useCallback, useMemo } from 'react';
+import { View, StyleSheet } from 'react-native';
+import BottomSheet, {
+	BottomSheetBackdrop,
+	BottomSheetScrollView,
+	type BottomSheetBackdropProps,
+} from '@gorhom/bottom-sheet';
+import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
+import { Portal } from '@rn-primitives/portal';
+import { Text, Button, Divider } from 'react-native-paper';
+import { ExploreSortSection } from './explore-sort-section';
+import { ExploreFilterSection } from './explore-filter-section';
+import { useAppTheme } from '@/lib/theme';
+import type {
+	SearchSortField,
+	SearchSortDirection,
+	SearchFilters,
+	SearchContentType,
+} from '@/src/domain/utils/search-filtering';
+import type { ArtistReference } from '@/src/domain/entities/artist';
+import type { AlbumReference } from '@/src/domain/entities/album';
+
+interface ExploreSortFilterSheetProps {
+	sortField: SearchSortField;
+	sortDirection: SearchSortDirection;
+	activeFilters: SearchFilters;
+	artists: ArtistReference[];
+	albums: AlbumReference[];
+	onSortFieldChange: (field: SearchSortField) => void;
+	onToggleSortDirection: () => void;
+	onContentTypeChange: (type: SearchContentType) => void;
+	onToggleArtist: (artistId: string) => void;
+	onToggleAlbum: (albumId: string) => void;
+	onToggleFavorites: () => void;
+	onClearAll: () => void;
+	onDismiss?: () => void;
+}
+
+export const ExploreSortFilterSheet = forwardRef<
+	BottomSheetMethods,
+	ExploreSortFilterSheetProps
+>(function ExploreSortFilterSheet(
+	{
+		sortField,
+		sortDirection,
+		activeFilters,
+		artists,
+		albums,
+		onSortFieldChange,
+		onToggleSortDirection,
+		onContentTypeChange,
+		onToggleArtist,
+		onToggleAlbum,
+		onToggleFavorites,
+		onClearAll,
+		onDismiss,
+	},
+	ref
+) {
+	const { colors } = useAppTheme();
+
+	const snapPoints = useMemo(() => ['60%', '85%'], []);
+
+	const handleSheetChanges = useCallback(
+		(index: number) => {
+			if (index === -1) {
+				onDismiss?.();
+			}
+		},
+		[onDismiss]
+	);
+
+	const renderBackdrop = useCallback(
+		(props: BottomSheetBackdropProps) => (
+			<BottomSheetBackdrop
+				{...props}
+				disappearsOnIndex={-1}
+				appearsOnIndex={0}
+				opacity={0.5}
+			/>
+		),
+		[]
+	);
+
+	return (
+		<Portal name="explore-sort-filter-sheet">
+			<BottomSheet
+				ref={ref}
+				index={-1}
+				snapPoints={snapPoints}
+				enablePanDownToClose
+				backdropComponent={renderBackdrop}
+				onChange={handleSheetChanges}
+				backgroundStyle={[
+					styles.background,
+					{ backgroundColor: colors.surfaceContainerHigh },
+				]}
+				handleIndicatorStyle={[
+					styles.handleIndicator,
+					{ backgroundColor: colors.outlineVariant },
+				]}
+			>
+				<BottomSheetScrollView style={styles.contentContainer}>
+					<View style={styles.header}>
+						<Text variant="titleMedium" style={{ color: colors.onSurface }}>
+							Sort & Filter
+						</Text>
+						<Button
+							mode="text"
+							compact
+							onPress={onClearAll}
+							textColor={colors.onSurfaceVariant}
+						>
+							Clear all
+						</Button>
+					</View>
+
+					<Divider style={styles.divider} />
+					<View style={styles.section}>
+						<ExploreSortSection
+							sortField={sortField}
+							sortDirection={sortDirection}
+							onSortFieldChange={onSortFieldChange}
+							onToggleDirection={onToggleSortDirection}
+						/>
+					</View>
+
+					<Divider style={styles.divider} />
+					<View style={styles.section}>
+						<ExploreFilterSection
+							artists={artists}
+							albums={albums}
+							activeFilters={activeFilters}
+							onContentTypeChange={onContentTypeChange}
+							onToggleArtist={onToggleArtist}
+							onToggleAlbum={onToggleAlbum}
+							onToggleFavorites={onToggleFavorites}
+						/>
+					</View>
+
+					<View style={styles.bottomPadding} />
+				</BottomSheetScrollView>
+			</BottomSheet>
+		</Portal>
+	);
+});
+
+const styles = StyleSheet.create({
+	background: {
+		borderTopLeftRadius: 28,
+		borderTopRightRadius: 28,
+	},
+	handleIndicator: {
+		width: 32,
+		height: 4,
+	},
+	contentContainer: {
+		flex: 1,
+	},
+	header: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		paddingHorizontal: 16,
+		paddingBottom: 8,
+	},
+	divider: {
+		marginVertical: 4,
+	},
+	section: {
+		paddingHorizontal: 16,
+		paddingVertical: 12,
+	},
+	bottomPadding: {
+		height: 34,
+	},
+});
