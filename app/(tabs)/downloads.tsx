@@ -93,6 +93,11 @@ export default function DownloadsScreen() {
     [completedDownloads]
   );
 
+  const currentListTracks = useMemo(
+    () => currentList.map(createTrackFromDownloadInfo),
+    [currentList]
+  );
+
   const handleTrackPress = useCallback(
     (track: Track, index: number) => {
       if (selectedTab === 'completed') {
@@ -168,7 +173,7 @@ export default function DownloadsScreen() {
             data={currentList}
             keyExtractor={(item) => item.trackId}
             renderItem={({ item, index }) => {
-              const track = createTrackFromDownloadInfo(item);
+              const track = currentListTracks[index];
               return (
                 <TrackListItem
                   track={track}

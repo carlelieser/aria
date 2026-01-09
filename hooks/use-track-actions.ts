@@ -1,127 +1,142 @@
-import { useState, useCallback, useEffect } from 'react';
-import { router } from 'expo-router';
-import type { Track } from '@/src/domain/entities/track';
-import type { TrackAction, TrackActionSource } from '@/src/domain/actions/track-action';
-import { CORE_ACTION_IDS } from '@/src/domain/actions/track-action';
-import { trackActionsService } from '@/src/application/services/track-actions-service';
-import { useIsFavorite } from '@/src/application/state/library-store';
-import { useIsDownloaded, useIsDownloading } from '@/src/application/state/download-store';
-import { useToast } from '@/hooks/use-toast';
+import {useState, useCallback, useEffect, useRef} from 'react';
+import {router} from 'expo-router';
+import type {Track} from '@/src/domain/entities/track';
+import type {TrackAction, TrackActionSource} from '@/src/domain/actions/track-action';
+import {CORE_ACTION_IDS} from '@/src/domain/actions/track-action';
+import {trackActionsService} from '@/src/application/services/track-actions-service';
+import {downloadService} from '@/src/application/services/download-service';
+import {useIsFavorite} from '@/src/application/state/library-store';
+import {useIsDownloaded, useIsDownloading} from '@/src/application/state/download-store';
+import {useToast} from '@/hooks/use-toast';
 
 interface UseTrackActionsOptions {
-	track: Track;
+    track: Track;
 
-	source: TrackActionSource;
+    source: TrackActionSource;
 }
 
 interface UseTrackActionsResult {
-	actions: TrackAction[];
+    actions: TrackAction[];
 
-	isLoading: boolean;
+    isLoading: boolean;
 
-	executeAction: (actionId: string) => Promise<void>;
+    executeAction: (actionId: string) => Promise<void>;
 
-	refresh: () => Promise<void>;
+    refresh: () => Promise<void>;
 }
 
-export function useTrackActions({ track, source }: UseTrackActionsOptions): UseTrackActionsResult {
-	const [actions, setActions] = useState<TrackAction[]>([]);
-	const [isLoading, setIsLoading] = useState(true);
-	const { success } = useToast();
+export function useTrackActions({track, source}: UseTrackActionsOptions): UseTrackActionsResult {
+    const [actions, setActions] = useState<TrackAction[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const {success, error} = useToast();
 
-	const isFavorite = useIsFavorite(track.id.value);
-	const isDownloaded = useIsDownloaded(track.id.value);
-	const isDownloading = useIsDownloading(track.id.value);
+    const trackRef = useRef(track);
+    trackRef.current = track;
 
-	const loadActions = useCallback(async () => {
-		setIsLoading(true);
-		try {
-			const fetchedActions = await trackActionsService.getActionsForTrack({
-				track,
-				source,
-			});
-			setActions(fetchedActions);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [track, source]);
+    const trackIdValue = track.id.value;
+    const isFavorite = useIsFavorite(trackIdValue);
+    const isDownloaded = useIsDownloaded(trackIdValue);
+    const isDownloading = useIsDownloading(trackIdValue);
 
-	useEffect(() => {
-		loadActions();
-	}, [loadActions, isFavorite, isDownloaded, isDownloading]);
+    const loadActions = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const fetchedActions = await trackActionsService.getActionsForTrack({
+                track: trackRef.current,
+                source,
+            });
+            setActions(fetchedActions);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [trackIdValue, source]);
 
-	const executeAction = useCallback(
-		async (actionId: string) => {
-			switch (actionId) {
-				case CORE_ACTION_IDS.VIEW_ARTIST: {
-					const artist = track.artists[0];
-					if (artist) {
-						router.push({
-							pathname: '/artist/[id]',
-							params: { id: artist.id, name: artist.name },
-						});
-					}
-					return;
-				}
+    useEffect(() => {
+        loadActions();
+    }, [loadActions, isFavorite, isDownloaded, isDownloading]);
 
-				case CORE_ACTION_IDS.VIEW_ALBUM: {
-					const album = track.album;
-					if (album) {
-						router.push({
-							pathname: '/album/[id]',
-							params: { id: album.id, name: album.name },
-						});
-					}
-					return;
-				}
+    const executeAction = useCallback(
+        async (actionId: string) => {
+            const currentTrack = trackRef.current;
 
-				case CORE_ACTION_IDS.ADD_TO_PLAYLIST:
-					router.push({
-						pathname: '/playlist-picker',
-						params: { trackId: track.id.value },
-					});
-					return;
+            switch (actionId) {
+                case CORE_ACTION_IDS.VIEW_ARTIST: {
+                    const artist = currentTrack.artists[0];
+                    if (artist) {
+                        router.push({
+                            pathname: '/artist/[id]',
+                            params: {id: artist.id, name: artist.name},
+                        });
+                    }
+                    return;
+                }
 
-				default: {
-					const wasFavorite = isFavorite;
+                case CORE_ACTION_IDS.VIEW_ALBUM: {
+                    const album = currentTrack.album;
+                    if (album) {
+                        router.push({
+                            pathname: '/album/[id]',
+                            params: {id: album.id, name: album.name},
+                        });
+                    }
+                    return;
+                }
 
-					await trackActionsService.executeAction(actionId, { track, source });
+                case CORE_ACTION_IDS.ADD_TO_PLAYLIST:
+                    router.push({
+                        pathname: '/playlist-picker',
+                        params: {trackId: currentTrack.id.value},
+                    });
+                    return;
 
-					switch (actionId) {
-						case CORE_ACTION_IDS.ADD_TO_LIBRARY:
-							success('Added to library', track.title);
-							break;
-						case CORE_ACTION_IDS.REMOVE_FROM_LIBRARY:
-							success('Removed from library', track.title);
-							break;
-						case CORE_ACTION_IDS.ADD_TO_QUEUE:
-							success('Added to queue', track.title);
-							break;
-						case CORE_ACTION_IDS.TOGGLE_FAVORITE:
-							success(
-								wasFavorite ? 'Removed from favorites' : 'Added to favorites',
-								track.title
-							);
-							break;
-						case CORE_ACTION_IDS.DOWNLOAD:
-							success('Download started', track.title);
-							break;
-						case CORE_ACTION_IDS.REMOVE_DOWNLOAD:
-							success('Download removed', track.title);
-							break;
-					}
+                case CORE_ACTION_IDS.DOWNLOAD: {
+                    const result = await downloadService.downloadTrack(currentTrack);
+                    if (result.success) {
+                        success('Download complete', currentTrack.title);
+                    } else {
+                        error('Download failed', result.error.message);
+                    }
+                    await loadActions();
+                    return;
+                }
 
-					await loadActions();
-				}
-			}
-		},
-		[track, source, loadActions, isFavorite, success]
-	);
+                default: {
+                    const wasFavorite = isFavorite;
 
-	return {
-		actions,
-		isLoading,
-		executeAction,
-		refresh: loadActions,
-	};
+                    await trackActionsService.executeAction(actionId, {track: currentTrack, source});
+
+                    switch (actionId) {
+                        case CORE_ACTION_IDS.ADD_TO_LIBRARY:
+                            success('Added to library', currentTrack.title);
+                            break;
+                        case CORE_ACTION_IDS.REMOVE_FROM_LIBRARY:
+                            success('Removed from library', currentTrack.title);
+                            break;
+                        case CORE_ACTION_IDS.ADD_TO_QUEUE:
+                            success('Added to queue', currentTrack.title);
+                            break;
+                        case CORE_ACTION_IDS.TOGGLE_FAVORITE:
+                            success(
+                                wasFavorite ? 'Removed from favorites' : 'Added to favorites',
+                                currentTrack.title
+                            );
+                            break;
+                        case CORE_ACTION_IDS.REMOVE_DOWNLOAD:
+                            success('Download removed', currentTrack.title);
+                            break;
+                    }
+
+                    await loadActions();
+                }
+            }
+        },
+        [source, loadActions, isFavorite, success, error]
+    );
+
+    return {
+        actions,
+        isLoading,
+        executeAction,
+        refresh: loadActions,
+    };
 }

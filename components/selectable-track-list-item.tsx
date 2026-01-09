@@ -5,7 +5,7 @@
  * Shows checkbox overlay when in selection mode.
  */
 
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { Check } from 'lucide-react-native';
 import Animated, {
@@ -62,16 +62,19 @@ export const SelectableTrackListItem = memo(function SelectableTrackListItem({
 		[onLongPress]
 	);
 
+	const primaryColor = colors.primary;
+	const outlineColor = colors.outline;
+
 	const checkboxAnimatedStyle = useAnimatedStyle(() => {
 		return {
-			backgroundColor: withTiming(isSelected ? colors.primary : 'transparent', {
+			backgroundColor: withTiming(isSelected ? primaryColor : 'transparent', {
 				duration: 150,
 			}),
-			borderColor: withTiming(isSelected ? colors.primary : colors.outline, {
+			borderColor: withTiming(isSelected ? primaryColor : outlineColor, {
 				duration: 150,
 			}),
 		};
-	}, [isSelected, colors.primary, colors.outline]);
+	}, [isSelected, primaryColor, outlineColor]);
 
 	return (
 		<View style={styles.container}>

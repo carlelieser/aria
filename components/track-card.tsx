@@ -40,13 +40,13 @@ export const TrackCard = memo(function TrackCard({
   const handlePress = useCallback(() => {
     if (onPress) {
       onPress(track);
+      return;
+    }
+    router.push('/player');
+    if (queue && queueIndex !== undefined) {
+      playQueue(queue, queueIndex);
     } else {
-      router.push('/player');
-      if (queue && queueIndex !== undefined) {
-        playQueue(queue, queueIndex);
-      } else {
-        play(track);
-      }
+      play(track);
     }
   }, [onPress, track, play, playQueue, queue, queueIndex]);
 

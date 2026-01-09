@@ -5,6 +5,7 @@
  * Uses M3 theming.
  */
 
+import { useCallback, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { IconButton, FAB } from 'react-native-paper';
 import {
@@ -45,27 +46,72 @@ export function PlayerControls({ size = 'md' }: PlayerControlsProps) {
 
   const { secondary: secondaryIconSize, fab: fabSize } = iconSizes[size];
 
-  const PlayPauseIcon = isPlaying ? Pause : Play;
-  const RepeatIconComponent = repeatMode === 'one' ? Repeat1 : Repeat;
-  const repeatActive = repeatMode !== 'off';
+  const surfaceColor = colors.onSurface;
+  const primaryColor = colors.onPrimary;
+
+  const shuffleIcon = useCallback(
+    () => <Shuffle size={secondaryIconSize} color={surfaceColor} />,
+    [secondaryIconSize, surfaceColor]
+  );
+
+  const skipBackIcon = useCallback(
+    () => <SkipBack size={secondaryIconSize} color={surfaceColor} fill={surfaceColor} />,
+    [secondaryIconSize, surfaceColor]
+  );
+
+  const skipForwardIcon = useCallback(
+    () => <SkipForward size={secondaryIconSize} color={surfaceColor} fill={surfaceColor} />,
+    [secondaryIconSize, surfaceColor]
+  );
+
+  const playPauseIcon = useCallback(
+    () =>
+      isPlaying ? (
+        <Pause size={32} color={primaryColor} fill={primaryColor} />
+      ) : (
+        <Play size={32} color={primaryColor} fill={primaryColor} />
+      ),
+    [isPlaying, primaryColor]
+  );
+
+  const repeatIcon = useCallback(
+    () =>
+      repeatMode === 'one' ? (
+        <Repeat1 size={secondaryIconSize} color={surfaceColor} />
+      ) : (
+        <Repeat size={secondaryIconSize} color={surfaceColor} />
+      ),
+    [repeatMode, secondaryIconSize, surfaceColor]
+  );
+
+  const shuffleButtonStyle = useMemo(
+    () => [styles.secondaryButton, { opacity: isShuffled ? 1 : 0.5 }],
+    [isShuffled]
+  );
+
+  const repeatButtonStyle = useMemo(
+    () => [styles.secondaryButton, { opacity: repeatMode !== 'off' ? 1 : 0.5 }],
+    [repeatMode]
+  );
+
+  const fabStyle = useMemo(
+    () => [styles.fab, { backgroundColor: colors.primary }],
+    [colors.primary]
+  );
 
   return (
     <View style={styles.container}>
       {/* Shuffle */}
       <IconButton
-        icon={({ size: iconSize }) => (
-          <Shuffle size={secondaryIconSize} color={colors.onSurface} />
-        )}
+        icon={shuffleIcon}
         size={secondaryIconSize}
         onPress={toggleShuffle}
-        style={[styles.secondaryButton, { opacity: isShuffled ? 1 : 0.5 }]}
+        style={shuffleButtonStyle}
       />
 
       {/* Previous */}
       <IconButton
-        icon={({ size: iconSize }) => (
-          <SkipBack size={secondaryIconSize} color={colors.onSurface} fill={colors.onSurface} />
-        )}
+        icon={skipBackIcon}
         size={secondaryIconSize}
         onPress={skipToPrevious}
         disabled={isLoading}
@@ -73,20 +119,16 @@ export function PlayerControls({ size = 'md' }: PlayerControlsProps) {
 
       {/* Play/Pause FAB */}
       <FAB
-        icon={({ size: iconSize }) => (
-          <PlayPauseIcon size={32} color={colors.onPrimary} fill={colors.onPrimary} />
-        )}
+        icon={playPauseIcon}
         size={fabSize}
         onPress={togglePlayPause}
         disabled={isLoading}
-        style={[styles.fab, { backgroundColor: colors.primary }]}
+        style={fabStyle}
       />
 
       {/* Next */}
       <IconButton
-        icon={({ size: iconSize }) => (
-          <SkipForward size={secondaryIconSize} color={colors.onSurface} fill={colors.onSurface} />
-        )}
+        icon={skipForwardIcon}
         size={secondaryIconSize}
         onPress={skipToNext}
         disabled={isLoading}
@@ -94,12 +136,10 @@ export function PlayerControls({ size = 'md' }: PlayerControlsProps) {
 
       {/* Repeat */}
       <IconButton
-        icon={({ size: iconSize }) => (
-          <RepeatIconComponent size={secondaryIconSize} color={colors.onSurface} />
-        )}
+        icon={repeatIcon}
         size={secondaryIconSize}
         onPress={cycleRepeatMode}
-        style={[styles.secondaryButton, { opacity: repeatActive ? 1 : 0.5 }]}
+        style={repeatButtonStyle}
       />
     </View>
   );

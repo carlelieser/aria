@@ -5,7 +5,7 @@
  * Uses M3 theming.
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useMemo, memo } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollView, View, StyleSheet, TextInput } from 'react-native';
 import { Text, Button } from 'react-native-paper';
@@ -47,7 +47,7 @@ interface ExploreSectionProps {
 	onSeeAll?: () => void;
 }
 
-function ExploreSection({
+const ExploreSection = memo(function ExploreSection({
 	id,
 	title,
 	icon: IconComponent,
@@ -57,6 +57,11 @@ function ExploreSection({
 }: ExploreSectionProps) {
 	const { colors } = useAppTheme();
 
+	const titleStyle = useMemo(
+		() => ({ color: colors.onSurface, fontWeight: '600' as const }),
+		[colors.onSurface]
+	);
+
 	if (tracks.length === 0) return null;
 
 	return (
@@ -64,7 +69,7 @@ function ExploreSection({
 			<View style={styles.sectionHeader}>
 				<View style={styles.sectionTitleRow}>
 					<Icon as={IconComponent} size={18} color={colors.onSurfaceVariant} />
-					<Text variant="titleMedium" style={{ color: colors.onSurface, fontWeight: '600' }}>
+					<Text variant="titleMedium" style={titleStyle}>
 						{title}
 					</Text>
 				</View>
@@ -90,7 +95,7 @@ function ExploreSection({
 			</ScrollView>
 		</View>
 	);
-}
+});
 
 export default function ExploreScreen() {
 	const insets = useSafeAreaInsets();
@@ -142,13 +147,15 @@ export default function ExploreScreen() {
 	const libraryTracks = useTracks();
 	const hasHistory = useHasHistory();
 
-	const recentlyAdded = [...libraryTracks]
-		.sort((a, b) => {
-			const dateA = a.addedAt ? new Date(a.addedAt).getTime() : 0;
-			const dateB = b.addedAt ? new Date(b.addedAt).getTime() : 0;
-			return dateB - dateA;
-		})
-		.slice(0, 10);
+	const recentlyAdded = useMemo(() => {
+		return [...libraryTracks]
+			.sort((a, b) => {
+				const dateA = a.addedAt ? new Date(a.addedAt).getTime() : 0;
+				const dateB = b.addedAt ? new Date(b.addedAt).getTime() : 0;
+				return dateB - dateA;
+			})
+			.slice(0, 10);
+	}, [libraryTracks]);
 
 	const isExploreMode = query.trim() === '';
 	const hasExploreContent = hasHistory || favoriteTracks.length > 0 || recentlyAdded.length > 0;

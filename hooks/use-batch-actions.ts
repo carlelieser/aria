@@ -5,6 +5,7 @@
  */
 
 import { useState, useCallback } from 'react';
+import { InteractionManager } from 'react-native';
 import type { Track } from '@/src/domain/entities/track';
 import { downloadService } from '@/src/application/services/download-service';
 import { useLibraryStore } from '@/src/application/state/library-store';
@@ -56,34 +57,36 @@ export function useBatchActions(): UseBatchActionsResult {
 			setIsDownloading(true);
 			setDownloadProgress({ completed: 0, total: tracksToDownload.length, failed: 0 });
 
-			let completed = 0;
-			let failed = 0;
+			InteractionManager.runAfterInteractions(async () => {
+				let completed = 0;
+				let failed = 0;
 
-			for (const track of tracksToDownload) {
-				const result = await downloadService.downloadTrack(track);
-
-				if (result.success) {
-					completed++;
-				} else {
-					failed++;
-				}
-
-				setDownloadProgress({
-					completed,
-					total: tracksToDownload.length,
-					failed,
+				const downloadPromises = tracksToDownload.map(async (track) => {
+					const result = await downloadService.downloadTrack(track);
+					if (result.success) {
+						completed++;
+					} else {
+						failed++;
+					}
+					setDownloadProgress({
+						completed,
+						total: tracksToDownload.length,
+						failed,
+					});
 				});
-			}
 
-			setIsDownloading(false);
+				await Promise.all(downloadPromises);
 
-			if (failed === 0) {
-				success(`Downloaded ${completed} tracks`);
-			} else if (completed > 0) {
-				info(`Downloaded ${completed} tracks, ${failed} failed`);
-			} else {
-				showError('Download failed', `All ${failed} downloads failed`);
-			}
+				setIsDownloading(false);
+
+				if (failed === 0) {
+					success(`Downloaded ${completed} tracks`);
+				} else if (completed > 0) {
+					info(`Downloaded ${completed} tracks, ${failed} failed`);
+				} else {
+					showError('Download failed', `All ${failed} downloads failed`);
+				}
+			});
 		},
 		[success, showError, info]
 	);

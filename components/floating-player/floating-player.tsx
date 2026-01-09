@@ -17,7 +17,7 @@ import Animated, {
   useSharedValue,
   runOnJS,
 } from 'react-native-reanimated';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { IconButton, Text, Surface } from 'react-native-paper';
 
 import { FloatingProgressBar } from './floating-progress-bar';
@@ -86,13 +86,35 @@ export function FloatingPlayer() {
   const isPlaying = status === 'playing';
   const showLoadingIndicator = isLoading || isBuffering;
 
-  const handlePress = () => {
+  const handlePress = useCallback(() => {
     router.push('/player');
-  };
+  }, []);
 
-  const handlePlayPause = () => {
+  const handlePlayPause = useCallback(() => {
     togglePlayPause();
-  };
+  }, [togglePlayPause]);
+
+  const containerStyle = useMemo(
+    () => [
+      styles.container,
+      {
+        bottom: bottomOffset,
+        backgroundColor: colors.surfaceContainerHigh,
+      },
+      animatedStyle,
+    ],
+    [bottomOffset, colors.surfaceContainerHigh, animatedStyle]
+  );
+
+  const playPauseIcon = useCallback(
+    ({ size, color }: { size: number; color: string }) =>
+      isPlaying ? (
+        <Pause size={size} color={color} fill={color} />
+      ) : (
+        <Play size={size} color={color} fill={color} />
+      ),
+    [isPlaying]
+  );
 
   if (!isVisible && !shouldShow) {
     return <View style={styles.hidden} />;
@@ -103,14 +125,7 @@ export function FloatingPlayer() {
       key="floating-player"
       onPress={handlePress}
       pointerEvents={shouldShow ? 'auto' : 'none'}
-      style={[
-        styles.container,
-        {
-          bottom: bottomOffset,
-          backgroundColor: colors.surfaceContainerHigh,
-        },
-        animatedStyle,
-      ]}
+      style={containerStyle}
     >
       {/* Progress bar at top */}
       <View style={styles.progressContainer}>
@@ -157,13 +172,7 @@ export function FloatingPlayer() {
         {/* Controls */}
         <View style={styles.controls}>
           <IconButton
-            icon={({ size, color }) =>
-              isPlaying ? (
-                <Pause size={size} color={color} fill={color} />
-              ) : (
-                <Play size={size} color={color} fill={color} />
-              )
-            }
+            icon={playPauseIcon}
             size={24}
             onPress={handlePlayPause}
             disabled={isLoading}

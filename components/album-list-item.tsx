@@ -5,7 +5,7 @@
  * Uses M3 theming.
  */
 
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
@@ -38,13 +38,15 @@ export const AlbumListItem = memo(function AlbumListItem({
 	}, [onPress, album]);
 
 	const artwork = getBestArtwork(album.artwork, 48);
-	const artistNames = formatArtistNames(album.artists);
-	const albumInfo = [
-		album.albumType ? album.albumType.charAt(0).toUpperCase() + album.albumType.slice(1) : null,
-		album.trackCount ? `${album.trackCount} tracks` : null,
-	]
-		.filter(Boolean)
-		.join(' · ');
+	const artistNames = useMemo(() => formatArtistNames(album.artists), [album.artists]);
+	const albumInfo = useMemo(() => {
+		return [
+			album.albumType ? album.albumType.charAt(0).toUpperCase() + album.albumType.slice(1) : null,
+			album.trackCount ? `${album.trackCount} tracks` : null,
+		]
+			.filter(Boolean)
+			.join(' · ');
+	}, [album.albumType, album.trackCount]);
 
 	return (
 		<TouchableOpacity

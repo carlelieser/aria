@@ -5,7 +5,7 @@
  * Uses M3 theming.
  */
 
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { Text } from 'react-native-paper';
@@ -43,8 +43,13 @@ export const ArtistListItem = memo(function ArtistListItem({
 	}, [onPress, artist]);
 
 	const artwork = getBestArtwork(artist.artwork, 48);
-	const listeners = formatListeners(artist.monthlyListeners);
-	const genres = artist.genres?.slice(0, 2).join(', ');
+	const listeners = useMemo(() => formatListeners(artist.monthlyListeners), [artist.monthlyListeners]);
+	const genres = useMemo(() => artist.genres?.slice(0, 2).join(', '), [artist.genres]);
+
+	const infoText = useMemo(
+		() => [genres, listeners].filter(Boolean).join(' · '),
+		[genres, listeners]
+	);
 
 	return (
 		<TouchableOpacity
@@ -77,9 +82,9 @@ export const ArtistListItem = memo(function ArtistListItem({
 				<Text variant="bodyLarge" numberOfLines={1} style={{ color: colors.onSurface }}>
 					{artist.name}
 				</Text>
-				{(listeners || genres) && (
+				{infoText && (
 					<Text variant="bodyMedium" numberOfLines={1} style={{ color: colors.onSurfaceVariant }}>
-						{[genres, listeners].filter(Boolean).join(' · ')}
+						{infoText}
 					</Text>
 				)}
 			</View>
