@@ -69,6 +69,7 @@ export class DownloadService {
 			const audioStream = streamResult.data;
 			const format = audioStream.format ?? 'm4a';
 			logger.debug(`Got stream URL for download: ${audioStream.url.substring(0, 50)}...`);
+			logger.debug(`Stream headers present: ${!!audioStream.headers}`);
 
 			const downloadResult = await downloadAudioFile(
 				audioStream.url,

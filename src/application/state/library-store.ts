@@ -59,7 +59,7 @@ export const useLibraryStore = create<LibraryState>()(
 					if (exists) {
 						return state;
 					}
-					return { tracks: [...state.tracks, track] };
+					return { tracks: [...state.tracks, { ...track, addedAt: new Date() }] };
 				});
 			},
 
@@ -72,7 +72,9 @@ export const useLibraryStore = create<LibraryState>()(
 						return state;
 					}
 
-					return { tracks: [...state.tracks, ...newTracks] };
+					const now = new Date();
+					const tracksWithAddedAt = newTracks.map((t) => ({ ...t, addedAt: now }));
+					return { tracks: [...state.tracks, ...tracksWithAddedAt] };
 				});
 			},
 

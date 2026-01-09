@@ -1,54 +1,64 @@
-import { Pressable, type PressableProps } from 'react-native';
-import { Text } from '@/components/ui/text';
+/**
+ * FilterChip Component
+ *
+ * M3-compliant filter chip using React Native Paper.
+ */
+
+import { StyleSheet, View } from 'react-native';
+import { Chip } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
 import { Check, X } from 'lucide-react-native';
-import { cn } from '@/lib/utils';
+import { useAppTheme } from '@/lib/theme';
 
-interface FilterChipProps extends Omit<PressableProps, 'children'> {
-	label: string;
-	selected?: boolean;
-	onRemove?: () => void;
-	showRemoveIcon?: boolean;
+interface FilterChipProps {
+  label: string;
+  selected?: boolean;
+  onPress?: () => void;
+  onRemove?: () => void;
+  showRemoveIcon?: boolean;
+  disabled?: boolean;
 }
 
 export function FilterChip({
-	label,
-	selected = false,
-	onRemove,
-	showRemoveIcon = false,
-	className,
-	...props
+  label,
+  selected = false,
+  onPress,
+  onRemove,
+  showRemoveIcon = false,
+  disabled = false,
 }: FilterChipProps) {
-	return (
-		<Pressable
-			className={cn(
-				'flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border',
-				selected ? 'bg-primary border-primary' : 'bg-secondary border-secondary',
-				className
-			)}
-			{...props}
-		>
-			{selected && !showRemoveIcon && (
-				<Icon
-					as={Check}
-					size={14}
-					className={selected ? 'text-primary-foreground' : 'text-foreground'}
-				/>
-			)}
-			<Text
-				className={cn('text-sm', selected ? 'text-primary-foreground' : 'text-foreground')}
-			>
-				{label}
-			</Text>
-			{showRemoveIcon && onRemove && (
-				<Pressable onPress={onRemove} hitSlop={8}>
-					<Icon
-						as={X}
-						size={14}
-						className={selected ? 'text-primary-foreground' : 'text-muted-foreground'}
-					/>
-				</Pressable>
-			)}
-		</Pressable>
-	);
+  const { colors } = useAppTheme();
+
+  const handleClose = () => {
+    if (showRemoveIcon && onRemove) {
+      onRemove();
+    }
+  };
+
+  return (
+    <Chip
+      mode={selected ? 'flat' : 'outlined'}
+      selected={selected}
+      onPress={onPress}
+      onClose={showRemoveIcon && onRemove ? handleClose : undefined}
+      closeIcon={showRemoveIcon ? () => <Icon as={X} size={16} color={selected ? colors.onSecondaryContainer : colors.onSurfaceVariant} /> : undefined}
+      showSelectedCheck={!showRemoveIcon}
+      disabled={disabled}
+      style={[
+        styles.chip,
+        selected && { backgroundColor: colors.secondaryContainer },
+      ]}
+      textStyle={{
+        color: selected ? colors.onSecondaryContainer : colors.onSurfaceVariant,
+      }}
+    >
+      {label}
+    </Chip>
+  );
 }
+
+const styles = StyleSheet.create({
+  chip: {
+    marginRight: 8,
+  },
+});

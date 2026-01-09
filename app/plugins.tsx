@@ -1,382 +1,484 @@
-import { View, ScrollView, Switch, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+/**
+ * PluginsScreen
+ *
+ * Manage plugins for music sources and features.
+ * Uses M3 theming.
+ */
+
+import { View, ScrollView, Switch, TouchableOpacity, StyleSheet } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Text } from '@/components/ui/text';
+import { Text, Surface } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
+import { PageLayout } from '@/components/page-layout';
+import { EmptyState } from '@/components/empty-state';
 import { getLogger } from '@/src/shared/services/logger';
 import {
-	ChevronLeftIcon,
-	ChevronRightIcon,
-	CheckCircleIcon,
-	XCircleIcon,
-	AlertCircleIcon,
-	LoaderIcon,
-	MusicIcon,
-	PlayCircleIcon,
-	CloudIcon,
-	PuzzleIcon,
-	type LucideIcon,
+  ChevronRightIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  AlertCircleIcon,
+  LoaderIcon,
+  MusicIcon,
+  PlayCircleIcon,
+  CloudIcon,
+  PuzzleIcon,
+  type LucideIcon,
 } from 'lucide-react-native';
 import { PluginRegistry } from '@/src/plugins/core/registry/plugin-registry';
 import type {
-	BasePlugin,
-	PluginStatus,
-	PluginCategory,
+  PluginStatus,
+  PluginCategory,
 } from '@/src/plugins/core/interfaces/base-plugin';
 import { PluginListSkeleton } from '@/components/skeletons';
+import { useAppTheme } from '@/lib/theme';
 
 const logger = getLogger('Plugins');
 
 interface PluginDisplayInfo {
-	id: string;
-	name: string;
-	version: string;
-	description?: string;
-	category: PluginCategory;
-	status: PluginStatus;
-	isActive: boolean;
-	capabilities: string[];
+  id: string;
+  name: string;
+  version: string;
+  description?: string;
+  category: PluginCategory;
+  status: PluginStatus;
+  isActive: boolean;
+  capabilities: string[];
 }
 
 const categoryIcons: Record<PluginCategory, LucideIcon> = {
-	'metadata-provider': MusicIcon,
-	'audio-source-provider': MusicIcon,
-	'playback-provider': PlayCircleIcon,
-	'sync-provider': CloudIcon,
-	'lyrics-provider': MusicIcon,
-	recommendation: MusicIcon,
-	visualizer: MusicIcon,
+  'metadata-provider': MusicIcon,
+  'audio-source-provider': MusicIcon,
+  'playback-provider': PlayCircleIcon,
+  'sync-provider': CloudIcon,
+  'lyrics-provider': MusicIcon,
+  recommendation: MusicIcon,
+  visualizer: MusicIcon,
 };
 
 const categoryLabels: Record<PluginCategory, string> = {
-	'metadata-provider': 'Music Sources',
-	'audio-source-provider': 'Audio Sources',
-	'playback-provider': 'Playback',
-	'sync-provider': 'Sync & Backup',
-	'lyrics-provider': 'Lyrics',
-	recommendation: 'Recommendations',
-	visualizer: 'Visualizer',
+  'metadata-provider': 'Music Sources',
+  'audio-source-provider': 'Audio Sources',
+  'playback-provider': 'Playback',
+  'sync-provider': 'Sync & Backup',
+  'lyrics-provider': 'Lyrics',
+  recommendation: 'Recommendations',
+  visualizer: 'Visualizer',
 };
 
-const statusConfig: Record<PluginStatus, { icon: LucideIcon; color: string; label: string }> = {
-	uninitialized: {
-		icon: AlertCircleIcon,
-		color: 'text-muted-foreground',
-		label: 'Not initialized',
-	},
-	initializing: { icon: LoaderIcon, color: 'text-yellow-500', label: 'Initializing...' },
-	ready: { icon: CheckCircleIcon, color: 'text-muted-foreground', label: 'Ready' },
-	active: { icon: CheckCircleIcon, color: 'text-primary', label: 'Active' },
-	error: { icon: XCircleIcon, color: 'text-destructive', label: 'Error' },
-	disabled: { icon: XCircleIcon, color: 'text-muted-foreground', label: 'Disabled' },
+const statusConfig: Record<PluginStatus, { icon: LucideIcon; colorKey: 'onSurfaceVariant' | 'primary' | 'error' | 'tertiary'; label: string }> = {
+  uninitialized: {
+    icon: AlertCircleIcon,
+    colorKey: 'onSurfaceVariant',
+    label: 'Not initialized',
+  },
+  initializing: { icon: LoaderIcon, colorKey: 'tertiary', label: 'Initializing...' },
+  ready: { icon: CheckCircleIcon, colorKey: 'onSurfaceVariant', label: 'Ready' },
+  active: { icon: CheckCircleIcon, colorKey: 'primary', label: 'Active' },
+  error: { icon: XCircleIcon, colorKey: 'error', label: 'Error' },
+  disabled: { icon: XCircleIcon, colorKey: 'onSurfaceVariant', label: 'Disabled' },
 };
 
 export default function PluginsScreen() {
-	const [plugins, setPlugins] = useState<PluginDisplayInfo[]>([]);
-	const [selectedPlugin, setSelectedPlugin] = useState<PluginDisplayInfo | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
+  const [plugins, setPlugins] = useState<PluginDisplayInfo[]>([]);
+  const [selectedPlugin, setSelectedPlugin] = useState<PluginDisplayInfo | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-	const loadPlugins = useCallback(() => {
-		const registry = PluginRegistry.getInstance();
-		const allPlugins = registry.getAllPlugins();
+  const loadPlugins = useCallback(() => {
+    const registry = PluginRegistry.getInstance();
+    const allPlugins = registry.getAllPlugins();
 
-		const pluginInfos: PluginDisplayInfo[] = allPlugins.map((plugin) => {
-			const manifest = plugin.manifest;
-			return {
-				id: manifest.id,
-				name: manifest.name,
-				version: manifest.version,
-				description: manifest.description,
-				category: manifest.category,
-				status: registry.getStatus(manifest.id) ?? 'uninitialized',
-				isActive: registry.isActive(manifest.id),
-				capabilities: manifest.capabilities || [],
-			};
-		});
+    const pluginInfos: PluginDisplayInfo[] = allPlugins.map((plugin) => {
+      const manifest = plugin.manifest;
+      return {
+        id: manifest.id,
+        name: manifest.name,
+        version: manifest.version,
+        description: manifest.description,
+        category: manifest.category,
+        status: registry.getStatus(manifest.id) ?? 'uninitialized',
+        isActive: registry.isActive(manifest.id),
+        capabilities: manifest.capabilities || [],
+      };
+    });
 
-		setPlugins(pluginInfos);
-		setIsLoading(false);
-	}, []);
+    setPlugins(pluginInfos);
+    setIsLoading(false);
+  }, []);
 
-	useEffect(() => {
-		loadPlugins();
+  useEffect(() => {
+    loadPlugins();
 
-		const registry = PluginRegistry.getInstance();
-		const unsubscribe = registry.on(() => {
-			loadPlugins();
-		});
+    const registry = PluginRegistry.getInstance();
+    const unsubscribe = registry.on(() => {
+      loadPlugins();
+    });
 
-		return unsubscribe;
-	}, [loadPlugins]);
+    return unsubscribe;
+  }, [loadPlugins]);
 
-	const handleTogglePlugin = async (plugin: PluginDisplayInfo) => {
-		const registry = PluginRegistry.getInstance();
+  const handleTogglePlugin = async (plugin: PluginDisplayInfo) => {
+    const registry = PluginRegistry.getInstance();
 
-		try {
-			if (plugin.isActive) {
-				await registry.deactivate(plugin.id);
-			} else {
-				if (plugin.status === 'uninitialized') {
-					await registry.initialize(plugin.id);
-				}
-				await registry.activate(plugin.id);
-			}
-			loadPlugins();
-		} catch (error) {
-			logger.error('Failed to toggle plugin:', error instanceof Error ? error : undefined);
-		}
-	};
+    try {
+      if (plugin.isActive) {
+        await registry.deactivate(plugin.id);
+      } else {
+        if (plugin.status === 'uninitialized') {
+          await registry.initialize(plugin.id);
+        }
+        await registry.activate(plugin.id);
+      }
+      loadPlugins();
+    } catch (error) {
+      logger.error('Failed to toggle plugin:', error instanceof Error ? error : undefined);
+    }
+  };
 
-	const pluginsByCategory = plugins.reduce(
-		(acc, plugin) => {
-			if (!acc[plugin.category]) {
-				acc[plugin.category] = [];
-			}
-			acc[plugin.category].push(plugin);
-			return acc;
-		},
-		{} as Record<PluginCategory, PluginDisplayInfo[]>
-	);
+  const pluginsByCategory = plugins.reduce(
+    (acc, plugin) => {
+      if (!acc[plugin.category]) {
+        acc[plugin.category] = [];
+      }
+      acc[plugin.category].push(plugin);
+      return acc;
+    },
+    {} as Record<PluginCategory, PluginDisplayInfo[]>
+  );
 
-	if (selectedPlugin) {
-		return (
-			<PluginDetailScreen
-				plugin={selectedPlugin}
-				onBack={() => setSelectedPlugin(null)}
-				onToggle={() => handleTogglePlugin(selectedPlugin)}
-			/>
-		);
-	}
+  if (selectedPlugin) {
+    return (
+      <PluginDetailScreen
+        plugin={selectedPlugin}
+        onBack={() => setSelectedPlugin(null)}
+        onToggle={() => handleTogglePlugin(selectedPlugin)}
+      />
+    );
+  }
 
-	return (
-		<SafeAreaView className="bg-background flex-1">
-			{}
-			<View className="flex-row items-center gap-2 p-4 border-b border-border">
-				<Button variant="ghost" size="icon" onPress={() => router.back()}>
-					<Icon as={ChevronLeftIcon} />
-				</Button>
-				<Text className="text-xl font-semibold">Plugins</Text>
-			</View>
-
-			<ScrollView className="flex-1" contentContainerClassName="pb-8">
-				{isLoading ? (
-					<View className="mt-6 mx-4">
-						<PluginListSkeleton count={4} />
-					</View>
-				) : plugins.length === 0 ? (
-					<EmptyState />
-				) : (
-					Object.entries(pluginsByCategory).map(([category, categoryPlugins]) => (
-						<PluginSection
-							key={category}
-							category={category as PluginCategory}
-							plugins={categoryPlugins}
-							onPluginPress={setSelectedPlugin}
-							onToggle={handleTogglePlugin}
-						/>
-					))
-				)}
-			</ScrollView>
-		</SafeAreaView>
-	);
+  return (
+    <PageLayout header={{ title: 'Plugins', showBack: true, compact: true }}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <PluginListSkeleton count={4} />
+          </View>
+        ) : plugins.length === 0 ? (
+          <EmptyState
+            icon={PuzzleIcon}
+            title="No plugins installed"
+            description="Plugins extend Aria with new music sources, playback features, and more."
+          />
+        ) : (
+          Object.entries(pluginsByCategory).map(([category, categoryPlugins]) => (
+            <PluginSection
+              key={category}
+              category={category as PluginCategory}
+              plugins={categoryPlugins}
+              onPluginPress={setSelectedPlugin}
+              onToggle={handleTogglePlugin}
+            />
+          ))
+        )}
+      </ScrollView>
+    </PageLayout>
+  );
 }
 
 function PluginSection({
-	category,
-	plugins,
-	onPluginPress,
-	onToggle,
+  category,
+  plugins,
+  onPluginPress,
+  onToggle,
 }: {
-	category: PluginCategory;
-	plugins: PluginDisplayInfo[];
-	onPluginPress: (plugin: PluginDisplayInfo) => void;
-	onToggle: (plugin: PluginDisplayInfo) => void;
+  category: PluginCategory;
+  plugins: PluginDisplayInfo[];
+  onPluginPress: (plugin: PluginDisplayInfo) => void;
+  onToggle: (plugin: PluginDisplayInfo) => void;
 }) {
-	const CategoryIcon = categoryIcons[category] || PuzzleIcon;
-	const label = categoryLabels[category] || category;
+  const { colors } = useAppTheme();
+  const CategoryIcon = categoryIcons[category] || PuzzleIcon;
+  const label = categoryLabels[category] || category;
 
-	return (
-		<View className="mt-6">
-			<View className="flex-row items-center gap-2 px-4 mb-2">
-				<Icon as={CategoryIcon} size={16} className="text-muted-foreground" />
-				<Text className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-					{label}
-				</Text>
-			</View>
-			<View className="bg-card mx-4 rounded-xl overflow-hidden">
-				{plugins.map((plugin, index) => (
-					<PluginItem
-						key={plugin.id}
-						plugin={plugin}
-						isLast={index === plugins.length - 1}
-						onPress={() => onPluginPress(plugin)}
-						onToggle={() => onToggle(plugin)}
-					/>
-				))}
-			</View>
-		</View>
-	);
+  return (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Icon as={CategoryIcon} size={16} color={colors.onSurfaceVariant} />
+        <Text variant="labelMedium" style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
+          {label.toUpperCase()}
+        </Text>
+      </View>
+      <Surface style={[styles.sectionContent, { backgroundColor: colors.surfaceContainerLow }]}>
+        {plugins.map((plugin, index) => (
+          <PluginItem
+            key={plugin.id}
+            plugin={plugin}
+            isLast={index === plugins.length - 1}
+            onPress={() => onPluginPress(plugin)}
+            onToggle={() => onToggle(plugin)}
+          />
+        ))}
+      </Surface>
+    </View>
+  );
 }
 
 function PluginItem({
-	plugin,
-	isLast,
-	onPress,
-	onToggle,
+  plugin,
+  isLast,
+  onPress,
+  onToggle,
 }: {
-	plugin: PluginDisplayInfo;
-	isLast: boolean;
-	onPress: () => void;
-	onToggle: () => void;
+  plugin: PluginDisplayInfo;
+  isLast: boolean;
+  onPress: () => void;
+  onToggle: () => void;
 }) {
-	const statusInfo = statusConfig[plugin.status];
-	const StatusIcon = statusInfo.icon;
+  const { colors } = useAppTheme();
+  const statusInfo = statusConfig[plugin.status];
+  const StatusIcon = statusInfo.icon;
+  const statusColor = colors[statusInfo.colorKey];
 
-	return (
-		<TouchableOpacity
-			className={`flex-row items-center gap-4 py-4 ${!isLast ? 'border-b border-border' : ''}`}
-			onPress={onPress}
-			activeOpacity={0.7}
-		>
-			{}
-			<View className="w-12 h-12 rounded-xl bg-primary/10 items-center justify-center">
-				<Icon
-					as={categoryIcons[plugin.category] || PuzzleIcon}
-					size={24}
-					className="text-primary"
-				/>
-			</View>
+  return (
+    <TouchableOpacity
+      style={[
+        styles.pluginItem,
+        !isLast && { borderBottomWidth: 1, borderBottomColor: colors.outlineVariant },
+      ]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <View style={[styles.pluginIcon, { backgroundColor: `${colors.primary}1A` }]}>
+        <Icon
+          as={categoryIcons[plugin.category] || PuzzleIcon}
+          size={24}
+          color={colors.primary}
+        />
+      </View>
 
-			{}
-			<View className="flex-1">
-				<View className="flex-row items-center gap-2">
-					<Text className="font-medium">{plugin.name}</Text>
-					<Text variant="muted" className="text-xs">
-						v{plugin.version}
-					</Text>
-				</View>
-				<View className="flex-row items-center gap-1 mt-1">
-					<Icon as={StatusIcon} size={12} className={statusInfo.color} />
-					<Text variant="muted" className="text-xs">
-						{statusInfo.label}
-					</Text>
-				</View>
-			</View>
+      <View style={styles.pluginText}>
+        <View style={styles.pluginTitleRow}>
+          <Text variant="bodyMedium" style={{ color: colors.onSurface, fontWeight: '500' }}>
+            {plugin.name}
+          </Text>
+          <Text variant="labelSmall" style={{ color: colors.onSurfaceVariant }}>
+            v{plugin.version}
+          </Text>
+        </View>
+        <View style={styles.statusRow}>
+          <Icon as={StatusIcon} size={12} color={statusColor} />
+          <Text variant="labelSmall" style={{ color: statusColor }}>
+            {statusInfo.label}
+          </Text>
+        </View>
+      </View>
 
-			{}
-			<View className="flex-row items-center gap-2">
-				<Switch
-					value={plugin.isActive}
-					onValueChange={onToggle}
-					trackColor={{ false: '#767577', true: '#3b82f6' }}
-				/>
-				<Icon as={ChevronRightIcon} size={20} className="text-muted-foreground" />
-			</View>
-		</TouchableOpacity>
-	);
+      <View style={styles.pluginActions}>
+        <Switch
+          value={plugin.isActive}
+          onValueChange={onToggle}
+          trackColor={{ false: colors.surfaceContainerHighest, true: colors.primary }}
+          thumbColor={colors.surface}
+        />
+        <Icon as={ChevronRightIcon} size={20} color={colors.onSurfaceVariant} />
+      </View>
+    </TouchableOpacity>
+  );
 }
 
 function PluginDetailScreen({
-	plugin,
-	onBack,
-	onToggle,
+  plugin,
+  onBack,
+  onToggle,
 }: {
-	plugin: PluginDisplayInfo;
-	onBack: () => void;
-	onToggle: () => void;
+  plugin: PluginDisplayInfo;
+  onBack: () => void;
+  onToggle: () => void;
 }) {
-	const statusInfo = statusConfig[plugin.status];
-	const StatusIcon = statusInfo.icon;
+  const { colors } = useAppTheme();
+  const statusInfo = statusConfig[plugin.status];
+  const StatusIcon = statusInfo.icon;
+  const statusColor = colors[statusInfo.colorKey];
 
-	return (
-		<SafeAreaView className="bg-background flex-1">
-			{}
-			<View className="flex-row items-center gap-2 p-4 border-b border-border">
-				<Button variant="ghost" size="icon" onPress={onBack}>
-					<Icon as={ChevronLeftIcon} />
-				</Button>
-				<Text className="text-xl font-semibold flex-1">{plugin.name}</Text>
-				<Switch
-					value={plugin.isActive}
-					onValueChange={onToggle}
-					trackColor={{ false: '#767577', true: '#3b82f6' }}
-				/>
-			</View>
+  const headerRightActions = (
+    <Switch
+      value={plugin.isActive}
+      onValueChange={onToggle}
+      trackColor={{ false: colors.surfaceContainerHighest, true: colors.primary }}
+      thumbColor={colors.surface}
+    />
+  );
 
-			<ScrollView className="flex-1" contentContainerClassName="pb-8">
-				{}
-				<View className="items-center py-8">
-					<View className="w-20 h-20 rounded-2xl bg-primary/10 items-center justify-center mb-4">
-						<Icon
-							as={categoryIcons[plugin.category] || PuzzleIcon}
-							size={40}
-							className="text-primary"
-						/>
-					</View>
-					<Text className="text-2xl font-bold">{plugin.name}</Text>
-					<Text variant="muted">Version {plugin.version}</Text>
-					<View className="flex-row items-center gap-1 mt-2">
-						<Icon as={StatusIcon} size={16} className={statusInfo.color} />
-						<Text className={statusInfo.color}>{statusInfo.label}</Text>
-					</View>
-				</View>
+  return (
+    <PageLayout
+      header={{
+        title: plugin.name,
+        showBack: true,
+        onBack,
+        compact: true,
+        rightActions: headerRightActions,
+      }}
+    >
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.detailHeader}>
+          <View style={[styles.detailIcon, { backgroundColor: `${colors.primary}1A` }]}>
+            <Icon
+              as={categoryIcons[plugin.category] || PuzzleIcon}
+              size={40}
+              color={colors.primary}
+            />
+          </View>
+          <Text variant="headlineSmall" style={{ color: colors.onSurface, fontWeight: '700' }}>
+            {plugin.name}
+          </Text>
+          <Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant }}>
+            Version {plugin.version}
+          </Text>
+          <View style={styles.statusRow}>
+            <Icon as={StatusIcon} size={16} color={statusColor} />
+            <Text variant="bodySmall" style={{ color: statusColor }}>
+              {statusInfo.label}
+            </Text>
+          </View>
+        </View>
 
-				{}
-				{plugin.description && (
-					<View className="mx-4 mb-6">
-						<Text className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">
-							Description
-						</Text>
-						<View className="bg-card rounded-xl px-0 py-4">
-							<Text>{plugin.description}</Text>
-						</View>
-					</View>
-				)}
+        {plugin.description && (
+          <View style={styles.detailSection}>
+            <Text variant="labelMedium" style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
+              DESCRIPTION
+            </Text>
+            <Surface style={[styles.detailCard, { backgroundColor: colors.surfaceContainerLow }]}>
+              <Text variant="bodyMedium" style={{ color: colors.onSurface }}>
+                {plugin.description}
+              </Text>
+            </Surface>
+          </View>
+        )}
 
-				{}
-				<View className="mx-4 mb-6">
-					<Text className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">
-						Category
-					</Text>
-					<View className="bg-card rounded-xl py-4">
-						<Text>{categoryLabels[plugin.category] || plugin.category}</Text>
-					</View>
-				</View>
+        <View style={styles.detailSection}>
+          <Text variant="labelMedium" style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
+            CATEGORY
+          </Text>
+          <Surface style={[styles.detailCard, { backgroundColor: colors.surfaceContainerLow }]}>
+            <Text variant="bodyMedium" style={{ color: colors.onSurface }}>
+              {categoryLabels[plugin.category] || plugin.category}
+            </Text>
+          </Surface>
+        </View>
 
-				{}
-				{plugin.capabilities.length > 0 && (
-					<View className="mx-4 mb-6">
-						<Text className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">
-							Capabilities
-						</Text>
-						<View className="bg-card rounded-xl py-4">
-							<View className="flex-row flex-wrap gap-2">
-								{plugin.capabilities.map((cap) => (
-									<View key={cap} className="bg-muted px-3 py-1 rounded-full">
-										<Text className="text-sm">{cap.replace(/-/g, ' ')}</Text>
-									</View>
-								))}
-							</View>
-						</View>
-					</View>
-				)}
-			</ScrollView>
-		</SafeAreaView>
-	);
+        {plugin.capabilities.length > 0 && (
+          <View style={styles.detailSection}>
+            <Text variant="labelMedium" style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
+              CAPABILITIES
+            </Text>
+            <Surface style={[styles.detailCard, { backgroundColor: colors.surfaceContainerLow }]}>
+              <View style={styles.capabilitiesContainer}>
+                {plugin.capabilities.map((cap) => (
+                  <View key={cap} style={[styles.capabilityChip, { backgroundColor: colors.surfaceContainerHighest }]}>
+                    <Text variant="labelSmall" style={{ color: colors.onSurface }}>
+                      {cap.replace(/-/g, ' ')}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </Surface>
+          </View>
+        )}
+      </ScrollView>
+    </PageLayout>
+  );
 }
 
-function EmptyState() {
-	return (
-		<View className="flex-1 items-center justify-center py-16">
-			<View className="bg-muted rounded-full p-6 mb-4">
-				<Icon as={PuzzleIcon} size={48} className="text-muted-foreground" />
-			</View>
-			<Text className="text-xl font-semibold mb-2">No plugins installed</Text>
-			<Text variant="muted" className="text-center px-8">
-				Plugins extend Aria with new music sources, playback features, and more.
-			</Text>
-		</View>
-	);
-}
+const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 32,
+  },
+  loadingContainer: {
+    marginTop: 24,
+    marginHorizontal: 16,
+  },
+  section: {
+    marginTop: 24,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
+  sectionTitle: {
+    letterSpacing: 0.5,
+  },
+  sectionContent: {
+    marginHorizontal: 16,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  pluginItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+  },
+  pluginIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pluginText: {
+    flex: 1,
+  },
+  pluginTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  pluginActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  detailHeader: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  detailIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  detailSection: {
+    marginHorizontal: 16,
+    marginBottom: 24,
+  },
+  detailCard: {
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 8,
+  },
+  capabilitiesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  capabilityChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 9999,
+  },
+});

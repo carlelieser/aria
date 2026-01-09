@@ -89,6 +89,7 @@ async function tryAdaptiveFormat(
 						Origin: 'https://www.youtube.com',
 						Referer: 'https://www.youtube.com/',
 						'User-Agent': 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version',
+						Range: 'bytes=0-',
 					},
 				});
 			}

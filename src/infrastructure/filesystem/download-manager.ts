@@ -37,16 +37,23 @@ export async function downloadAudioFile(
 
 		const filePath = getDownloadFilePath(trackId, format);
 		logger.debug(`Downloading to: ${filePath}`);
+		logger.debug(`Using headers:`, JSON.stringify(headers ?? 'none'));
 
+		const defaultHeaders: Record<string, string> = {
+			Accept: '*/*',
+			'User-Agent': 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version',
+			Origin: 'https://www.youtube.com',
+			Referer: 'https://www.youtube.com/',
+		};
+
+		const finalHeaders = { ...defaultHeaders, ...headers };
+		logger.debug('Final headers:', Object.keys(finalHeaders).join(', '));
+
+		// First try with progress tracking using createDownloadResumable
 		const downloadResumable = FileSystem.createDownloadResumable(
 			url,
 			filePath,
-			{
-				headers: headers ?? {
-					Accept: '*/*',
-					'User-Agent': 'Mozilla/5.0 (compatible; Aria/1.0)',
-				},
-			},
+			{ headers: finalHeaders },
 			(downloadProgress) => {
 				const progress =
 					downloadProgress.totalBytesExpectedToWrite > 0
@@ -60,13 +67,24 @@ export async function downloadAudioFile(
 			}
 		);
 
-		const result = await downloadResumable.downloadAsync();
+		let result = await downloadResumable.downloadAsync();
+
+		// If resumable download fails, try simple downloadAsync as fallback
+		if (!result || (result.status !== 200 && result.status !== 206)) {
+			logger.debug('Resumable download failed, trying simple download...');
+			await deleteAudioFile(filePath).catch(() => {});
+			result = await FileSystem.downloadAsync(url, filePath, {
+				headers: finalHeaders,
+			});
+		}
 
 		if (!result) {
 			return err(new Error('Download failed: no result returned'));
 		}
 
-		if (result.status !== 200) {
+		// Accept 200 (OK) and 206 (Partial Content for Range requests)
+		if (result.status !== 200 && result.status !== 206) {
+			logger.debug(`Download failed with HTTP status: ${result.status}`);
 			await deleteAudioFile(filePath);
 			return err(new Error(`Download failed with status: ${result.status}`));
 		}
