@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
@@ -5,11 +6,16 @@ const path = require('path');
 const SVG_PATH = path.join(__dirname, '../assets/icon.svg');
 const OUTPUT_DIR = path.join(__dirname, '../assets/images');
 
+// Background color from icon.svg (#fafdff)
+const BACKGROUND_COLOR = { r: 250, g: 253, b: 255, alpha: 1 };
+
 const ICONS = [
 	{ name: 'icon.png', size: 1024 },
 	{ name: 'favicon.png', size: 48 },
-	{ name: 'splash-icon.png', size: 288 },
+	{ name: 'splash-icon.png', size: 512 },
 	{ name: 'android-icon-foreground.png', size: 432 },
+	{ name: 'android-icon-background.png', size: 432, solidBackground: true },
+	{ name: 'android-icon-monochrome.png', size: 432, monochrome: true },
 ];
 
 async function generateIcons() {
@@ -23,42 +29,53 @@ async function generateIcons() {
 		const outputPath = path.join(OUTPUT_DIR, icon.name);
 		console.log(`Generating ${icon.name} (${icon.size}x${icon.size})...`);
 
-		await sharp(svgBuffer)
-			.resize(icon.size, icon.size, {
+		let pipeline;
+
+		if (icon.solidBackground) {
+			pipeline = sharp({
+				create: {
+					width: icon.size,
+					height: icon.size,
+					channels: 4,
+					background: BACKGROUND_COLOR,
+				},
+			});
+		} else if (icon.monochrome) {
+			// Create white silhouette with alpha for Android themed icons
+			const resized = await sharp(svgBuffer)
+				.resize(icon.size, icon.size, {
+					fit: 'contain',
+					background: { r: 0, g: 0, b: 0, alpha: 0 },
+				})
+				.ensureAlpha()
+				.raw()
+				.toBuffer({ resolveWithObject: true });
+
+			const { data, info } = resized;
+			const pixels = Buffer.alloc(data.length);
+
+			for (let i = 0; i < data.length; i += 4) {
+				const alpha = data[i + 3];
+				// White pixel with original alpha
+				pixels[i] = 255;
+				pixels[i + 1] = 255;
+				pixels[i + 2] = 255;
+				pixels[i + 3] = alpha;
+			}
+
+			pipeline = sharp(pixels, {
+				raw: { width: info.width, height: info.height, channels: 4 },
+			});
+		} else {
+			pipeline = sharp(svgBuffer).resize(icon.size, icon.size, {
 				fit: 'contain',
 				background: { r: 0, g: 0, b: 0, alpha: 0 },
-			})
-			.png()
-			.toFile(outputPath);
+			});
+		}
 
-		console.log(`Created: ${outputPath}`);
+		await pipeline.png().toFile(outputPath);
+		console.log(`  Created: ${outputPath}`);
 	}
-
-	const backgroundPath = path.join(OUTPUT_DIR, 'android-icon-background.png');
-	console.log('Generating android-icon-background.png (432x432)...');
-	await sharp({
-		create: {
-			width: 432,
-			height: 432,
-			channels: 4,
-			background: { r: 230, g: 244, b: 254, alpha: 1 },
-		},
-	})
-		.png()
-		.toFile(backgroundPath);
-	console.log(`Created: ${backgroundPath}`);
-
-	const monochromePath = path.join(OUTPUT_DIR, 'android-icon-monochrome.png');
-	console.log('Generating android-icon-monochrome.png (432x432)...');
-	await sharp(svgBuffer)
-		.resize(432, 432, {
-			fit: 'contain',
-			background: { r: 0, g: 0, b: 0, alpha: 0 },
-		})
-		.grayscale()
-		.png()
-		.toFile(monochromePath);
-	console.log(`Created: ${monochromePath}`);
 
 	console.log('\nAll icons generated successfully!');
 }

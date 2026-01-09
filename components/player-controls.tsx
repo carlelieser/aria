@@ -114,7 +114,6 @@ export function PlayerControls({ size = 'md' }: PlayerControlsProps) {
         icon={skipBackIcon}
         size={secondaryIconSize}
         onPress={skipToPrevious}
-        disabled={isLoading}
       />
 
       {/* Play/Pause FAB */}
@@ -131,7 +130,6 @@ export function PlayerControls({ size = 'md' }: PlayerControlsProps) {
         icon={skipForwardIcon}
         size={secondaryIconSize}
         onPress={skipToNext}
-        disabled={isLoading}
       />
 
       {/* Repeat */}

@@ -6,9 +6,9 @@
  * Tab order is customizable via settings.
  */
 
-import { useEffect, useRef, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import { Tabs, router } from 'expo-router';
-import { View, Pressable, StyleSheet, Text } from 'react-native';
+import { View, Pressable, StyleSheet, Text, InteractionManager } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   useAnimatedStyle,
@@ -29,8 +29,11 @@ import { useDownloadQueue } from '@/hooks/use-download-queue';
 import {
   useDefaultTab,
   useTabOrder,
+  useEnabledTabs,
+  useSettingsStore,
   type TabId,
   DEFAULT_TAB_ORDER,
+  DEFAULT_ENABLED_TABS,
 } from '@/src/application/state/settings-store';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
@@ -56,29 +59,57 @@ export const TAB_CONFIG: Record<TabId, TabConfig> = {
 export default function TabLayout() {
   const defaultTab = useDefaultTab();
   const tabOrder = useTabOrder();
+  const enabledTabs = useEnabledTabs();
   const hasNavigatedRef = useRef(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  // Ensure tab order is valid and contains all tabs
+  // Wait for store hydration before attempting navigation
+  useEffect(() => {
+    // Check if store is already hydrated
+    const checkHydration = () => {
+      const state = useSettingsStore.persist.getOptions();
+      if (state) {
+        // Use InteractionManager to ensure we don't navigate during transitions
+        const handle = InteractionManager.runAfterInteractions(() => {
+          setIsHydrated(true);
+        });
+        return () => handle.cancel();
+      }
+    };
+
+    // Small delay to ensure store has time to hydrate from AsyncStorage
+    const timer = setTimeout(checkHydration, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Ensure tab order is valid and filter by enabled tabs
   const validTabOrder = useMemo(() => {
     const validTabs = tabOrder.filter((id) => id in TAB_CONFIG);
     if (validTabs.length !== DEFAULT_TAB_ORDER.length) {
-      return DEFAULT_TAB_ORDER;
+      return DEFAULT_TAB_ORDER.filter((id) => enabledTabs.includes(id));
     }
-    return validTabs;
-  }, [tabOrder]);
+    return validTabs.filter((id) => enabledTabs.includes(id));
+  }, [tabOrder, enabledTabs]);
 
   useEffect(() => {
-    if (!hasNavigatedRef.current && defaultTab !== validTabOrder[0]) {
+    // Only navigate after hydration is complete and interactions are done
+    if (!isHydrated || hasNavigatedRef.current) return;
+
+    // Check if we need to navigate to a different default tab
+    if (defaultTab !== validTabOrder[0]) {
       hasNavigatedRef.current = true;
-      const config = TAB_CONFIG[defaultTab];
+      // If default tab is disabled, use first enabled tab
+      const targetTab = enabledTabs.includes(defaultTab) ? defaultTab : validTabOrder[0];
+      const config = TAB_CONFIG[targetTab];
       if (config) {
-        const timer = setTimeout(() => {
+        // Use InteractionManager to ensure navigation happens after all animations complete
+        const handle = InteractionManager.runAfterInteractions(() => {
           router.replace(config.route as '/' | '/explore' | '/downloads' | '/settings');
-        }, 0);
-        return () => clearTimeout(timer);
+        });
+        return () => handle.cancel();
       }
     }
-  }, [defaultTab, validTabOrder]);
+  }, [isHydrated, defaultTab, validTabOrder, enabledTabs]);
 
   return (
     <Tabs

@@ -24,12 +24,11 @@ import { useLyrics } from '@/hooks/use-lyrics';
 import { useSleepTimer } from '@/hooks/use-sleep-timer';
 import { getLargestArtwork } from '@/src/domain/value-objects/artwork';
 import { getArtistNames } from '@/src/domain/entities/track';
-import { PlayerArtworkSkeleton } from '@/components/skeletons';
 import { useAppTheme } from '@/lib/theme';
 
 export default function PlayerScreen() {
   const pathname = usePathname();
-  const { currentTrack, isLoading, error } = usePlayer();
+  const { currentTrack, error } = usePlayer();
   const { hasAnyLyrics, isExpanded, toggleExpanded } = useLyrics();
   const { isActive: sleepTimerActive, formatRemaining } = useSleepTimer();
   const { colors } = useAppTheme();
@@ -105,8 +104,6 @@ export default function PlayerScreen() {
         <View style={styles.artworkContainer}>
           {showLyrics ? (
             <LyricsDisplay />
-          ) : isLoading ? (
-            <PlayerArtworkSkeleton />
           ) : (
             <View style={styles.artworkShadow}>
               <Image

@@ -8,6 +8,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { PortalHost } from '@rn-primitives/portal';
 import { lazyBootstrap } from '@/src/application/bootstrap';
 import { FloatingPlayer } from '@/components/floating-player';
+import { TrackOptionsSheet } from '@/components/track-options-menu';
 import { ToastContainer } from '@/components/ui/toast';
 import { AppThemeProvider, useAppTheme } from '@/lib/theme';
 
@@ -34,6 +35,7 @@ function AppContent() {
         />
       </Stack>
       <FloatingPlayer />
+      <TrackOptionsSheet />
       <ToastContainer />
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <PortalHost />

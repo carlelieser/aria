@@ -84,6 +84,7 @@ interface EqualizerState {
 	selectPreset: (presetId: string) => void;
 	setCustomGain: (bandIndex: number, gain: number) => void;
 	resetToFlat: () => void;
+	resetEqualizer: () => void;
 }
 
 export const useEqualizerStore = create<EqualizerState>()(
@@ -127,6 +128,13 @@ export const useEqualizerStore = create<EqualizerState>()(
 					customGains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 				});
 			},
+			resetEqualizer: () => {
+				set({
+					isEnabled: false,
+					selectedPresetId: 'flat',
+					customGains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+				});
+			},
 		}),
 		{
 			name: 'aria-equalizer-storage',
@@ -146,3 +154,4 @@ export const useSelectedPreset = () => {
 	return DEFAULT_PRESETS.find((p) => p.id === presetId) ?? DEFAULT_PRESETS[0];
 };
 export const useCurrentGains = () => useEqualizerStore((state) => state.customGains);
+export const useResetEqualizer = () => useEqualizerStore((state) => state.resetEqualizer);

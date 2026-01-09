@@ -72,6 +72,17 @@ export class PlaybackService {
 	}
 
 	async play(track: Track): Promise<Result<void, Error>> {
+		// Stop current playback FIRST to ensure clean transition
+		if (this.activeProvider) {
+			logger.debug('Stopping current playback before starting new track...');
+			try {
+				await this.activeProvider.stop();
+			} catch (e) {
+				logger.warn('Error stopping previous playback:', e instanceof Error ? e : undefined);
+			}
+		}
+
+		// Now update UI state with new track
 		usePlayerStore.getState().play(track);
 
 		try {
@@ -91,10 +102,6 @@ export class PlaybackService {
 				return err(error);
 			}
 
-			if (this.activeProvider) {
-				logger.debug('Stopping current playback before starting new track...');
-				await this.activeProvider.stop();
-			}
 			this.activeProvider = provider;
 
 			const playResult = await provider.play(

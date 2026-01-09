@@ -16,7 +16,7 @@ import {
   ListMusicIcon,
   UsersIcon,
 } from 'lucide-react-native';
-import { useState, useRef, useCallback, memo } from 'react';
+import { useState, useCallback, memo } from 'react';
 import { Image } from 'expo-image';
 import {
   useTracks,
@@ -41,20 +41,15 @@ import { useUniqueFilterOptions } from '@/hooks/use-unique-filter-options';
 import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
 import type { Playlist } from '@/src/domain/entities/playlist';
-import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 
 type ChipType = 'playlists' | 'artists' | 'songs';
 
-const TRACK_ITEM_HEIGHT = 80;
-const PLAYLIST_ITEM_HEIGHT = 88;
-const ARTIST_ITEM_HEIGHT = 88;
-
 export default function HomeScreen() {
   const [selected, setSelected] = useState<ChipType>('playlists');
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const allTracks = useTracks();
   const playlists = usePlaylists();
   const isLoading = useIsLibraryLoading();
-  const sheetRef = useRef<BottomSheetMethods>(null);
 
   const {
     tracks: filteredTracks,
@@ -77,7 +72,11 @@ export default function HomeScreen() {
   const artists = useUniqueArtists();
 
   const handleOpenFilterSheet = useCallback(() => {
-    sheetRef.current?.snapToIndex(0);
+    setIsFilterSheetOpen(true);
+  }, []);
+
+  const handleCloseFilterSheet = useCallback(() => {
+    setIsFilterSheetOpen(false);
   }, []);
 
   const isSongsTab = selected === 'songs';
@@ -129,7 +128,8 @@ export default function HomeScreen() {
       )}
 
       <LibrarySortFilterSheet
-        ref={sheetRef}
+        isOpen={isFilterSheetOpen}
+        onClose={handleCloseFilterSheet}
         sortField={sortField}
         sortDirection={sortDirection}
         activeFilters={activeFilters}

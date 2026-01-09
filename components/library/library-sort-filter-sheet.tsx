@@ -2,10 +2,10 @@
  * LibrarySortFilterSheet Component
  *
  * Bottom sheet for library sort and filter options.
- * Uses M3 theming.
+ * Uses M3 theming. Only renders when open to avoid gesture handler conflicts.
  */
 
-import React, { forwardRef, useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import BottomSheet, {
   BottomSheetBackdrop,
@@ -23,6 +23,8 @@ import type { ArtistReference } from '@/src/domain/entities/artist';
 import type { AlbumReference } from '@/src/domain/entities/album';
 
 interface LibrarySortFilterSheetProps {
+  isOpen: boolean;
+  onClose: () => void;
   sortField: SortField;
   sortDirection: SortDirection;
   activeFilters: LibraryFilters;
@@ -34,114 +36,121 @@ interface LibrarySortFilterSheetProps {
   onToggleAlbum: (albumId: string) => void;
   onToggleFavorites: () => void;
   onClearAll: () => void;
-  onDismiss?: () => void;
 }
 
-export const LibrarySortFilterSheet = forwardRef<BottomSheetMethods, LibrarySortFilterSheetProps>(
-  function LibrarySortFilterSheet(
-    {
-      sortField,
-      sortDirection,
-      activeFilters,
-      artists,
-      albums,
-      onSortFieldChange,
-      onToggleSortDirection,
-      onToggleArtist,
-      onToggleAlbum,
-      onToggleFavorites,
-      onClearAll,
-      onDismiss,
+export function LibrarySortFilterSheet({
+  isOpen,
+  onClose,
+  sortField,
+  sortDirection,
+  activeFilters,
+  artists,
+  albums,
+  onSortFieldChange,
+  onToggleSortDirection,
+  onToggleArtist,
+  onToggleAlbum,
+  onToggleFavorites,
+  onClearAll,
+}: LibrarySortFilterSheetProps) {
+  const { colors } = useAppTheme();
+  const sheetRef = useRef<BottomSheetMethods>(null);
+
+  const snapPoints = useMemo(() => ['60%', '85%'], []);
+
+  useEffect(() => {
+    if (isOpen) {
+      sheetRef.current?.snapToIndex(0);
+    }
+  }, [isOpen]);
+
+  const handleSheetChanges = useCallback(
+    (index: number) => {
+      if (index === -1) {
+        onClose();
+      }
     },
-    ref
-  ) {
-    const { colors } = useAppTheme();
+    [onClose]
+  );
 
-    const snapPoints = useMemo(() => ['60%', '85%'], []);
+  const renderBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.5}
+        pressBehavior="close"
+      />
+    ),
+    []
+  );
 
-    const handleSheetChanges = useCallback(
-      (index: number) => {
-        if (index === -1) {
-          onDismiss?.();
-        }
-      },
-      [onDismiss]
-    );
-
-    const renderBackdrop = useCallback(
-      (props: BottomSheetBackdropProps) => (
-        <BottomSheetBackdrop
-          {...props}
-          disappearsOnIndex={-1}
-          appearsOnIndex={0}
-          opacity={0.5}
-        />
-      ),
-      []
-    );
-
-    return (
-      <Portal name="library-sort-filter-sheet">
-        <BottomSheet
-          ref={ref}
-          index={-1}
-          snapPoints={snapPoints}
-          enablePanDownToClose
-          backdropComponent={renderBackdrop}
-          onChange={handleSheetChanges}
-          backgroundStyle={[
-            styles.background,
-            { backgroundColor: colors.surfaceContainerHigh },
-          ]}
-          handleIndicatorStyle={[
-            styles.handleIndicator,
-            { backgroundColor: colors.outlineVariant },
-          ]}
-        >
-          <BottomSheetScrollView style={styles.contentContainer}>
-            <View style={styles.header}>
-              <Text variant="titleMedium" style={{ color: colors.onSurface }}>
-                Sort & Filter
-              </Text>
-              <Button
-                mode="text"
-                compact
-                onPress={onClearAll}
-                textColor={colors.onSurfaceVariant}
-              >
-                Clear all
-              </Button>
-            </View>
-
-            <Divider style={styles.divider} />
-            <View style={styles.section}>
-              <SortSection
-                sortField={sortField}
-                sortDirection={sortDirection}
-                onSortFieldChange={onSortFieldChange}
-                onToggleDirection={onToggleSortDirection}
-              />
-            </View>
-
-            <Divider style={styles.divider} />
-            <View style={styles.section}>
-              <FilterSection
-                artists={artists}
-                albums={albums}
-                activeFilters={activeFilters}
-                onToggleArtist={onToggleArtist}
-                onToggleAlbum={onToggleAlbum}
-                onToggleFavorites={onToggleFavorites}
-              />
-            </View>
-
-            <View style={styles.bottomPadding} />
-          </BottomSheetScrollView>
-        </BottomSheet>
-      </Portal>
-    );
+  if (!isOpen) {
+    return null;
   }
-);
+
+  return (
+    <Portal name="library-sort-filter-sheet">
+      <BottomSheet
+        ref={sheetRef}
+        index={0}
+        snapPoints={snapPoints}
+        enablePanDownToClose
+        backdropComponent={renderBackdrop}
+        onChange={handleSheetChanges}
+        backgroundStyle={[
+          styles.background,
+          { backgroundColor: colors.surfaceContainerHigh },
+        ]}
+        handleIndicatorStyle={[
+          styles.handleIndicator,
+          { backgroundColor: colors.outlineVariant },
+        ]}
+      >
+        <BottomSheetScrollView style={styles.contentContainer}>
+          <View style={styles.header}>
+            <Text variant="titleMedium" style={{ color: colors.onSurface }}>
+              Sort & Filter
+            </Text>
+            <Button
+              mode="text"
+              compact
+              onPress={onClearAll}
+              textColor={colors.onSurfaceVariant}
+            >
+              Clear all
+            </Button>
+          </View>
+
+          <Divider style={styles.divider} />
+          <View style={styles.section}>
+            <SortSection
+              sortField={sortField}
+              sortDirection={sortDirection}
+              onSortFieldChange={onSortFieldChange}
+              onToggleDirection={onToggleSortDirection}
+            />
+          </View>
+
+          <Divider style={styles.divider} />
+          <View style={styles.section}>
+            <FilterSection
+              artists={artists}
+              albums={albums}
+              activeFilters={activeFilters}
+              onToggleArtist={onToggleArtist}
+              onToggleAlbum={onToggleAlbum}
+              onToggleFavorites={onToggleFavorites}
+            />
+          </View>
+
+          <View style={styles.bottomPadding} />
+        </BottomSheetScrollView>
+      </BottomSheet>
+    </Portal>
+  );
+}
 
 const styles = StyleSheet.create({
   background: {

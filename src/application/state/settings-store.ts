@@ -7,18 +7,25 @@ export type TabId = 'index' | 'explore' | 'downloads' | 'settings';
 export type DefaultTab = TabId;
 
 export const DEFAULT_TAB_ORDER: TabId[] = ['index', 'explore', 'downloads', 'settings'];
+export const DEFAULT_ENABLED_TABS: TabId[] = ['index', 'explore', 'downloads', 'settings'];
+export const REQUIRED_TABS: TabId[] = ['settings']; // Tabs that cannot be disabled
 
 interface SettingsState {
 	themePreference: ThemePreference;
 	defaultTab: DefaultTab;
 	accentColor: string | null;
 	tabOrder: TabId[];
+	enabledTabs: TabId[];
 
 	setThemePreference: (preference: ThemePreference) => void;
 	setDefaultTab: (tab: DefaultTab) => void;
 	setAccentColor: (color: string | null) => void;
 	setTabOrder: (order: TabId[]) => void;
 	resetTabOrder: () => void;
+	setEnabledTabs: (tabs: TabId[]) => void;
+	toggleTab: (tabId: TabId) => void;
+	resetEnabledTabs: () => void;
+	resetAllSettings: () => void;
 }
 
 const customStorage = {
@@ -35,11 +42,12 @@ const customStorage = {
 
 export const useSettingsStore = create<SettingsState>()(
 	persist(
-		(set) => ({
+		(set, get) => ({
 			themePreference: 'system',
 			defaultTab: 'index',
 			accentColor: null,
 			tabOrder: DEFAULT_TAB_ORDER,
+			enabledTabs: DEFAULT_ENABLED_TABS,
 
 			setThemePreference: (preference: ThemePreference) => {
 				set({ themePreference: preference });
@@ -55,6 +63,37 @@ export const useSettingsStore = create<SettingsState>()(
 			},
 			resetTabOrder: () => {
 				set({ tabOrder: DEFAULT_TAB_ORDER });
+			},
+			setEnabledTabs: (tabs: TabId[]) => {
+				const withRequired = Array.from(new Set([...tabs, ...REQUIRED_TABS]));
+				set({ enabledTabs: withRequired });
+			},
+			toggleTab: (tabId: TabId) => {
+				if (REQUIRED_TABS.includes(tabId)) return;
+				const { enabledTabs, defaultTab } = get();
+				const isEnabled = enabledTabs.includes(tabId);
+				if (isEnabled) {
+					const newEnabledTabs = enabledTabs.filter((id) => id !== tabId);
+					const updates: Partial<SettingsState> = { enabledTabs: newEnabledTabs };
+					if (defaultTab === tabId) {
+						updates.defaultTab = newEnabledTabs[0];
+					}
+					set(updates);
+				} else {
+					set({ enabledTabs: [...enabledTabs, tabId] });
+				}
+			},
+			resetEnabledTabs: () => {
+				set({ enabledTabs: DEFAULT_ENABLED_TABS });
+			},
+			resetAllSettings: () => {
+				set({
+					themePreference: 'system',
+					defaultTab: 'index',
+					accentColor: null,
+					tabOrder: DEFAULT_TAB_ORDER,
+					enabledTabs: DEFAULT_ENABLED_TABS,
+				});
 			},
 		}),
 		{
@@ -90,3 +129,18 @@ export const useSetTabOrder = () =>
 
 export const useResetTabOrder = () =>
 	useSettingsStore((state) => state.resetTabOrder);
+
+export const useEnabledTabs = () =>
+	useSettingsStore((state) => state.enabledTabs);
+
+export const useSetEnabledTabs = () =>
+	useSettingsStore((state) => state.setEnabledTabs);
+
+export const useToggleTab = () =>
+	useSettingsStore((state) => state.toggleTab);
+
+export const useResetEnabledTabs = () =>
+	useSettingsStore((state) => state.resetEnabledTabs);
+
+export const useResetAllSettings = () =>
+	useSettingsStore((state) => state.resetAllSettings);

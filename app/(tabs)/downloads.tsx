@@ -101,8 +101,8 @@ export default function DownloadsScreen() {
   const handleTrackPress = useCallback(
     (track: Track, index: number) => {
       if (selectedTab === 'completed') {
-        router.push('/player');
         playQueue(completedTracks, index);
+        router.push('/player');
       }
     },
     [selectedTab, playQueue, completedTracks]

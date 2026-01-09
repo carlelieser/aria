@@ -35,10 +35,15 @@ import {
   MusicIcon,
   CompassIcon,
   DownloadIcon,
+  RotateCcwIcon,
   type LucideIcon,
 } from 'lucide-react-native';
 import { useLibraryStore } from '@/src/application/state/library-store';
 import { useDownloadStore } from '@/src/application/state/download-store';
+import { useEqualizerStore } from '@/src/application/state/equalizer-store';
+import { useHistoryStore } from '@/src/application/state/history-store';
+import { useSearchStore } from '@/src/application/state/search-store';
+import { useExploreFilterStore } from '@/src/application/state/explore-filter-store';
 import {
   useSettingsStore,
   type ThemePreference,
@@ -75,6 +80,9 @@ export default function SettingsScreen() {
   const [clearLibraryDialogVisible, setClearLibraryDialogVisible] = useState(false);
   const [clearDownloadsDialogVisible, setClearDownloadsDialogVisible] = useState(false);
   const [versionDialogVisible, setVersionDialogVisible] = useState(false);
+  const [resetSettingsDialogVisible, setResetSettingsDialogVisible] = useState(false);
+  const [resetEqualizerDialogVisible, setResetEqualizerDialogVisible] = useState(false);
+  const [factoryResetDialogVisible, setFactoryResetDialogVisible] = useState(false);
 
   const openEqualizerSheet = useCallback(() => {
     equalizerSheetRef.current?.expand();
@@ -111,6 +119,65 @@ export default function SettingsScreen() {
       setClearDownloadsDialogVisible(false);
       error('Failed to clear downloads', result.error.message);
     }
+  };
+
+  const handleResetSettings = () => {
+    setResetSettingsDialogVisible(true);
+  };
+
+  const confirmResetSettings = () => {
+    useSettingsStore.getState().resetAllSettings();
+    setResetSettingsDialogVisible(false);
+    success('Settings reset', 'All settings have been restored to defaults');
+  };
+
+  const handleResetEqualizer = () => {
+    setResetEqualizerDialogVisible(true);
+  };
+
+  const confirmResetEqualizer = () => {
+    useEqualizerStore.getState().resetEqualizer();
+    setResetEqualizerDialogVisible(false);
+    success('Equalizer reset', 'Equalizer has been disabled and reset to flat');
+  };
+
+  const handleFactoryReset = () => {
+    setFactoryResetDialogVisible(true);
+  };
+
+  const confirmFactoryReset = async () => {
+    // Clear downloads (files first, then store)
+    await clearAllDownloads();
+    useDownloadStore.setState({
+      downloads: new Map(),
+      downloadedTracks: new Map(),
+    });
+
+    // Clear library
+    useLibraryStore.setState({
+      tracks: [],
+      playlists: [],
+      favorites: new Set(),
+    });
+
+    // Clear history (recently played)
+    useHistoryStore.getState().clearHistory();
+
+    // Clear search data
+    useSearchStore.getState().clearResults();
+    useSearchStore.getState().clearRecentSearches();
+
+    // Reset explore filters
+    useExploreFilterStore.getState().clearAll();
+
+    // Reset equalizer
+    useEqualizerStore.getState().resetEqualizer();
+
+    // Reset settings
+    useSettingsStore.getState().resetAllSettings();
+
+    setFactoryResetDialogVisible(false);
+    success('Factory reset complete', 'All data has been cleared and settings reset');
   };
 
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
@@ -191,6 +258,30 @@ export default function SettingsScreen() {
           />
         </SettingsSection>
 
+        <SettingsSection title="Reset">
+          <SettingsItem
+            icon={RotateCcwIcon}
+            title="Reset Settings"
+            subtitle="Reset appearance and navigation preferences"
+            onPress={handleResetSettings}
+            destructive
+          />
+          <SettingsItem
+            icon={RotateCcwIcon}
+            title="Reset Equalizer"
+            subtitle="Reset equalizer to default"
+            onPress={handleResetEqualizer}
+            destructive
+          />
+          <SettingsItem
+            icon={RotateCcwIcon}
+            title="Factory Reset"
+            subtitle="Clear all data and reset to defaults"
+            onPress={handleFactoryReset}
+            destructive
+          />
+        </SettingsSection>
+
         <SettingsSection title="About">
           <SettingsItem
             icon={InfoIcon}
@@ -241,6 +332,39 @@ export default function SettingsScreen() {
         destructive
         onConfirm={confirmClearDownloads}
         onCancel={() => setClearDownloadsDialogVisible(false)}
+      />
+
+      <ConfirmationDialog
+        visible={resetSettingsDialogVisible}
+        title="Reset Settings"
+        message="This will reset all appearance and navigation preferences to their defaults."
+        confirmLabel="Reset"
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={confirmResetSettings}
+        onCancel={() => setResetSettingsDialogVisible(false)}
+      />
+
+      <ConfirmationDialog
+        visible={resetEqualizerDialogVisible}
+        title="Reset Equalizer"
+        message="This will disable the equalizer and reset all bands to flat."
+        confirmLabel="Reset"
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={confirmResetEqualizer}
+        onCancel={() => setResetEqualizerDialogVisible(false)}
+      />
+
+      <ConfirmationDialog
+        visible={factoryResetDialogVisible}
+        title="Factory Reset"
+        message="This will clear all your data including library, downloads, settings, and equalizer. This action cannot be undone."
+        confirmLabel="Reset Everything"
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={confirmFactoryReset}
+        onCancel={() => setFactoryResetDialogVisible(false)}
       />
 
       <VersionDialog

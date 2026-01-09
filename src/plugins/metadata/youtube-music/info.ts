@@ -210,9 +210,11 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 				const info = albumInfo as {
 					contents?: unknown[];
 					artists?: import('./types').YouTubeArtist[];
+					thumbnails?: import('./types').YouTubeThumbnail[];
 					header?: {
 						subtitle?: { runs?: Array<{ text?: string; endpoint?: { browseId?: string } }> };
 						strapline_text_one?: { runs?: Array<{ text?: string; endpoint?: { browseId?: string } }> };
+						thumbnails?: import('./types').YouTubeThumbnail[];
 					};
 				};
 
@@ -245,10 +247,13 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 						.filter((a) => a.name && !a.name.match(/^\d{4}$/) && a.name !== '•' && a.name !== ' • ');
 				}
 
+				// Extract album-level thumbnails to use as fallback for tracks
+				const albumThumbnails = info.thumbnails ?? info.header?.thumbnails;
+
 				const tracks: Track[] = [];
 				for (const content of info.contents) {
 					if (!content) continue;
-					const track = mapYouTubeTrack(content, albumArtists);
+					const track = mapYouTubeTrack(content, albumArtists, albumThumbnails);
 					if (track) tracks.push(track);
 				}
 

@@ -63,12 +63,12 @@ export const TrackListItem = memo(function TrackListItem({
     if (onPress) {
       onPress(track);
     } else {
-      router.push('/player');
       if (queue && queueIndex !== undefined) {
         playQueue(queue, queueIndex);
       } else {
         play(track);
       }
+      router.push('/player');
     }
   }, [onPress, track, play, playQueue, queue, queueIndex]);
 

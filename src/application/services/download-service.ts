@@ -1,3 +1,4 @@
+import * as FileSystem from 'expo-file-system/legacy';
 import type { Track } from '../../domain/entities/track';
 import { getArtistNames } from '../../domain/entities/track';
 import { getLargestArtwork } from '../../domain/value-objects/artwork';
@@ -8,6 +9,8 @@ import {
 	downloadAudioFile,
 	deleteAudioFile,
 	getFileInfo,
+	getDownloadFilePath,
+	getDownloadsDirectory,
 } from '../../infrastructure/filesystem/download-manager';
 import type { Result } from '../../shared/types/result';
 import { ok, err } from '../../shared/types/result';
@@ -68,29 +71,88 @@ export class DownloadService {
 
 			const audioStream = streamResult.data;
 			const format = audioStream.format ?? 'm4a';
-			logger.debug(`Got stream URL for download: ${audioStream.url.substring(0, 50)}...`);
-			logger.debug(`Stream headers present: ${!!audioStream.headers}`);
+			const sourceUrl = audioStream.url;
+			logger.debug(`Got stream URL for download: ${sourceUrl.substring(0, 50)}...`);
 
-			const downloadResult = await downloadAudioFile(
-				audioStream.url,
-				trackId,
-				(progress) => {
-					store.updateProgress(trackId, progress);
-				},
-				audioStream.headers,
-				format
-			);
+			let filePath: string;
+			let fileSize: number;
 
-			if (!downloadResult.success) {
-				store.failDownload(trackId, downloadResult.error.message);
-				this.activeDownloads.delete(trackId);
-				return err(downloadResult.error);
+			// Check if this is a local cached file (from HLS download or adaptive cache)
+			const isLocalFile = sourceUrl.startsWith('file://') || sourceUrl.startsWith('/');
+
+			if (isLocalFile) {
+				logger.debug('Source is a local cached file, copying to downloads...');
+				store.updateProgress(trackId, 50);
+
+				// Ensure downloads directory exists
+				await getDownloadsDirectory();
+
+				// Copy the cached file to permanent downloads location
+				const destPath = getDownloadFilePath(trackId, format);
+
+				// Normalize source path - copyAsync needs file:// URI
+				const sourcePath = sourceUrl.startsWith('file://')
+					? sourceUrl
+					: `file://${sourceUrl}`;
+
+				logger.debug(`Copying from: ${sourcePath}`);
+				logger.debug(`Copying to: ${destPath}`);
+
+				// Check if source exists first
+				const sourceInfo = await FileSystem.getInfoAsync(sourcePath);
+				if (!sourceInfo.exists) {
+					logger.error(`Source file does not exist: ${sourcePath}`);
+					store.failDownload(trackId, 'Cached file not found');
+					this.activeDownloads.delete(trackId);
+					return err(new Error('Cached file not found'));
+				}
+
+				logger.debug(`Source file size: ${('size' in sourceInfo) ? sourceInfo.size : 'unknown'}`);
+
+				await FileSystem.copyAsync({
+					from: sourcePath,
+					to: destPath,
+				});
+
+				const fileInfo = await FileSystem.getInfoAsync(destPath);
+				if (!fileInfo.exists || !('size' in fileInfo)) {
+					store.failDownload(trackId, 'Failed to copy cached file');
+					this.activeDownloads.delete(trackId);
+					return err(new Error('Failed to copy cached file'));
+				}
+
+				filePath = destPath;
+				fileSize = fileInfo.size as number;
+				logger.debug(`Copy complete, size: ${fileSize}`);
+				store.updateProgress(trackId, 100);
+			} else {
+				// Download from remote URL
+				logger.debug(`Stream headers present: ${!!audioStream.headers}`);
+
+				const downloadResult = await downloadAudioFile(
+					sourceUrl,
+					trackId,
+					(progress) => {
+						store.updateProgress(trackId, progress);
+					},
+					audioStream.headers,
+					format
+				);
+
+				if (!downloadResult.success) {
+					store.failDownload(trackId, downloadResult.error.message);
+					this.activeDownloads.delete(trackId);
+					return err(downloadResult.error);
+				}
+
+				filePath = downloadResult.data.filePath;
+				fileSize = downloadResult.data.fileSize;
 			}
 
 			const metadata = createDownloadedTrackMetadata({
 				trackId,
-				filePath: downloadResult.data.filePath,
-				fileSize: downloadResult.data.fileSize,
+				filePath,
+				fileSize,
 				sourcePlugin: track.id.sourceType,
 				format,
 				title: track.title,
@@ -179,40 +241,60 @@ export class DownloadService {
 			return supports;
 		});
 
-		// Request downloadable format (not HLS) for downloads
-		const streamOptions = { preferDownloadable: true };
+		if (!supportingProvider) {
+			return err(new Error(`No audio source provider for track: ${track.title}`));
+		}
 
-		if (supportingProvider) {
-			logger.debug('Found supporting provider:', supportingProvider.manifest.id);
-			const result = await supportingProvider.getStreamUrl(track.id, streamOptions);
+		// First, try to get a downloadable format (direct URL, not HLS)
+		logger.debug('Trying downloadable format...');
+		const downloadableResult = await supportingProvider.getStreamUrl(track.id, {
+			preferDownloadable: true,
+		});
 
-			if (result.success) {
+		if (downloadableResult.success) {
+			const url = downloadableResult.data.url;
+			// Check if it's a local file (already cached) or a remote URL
+			if (url.startsWith('file://') || url.startsWith('/')) {
+				logger.debug('Got cached local file for download');
 				return ok({
-					url: result.data.url,
-					format: result.data.format,
-					headers: result.data.headers,
+					url: downloadableResult.data.url,
+					format: downloadableResult.data.format,
+					headers: downloadableResult.data.headers,
+				});
+			}
+			logger.debug('Got remote URL for download');
+			return ok({
+				url: downloadableResult.data.url,
+				format: downloadableResult.data.format,
+				headers: downloadableResult.data.headers,
+			});
+		}
+
+		logger.debug('Downloadable format failed, trying streaming fallback...');
+
+		// Fallback: use regular streaming path which may cache the file
+		const streamResult = await supportingProvider.getStreamUrl(track.id);
+
+		if (streamResult.success) {
+			const url = streamResult.data.url;
+
+			// If it's a local cached file, we can use it directly
+			if (url.startsWith('file://') || url.startsWith('/')) {
+				logger.debug('Streaming fallback returned cached file');
+				return ok({
+					url: streamResult.data.url,
+					format: streamResult.data.format,
+					headers: streamResult.data.headers,
 				});
 			}
 
-			logger.debug('getStreamUrl failed:', result.error);
-		}
-
-		for (const provider of this.audioSourceProviders) {
-			if (provider === supportingProvider) continue;
-
-			try {
-				if (provider.supportsTrack(track)) {
-					const result = await provider.getStreamUrl(track.id, streamOptions);
-
-					if (result.success) {
-						return ok({
-							url: result.data.url,
-							format: result.data.format,
-							headers: result.data.headers,
-						});
-					}
-				}
-			} catch {}
+			// Try to use whatever URL we got
+			logger.debug('Streaming fallback returned URL');
+			return ok({
+				url: streamResult.data.url,
+				format: streamResult.data.format,
+				headers: streamResult.data.headers,
+			});
 		}
 
 		return err(new Error(`No audio source available for track: ${track.title}`));

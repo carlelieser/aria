@@ -14,7 +14,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "build:android": "eas build --platform android --profile production --local --output out/aria.apk"
+    "build:android": "eas build --platform android --local --output out/aria.apk"
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
@@ -52,7 +52,6 @@
     "jintr": "^3.3.1",
     "lucide-react-native": "^0.544.0",
     "react": "19.1.0",
-    "react-async-hook": "^4.0.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
     "react-native-gesture-handler": "~2.28.0",

@@ -6,7 +6,7 @@
  * Supports swipe-to-dismiss gestures.
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { Portal } from '@rn-primitives/portal';
@@ -24,6 +24,7 @@ import Animated, {
 import {
   useCurrentToast,
   useToastStore,
+  type Toast,
   type ToastVariant,
 } from '@/src/application/state/toast-store';
 import { useCurrentTrack } from '@/src/application/state/player-store';
@@ -85,6 +86,7 @@ export function ToastContainer() {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(100);
   const opacity = useSharedValue(0);
+  const [visibleToast, setVisibleToast] = useState<Toast | null>(currentToast ?? null);
 
   const isTabRoute = TAB_ROUTES.includes(pathname);
   const isFloatingPlayerVisible = pathname !== '/player' && currentTrack !== null;
@@ -102,15 +104,16 @@ export function ToastContainer() {
     bottomOffset += FLOATING_PLAYER_HEIGHT + FLOATING_PLAYER_MARGIN;
   }
 
-  const handleDismiss = () => {
+  const handleDismiss = useCallback(() => {
     if (currentToast) {
       dismiss(currentToast.id);
     }
-  };
+  }, [currentToast, dismiss]);
 
   // Animate in/out when toast changes
   useEffect(() => {
     if (currentToast) {
+      setVisibleToast(currentToast);
       translateX.value = 0;
       translateY.value = withSpring(0, { damping: 20, stiffness: 300 });
       opacity.value = withTiming(1, { duration: 200 });
@@ -121,11 +124,13 @@ export function ToastContainer() {
       }, currentToast.duration ?? 4000);
 
       return () => clearTimeout(timer);
-    } else {
+    } else if (visibleToast) {
       translateY.value = withTiming(100, { duration: 200 });
-      opacity.value = withTiming(0, { duration: 200 });
+      opacity.value = withTiming(0, { duration: 200 }, () => {
+        runOnJS(setVisibleToast)(null);
+      });
     }
-  }, [currentToast?.id]);
+  }, [currentToast, handleDismiss, translateX, translateY, opacity, visibleToast]);
 
   const panGesture = Gesture.Pan()
     .onUpdate((event) => {
@@ -166,17 +171,17 @@ export function ToastContainer() {
     ),
   }));
 
-  const variantColors = currentToast
-    ? getVariantColors(currentToast.variant, colors)
+  const variantColors = visibleToast
+    ? getVariantColors(visibleToast.variant, colors)
     : { backgroundColor: colors.inverseSurface, textColor: colors.inverseOnSurface };
 
-  const displayText = currentToast
-    ? currentToast.description
-      ? `${currentToast.title}\n${currentToast.description}`
-      : currentToast.title
+  const displayText = visibleToast
+    ? visibleToast.description
+      ? `${visibleToast.title}\n${visibleToast.description}`
+      : visibleToast.title
     : '';
 
-  if (!currentToast) {
+  if (!visibleToast) {
     return null;
   }
 
@@ -199,13 +204,6 @@ export function ToastContainer() {
       </View>
     </Portal>
   );
-}
-
-/**
- * Toast is not used directly - ToastContainer handles rendering
- */
-export function Toast() {
-  return null;
 }
 
 const styles = StyleSheet.create({

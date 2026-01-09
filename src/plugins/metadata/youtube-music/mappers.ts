@@ -157,7 +157,8 @@ function extractTitle(item: YouTubeMusicItem): string | null {
 
 export function mapYouTubeTrack(
 	item: YouTubeMusicItem,
-	fallbackArtists?: YouTubeArtist[]
+	fallbackArtists?: YouTubeArtist[],
+	fallbackThumbnails?: YouTubeThumbnail[]
 ): Track | null {
 	const videoId = extractVideoId(item);
 	if (!videoId) {
@@ -177,7 +178,9 @@ export function mapYouTubeTrack(
 	// Use track artists if available, otherwise fall back to album/provided artists
 	const trackArtists = item.artists && item.artists.length > 0 ? item.artists : fallbackArtists;
 	const artists = mapYouTubeArtistReferences(trackArtists);
-	const artwork = mapThumbnailsToArtwork(item.thumbnails);
+	// Use track thumbnails if available, otherwise fall back to album thumbnails
+	const trackThumbnails = item.thumbnails && item.thumbnails.length > 0 ? item.thumbnails : fallbackThumbnails;
+	const artwork = mapThumbnailsToArtwork(trackThumbnails);
 
 	const params: CreateTrackParams = {
 		id: trackId,

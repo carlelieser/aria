@@ -7,7 +7,6 @@
 
 import { View, StyleSheet } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FAB, Badge } from 'react-native-paper';
 import { ListFilter } from 'lucide-react-native';
 import { useCurrentTrack } from '@/src/application/state/player-store';
@@ -23,7 +22,6 @@ interface SortFilterFABProps {
 }
 
 export function SortFilterFAB({ filterCount, onPress }: SortFilterFABProps) {
-  const insets = useSafeAreaInsets();
   const currentTrack = useCurrentTrack();
   const { colors } = useAppTheme();
   const isFloatingPlayerVisible = currentTrack !== null;
@@ -32,12 +30,12 @@ export function SortFilterFAB({ filterCount, onPress }: SortFilterFABProps) {
     const floatingPlayerOffset = isFloatingPlayerVisible
       ? FLOATING_PLAYER_HEIGHT + FLOATING_PLAYER_MARGIN
       : 0;
-    const bottomPosition = insets.bottom + FAB_BASE_BOTTOM + floatingPlayerOffset;
+    const bottomPosition = FAB_BASE_BOTTOM + floatingPlayerOffset;
 
     return {
       bottom: withTiming(bottomPosition, { duration: 200 }),
     };
-  }, [isFloatingPlayerVisible, insets.bottom]);
+  }, [isFloatingPlayerVisible]);
 
   return (
     <Animated.View style={[styles.container, animatedStyle]}>

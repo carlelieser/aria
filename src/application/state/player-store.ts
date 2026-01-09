@@ -74,6 +74,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 			status: 'loading',
 			error: null,
 			position: Duration.ZERO,
+			duration: Duration.ZERO,
 		});
 	},
 
@@ -123,6 +124,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 				currentTrack: nextTrack,
 				status: 'loading',
 				position: Duration.ZERO,
+				duration: Duration.ZERO,
 				error: null,
 			});
 		} else if (state.repeatMode === 'one' && state.currentTrack) {
@@ -135,6 +137,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 				status: 'idle',
 				currentTrack: null,
 				position: Duration.ZERO,
+				duration: Duration.ZERO,
 			});
 		}
 	},
@@ -160,6 +163,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 				currentTrack: prevTrack,
 				status: 'loading',
 				position: Duration.ZERO,
+				duration: Duration.ZERO,
 				error: null,
 			});
 		}
@@ -178,6 +182,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 			currentTrack: effectiveQueue[effectiveIndex] || null,
 			status: effectiveQueue[effectiveIndex] ? 'loading' : 'idle',
 			position: Duration.ZERO,
+			duration: Duration.ZERO,
 			error: null,
 		});
 	},

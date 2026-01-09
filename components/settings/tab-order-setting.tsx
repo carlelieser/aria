@@ -22,15 +22,21 @@ import {
   ChevronDownIcon,
   RotateCcwIcon,
 } from 'lucide-react-native';
+import { Switch } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 import { TAB_CONFIG } from '@/app/(tabs)/_layout';
 import {
   type TabId,
   DEFAULT_TAB_ORDER,
+  DEFAULT_ENABLED_TABS,
+  REQUIRED_TABS,
   useTabOrder,
   useSetTabOrder,
   useResetTabOrder,
+  useEnabledTabs,
+  useToggleTab,
+  useResetEnabledTabs,
 } from '@/src/application/state/settings-store';
 
 export function TabOrderSetting() {
@@ -39,6 +45,9 @@ export function TabOrderSetting() {
   const tabOrder = useTabOrder();
   const setTabOrder = useSetTabOrder();
   const resetTabOrder = useResetTabOrder();
+  const enabledTabs = useEnabledTabs();
+  const toggleTab = useToggleTab();
+  const resetEnabledTabs = useResetEnabledTabs();
 
   const handlePress = useCallback(() => {
     sheetRef.current?.expand();
@@ -66,7 +75,15 @@ export function TabOrderSetting() {
 
   const handleReset = useCallback(() => {
     resetTabOrder();
-  }, [resetTabOrder]);
+    resetEnabledTabs();
+  }, [resetTabOrder, resetEnabledTabs]);
+
+  const handleToggleTab = useCallback(
+    (tabId: TabId) => {
+      toggleTab(tabId);
+    },
+    [toggleTab]
+  );
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -84,7 +101,14 @@ export function TabOrderSetting() {
     tabOrder.length === DEFAULT_TAB_ORDER.length &&
     tabOrder.every((tab, index) => tab === DEFAULT_TAB_ORDER[index]);
 
-  const orderSummary = tabOrder.map((id) => TAB_CONFIG[id].label).join(', ');
+  const isDefaultEnabled =
+    enabledTabs.length === DEFAULT_ENABLED_TABS.length &&
+    DEFAULT_ENABLED_TABS.every((tab) => enabledTabs.includes(tab));
+
+  const isDefault = isDefaultOrder && isDefaultEnabled;
+
+  const enabledTabsInOrder = tabOrder.filter((id) => enabledTabs.includes(id));
+  const orderSummary = enabledTabsInOrder.map((id) => TAB_CONFIG[id].label).join(', ');
 
   return (
     <>
@@ -142,6 +166,8 @@ export function TabOrderSetting() {
                 const TabIcon = config.icon;
                 const isFirst = index === 0;
                 const isLast = index === tabOrder.length - 1;
+                const isEnabled = enabledTabs.includes(tabId);
+                const isRequired = REQUIRED_TABS.includes(tabId);
 
                 return (
                   <View
@@ -149,18 +175,31 @@ export function TabOrderSetting() {
                     style={[
                       styles.tabItem,
                       { backgroundColor: colors.surfaceContainerHighest },
+                      !isEnabled && styles.disabledTab,
                     ]}
                   >
                     <View style={styles.tabInfo}>
-                      <TabIcon size={20} color={colors.onSurface} />
+                      <TabIcon
+                        size={20}
+                        color={isEnabled ? colors.onSurface : colors.outlineVariant}
+                      />
                       <Text
                         variant="bodyMedium"
-                        style={{ color: colors.onSurface, fontWeight: '500' }}
+                        style={{
+                          color: isEnabled ? colors.onSurface : colors.outlineVariant,
+                          fontWeight: '500',
+                        }}
                       >
                         {config.label}
                       </Text>
                     </View>
                     <View style={styles.tabActions}>
+                      <Switch
+                        value={isEnabled}
+                        onValueChange={() => handleToggleTab(tabId)}
+                        disabled={isRequired}
+                        style={styles.switch}
+                      />
                       <Pressable
                         onPress={() => handleMoveUp(index)}
                         disabled={isFirst}
@@ -197,7 +236,7 @@ export function TabOrderSetting() {
               })}
             </View>
 
-            {!isDefaultOrder && (
+            {!isDefault && (
               <Pressable
                 onPress={handleReset}
                 style={({ pressed }) => [
@@ -291,6 +330,12 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.5,
+  },
+  disabledTab: {
+    opacity: 0.6,
+  },
+  switch: {
+    marginRight: 4,
   },
   resetButton: {
     flexDirection: 'row',
