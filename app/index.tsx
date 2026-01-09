@@ -14,8 +14,13 @@ import {
 import { router } from "expo-router";
 import { useState, useMemo } from "react";
 import { Image } from "expo-image";
-import { useTracks, usePlaylists } from "@/src/application/state/library-store";
+import { useTracks, usePlaylists, useIsLibraryLoading } from "@/src/application/state/library-store";
 import { TrackListItem } from "@/components/track-list-item";
+import {
+	TrackListSkeleton,
+	PlaylistListSkeleton,
+	ArtistListSkeleton,
+} from "@/components/skeletons";
 import type { Track } from "@/src/domain/entities/track";
 import type { Playlist } from "@/src/domain/entities/playlist";
 
@@ -33,6 +38,7 @@ export default function HomeScreen() {
 	const [selected, setSelected] = useState<ChipType>("playlists");
 	const tracks = useTracks();
 	const playlists = usePlaylists();
+	const isLoading = useIsLibraryLoading();
 
 	// Extract unique artists from tracks
 	const artists = useMemo<UniqueArtist[]>(() => {
@@ -95,13 +101,13 @@ export default function HomeScreen() {
 			{/* Content */}
 			<View className="flex-1 px-4">
 				{selected === "songs" && (
-					<SongsList tracks={tracks} />
+					<SongsList tracks={tracks} isLoading={isLoading} />
 				)}
 				{selected === "playlists" && (
-					<PlaylistsList playlists={playlists} />
+					<PlaylistsList playlists={playlists} isLoading={isLoading} />
 				)}
 				{selected === "artists" && (
-					<ArtistsList artists={artists} />
+					<ArtistsList artists={artists} isLoading={isLoading} />
 				)}
 			</View>
 		</SafeAreaView>
@@ -109,7 +115,11 @@ export default function HomeScreen() {
 }
 
 // Songs List Component
-function SongsList({ tracks }: { tracks: Track[] }) {
+function SongsList({ tracks, isLoading }: { tracks: Track[]; isLoading: boolean }) {
+	if (isLoading) {
+		return <TrackListSkeleton count={8} />;
+	}
+
 	if (tracks.length === 0) {
 		return (
 			<EmptyState
@@ -131,7 +141,11 @@ function SongsList({ tracks }: { tracks: Track[] }) {
 }
 
 // Playlists List Component
-function PlaylistsList({ playlists }: { playlists: Playlist[] }) {
+function PlaylistsList({ playlists, isLoading }: { playlists: Playlist[]; isLoading: boolean }) {
+	if (isLoading) {
+		return <PlaylistListSkeleton count={6} />;
+	}
+
 	if (playlists.length === 0) {
 		return (
 			<EmptyState
@@ -153,7 +167,11 @@ function PlaylistsList({ playlists }: { playlists: Playlist[] }) {
 }
 
 // Artists List Component
-function ArtistsList({ artists }: { artists: UniqueArtist[] }) {
+function ArtistsList({ artists, isLoading }: { artists: UniqueArtist[]; isLoading: boolean }) {
+	if (isLoading) {
+		return <ArtistListSkeleton count={6} />;
+	}
+
 	if (artists.length === 0) {
 		return (
 			<EmptyState

@@ -2,7 +2,7 @@
  * Adapter to create PluginLogger instances from Logger service
  */
 
-import type { PluginLogger } from '../../../plugins/core/interfaces/base-plugin';
+import type { PluginLogger } from '@plugins/core/interfaces/base-plugin';
 import { LoggerService } from './logger-service';
 
 /**

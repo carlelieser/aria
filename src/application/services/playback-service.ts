@@ -106,8 +106,8 @@ export class PlaybackService {
         return err(error);
       }
 
-      if (this.activeProvider && this.activeProvider !== provider) {
-        logger.debug('Switching playback providers, stopping previous...');
+      if (this.activeProvider) {
+        logger.debug('Stopping current playback before starting new track...');
         await this.activeProvider.stop();
       }
       this.activeProvider = provider;

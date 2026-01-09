@@ -2,14 +2,14 @@
  * YouTube Music entity info retrieval
  */
 
-import type { SearchOptions, SearchResults } from '../../core/interfaces/metadata-provider';
-import { createSearchResults, emptySearchResults } from '../../core/interfaces/metadata-provider';
-import type { Track } from '../../../domain/entities/track';
-import type { Album } from '../../../domain/entities/album';
-import type { Artist } from '../../../domain/entities/artist';
-import type { TrackId } from '../../../domain/value-objects/track-id';
-import type { Result } from '../../../shared/types/result';
-import { ok, err } from '../../../shared/types/result';
+import type { SearchOptions, SearchResults } from '@plugins/core/interfaces/metadata-provider';
+import { createSearchResults, emptySearchResults } from '@plugins/core/interfaces/metadata-provider';
+import type { Track } from '@domain/entities/track';
+import type { Album } from '@domain/entities/album';
+import type { Artist } from '@domain/entities/artist';
+import type { TrackId } from '@domain/value-objects/track-id';
+import type { Result } from '@shared/types/result';
+import { ok, err } from '@shared/types/result';
 import { mapYouTubeTrack, mapYouTubeAlbum, mapYouTubeArtist } from './mappers';
 import type { ClientManager } from './client';
 

@@ -1,4 +1,4 @@
-import { getLogger } from '../../../shared/services/logger';
+import { getLogger } from '@shared/services/logger';
 
 const logger = getLogger('EventBus');
 

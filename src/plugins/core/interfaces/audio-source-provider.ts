@@ -8,11 +8,11 @@
  */
 
 import type { BasePlugin } from './base-plugin';
-import type { AsyncResult } from '../../../shared/types/result';
-import type { Track } from '../../../domain/entities/track';
-import type { TrackId } from '../../../domain/value-objects/track-id';
-import type { StreamQuality } from '../../../domain/value-objects/audio-source';
-import type { AudioStream, AudioFormat } from '../../../domain/value-objects/audio-stream';
+import type { AsyncResult } from '@shared/types/result';
+import type { Track } from '@domain/entities/track';
+import type { TrackId } from '@domain/value-objects/track-id';
+import type { StreamQuality } from '@domain/value-objects/audio-source';
+import type { AudioStream, AudioFormat } from '@domain/value-objects/audio-stream';
 
 /**
  * Audio source provider capabilities

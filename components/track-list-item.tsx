@@ -4,18 +4,22 @@ import { router } from 'expo-router';
 import { Text } from '@/components/ui/text';
 import { usePlayer } from '@/hooks/use-player';
 import type { Track } from '@/src/domain/entities/track';
+import type { TrackActionSource } from '@/src/domain/actions/track-action';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import { getArtistNames } from '@/src/domain/entities/track';
+import { TrackOptionsMenu } from '@/components/track-options-menu';
 
 interface TrackListItemProps {
   track: Track;
+  /** Source location for track actions context */
+  source?: TrackActionSource;
   onPress?: (track: Track) => void;
 }
 
 /**
  * Component to display a track in a list with artwork, title, artist, and duration
  */
-export function TrackListItem({ track, onPress }: TrackListItemProps) {
+export function TrackListItem({ track, source = 'library', onPress }: TrackListItemProps) {
   const { play } = usePlayer();
 
   const handlePress = () => {
@@ -67,6 +71,9 @@ export function TrackListItem({ track, onPress }: TrackListItemProps) {
       <Text variant="muted" className="text-sm">
         {duration}
       </Text>
+
+      {/* Options menu */}
+      <TrackOptionsMenu track={track} source={source} />
     </TouchableOpacity>
   );
 }

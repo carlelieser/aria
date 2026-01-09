@@ -12,24 +12,24 @@ import type {
   RecommendationSeed,
   SearchOptions,
   SearchResults,
-} from '../../core/interfaces/metadata-provider';
+} from '@plugins/core/interfaces/metadata-provider';
 import type {
   AudioSourceCapability,
   AudioSourceProvider,
   StreamOptions,
-} from '../../core/interfaces/audio-source-provider';
-import type { PluginInitContext, PluginStatus } from '../../core/interfaces/base-plugin';
-import type { Track } from '../../../domain/entities/track';
-import type { Album } from '../../../domain/entities/album';
-import type { Artist } from '../../../domain/entities/artist';
-import type { TrackId } from '../../../domain/value-objects/track-id';
-import type { AudioStream } from '../../../domain/value-objects/audio-stream';
-import type { Result } from '../../../shared/types/result';
-import { ok } from '../../../shared/types/result';
+} from '@plugins/core/interfaces/audio-source-provider';
+import type { PluginInitContext, PluginStatus } from '@plugins/core/interfaces/base-plugin';
+import type { Track } from '@domain/entities/track';
+import type { Album } from '@domain/entities/album';
+import type { Artist } from '@domain/entities/artist';
+import type { TrackId } from '@domain/value-objects/track-id';
+import type { AudioStream } from '@domain/value-objects/audio-stream';
+import type { Result } from '@shared/types/result';
+import { ok } from '@shared/types/result';
 
 import { installEvaluator } from './evaluator';
 import {
-  YouTubeMusicConfig,
+  type YouTubeMusicConfig,
   DEFAULT_CONFIG,
   PLUGIN_MANIFEST,
   CONFIG_SCHEMA,
@@ -82,7 +82,7 @@ export class YouTubeMusicProvider implements MetadataProvider, AudioSourceProvid
       this.clientManager = createClientManager(mergedConfig);
       this.searchOps = createSearchOperations(this.clientManager);
       this.infoOps = createInfoOperations(this.clientManager);
-      this.streamingOps = createStreamingOperations(mergedConfig);
+      this.streamingOps = createStreamingOperations(this.clientManager);
       this.recommendationOps = createRecommendationOperations(this.clientManager);
 
       // Pre-initialize the client
@@ -195,5 +195,3 @@ export class YouTubeMusicProvider implements MetadataProvider, AudioSourceProvid
 export function createYouTubeMusicProvider(config?: YouTubeMusicConfig): YouTubeMusicProvider {
   return new YouTubeMusicProvider(config);
 }
-
-export type { YouTubeMusicConfig };

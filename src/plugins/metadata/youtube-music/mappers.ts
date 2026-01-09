@@ -4,14 +4,14 @@
  * Maps YouTube Music API responses to domain entities
  */
 
-import type { Track, CreateTrackParams } from '../../../domain/entities/track';
-import type { Album } from '../../../domain/entities/album';
-import type { Artist, ArtistReference } from '../../../domain/entities/artist';
-import { TrackId } from '../../../domain/value-objects/track-id';
-import { Duration } from '../../../domain/value-objects/duration';
-import { createArtwork, type Artwork } from '../../../domain/value-objects/artwork';
-import { createStreamingSource } from '../../../domain/value-objects/audio-source';
-import { createTrack } from '../../../domain/entities/track';
+import type { Track, CreateTrackParams } from '@domain/entities/track';
+import type { Album } from '@domain/entities/album';
+import type { Artist, ArtistReference } from '@domain/entities/artist';
+import { TrackId } from '@domain/value-objects/track-id';
+import { Duration } from '@domain/value-objects/duration';
+import { createArtwork, type Artwork } from '@domain/value-objects/artwork';
+import { createStreamingSource } from '@domain/value-objects/audio-source';
+import { createTrack } from '@domain/entities/track';
 import type {
   YouTubeMusicItem,
   YouTubeThumbnail,

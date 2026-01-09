@@ -2,16 +2,16 @@
  * YouTube Music audio stream resolution
  */
 
-import Innertube from 'youtubei.js/react-native';
+import type Innertube from 'youtubei.js/react-native';
 import * as FileSystem from 'expo-file-system/legacy';
-import type { StreamOptions } from '../../core/interfaces/audio-source-provider';
-import type { TrackId } from '../../../domain/value-objects/track-id';
-import type { AudioStream } from '../../../domain/value-objects/audio-stream';
-import { createAudioStream } from '../../../domain/value-objects/audio-stream';
-import type { Result } from '../../../shared/types/result';
-import { ok, err } from '../../../shared/types/result';
-import { getLogger } from '../../../shared/services/logger';
-import type { YouTubeMusicConfig } from './config';
+import type { StreamOptions } from '@plugins/core/interfaces/audio-source-provider';
+import type { TrackId } from '@domain/value-objects/track-id';
+import type { AudioStream } from '@domain/value-objects/audio-stream';
+import { createAudioStream } from '@domain/value-objects/audio-stream';
+import type { Result } from '@shared/types/result';
+import { ok, err } from '@shared/types/result';
+import { getLogger } from '@shared/services/logger';
+import type { ClientManager } from './client';
 
 const logger = getLogger('YouTubeMusic:Streaming');
 
@@ -90,7 +90,7 @@ export interface StreamingOperations {
 /**
  * Create streaming operations
  */
-export function createStreamingOperations(config: YouTubeMusicConfig): StreamingOperations {
+export function createStreamingOperations(clientManager: ClientManager): StreamingOperations {
   return {
     async getStreamUrl(
       trackId: TrackId,
@@ -110,11 +110,8 @@ export function createStreamingOperations(config: YouTubeMusicConfig): Streaming
           }));
         }
 
-        // Create fresh client for each request
-        const client = await Innertube.create({
-          lang: config.lang,
-          location: config.location,
-        });
+        // Get the shared client instance
+        const client = await clientManager.getClient();
 
         // Try IOS client for HLS
         logger.debug('Trying IOS client for HLS stream...');

@@ -3,7 +3,7 @@
  */
 
 import type { BasePlugin, PluginCategory } from '../interfaces/base-plugin';
-import type { Result } from '../../../shared/types/result';
+import type { Result } from '@shared/types/result';
 
 /**
  * Configuration for a provider type

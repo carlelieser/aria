@@ -1,8 +1,8 @@
 import type { BasePlugin } from './base-plugin';
-import type { Result, AsyncResult } from '../../../shared/types/result';
-import type { Track } from '../../../domain/entities/track';
-import type { Duration } from '../../../domain/value-objects/duration';
-import type { PlaybackStatus, RepeatMode } from '../../../domain/value-objects/playback-state';
+import type { Result, AsyncResult } from '@shared/types/result';
+import type { Track } from '@domain/entities/track';
+import type { Duration } from '@domain/value-objects/duration';
+import type { PlaybackStatus, RepeatMode } from '@domain/value-objects/playback-state';
 
 /**
  * Playback provider capabilities

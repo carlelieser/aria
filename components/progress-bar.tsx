@@ -1,5 +1,6 @@
 import { View, LayoutChangeEvent } from 'react-native';
 import { Text } from '@/components/ui/text';
+import { Skeleton } from '@/components/ui/skeleton';
 import { usePlayer } from '@/hooks/use-player';
 import { Duration } from '@/src/domain/value-objects/duration';
 import { useState, useCallback, useRef } from 'react';
@@ -136,12 +137,20 @@ export function ProgressBar({ seekable = true }: ProgressBarProps) {
 
       {/* Time labels */}
       <View className="flex-row justify-between items-center">
-        <Text variant="muted" className="text-xs font-medium" style={{ fontVariant: ['tabular-nums'] }}>
-          {currentTime}
-        </Text>
-        <Text variant="muted" className="text-xs font-medium" style={{ fontVariant: ['tabular-nums'] }}>
-          {totalTime}
-        </Text>
+        {isLoading ? (
+          <Skeleton width={32} height={14} rounded="sm" />
+        ) : (
+          <Text variant="muted" className="text-xs font-medium" style={{ fontVariant: ['tabular-nums'] }}>
+            {currentTime}
+          </Text>
+        )}
+        {isLoading ? (
+          <Skeleton width={32} height={14} rounded="sm" />
+        ) : (
+          <Text variant="muted" className="text-xs font-medium" style={{ fontVariant: ['tabular-nums'] }}>
+            {totalTime}
+          </Text>
+        )}
       </View>
     </View>
   );

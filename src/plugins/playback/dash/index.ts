@@ -4,19 +4,19 @@
  */
 
 import { createVideoPlayer, VideoPlayer } from 'expo-video';
-import type { Track } from '../../../domain/entities/track';
-import { Duration } from '../../../domain/value-objects/duration';
-import type { PlaybackStatus, RepeatMode } from '../../../domain/value-objects/playback-state';
+import type { Track } from '@domain/entities/track';
+import { Duration } from '@domain/value-objects/duration';
+import type { PlaybackStatus, RepeatMode } from '@domain/value-objects/playback-state';
 import type {
   PlaybackProvider,
   PlaybackEvent,
   PlaybackEventListener,
   PlaybackCapability,
   QueueItem,
-} from '../../core/interfaces/playback-provider';
-import type { PluginManifest, PluginStatus, PluginInitContext } from '../../core/interfaces/base-plugin';
-import { ok, err, type Result, type AsyncResult } from '../../../shared/types/result';
-import { getLogger } from '../../../shared/services/logger';
+} from '@plugins/core/interfaces/playback-provider';
+import type { PluginManifest, PluginStatus, PluginInitContext } from '@plugins/core/interfaces/base-plugin';
+import { ok, err, type Result, type AsyncResult } from '@shared/types/result';
+import { getLogger } from '@shared/services/logger';
 
 const logger = getLogger('DashPlayback');
 

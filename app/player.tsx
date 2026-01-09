@@ -1,4 +1,4 @@
-import {View, ActivityIndicator} from "react-native";
+import {View} from "react-native";
 import {Image} from "expo-image";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {useEffect} from "react";
@@ -9,9 +9,11 @@ import {Icon} from "@/components/ui/icon";
 import {ArrowLeftIcon} from "lucide-react-native";
 import {PlayerControls} from "@/components/player-controls";
 import {ProgressBar} from "@/components/progress-bar";
+import {TrackOptionsMenu} from "@/components/track-options-menu";
 import {usePlayer} from "@/hooks/use-player";
 import {getLargestArtwork} from "@/src/domain/value-objects/artwork";
 import {getArtistNames} from "@/src/domain/entities/track";
+import {PlayerArtworkSkeleton, PlayerBufferingOverlay} from "@/components/skeletons";
 
 export default function PlayerScreen() {
 	const pathname = usePathname();
@@ -43,26 +45,26 @@ export default function PlayerScreen() {
 						<Icon as={ArrowLeftIcon} />
 					</Button>
 					<Text variant="muted" className="text-sm">Now Playing</Text>
-					<View style={{ width: 40 }} />
+					<TrackOptionsMenu track={currentTrack} source="player" />
 				</View>
 
 				{/* Artwork */}
 				<View className="flex-1 w-full justify-center">
-					<Image
-						source={{ uri: artworkUrl }}
-						style={{
-							width: '100%',
-							aspectRatio: 1,
-							borderRadius: 16,
-						}}
-						contentFit="cover"
-						transition={300}
-					/>
-
-					{/* Loading/Buffering Indicator */}
-					{(isLoading || isBuffering) && (
-						<View className="absolute inset-0 items-center justify-center">
-							<ActivityIndicator size="large" />
+					{isLoading ? (
+						<PlayerArtworkSkeleton />
+					) : (
+						<View className="w-full aspect-square">
+							<Image
+								source={{ uri: artworkUrl }}
+								style={{
+									width: '100%',
+									aspectRatio: 1,
+									borderRadius: 16,
+								}}
+								contentFit="cover"
+								transition={300}
+							/>
+							{isBuffering && <PlayerBufferingOverlay />}
 						</View>
 					)}
 				</View>

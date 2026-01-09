@@ -6,7 +6,7 @@
 
 import { Platform } from 'youtubei.js/react-native';
 import { Jinter } from 'jintr';
-import { getLogger } from '../../../shared/services/logger';
+import { getLogger } from '@shared/services/logger';
 
 const logger = getLogger('YouTubeMusic:Evaluator');
 

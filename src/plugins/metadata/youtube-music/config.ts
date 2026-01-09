@@ -5,9 +5,9 @@
 import type {
   PluginConfigSchema,
   PluginManifest,
-} from '../../core/interfaces/base-plugin';
-import type { MetadataCapability } from '../../core/interfaces/metadata-provider';
-import type { AudioSourceCapability } from '../../core/interfaces/audio-source-provider';
+} from '@plugins/core/interfaces/base-plugin';
+import type { MetadataCapability } from '@plugins/core/interfaces/metadata-provider';
+import type { AudioSourceCapability } from '@plugins/core/interfaces/audio-source-provider';
 
 /**
  * YouTube Music Provider configuration

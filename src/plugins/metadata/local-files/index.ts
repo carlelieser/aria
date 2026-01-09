@@ -1,21 +1,21 @@
-import type { Track } from '../../../domain/entities/track';
-import { createTrack } from '../../../domain/entities/track';
-import { TrackId } from '../../../domain/value-objects/track-id';
-import { Duration } from '../../../domain/value-objects/duration';
-import { createLocalSource, type AudioFileType } from '../../../domain/value-objects/audio-source';
-import { createAudioStream, type AudioStream } from '../../../domain/value-objects/audio-stream';
+import type { Track } from '@domain/entities/track';
+import { createTrack } from '@domain/entities/track';
+import { TrackId } from '@domain/value-objects/track-id';
+import { Duration } from '@domain/value-objects/duration';
+import { createLocalSource, type AudioFileType } from '@domain/value-objects/audio-source';
+import { createAudioStream, type AudioStream } from '@domain/value-objects/audio-stream';
 import type {
   MetadataProvider,
   MetadataCapability,
   SearchOptions,
   SearchResults,
-} from '../../core/interfaces/metadata-provider';
+} from '@plugins/core/interfaces/metadata-provider';
 import type {
   AudioSourceProvider,
   AudioSourceCapability,
-} from '../../core/interfaces/audio-source-provider';
-import type { PluginManifest, PluginInitContext } from '../../core/interfaces/base-plugin';
-import { ok, err, type Result, type AsyncResult } from '../../../shared/types/result';
+} from '@plugins/core/interfaces/audio-source-provider';
+import type { PluginManifest, PluginInitContext } from '@plugins/core/interfaces/base-plugin';
+import { ok, err, type Result, type AsyncResult } from '@shared/types/result';
 
 /**
  * Represents a local audio file

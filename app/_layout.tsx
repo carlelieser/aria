@@ -15,6 +15,7 @@ import {getYouTubeMusicProvider} from "@/src/plugins/metadata/youtube-music";
 import {expoAudioPlaybackProvider} from "@/src/plugins/playback/expo-av";
 import {dashPlaybackProvider} from "@/src/plugins/playback/dash";
 import {Text} from "@/components/ui/text";
+import {FloatingPlayer} from "@/components/floating-player";
 
 // All playback providers - system routes automatically based on URL type
 const playbackProviders = [dashPlaybackProvider, expoAudioPlaybackProvider];
@@ -92,6 +93,7 @@ export default function RootLayout() {
 							<Stack.Screen name="settings" options={{headerShown: false}}/>
 							<Stack.Screen name="plugins" options={{headerShown: false}}/>
 						</Stack>
+						<FloatingPlayer />
 						<StatusBar style="auto"/>
 						<PortalHost/>
 					</View>

@@ -2,10 +2,10 @@
  * YouTube Music recommendations
  */
 
-import type { RecommendationParams, RecommendationSeed } from '../../core/interfaces/metadata-provider';
-import type { Track } from '../../../domain/entities/track';
-import type { Result } from '../../../shared/types/result';
-import { ok, err } from '../../../shared/types/result';
+import type { RecommendationParams, RecommendationSeed } from '@plugins/core/interfaces/metadata-provider';
+import type { Track } from '@domain/entities/track';
+import type { Result } from '@shared/types/result';
+import { ok, err } from '@shared/types/result';
 import { mapYouTubeTrack } from './mappers';
 import type { ClientManager } from './client';
 

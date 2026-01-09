@@ -1,25 +1,31 @@
-import {SafeAreaView} from "react-native-safe-area-context";
+import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {Input} from "@/components/ui/input";
-import {ScrollView, View, ActivityIndicator} from "react-native";
+import {ScrollView, View} from "react-native";
 import {Icon} from "@/components/ui/icon";
-import {ArrowLeftIcon, SearchIcon, SearchXIcon} from "lucide-react-native";
+import {SearchIcon, SearchXIcon, XIcon} from "lucide-react-native";
 import {TrackListItem} from "@/components/track-list-item";
 import {Button} from "@/components/ui/button";
 import {Text} from "@/components/ui/text";
 import {router} from "expo-router";
 import {useSearch} from "@/hooks/use-search";
 import {EmptyState} from "@/app/index";
+import {TrackListSkeleton} from "@/components/skeletons";
 
 export default function SearchScreen() {
+	const insets = useSafeAreaInsets();
 	const { query, tracks, isSearching, error, search } = useSearch();
 
 	return (
-		<SafeAreaView className="bg-background flex-1">
-			<View className="p-4 bg-secondary items-start gap-4 rounded-b-3xl">
-				<Button size="sm" variant="default" onPress={() => router.back()}>
-					<Icon as={ArrowLeftIcon} className="text-primary-foreground"/>
-					<Text>Back</Text>
-				</Button>
+		<View className="bg-background flex-1">
+			<View
+				className="px-4 pb-4 bg-secondary items-start gap-4 rounded-b-3xl"
+				style={{ paddingTop: insets.top + 16 }}
+			>
+				<View className={"flex-row justify-end w-full"}>
+					<Button size="icon" variant="default" onPress={() => router.back()}>
+						<Icon as={XIcon} className="text-primary-foreground"/>
+					</Button>
+				</View>
 				<View className="flex-row items-center w-full">
 					<Icon as={SearchIcon} size={24}/>
 					<Input
@@ -34,12 +40,12 @@ export default function SearchScreen() {
 				</View>
 			</View>
 
-			<ScrollView contentContainerClassName="gap-2 p-4 py-4">
+			<ScrollView
+				contentContainerClassName="gap-2 p-4 py-4"
+				contentContainerStyle={{ paddingBottom: insets.bottom }}
+			>
 				{isSearching && (
-					<View className="py-8 items-center">
-						<ActivityIndicator size="large" />
-						<Text variant="muted" className="mt-4">Searching...</Text>
-					</View>
+					<TrackListSkeleton count={6} />
 				)}
 
 				{error && !isSearching && (
@@ -65,9 +71,9 @@ export default function SearchScreen() {
 				)}
 
 				{tracks.map(track => (
-					<TrackListItem key={track.id.value} track={track} />
+					<TrackListItem key={track.id.value} track={track} source="search" />
 				))}
 			</ScrollView>
-		</SafeAreaView>
+		</View>
 	);
 }

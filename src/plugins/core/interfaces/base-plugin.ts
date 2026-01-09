@@ -1,4 +1,4 @@
-import type { Result } from '../../../shared/types/result';
+import type { Result } from '@shared/types/result';
 import type { PluginManifest as BasePluginManifest } from './plugin';
 
 /**

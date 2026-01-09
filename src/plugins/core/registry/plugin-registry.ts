@@ -1,5 +1,5 @@
-import type { Result } from '../../../shared/types/result';
-import { ok, err, isErr } from '../../../shared/types/result';
+import type { Result } from '@shared/types/result';
+import { ok, err, isErr } from '@shared/types/result';
 import type {
   BasePlugin,
   PluginStatus,
@@ -11,8 +11,7 @@ import type { AudioSourceProvider } from '../interfaces/audio-source-provider';
 import type { PlaybackProvider } from '../interfaces/playback-provider';
 import type { SyncProvider } from '../interfaces/sync-provider';
 import { EventBus } from '../events/event-bus';
-import { createPluginLogger } from '../../../shared/services/logger';
-import { getLogger } from '../../../shared/services/logger';
+import { createPluginLogger, getLogger } from '@shared/services/logger';
 import {
   createProviderAccessor,
   type ProviderAccessor,

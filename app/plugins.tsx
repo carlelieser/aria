@@ -20,6 +20,7 @@ import {
 } from "lucide-react-native";
 import { PluginRegistry } from "@/src/plugins/core/registry/plugin-registry";
 import type { BasePlugin, PluginStatus, PluginCategory } from "@/src/plugins/core/interfaces/base-plugin";
+import { PluginListSkeleton } from "@/components/skeletons";
 
 interface PluginDisplayInfo {
 	id: string;
@@ -55,7 +56,7 @@ const categoryLabels: Record<PluginCategory, string> = {
 const statusConfig: Record<PluginStatus, { icon: LucideIcon; color: string; label: string }> = {
 	uninitialized: { icon: AlertCircleIcon, color: "text-muted-foreground", label: "Not initialized" },
 	initializing: { icon: LoaderIcon, color: "text-yellow-500", label: "Initializing..." },
-	ready: { icon: CheckCircleIcon, color: "text-green-500", label: "Ready" },
+	ready: { icon: CheckCircleIcon, color: "text-muted-foreground", label: "Ready" },
 	active: { icon: CheckCircleIcon, color: "text-primary", label: "Active" },
 	error: { icon: XCircleIcon, color: "text-destructive", label: "Error" },
 	disabled: { icon: XCircleIcon, color: "text-muted-foreground", label: "Disabled" },
@@ -64,6 +65,7 @@ const statusConfig: Record<PluginStatus, { icon: LucideIcon; color: string; labe
 export default function PluginsScreen() {
 	const [plugins, setPlugins] = useState<PluginDisplayInfo[]>([]);
 	const [selectedPlugin, setSelectedPlugin] = useState<PluginDisplayInfo | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
 
 	const loadPlugins = useCallback(() => {
 		const registry = PluginRegistry.getInstance();
@@ -84,6 +86,7 @@ export default function PluginsScreen() {
 		});
 
 		setPlugins(pluginInfos);
+		setIsLoading(false);
 	}, []);
 
 	useEffect(() => {
@@ -147,7 +150,11 @@ export default function PluginsScreen() {
 			</View>
 
 			<ScrollView className="flex-1" contentContainerClassName="pb-8">
-				{plugins.length === 0 ? (
+				{isLoading ? (
+					<View className="mt-6 mx-4">
+						<PluginListSkeleton count={4} />
+					</View>
+				) : plugins.length === 0 ? (
 					<EmptyState />
 				) : (
 					Object.entries(pluginsByCategory).map(([category, categoryPlugins]) => (

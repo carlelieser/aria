@@ -1,9 +1,9 @@
 import type { BasePlugin } from './base-plugin';
-import type { Result, AsyncResult } from '../../../shared/types/result';
-import type { Track } from '../../../domain/entities/track';
-import type { Playlist } from '../../../domain/entities/playlist';
-import type { Album } from '../../../domain/entities/album';
-import type { Artist } from '../../../domain/entities/artist';
+import type { Result, AsyncResult } from '@shared/types/result';
+import type { Track } from '@domain/entities/track';
+import type { Playlist } from '@domain/entities/playlist';
+import type { Album } from '@domain/entities/album';
+import type { Artist } from '@domain/entities/artist';
 
 /**
  * Sync provider capabilities

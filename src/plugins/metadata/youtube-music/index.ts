@@ -4,13 +4,14 @@
  * Barrel export for the YouTube Music metadata provider plugin
  */
 
+import { createYouTubeMusicProvider } from './youtube-music-provider';
+import type { YouTubeMusicConfig } from './config';
+import { getLogger } from '@shared/services/logger';
+
 export * from './types';
 export * from './mappers';
 export * from './config';
 export * from './youtube-music-provider';
-
-import { createYouTubeMusicProvider, type YouTubeMusicConfig } from './youtube-music-provider';
-import { getLogger } from '../../../shared/services/logger';
 
 const logger = getLogger('YouTubeMusic');
 
