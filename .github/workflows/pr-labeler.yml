@@ -1,0 +1,93 @@
+name: PR Labeler
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label-by-files:
+    name: Label by Files Changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Label PR by files changed
+        uses: actions/labeler@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/labeler.yml
+
+  label-by-title:
+    name: Label by PR Title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label by conventional commit type
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const title = context.payload.pull_request.title;
+            const labels = [];
+
+            // Conventional commit type mapping
+            const typeLabels = {
+              'feat': 'enhancement',
+              'fix': 'bug',
+              'docs': 'documentation',
+              'style': 'style',
+              'refactor': 'refactor',
+              'perf': 'performance',
+              'test': 'test',
+              'chore': 'chore',
+              'ci': 'ci',
+              'revert': 'revert'
+            };
+
+            // Extract type from title (e.g., "feat: add new feature" -> "feat")
+            const match = title.match(/^(\w+)(?:\(.+\))?:/);
+            if (match) {
+              const type = match[1].toLowerCase();
+              if (typeLabels[type]) {
+                labels.push(typeLabels[type]);
+              }
+            }
+
+            // Add breaking change label if present
+            if (title.includes('!:') || title.toLowerCase().includes('breaking')) {
+              labels.push('breaking-change');
+            }
+
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                labels: labels
+              });
+            }
+
+  size-label:
+    name: PR Size Label
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label PR by size
+        uses: codelytv/pr-size-labeler@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          xs_label: 'size/xs'
+          xs_max_size: 10
+          s_label: 'size/s'
+          s_max_size: 100
+          m_label: 'size/m'
+          m_max_size: 500
+          l_label: 'size/l'
+          l_max_size: 1000
+          xl_label: 'size/xl'
+          fail_if_xl: false
+          message_if_xl: >
+            This PR is quite large. Consider breaking it into smaller PRs for easier review.
