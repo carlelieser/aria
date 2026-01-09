@@ -4,13 +4,38 @@ A modern, extensible music player for iOS, Android, and web built with Expo and 
 
 ## Features
 
+### Core Music Features
 - **Multi-Source Streaming** - Stream music from YouTube Music with support for additional providers
 - **Background Playback** - Continue listening while using other apps
-- **Queue Management** - Full queue controls with shuffle and repeat modes
-- **Library Management** - Save tracks, create playlists, and manage favorites
+- **Queue Management** - Full queue controls with shuffle and repeat modes (off, one, all)
+- **Track Control** - Play, pause, skip, seek with progress tracking
+
+### Library Management
+- **Save Tracks** - Add/remove tracks from your library
+- **Create Playlists** - Build and manage custom playlists
+- **Favorites** - Mark and filter favorite tracks
+- **Library Filtering** - Filter by artist, album, or favorites
+- **Library Sorting** - Sort by various criteria with custom order
+
+### Explore & Discovery
 - **Search** - Real-time search across all enabled metadata providers
-- **Plugin System** - Extensible architecture for custom metadata and playback providers
-- **Cross-Platform** - Runs on iOS, Android, and web from a single codebase
+- **Browse** - Discover new music with advanced filtering and sorting
+- **Batch Actions** - Select and perform actions on multiple tracks
+- **Artist/Album Details** - Browse artist discography and album tracks
+
+### Advanced Playback
+- **Equalizer** - 10-band EQ with customizable presets
+- **Synchronized Lyrics** - Time-synced lyrics display
+- **Sleep Timer** - Schedule playback to stop at a set time
+- **Downloads** - Download tracks for offline listening
+
+### UI/UX
+- **Material Design 3** - Modern M3 theming with dynamic colors
+- **Dark Mode** - Automatic light/dark theme switching
+- **Animated Splash Screen** - Circular ring reveal animation
+- **Floating Player** - Mini player overlay for quick control
+- **Customizable Tabs** - Reorder bottom navigation tabs
+- **Plugin System** - Extensible architecture for custom providers
 
 ## Tech Stack
 
@@ -20,9 +45,12 @@ A modern, extensible music player for iOS, Android, and web built with Expo and 
 | Language | TypeScript 5.9 |
 | Routing | Expo Router 6 (file-based) |
 | State Management | Zustand 4.5 |
-| Styling | NativeWind (Tailwind CSS) |
+| UI Framework | React Native Paper 5.13 |
 | Audio | expo-av, expo-audio |
-| Streaming API | youtubei.js |
+| Animations | React Native Reanimated 4.1 |
+| Lists | Shopify FlashList 2.0 |
+| Bottom Sheet | Gorhom Bottom Sheet 5.2 |
+| Streaming API | youtubei.js 16.0 |
 | Icons | Lucide React Native |
 
 ## Architecture
@@ -51,49 +79,101 @@ Aria follows **Clean Architecture** principles with strict layer separation:
 - **Domain layer is pure TypeScript** - no React/React Native dependencies
 - **Data flows downward** - presentation accesses data through services and hooks
 - **Explicit error handling** - Result pattern instead of thrown exceptions
+- **Non-blocking bootstrap** - app starts immediately, initializes plugins in background
+- **Dependency injection** - container-managed dependencies for testability
+- **Event-driven communication** - EventBus for plugin coordination
 
 ## Project Structure
 
 ```
 aria/
-├── app/                      # Expo Router screens
-│   ├── _layout.tsx          # Root layout & initialization
-│   ├── index.tsx            # Library screen
-│   ├── player.tsx           # Full player screen
-│   ├── search.tsx           # Search screen
-│   └── settings.tsx         # Settings screen
+├── app/                          # Expo Router file-based routing
+│   ├── _layout.tsx              # Root layout & providers
+│   ├── (tabs)/                  # Tab navigation
+│   │   ├── _layout.tsx          # Custom Material 3 tab bar
+│   │   ├── index.tsx            # Library screen
+│   │   ├── explore.tsx          # Explore/search screen
+│   │   ├── downloads.tsx        # Downloads screen
+│   │   └── settings.tsx         # Settings screen
+│   ├── player.tsx               # Full-screen player
+│   ├── playlist-picker.tsx      # Playlist selection modal
+│   ├── plugins.tsx              # Plugin management
+│   ├── artist/[id].tsx          # Artist detail screen
+│   └── album/[id].tsx           # Album detail screen
 │
-├── components/               # UI components
-│   ├── floating-player/     # Mini player overlay
-│   ├── track-options-menu/  # Track context menu
-│   └── ui/                  # Reusable primitives
+├── components/                   # UI components
+│   ├── ui/                      # Primitives (button, input, toast, etc.)
+│   ├── floating-player/         # Mini player overlay
+│   ├── track-options-menu/      # Track context menu
+│   ├── library/                 # Library-specific components
+│   ├── explore/                 # Explore feature components
+│   ├── settings/                # Settings components
+│   ├── skeletons/               # Loading skeleton screens
+│   ├── equalizer-sheet.tsx      # Equalizer controls
+│   ├── lyrics-display.tsx       # Synchronized lyrics viewer
+│   ├── sleep-timer-sheet.tsx    # Sleep timer interface
+│   └── download-*.tsx           # Download UI components
+│
+├── hooks/                        # Custom React hooks (19 hooks)
+│   ├── use-player.ts            # Player state & controls
+│   ├── use-library-filter.ts    # Library filtering
+│   ├── use-explore-filter.ts    # Explore filtering & sorting
+│   ├── use-download-*.ts        # Download management
+│   ├── use-lyrics.ts            # Lyrics fetching & syncing
+│   ├── use-equalizer.ts         # Equalizer settings
+│   └── use-sleep-timer.ts       # Sleep timer logic
 │
 ├── src/
-│   ├── domain/              # Business logic
-│   │   ├── entities/        # Track, Artist, Album, Playlist
-│   │   └── value-objects/   # Duration, TrackId, AudioSource
+│   ├── domain/                  # Business logic layer
+│   │   ├── entities/            # Track, Artist, Album, Playlist
+│   │   ├── value-objects/       # Duration, TrackId, AudioSource
+│   │   ├── repositories/        # Repository interfaces
+│   │   └── actions/             # Domain actions
 │   │
-│   ├── application/         # Use cases & state
-│   │   ├── services/        # PlaybackService, SearchService
-│   │   ├── state/           # Zustand stores
-│   │   └── bootstrap.ts     # App initialization
+│   ├── application/             # Use cases & state
+│   │   ├── services/            # 10 application services
+│   │   │   ├── playback-service.ts
+│   │   │   ├── search-service.ts
+│   │   │   ├── download-service.ts
+│   │   │   ├── album-service.ts
+│   │   │   ├── artist-service.ts
+│   │   │   ├── lyrics-service.ts
+│   │   │   └── sleep-timer-service.ts
+│   │   ├── state/               # 15 Zustand stores
+│   │   │   ├── player-store.ts
+│   │   │   ├── library-store.ts
+│   │   │   ├── search-store.ts
+│   │   │   ├── download-store.ts
+│   │   │   ├── equalizer-store.ts
+│   │   │   ├── lyrics-store.ts
+│   │   │   └── settings-store.ts
+│   │   └── bootstrap.ts         # Non-blocking app initialization
 │   │
-│   ├── plugins/             # Plugin system
-│   │   ├── core/            # Plugin framework
-│   │   │   ├── interfaces/  # Provider contracts
-│   │   │   ├── registry/    # Plugin management
-│   │   │   └── events/      # EventBus
-│   │   ├── metadata/        # Metadata providers
+│   ├── plugins/                 # Plugin system
+│   │   ├── core/                # Plugin framework
+│   │   │   ├── interfaces/      # Provider contracts
+│   │   │   ├── registry/        # Plugin management
+│   │   │   └── events/          # EventBus
+│   │   ├── metadata/            # Metadata providers
 │   │   │   └── youtube-music/
-│   │   └── playback/        # Playback providers
+│   │   └── playback/            # Playback providers
 │   │       ├── expo-av/
 │   │       └── dash/
 │   │
-│   └── shared/              # Cross-cutting concerns
-│       ├── types/           # Result type, errors
-│       └── services/        # Logger, utilities
+│   └── shared/                  # Cross-cutting concerns
+│       ├── di/                  # Dependency injection
+│       ├── storage/             # AsyncStorage wrapper
+│       ├── filesystem/          # File system access
+│       ├── types/               # Result type, errors
+│       └── services/            # Logger, utilities
 │
-└── hooks/                   # Custom React hooks
+├── lib/                          # Utilities
+│   └── theme/                   # Material 3 theming
+│       ├── dynamic-theme.ts     # Dynamic color generation
+│       ├── colors.ts            # Color palette
+│       └── typography.ts        # Type scale
+│
+└── constants/                    # App constants
 ```
 
 ## Getting Started
@@ -141,7 +221,12 @@ npm run web
 | `npm run android` | Run on Android emulator |
 | `npm run web` | Run in web browser |
 | `npm run lint` | Run ESLint |
-| `npm run build:android:dev` | Build Android APK via EAS |
+| `npm run format` | Format code with Prettier |
+| `npm run format:check` | Check code formatting |
+| `npm run test` | Run tests with Vitest (watch mode) |
+| `npm run test:run` | Run tests once |
+| `npm run test:coverage` | Run tests with coverage |
+| `npm run build:android` | Build Android APK via EAS |
 
 ## Plugin System
 
@@ -189,11 +274,18 @@ export class MyMusicProvider implements BasePlugin, MetadataProvider {
 
 ## State Management
 
-Aria uses Zustand for reactive state management:
+Aria uses Zustand for reactive state management with 15 stores:
 
-- **PlayerStore** - Current track, queue, playback status, volume
-- **SearchStore** - Search query, results, suggestions
-- **LibraryStore** - Saved tracks, playlists, favorites
+| Store | Purpose |
+|:------|:--------|
+| `PlayerStore` | Current track, queue, playback status, volume |
+| `LibraryStore` | Saved tracks, playlists, favorites |
+| `SearchStore` | Search query, results, suggestions |
+| `DownloadStore` | Download queue, progress, offline tracks |
+| `EqualizerStore` | EQ bands, presets, enabled state |
+| `LyricsStore` | Synchronized lyrics data |
+| `SettingsStore` | User preferences, theme, tab order |
+| `ExploreFilterStore` | Explore filters, sorting options |
 
 ## Error Handling
 
