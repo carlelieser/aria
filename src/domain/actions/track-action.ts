@@ -60,6 +60,8 @@ export interface TrackActionContext {
  * Core action IDs for type safety
  */
 export const CORE_ACTION_IDS = {
+  ADD_TO_LIBRARY: 'add-to-library',
+  REMOVE_FROM_LIBRARY: 'remove-from-library',
   ADD_TO_QUEUE: 'add-to-queue',
   ADD_TO_PLAYLIST: 'add-to-playlist',
   TOGGLE_FAVORITE: 'toggle-favorite',

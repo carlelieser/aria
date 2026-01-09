@@ -23,8 +23,8 @@ Clean Architecture with Feature-First Organization
 | Element            | Convention       | Example                                          |
 |:-------------------|:-----------------|:-------------------------------------------------|
 | Components         | `PascalCase`     | `UserProfile`, `AuthScreen`                      |
-| Files (components) | `PascalCase`     | `UserProfile.tsx`, `AuthScreen.tsx`              |
-| Files (non-comp)   | `camelCase`      | `userRepository.ts`, `useAuth.ts`                |
+| Files (components) | `kebab-case`     | `user-profile.tsx`, `auth-screen.tsx`            |
+| Files (non-comp)   | `kebab-case`     | `user-repository.ts`, `use-auth.ts`              |
 | Hooks              | `use` prefix     | `useAuth`, `useUserProfile`                      |
 | Private members    | `_` prefix       | `_loadData()`, `_isValid`                        |
 | Constants          | `SCREAMING_SNAKE`| `DEFAULT_TIMEOUT`, `MAX_RETRIES`                 |

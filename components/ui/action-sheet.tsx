@@ -69,8 +69,8 @@ export const ActionSheet = forwardRef<BottomSheetMethods, ActionSheetProps>(
     const isDark = colorScheme === 'dark';
     const colors = isDark ? COLORS.dark : COLORS.light;
 
-    // Calculate snap points based on content
-    const snapPoints = useMemo(() => ['50%', '75%'], []);
+    // Max height when user expands the sheet
+    const snapPoints = useMemo(() => ['75%'], []);
 
     const handleSheetChanges = useCallback(
       (index: number) => {

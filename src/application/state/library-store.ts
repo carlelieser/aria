@@ -26,6 +26,7 @@ interface LibraryState {
   addPlaylist: (playlist: Playlist) => void;
   removePlaylist: (playlistId: string) => void;
   updatePlaylist: (playlistId: string, updates: Partial<Playlist>) => void;
+  addTrackToPlaylist: (playlistId: string, track: Track) => void;
 
   setLoading: (isLoading: boolean) => void;
   setSyncedAt: (date: Date) => void;
@@ -142,6 +143,30 @@ export const useLibraryStore = create<LibraryState>()(
           playlists: state.playlists.map((p) =>
             p.id === playlistId ? { ...p, ...updates } : p
           ),
+        }));
+      },
+
+      addTrackToPlaylist: (playlistId: string, track: Track) => {
+        set((state) => ({
+          playlists: state.playlists.map((p) => {
+            if (p.id !== playlistId) return p;
+
+            const exists = p.tracks.some((pt) => pt.track.id.value === track.id.value);
+            if (exists) return p;
+
+            return {
+              ...p,
+              tracks: [
+                ...p.tracks,
+                {
+                  track,
+                  addedAt: new Date(),
+                  position: p.tracks.length,
+                },
+              ],
+              updatedAt: new Date(),
+            };
+          }),
         }));
       },
 

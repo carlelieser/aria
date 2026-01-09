@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { usePlayerStore } from '@/src/application/state/player-store';
+import { useHistoryStore } from '@/src/application/state/history-store';
 import { playbackService } from '@/src/application/services/playback-service';
 import type { Track } from '@/src/domain/entities/track';
 import { Duration } from '@/src/domain/value-objects/duration';
@@ -10,12 +11,14 @@ import { Duration } from '@/src/domain/value-objects/duration';
  */
 export function usePlayer() {
   const store = usePlayerStore();
+  const addToHistory = useHistoryStore((state) => state.addToHistory);
 
   const play = useCallback(async (track: Track) => {
     // Set the track in the queue and play it
     store.setQueue([track], 0);
+    addToHistory(track);
     await playbackService.play(track);
-  }, [store]);
+  }, [store, addToHistory]);
 
   const pause = useCallback(async () => {
     await playbackService.pause();

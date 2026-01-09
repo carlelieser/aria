@@ -17,6 +17,7 @@ import {
 } from "lucide-react-native";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useLibraryStore } from "@/src/application/state/library-store";
+import { useToast } from "@/hooks/use-toast";
 import Constants from "expo-constants";
 
 type ThemeOption = "light" | "dark" | "system";
@@ -24,6 +25,7 @@ type ThemeOption = "light" | "dark" | "system";
 export default function SettingsScreen() {
 	const colorScheme = useColorScheme();
 	const { tracks, playlists, favorites } = useLibraryStore();
+	const { success } = useToast();
 
 	const handleClearLibrary = () => {
 		Alert.alert(
@@ -41,7 +43,7 @@ export default function SettingsScreen() {
 							playlists: [],
 							favorites: new Set(),
 						});
-						Alert.alert("Library Cleared", "Your library has been cleared.");
+						success("Library cleared");
 					},
 				},
 			]

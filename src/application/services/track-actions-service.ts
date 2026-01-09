@@ -14,6 +14,7 @@ import { TRACK_ACTION_EVENTS } from '../events/track-action-events';
 import { getPluginRegistry } from '../../plugins/core/registry/plugin-registry';
 import { useLibraryStore } from '../state/library-store';
 import { usePlayerStore } from '../state/player-store';
+import { libraryService } from './library-service';
 
 /** Timeout for waiting for plugin responses */
 const PLUGIN_RESPONSE_TIMEOUT_MS = 100;
@@ -49,6 +50,14 @@ export class TrackActionsService {
 
     // Handle core actions
     switch (actionId) {
+      case CORE_ACTION_IDS.ADD_TO_LIBRARY:
+        libraryService.addTrack(track);
+        break;
+
+      case CORE_ACTION_IDS.REMOVE_FROM_LIBRARY:
+        libraryService.removeTrack(track.id.value);
+        break;
+
       case CORE_ACTION_IDS.ADD_TO_QUEUE:
         this._addToQueue(track);
         break;
@@ -73,11 +82,27 @@ export class TrackActionsService {
    * Get core actions available for a track
    */
   private _getCoreActions(track: Track, source: TrackActionSource): TrackAction[] {
+    const isInLibrary = libraryService.isInLibrary(track.id.value);
     const isFavorite = useLibraryStore.getState().isFavorite(track.id.value);
     const hasArtist = track.artists.length > 0;
     const hasAlbum = !!track.album;
 
-    const actions: TrackAction[] = [
+    const actions: TrackAction[] = [];
+
+    // Library action (only show in search context or if track is in library)
+    if (source === 'search' || isInLibrary) {
+      actions.push({
+        id: isInLibrary ? CORE_ACTION_IDS.REMOVE_FROM_LIBRARY : CORE_ACTION_IDS.ADD_TO_LIBRARY,
+        label: isInLibrary ? 'Remove from Library' : 'Add to Library',
+        icon: isInLibrary ? 'LibraryBig' : 'LibraryBig',
+        group: 'primary',
+        priority: 110,
+        enabled: true,
+        variant: isInLibrary ? 'destructive' : 'default',
+      });
+    }
+
+    actions.push(
       {
         id: CORE_ACTION_IDS.ADD_TO_QUEUE,
         label: 'Add to Queue',
@@ -103,7 +128,7 @@ export class TrackActionsService {
         enabled: true,
         checked: isFavorite,
       },
-    ];
+    );
 
     // Navigation actions (conditionally shown based on context and data)
     if (source !== 'player') {

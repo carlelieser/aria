@@ -110,8 +110,8 @@ export function createStreamingOperations(clientManager: ClientManager): Streami
           }));
         }
 
-        // Get the shared client instance
-        const client = await clientManager.getClient();
+        // Create fresh client for streaming to avoid stale sessions and 403 errors
+        const client = await clientManager.createFreshClient();
 
         // Try IOS client for HLS
         logger.debug('Trying IOS client for HLS stream...');

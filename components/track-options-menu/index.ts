@@ -1,1 +1,1 @@
-export { TrackOptionsMenu } from './TrackOptionsMenu';
+export { TrackOptionsMenu } from './track-options-menu';

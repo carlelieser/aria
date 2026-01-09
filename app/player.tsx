@@ -13,11 +13,11 @@ import {TrackOptionsMenu} from "@/components/track-options-menu";
 import {usePlayer} from "@/hooks/use-player";
 import {getLargestArtwork} from "@/src/domain/value-objects/artwork";
 import {getArtistNames} from "@/src/domain/entities/track";
-import {PlayerArtworkSkeleton, PlayerBufferingOverlay} from "@/components/skeletons";
+import {PlayerArtworkSkeleton} from "@/components/skeletons";
 
 export default function PlayerScreen() {
 	const pathname = usePathname();
-	const { currentTrack, isLoading, isBuffering, error } = usePlayer();
+	const { currentTrack, isLoading, error } = usePlayer();
 
 	useEffect(() => {
 		// Navigate back if there's no track playing
@@ -53,19 +53,16 @@ export default function PlayerScreen() {
 					{isLoading ? (
 						<PlayerArtworkSkeleton />
 					) : (
-						<View className="w-full aspect-square">
-							<Image
-								source={{ uri: artworkUrl }}
-								style={{
-									width: '100%',
-									aspectRatio: 1,
-									borderRadius: 16,
-								}}
-								contentFit="cover"
-								transition={300}
-							/>
-							{isBuffering && <PlayerBufferingOverlay />}
-						</View>
+						<Image
+							source={{ uri: artworkUrl }}
+							style={{
+								width: '100%',
+								aspectRatio: 1,
+								borderRadius: 16,
+							}}
+							contentFit="cover"
+							transition={300}
+						/>
 					)}
 				</View>
 

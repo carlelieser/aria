@@ -1,2 +1,2 @@
-export { FloatingPlayer } from './FloatingPlayer';
-export { FloatingProgressBar } from './FloatingProgressBar';
+export { FloatingPlayer } from './floating-player';
+export { FloatingProgressBar } from './floating-progress-bar';

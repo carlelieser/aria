@@ -3,11 +3,15 @@ import { Text } from '@/components/ui/text';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePlayer } from '@/hooks/use-player';
 import { Duration } from '@/src/domain/value-objects/duration';
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withRepeat,
+  withSequence,
+  withTiming,
+  cancelAnimation,
   runOnJS,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -21,12 +25,30 @@ const THUMB_SIZE = 16;
 const HIT_SLOP = 16;
 
 export function ProgressBar({ seekable = true }: ProgressBarProps) {
-  const { position, duration, seekTo, isLoading } = usePlayer();
+  const { position, duration, seekTo, isLoading, isBuffering } = usePlayer();
   const [isSeeking, setIsSeeking] = useState(false);
   const [seekPosition, setSeekPosition] = useState(0);
   const [trackWidth, setTrackWidth] = useState(0);
   const thumbScale = useSharedValue(1);
+  const thumbOpacity = useSharedValue(1);
   const isDragging = useRef(false);
+
+  // Pulse animation when buffering
+  useEffect(() => {
+    if (isBuffering && !isDragging.current) {
+      thumbOpacity.value = withRepeat(
+        withSequence(
+          withTiming(0.4, { duration: 500 }),
+          withTiming(1, { duration: 500 })
+        ),
+        -1,
+        false
+      );
+    } else {
+      cancelAnimation(thumbOpacity);
+      thumbOpacity.value = withTiming(1, { duration: 200 });
+    }
+  }, [isBuffering, thumbOpacity]);
 
   const totalMillis = duration.totalMilliseconds;
   const currentMillis = isSeeking ? seekPosition : position.totalMilliseconds;
@@ -88,6 +110,7 @@ export function ProgressBar({ seekable = true }: ProgressBarProps) {
 
   const thumbAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: thumbScale.value }],
+    opacity: thumbOpacity.value,
   }));
 
   const currentTime = isSeeking
@@ -128,8 +151,8 @@ export function ProgressBar({ seekable = true }: ProgressBarProps) {
                 height: THUMB_SIZE,
                 borderRadius: THUMB_SIZE / 2,
                 backgroundColor: 'white',
-                opacity: isDisabled ? 0.5 : 1,
               },
+              isDisabled && { opacity: 0.5 },
             ]}
           />
         </View>

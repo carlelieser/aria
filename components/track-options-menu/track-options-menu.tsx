@@ -69,7 +69,7 @@ export function TrackOptionsMenu({
   }, [actions]);
 
   const handleOpen = useCallback(() => {
-    bottomSheetRef.current?.expand();
+    bottomSheetRef.current?.snapToIndex(0);
   }, []);
 
   const handleSelect = useCallback(

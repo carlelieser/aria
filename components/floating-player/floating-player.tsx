@@ -15,7 +15,7 @@ import { useEffect, useState } from 'react';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
-import { FloatingProgressBar } from './FloatingProgressBar';
+import { FloatingProgressBar } from './floating-progress-bar';
 
 import { PlayIcon, PauseIcon } from 'lucide-react-native';
 import { usePlayer } from '@/hooks/use-player';
