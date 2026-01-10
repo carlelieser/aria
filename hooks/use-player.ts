@@ -3,8 +3,11 @@ import { useShallow } from 'zustand/react/shallow';
 import { usePlayerStore } from '@/src/application/state/player-store';
 import { useHistoryStore } from '@/src/application/state/history-store';
 import { playbackService } from '@/src/application/services/playback-service';
+import { getLogger } from '@/src/shared/services/logger';
 import type { Track } from '@/src/domain/entities/track';
 import { Duration } from '@/src/domain/value-objects/duration';
+
+const logger = getLogger('usePlayer');
 
 export function usePlayer() {
 	const {
@@ -67,11 +70,20 @@ export function usePlayer() {
 	}, []);
 
 	const togglePlayPause = useCallback(async () => {
-		const currentStatus = usePlayerStore.getState().status;
-		if (currentStatus === 'playing') {
+		const state = usePlayerStore.getState();
+		logger.debug('togglePlayPause called', { status: state.status, hasTrack: !!state.currentTrack });
+
+		if (state.status === 'playing') {
+			logger.debug('Pausing playback');
 			await playbackService.pause();
-		} else if (currentStatus === 'paused') {
+		} else if (state.status === 'paused') {
+			logger.debug('Resuming playback');
 			await playbackService.resume();
+		} else if ((state.status === 'idle' || state.status === 'error') && state.currentTrack) {
+			logger.debug('Starting playback from idle/error state');
+			await playbackService.play(state.currentTrack);
+		} else {
+			logger.warn('togglePlayPause: unhandled state', { status: state.status });
 		}
 	}, []);
 
