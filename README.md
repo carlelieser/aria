@@ -5,364 +5,74 @@
 <h1 align="center">Aria</h1>
 
 <p align="center">
-  A modern, extensible music player for iOS, Android, and web built with Expo and React Native. Aria features a sophisticated plugin architecture that enables streaming from multiple sources while maintaining clean separation of concerns.
+  A modern music player for iOS, Android, and web built with Expo and React Native.
 </p>
 
 ## Features
 
-### Core Music Features
-- **Multi-Source Streaming** - Stream music from YouTube Music, Spotify, and local files with support for additional providers
-- **Background Playback** - Continue listening while using other apps
-- **Queue Management** - Full queue controls with shuffle and repeat modes (off, one, all)
-- **Track Control** - Play, pause, skip, seek with progress tracking
-
-### Library Management
-- **Save Tracks** - Add/remove tracks from your library
-- **Create Playlists** - Build and manage custom playlists
-- **Favorites** - Mark and filter favorite tracks
-- **Library Filtering** - Filter by artist, album, or favorites
-- **Library Sorting** - Sort by various criteria with custom order
-
-### Explore & Discovery
-- **Search** - Real-time search across all enabled metadata providers
-- **Browse** - Discover new music with advanced filtering and sorting
-- **Batch Actions** - Select and perform actions on multiple tracks
-- **Artist/Album Details** - Browse artist discography and album tracks
-
-### Advanced Playback
-- **Equalizer** - 10-band EQ with customizable presets
-- **Synchronized Lyrics** - Time-synced lyrics display
-- **Sleep Timer** - Schedule playback to stop at a set time
-- **Downloads** - Download tracks for offline listening
-
-### UI/UX
-- **Material Design 3** - Modern M3 theming with dynamic colors
-- **Dark Mode** - Automatic light/dark theme switching
-- **Animated Splash Screen** - Circular ring reveal animation
-- **Floating Player** - Mini player overlay for quick control
-- **Customizable Tabs** - Reorder bottom navigation tabs
-- **Plugin System** - Extensible architecture for custom providers
+- **Multi-source streaming** from YouTube Music, Spotify, and local files
+- **Background playback** with queue management, shuffle, and repeat
+- **Library management** with playlists, favorites, and filtering
+- **10-band equalizer** with customizable presets
+- **Synchronized lyrics** display
+- **Offline downloads**
+- **Material Design 3** with dynamic theming
+- **Plugin architecture** for extensibility
 
 ## Tech Stack
 
-| Category | Technology |
-|:---------|:-----------|
-| Framework | Expo 54, React Native 0.81 |
-| Language | TypeScript 5.9 |
-| Routing | Expo Router 6 (file-based) |
-| State Management | Zustand 4.5 |
-| UI Framework | React Native Paper 5.13 |
-| Audio | expo-audio |
-| Animations | React Native Reanimated 4.1 |
-| Lists | Shopify FlashList 2.0 |
-| Bottom Sheet | Gorhom Bottom Sheet 5.2 |
-| Streaming API | youtubei.js 16.0 |
-| Icons | Lucide React Native |
-
-## Architecture
-
-Aria follows **Clean Architecture** principles with strict layer separation:
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                   Presentation Layer                    │
-│              (app/, components/, hooks/)                │
-├─────────────────────────────────────────────────────────┤
-│                   Application Layer                     │
-│         (services, state stores, bootstrap)             │
-├─────────────────────────────────────────────────────────┤
-│                     Domain Layer                        │
-│     (entities, value objects, repository contracts)     │
-├─────────────────────────────────────────────────────────┤
-│                  Infrastructure Layer                   │
-│       (storage, filesystem, dependency injection)       │
-├─────────────────────────────────────────────────────────┤
-│                    Plugin System                        │
-│  (metadata providers, playback providers, library, sync)│
-└─────────────────────────────────────────────────────────┘
-```
-
-### Key Principles
-
-- **Features never import from other features** - shared code lives in `shared/`
-- **Domain layer is pure TypeScript** - no React/React Native dependencies
-- **Data flows downward** - presentation accesses data through services and hooks
-- **Explicit error handling** - Result pattern instead of thrown exceptions
-- **Non-blocking bootstrap** - app starts immediately, initializes plugins in background
-- **Dependency injection** - container-managed dependencies for testability
-- **Event-driven communication** - EventBus for plugin coordination
-
-## Project Structure
-
-```
-aria/
-├── app/                          # Expo Router file-based routing
-│   ├── _layout.tsx              # Root layout & providers
-│   ├── (tabs)/                  # Tab navigation
-│   │   ├── _layout.tsx          # Custom Material 3 tab bar
-│   │   ├── index.tsx            # Library screen
-│   │   ├── explore.tsx          # Explore/search screen
-│   │   ├── downloads.tsx        # Downloads screen
-│   │   └── settings.tsx         # Settings screen
-│   ├── player.tsx               # Full-screen player
-│   ├── playlist-picker.tsx      # Playlist selection modal
-│   ├── playlist/[id].tsx        # Playlist detail screen
-│   ├── plugins.tsx              # Plugin management
-│   ├── artist/[id].tsx          # Artist detail screen
-│   └── album/[id].tsx           # Album detail screen
-│
-├── components/                   # UI components
-│   ├── ui/                      # Primitives (button, input, toast, etc.)
-│   ├── floating-player/         # Mini player overlay
-│   ├── track-options-menu/      # Track context menu
-│   ├── library/                 # Library-specific components
-│   ├── explore/                 # Explore feature components
-│   ├── settings/                # Settings components
-│   ├── skeletons/               # Loading skeleton screens
-│   ├── equalizer-sheet.tsx      # Equalizer controls
-│   ├── lyrics-display.tsx       # Synchronized lyrics viewer
-│   ├── sleep-timer-sheet.tsx    # Sleep timer interface
-│   └── download-*.tsx           # Download UI components
-│
-├── hooks/                        # Custom React hooks (17 hooks)
-│   ├── use-player.ts            # Player state & controls
-│   ├── use-library-filter.ts    # Library filtering
-│   ├── use-explore-filter.ts    # Explore filtering & sorting
-│   ├── use-download-*.ts        # Download management
-│   ├── use-lyrics.ts            # Lyrics fetching & syncing
-│   ├── use-equalizer.ts         # Equalizer settings
-│   └── use-sleep-timer.ts       # Sleep timer logic
-│
-├── src/
-│   ├── domain/                  # Business logic layer
-│   │   ├── entities/            # Track, Artist, Album, Playlist
-│   │   ├── value-objects/       # Duration, TrackId, AudioSource
-│   │   ├── repositories/        # Repository interfaces
-│   │   ├── actions/             # Domain actions
-│   │   └── utils/               # Domain utilities
-│   │
-│   ├── application/             # Use cases & state
-│   │   ├── services/            # 10 application services
-│   │   │   ├── playback-service.ts
-│   │   │   ├── search-service.ts
-│   │   │   ├── download-service.ts
-│   │   │   ├── album-service.ts
-│   │   │   ├── artist-service.ts
-│   │   │   ├── library-service.ts
-│   │   │   ├── lyrics-service.ts
-│   │   │   ├── sleep-timer-service.ts
-│   │   │   └── track-actions-service.ts
-│   │   ├── state/               # 17 Zustand stores
-│   │   │   ├── player-store.ts
-│   │   │   ├── player-ui-store.ts
-│   │   │   ├── library-store.ts
-│   │   │   ├── library-filter-store.ts
-│   │   │   ├── search-store.ts
-│   │   │   ├── download-store.ts
-│   │   │   ├── equalizer-store.ts
-│   │   │   ├── lyrics-store.ts
-│   │   │   ├── settings-store.ts
-│   │   │   ├── history-store.ts
-│   │   │   ├── album-store.ts
-│   │   │   ├── artist-store.ts
-│   │   │   ├── explore-filter-store.ts
-│   │   │   ├── selection-store.ts
-│   │   │   ├── toast-store.ts
-│   │   │   ├── track-options-store.ts
-│   │   │   └── plugin-settings-store.ts
-│   │   ├── ports/               # Port interfaces
-│   │   └── bootstrap.ts         # Non-blocking app initialization
-│   │
-│   ├── infrastructure/          # Infrastructure layer
-│   │   ├── di/                  # Dependency injection container
-│   │   ├── storage/             # AsyncStorage wrapper
-│   │   └── filesystem/          # Download manager
-│   │
-│   ├── plugins/                 # Plugin system
-│   │   ├── core/                # Plugin framework
-│   │   │   ├── interfaces/      # Provider contracts
-│   │   │   ├── registry/        # Plugin management
-│   │   │   └── events/          # EventBus
-│   │   ├── metadata/            # Metadata providers
-│   │   │   ├── youtube-music/
-│   │   │   ├── spotify/
-│   │   │   └── local-files/
-│   │   ├── playback/            # Playback providers
-│   │   │   ├── expo-av/
-│   │   │   └── dash/
-│   │   ├── library/             # Library providers
-│   │   │   └── core-library/
-│   │   ├── sync/                # Sync providers
-│   │   └── plugin-index.ts      # Plugin registry
-│   │
-│   └── shared/                  # Cross-cutting concerns
-│       ├── di/                  # Shared DI utilities
-│       ├── types/               # Result type, errors
-│       ├── services/            # Logger, utilities
-│       └── utils/               # Shared utilities
-│
-├── lib/                          # Utilities
-│   └── theme/                   # Material 3 theming
-│       ├── dynamic-theme.ts     # Dynamic color generation
-│       ├── colors.ts            # Color palette
-│       ├── typography.ts        # Type scale
-│       ├── motion.ts            # Animation constants
-│       └── shapes.ts            # Shape tokens
-│
-└── constants/                    # App constants
-```
+- **Expo 54** / React Native 0.81
+- **TypeScript 5.9**
+- **Expo Router 6** (file-based routing)
+- **Zustand** (state management)
+- **React Native Paper** (UI)
+- **expo-audio** (playback)
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js 18+
-- npm or yarn
-- Expo CLI (`npm install -g expo-cli`)
-- iOS Simulator (macOS) or Android emulator
-
-### Installation
-
 ```bash
-# Clone the repository
-git clone https://github.com/your-username/aria.git
-cd aria
-
 # Install dependencies
 npm install
 
-# Start the development server
+# Start development server
 npm start
-```
 
-### Running the App
-
-```bash
-# iOS Simulator
-npm run ios
-
-# Android Emulator
-npm run android
-
-# Web Browser
-npm run web
+# Run on platform
+npm run ios      # iOS Simulator
+npm run android  # Android Emulator
+npm run web      # Web Browser
 ```
 
 ## Scripts
 
 | Command | Description |
 |:--------|:------------|
-| `npm start` | Start Expo development server |
-| `npm run ios` | Run on iOS simulator |
-| `npm run android` | Run on Android emulator |
-| `npm run web` | Run in web browser |
+| `npm start` | Start Expo dev server |
+| `npm run ios` | Run on iOS |
+| `npm run android` | Run on Android |
+| `npm run web` | Run on web |
 | `npm run lint` | Run ESLint |
-| `npm run format` | Format code with Prettier |
-| `npm run format:check` | Check code formatting |
-| `npm run test` | Run tests with Vitest (watch mode) |
-| `npm run test:run` | Run tests once |
-| `npm run test:coverage` | Run tests with coverage |
-| `npm run build:android` | Build Android APK via EAS |
+| `npm run test` | Run tests |
+| `npm run build:android` | Build Android APK |
 
-## Plugin System
+## Architecture
 
-Aria's plugin architecture enables extensibility without modifying core code.
+Aria follows Clean Architecture with a plugin system for extensibility.
 
-### Plugin Types
-
-| Interface | Purpose |
-|:----------|:--------|
-| `MetadataProvider` | Search and fetch track/album/artist information |
-| `AudioSourceProvider` | Resolve streaming URLs for tracks |
-| `PlaybackProvider` | Handle audio playback controls |
-| `SyncProvider` | Sync library data with external services |
-| `ActionsProvider` | Provide custom track actions |
-
-### Creating a Plugin
-
-```typescript
-import { BasePlugin, MetadataProvider } from '@/plugins/core/interfaces';
-
-export class MyMusicProvider implements BasePlugin, MetadataProvider {
-  readonly manifest = {
-    id: 'my-music-provider',
-    name: 'My Music Provider',
-    version: '1.0.0',
-    category: 'metadata' as const,
-  };
-
-  async onInit(context: PluginContext): Promise<void> {
-    // Initialize plugin
-  }
-
-  async search(query: string, options?: SearchOptions) {
-    // Implement search
-  }
-
-  // ... implement other MetadataProvider methods
-}
+```
+app/           # Expo Router screens
+components/    # UI components
+hooks/         # React hooks
+src/
+├── domain/        # Entities & repository contracts
+├── application/   # Services & Zustand stores
+├── infrastructure/# Storage & DI
+├── plugins/       # Metadata, playback, and sync providers
+└── shared/        # Cross-cutting utilities
 ```
 
-### Built-in Plugins
-
-- **YouTube Music** - Metadata and streaming from YouTube Music
-- **Spotify** - Metadata provider for Spotify content
-- **Local Files** - Access and play local audio files
-- **Core Library** - Local library management
-- **Expo AV** - Standard audio playback for HTTP streams
-- **DASH** - DASH/HLS streaming support
-
-## State Management
-
-Aria uses Zustand for reactive state management with 17 stores:
-
-| Store | Purpose |
-|:------|:--------|
-| `PlayerStore` | Current track, queue, playback status, volume |
-| `PlayerUIStore` | Player UI state (expanded, collapsed, etc.) |
-| `LibraryStore` | Saved tracks, playlists, favorites |
-| `LibraryFilterStore` | Library filtering options |
-| `SearchStore` | Search query, results, suggestions |
-| `DownloadStore` | Download queue, progress, offline tracks |
-| `EqualizerStore` | EQ bands, presets, enabled state |
-| `LyricsStore` | Synchronized lyrics data |
-| `SettingsStore` | User preferences, theme, tab order |
-| `HistoryStore` | Playback history |
-| `ExploreFilterStore` | Explore filters, sorting options |
-| `PluginSettingsStore` | Plugin configuration |
-| `AlbumStore` | Album details and track listings |
-| `ArtistStore` | Artist details and discography |
-| `SelectionStore` | Multi-select state for batch actions |
-| `ToastStore` | Toast notification queue |
-| `TrackOptionsStore` | Track context menu state |
-
-## Error Handling
-
-The codebase uses a Result pattern for explicit error handling:
-
-```typescript
-type Result<T, E> =
-  | { success: true; data: T }
-  | { success: false; error: E };
-
-// Usage
-const result = await searchService.search(query);
-if (result.success) {
-  console.log(result.data);
-} else {
-  console.error(result.error);
-}
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Follow the code standards in `CLAUDE.md`
-4. Commit using conventional commits (`feat:`, `fix:`, `refactor:`, etc.)
-5. Push to your branch (`git push origin feature/amazing-feature`)
-6. Open a Pull Request
+See `CLAUDE.md` for detailed architecture guidelines and code standards.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT
