@@ -1,8 +1,16 @@
-# Aria
+<p align="center">
+  <img src="assets/images/icon.png" alt="Aria" width="128" height="128" />
+</p>
 
-> **Alpha Release** - This project is in early development. Features may be incomplete, unstable, or subject to breaking changes. Not recommended for production use.
+<h1 align="center">Aria</h1>
 
-A modern, extensible music player for iOS, Android, and web built with Expo and React Native. Aria features a sophisticated plugin architecture that enables streaming from multiple sources while maintaining clean separation of concerns.
+<p align="center">
+  <strong>Alpha Release</strong> - This project is in early development. Features may be incomplete, unstable, or subject to breaking changes. Not recommended for production use.
+</p>
+
+<p align="center">
+  A modern, extensible music player for iOS, Android, and web built with Expo and React Native. Aria features a sophisticated plugin architecture that enables streaming from multiple sources while maintaining clean separation of concerns.
+</p>
 
 ## Features
 
