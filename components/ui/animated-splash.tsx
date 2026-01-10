@@ -6,7 +6,7 @@
  */
 
 import React, { useEffect, useCallback, useState } from 'react';
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet, Dimensions, View, Image } from 'react-native';
 import Animated, {
 	useSharedValue,
 	useAnimatedStyle,
@@ -23,6 +23,7 @@ import { M3Colors } from '@/lib/theme/colors';
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const POLYGON_SIZE = 200;
+const ICON_SIZE = 60;
 const ANIMATION_DURATION = 400;
 const MORPH_DURATION = 800;
 const MORPH_INTERVAL = 2500;
@@ -143,16 +144,25 @@ export function AnimatedSplash({
 			<Animated.View
 				style={[styles.background, { backgroundColor: colors.background }, backgroundStyle]}
 			/>
-			<Animated.View style={[styles.content, polygonContainerStyle]}>
-				<AnimatedPolygonView
-					segments={segments}
-					size={POLYGON_SIZE}
-					fill={colors.onSurface}
-					stroke={colors.onSurface}
-					strokeWidth={40}
-					springConfig={{ damping: 12, stiffness: 80, mass: 0.5 }}
-				/>
-			</Animated.View>
+			<View style={styles.content}>
+				<View style={styles.iconWrapper}>
+					<Image
+						source={require('@/assets/icon-content.png')}
+						style={{ width: ICON_SIZE, height: ICON_SIZE }}
+						resizeMode="contain"
+					/>
+				</View>
+				<Animated.View style={[styles.polygonWrapper, polygonContainerStyle]}>
+					<AnimatedPolygonView
+						segments={segments}
+						size={POLYGON_SIZE}
+						fill={colors.onSurface}
+						stroke={colors.onSurface}
+						strokeWidth={40}
+						springConfig={{ damping: 12, stiffness: 80, mass: 0.5 }}
+					/>
+				</Animated.View>
+			</View>
 		</Animated.View>
 	);
 }
@@ -169,6 +179,18 @@ const styles = StyleSheet.create({
 		flex: 1,
 		alignItems: 'center',
 		justifyContent: 'center',
+	},
+	polygonWrapper: {
+		position: 'absolute',
+	},
+	iconWrapper: {
+		width: 124,
+		height: 124,
+		position: 'absolute',
+		alignItems: 'center',
+		justifyContent: 'center',
+		zIndex: 999999,
+		overflow: 'visible',
 	},
 });
 
