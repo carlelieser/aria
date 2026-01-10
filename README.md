@@ -5,7 +5,7 @@ A modern, extensible music player for iOS, Android, and web built with Expo and 
 ## Features
 
 ### Core Music Features
-- **Multi-Source Streaming** - Stream music from YouTube Music with support for additional providers
+- **Multi-Source Streaming** - Stream music from YouTube Music, Spotify, and local files with support for additional providers
 - **Background Playback** - Continue listening while using other apps
 - **Queue Management** - Full queue controls with shuffle and repeat modes (off, one, all)
 - **Track Control** - Play, pause, skip, seek with progress tracking
@@ -46,7 +46,7 @@ A modern, extensible music player for iOS, Android, and web built with Expo and 
 | Routing | Expo Router 6 (file-based) |
 | State Management | Zustand 4.5 |
 | UI Framework | React Native Paper 5.13 |
-| Audio | expo-av, expo-audio |
+| Audio | expo-audio |
 | Animations | React Native Reanimated 4.1 |
 | Lists | Shopify FlashList 2.0 |
 | Bottom Sheet | Gorhom Bottom Sheet 5.2 |
@@ -59,17 +59,20 @@ Aria follows **Clean Architecture** principles with strict layer separation:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                   Presentation Layer                     │
-│              (app/, components/, hooks/)                 │
+│                   Presentation Layer                    │
+│              (app/, components/, hooks/)                │
 ├─────────────────────────────────────────────────────────┤
-│                   Application Layer                      │
-│         (services, state stores, bootstrap)              │
+│                   Application Layer                     │
+│         (services, state stores, bootstrap)             │
 ├─────────────────────────────────────────────────────────┤
-│                     Domain Layer                         │
-│     (entities, value objects, repository contracts)      │
+│                     Domain Layer                        │
+│     (entities, value objects, repository contracts)     │
 ├─────────────────────────────────────────────────────────┤
-│                    Plugin System                         │
-│    (metadata providers, playback providers, events)      │
+│                  Infrastructure Layer                   │
+│       (storage, filesystem, dependency injection)       │
+├─────────────────────────────────────────────────────────┤
+│                    Plugin System                        │
+│  (metadata providers, playback providers, library, sync)│
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -97,6 +100,7 @@ aria/
 │   │   └── settings.tsx         # Settings screen
 │   ├── player.tsx               # Full-screen player
 │   ├── playlist-picker.tsx      # Playlist selection modal
+│   ├── playlist/[id].tsx        # Playlist detail screen
 │   ├── plugins.tsx              # Plugin management
 │   ├── artist/[id].tsx          # Artist detail screen
 │   └── album/[id].tsx           # Album detail screen
@@ -114,7 +118,7 @@ aria/
 │   ├── sleep-timer-sheet.tsx    # Sleep timer interface
 │   └── download-*.tsx           # Download UI components
 │
-├── hooks/                        # Custom React hooks (19 hooks)
+├── hooks/                        # Custom React hooks (17 hooks)
 │   ├── use-player.ts            # Player state & controls
 │   ├── use-library-filter.ts    # Library filtering
 │   ├── use-explore-filter.ts    # Explore filtering & sorting
@@ -128,7 +132,8 @@ aria/
 │   │   ├── entities/            # Track, Artist, Album, Playlist
 │   │   ├── value-objects/       # Duration, TrackId, AudioSource
 │   │   ├── repositories/        # Repository interfaces
-│   │   └── actions/             # Domain actions
+│   │   ├── actions/             # Domain actions
+│   │   └── utils/               # Domain utilities
 │   │
 │   ├── application/             # Use cases & state
 │   │   ├── services/            # 10 application services
@@ -137,17 +142,35 @@ aria/
 │   │   │   ├── download-service.ts
 │   │   │   ├── album-service.ts
 │   │   │   ├── artist-service.ts
+│   │   │   ├── library-service.ts
 │   │   │   ├── lyrics-service.ts
-│   │   │   └── sleep-timer-service.ts
-│   │   ├── state/               # 15 Zustand stores
+│   │   │   ├── sleep-timer-service.ts
+│   │   │   └── track-actions-service.ts
+│   │   ├── state/               # 18 Zustand stores
 │   │   │   ├── player-store.ts
+│   │   │   ├── player-ui-store.ts
 │   │   │   ├── library-store.ts
+│   │   │   ├── library-filter-store.ts
 │   │   │   ├── search-store.ts
 │   │   │   ├── download-store.ts
 │   │   │   ├── equalizer-store.ts
 │   │   │   ├── lyrics-store.ts
-│   │   │   └── settings-store.ts
+│   │   │   ├── settings-store.ts
+│   │   │   ├── history-store.ts
+│   │   │   ├── album-store.ts
+│   │   │   ├── artist-store.ts
+│   │   │   ├── explore-filter-store.ts
+│   │   │   ├── selection-store.ts
+│   │   │   ├── toast-store.ts
+│   │   │   ├── track-options-store.ts
+│   │   │   └── plugin-settings-store.ts
+│   │   ├── ports/               # Port interfaces
 │   │   └── bootstrap.ts         # Non-blocking app initialization
+│   │
+│   ├── infrastructure/          # Infrastructure layer
+│   │   ├── di/                  # Dependency injection container
+│   │   ├── storage/             # AsyncStorage wrapper
+│   │   └── filesystem/          # Download manager
 │   │
 │   ├── plugins/                 # Plugin system
 │   │   ├── core/                # Plugin framework
@@ -155,23 +178,30 @@ aria/
 │   │   │   ├── registry/        # Plugin management
 │   │   │   └── events/          # EventBus
 │   │   ├── metadata/            # Metadata providers
-│   │   │   └── youtube-music/
-│   │   └── playback/            # Playback providers
-│   │       ├── expo-av/
-│   │       └── dash/
+│   │   │   ├── youtube-music/
+│   │   │   ├── spotify/
+│   │   │   └── local-files/
+│   │   ├── playback/            # Playback providers
+│   │   │   ├── expo-av/
+│   │   │   └── dash/
+│   │   ├── library/             # Library providers
+│   │   │   └── core-library/
+│   │   ├── sync/                # Sync providers
+│   │   └── plugin-index.ts      # Plugin registry
 │   │
 │   └── shared/                  # Cross-cutting concerns
-│       ├── di/                  # Dependency injection
-│       ├── storage/             # AsyncStorage wrapper
-│       ├── filesystem/          # File system access
+│       ├── di/                  # Shared DI utilities
 │       ├── types/               # Result type, errors
-│       └── services/            # Logger, utilities
+│       ├── services/            # Logger, utilities
+│       └── utils/               # Shared utilities
 │
 ├── lib/                          # Utilities
 │   └── theme/                   # Material 3 theming
 │       ├── dynamic-theme.ts     # Dynamic color generation
 │       ├── colors.ts            # Color palette
-│       └── typography.ts        # Type scale
+│       ├── typography.ts        # Type scale
+│       ├── motion.ts            # Animation constants
+│       └── shapes.ts            # Shape tokens
 │
 └── constants/                    # App constants
 ```
@@ -240,6 +270,7 @@ Aria's plugin architecture enables extensibility without modifying core code.
 | `AudioSourceProvider` | Resolve streaming URLs for tracks |
 | `PlaybackProvider` | Handle audio playback controls |
 | `SyncProvider` | Sync library data with external services |
+| `ActionsProvider` | Provide custom track actions |
 
 ### Creating a Plugin
 
@@ -269,23 +300,30 @@ export class MyMusicProvider implements BasePlugin, MetadataProvider {
 ### Built-in Plugins
 
 - **YouTube Music** - Metadata and streaming from YouTube Music
+- **Spotify** - Metadata provider for Spotify content
+- **Local Files** - Access and play local audio files
+- **Core Library** - Local library management
 - **Expo AV** - Standard audio playback for HTTP streams
 - **DASH** - DASH/HLS streaming support
 
 ## State Management
 
-Aria uses Zustand for reactive state management with 15 stores:
+Aria uses Zustand for reactive state management with 18 stores:
 
 | Store | Purpose |
 |:------|:--------|
 | `PlayerStore` | Current track, queue, playback status, volume |
+| `PlayerUIStore` | Player UI state (expanded, collapsed, etc.) |
 | `LibraryStore` | Saved tracks, playlists, favorites |
+| `LibraryFilterStore` | Library filtering options |
 | `SearchStore` | Search query, results, suggestions |
 | `DownloadStore` | Download queue, progress, offline tracks |
 | `EqualizerStore` | EQ bands, presets, enabled state |
 | `LyricsStore` | Synchronized lyrics data |
 | `SettingsStore` | User preferences, theme, tab order |
+| `HistoryStore` | Playback history |
 | `ExploreFilterStore` | Explore filters, sorting options |
+| `PluginSettingsStore` | Plugin configuration |
 
 ## Error Handling
 
