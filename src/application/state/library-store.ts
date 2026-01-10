@@ -22,6 +22,9 @@ interface LibraryState {
 	removePlaylist: (playlistId: string) => void;
 	updatePlaylist: (playlistId: string, updates: Partial<Playlist>) => void;
 	addTrackToPlaylist: (playlistId: string, track: Track) => void;
+	removeTrackFromPlaylist: (playlistId: string, position: number) => void;
+	renamePlaylist: (playlistId: string, name: string) => void;
+	reorderPlaylistTracks: (playlistId: string, fromIndex: number, toIndex: number) => void;
 
 	setLoading: (isLoading: boolean) => void;
 	setSyncedAt: (date: Date) => void;
@@ -155,6 +158,55 @@ export const useLibraryStore = create<LibraryState>()(
 				}));
 			},
 
+			removeTrackFromPlaylist: (playlistId: string, position: number) => {
+				set((state) => ({
+					playlists: state.playlists.map((p) => {
+						if (p.id !== playlistId) return p;
+
+						const newTracks = p.tracks
+							.filter((t) => t.position !== position)
+							.map((t, index) => ({ ...t, position: index }));
+
+						return {
+							...p,
+							tracks: newTracks,
+							updatedAt: new Date(),
+						};
+					}),
+				}));
+			},
+
+			renamePlaylist: (playlistId: string, name: string) => {
+				set((state) => ({
+					playlists: state.playlists.map((p) =>
+						p.id === playlistId ? { ...p, name, updatedAt: new Date() } : p
+					),
+				}));
+			},
+
+			reorderPlaylistTracks: (playlistId: string, fromIndex: number, toIndex: number) => {
+				set((state) => ({
+					playlists: state.playlists.map((p) => {
+						if (p.id !== playlistId) return p;
+
+						const tracks = [...p.tracks];
+						const [moved] = tracks.splice(fromIndex, 1);
+						tracks.splice(toIndex, 0, moved);
+
+						const reorderedTracks = tracks.map((t, index) => ({
+							...t,
+							position: index,
+						}));
+
+						return {
+							...p,
+							tracks: reorderedTracks,
+							updatedAt: new Date(),
+						};
+					}),
+				}));
+			},
+
 			setLoading: (isLoading: boolean) => {
 				set({ isLoading });
 			},
@@ -258,4 +310,30 @@ export const useUniqueArtists = () =>
 		cachedTracksHash = tracksHash;
 
 		return cachedArtists;
+	});
+
+let cachedRecentlyAdded: Track[] = [];
+let cachedRecentlyAddedLength = -1;
+
+export const useRecentlyAddedTracks = (limit = 10) =>
+	useLibraryStore((state) => {
+		const tracks = state.tracks;
+
+		// Return cached value if tracks haven't changed
+		if (tracks.length === cachedRecentlyAddedLength) {
+			return cachedRecentlyAdded;
+		}
+
+		// Sort by addedAt descending and take first `limit` tracks
+		cachedRecentlyAdded = [...tracks]
+			.sort((a, b) => {
+				const dateA = a.addedAt ? new Date(a.addedAt).getTime() : 0;
+				const dateB = b.addedAt ? new Date(b.addedAt).getTime() : 0;
+				return dateB - dateA;
+			})
+			.slice(0, limit);
+
+		cachedRecentlyAddedLength = tracks.length;
+
+		return cachedRecentlyAdded;
 	});

@@ -8,9 +8,9 @@
 import React, { useCallback, useMemo, useRef, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import BottomSheet, {
-  BottomSheetBackdrop,
-  BottomSheetScrollView,
-  type BottomSheetBackdropProps,
+	BottomSheetBackdrop,
+	BottomSheetScrollView,
+	type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet';
 import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { Portal } from '@rn-primitives/portal';
@@ -23,162 +23,162 @@ import type { ArtistReference } from '@/src/domain/entities/artist';
 import type { AlbumReference } from '@/src/domain/entities/album';
 
 interface LibrarySortFilterSheetProps {
-  isOpen: boolean;
-  onClose: () => void;
-  sortField: SortField;
-  sortDirection: SortDirection;
-  activeFilters: LibraryFilters;
-  artists: ArtistReference[];
-  albums: AlbumReference[];
-  onSortFieldChange: (field: SortField) => void;
-  onToggleSortDirection: () => void;
-  onToggleArtist: (artistId: string) => void;
-  onToggleAlbum: (albumId: string) => void;
-  onToggleFavorites: () => void;
-  onClearAll: () => void;
+	isOpen: boolean;
+	onClose: () => void;
+	sortField: SortField;
+	sortDirection: SortDirection;
+	activeFilters: LibraryFilters;
+	artists: ArtistReference[];
+	albums: AlbumReference[];
+	onSortFieldChange: (field: SortField) => void;
+	onToggleSortDirection: () => void;
+	onToggleArtist: (artistId: string) => void;
+	onToggleAlbum: (albumId: string) => void;
+	onToggleFavorites: () => void;
+	onClearAll: () => void;
 }
 
 export function LibrarySortFilterSheet({
-  isOpen,
-  onClose,
-  sortField,
-  sortDirection,
-  activeFilters,
-  artists,
-  albums,
-  onSortFieldChange,
-  onToggleSortDirection,
-  onToggleArtist,
-  onToggleAlbum,
-  onToggleFavorites,
-  onClearAll,
+	isOpen,
+	onClose,
+	sortField,
+	sortDirection,
+	activeFilters,
+	artists,
+	albums,
+	onSortFieldChange,
+	onToggleSortDirection,
+	onToggleArtist,
+	onToggleAlbum,
+	onToggleFavorites,
+	onClearAll,
 }: LibrarySortFilterSheetProps) {
-  const { colors } = useAppTheme();
-  const sheetRef = useRef<BottomSheetMethods>(null);
+	const { colors } = useAppTheme();
+	const sheetRef = useRef<BottomSheetMethods>(null);
 
-  const snapPoints = useMemo(() => ['60%', '85%'], []);
+	const snapPoints = useMemo(() => ['60%', '85%'], []);
 
-  useEffect(() => {
-    if (isOpen) {
-      sheetRef.current?.snapToIndex(0);
-    }
-  }, [isOpen]);
+	useEffect(() => {
+		if (isOpen) {
+			sheetRef.current?.snapToIndex(0);
+		}
+	}, [isOpen]);
 
-  const handleSheetChanges = useCallback(
-    (index: number) => {
-      if (index === -1) {
-        onClose();
-      }
-    },
-    [onClose]
-  );
+	const handleSheetChanges = useCallback(
+		(index: number) => {
+			if (index === -1) {
+				onClose();
+			}
+		},
+		[onClose]
+	);
 
-  const renderBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-        opacity={0.5}
-        pressBehavior="close"
-      />
-    ),
-    []
-  );
+	const renderBackdrop = useCallback(
+		(props: BottomSheetBackdropProps) => (
+			<BottomSheetBackdrop
+				{...props}
+				disappearsOnIndex={-1}
+				appearsOnIndex={0}
+				opacity={0.5}
+				pressBehavior="close"
+			/>
+		),
+		[]
+	);
 
-  if (!isOpen) {
-    return null;
-  }
+	if (!isOpen) {
+		return null;
+	}
 
-  return (
-    <Portal name="library-sort-filter-sheet">
-      <BottomSheet
-        ref={sheetRef}
-        index={0}
-        snapPoints={snapPoints}
-        enablePanDownToClose
-        backdropComponent={renderBackdrop}
-        onChange={handleSheetChanges}
-        backgroundStyle={[
-          styles.background,
-          { backgroundColor: colors.surfaceContainerHigh },
-        ]}
-        handleIndicatorStyle={[
-          styles.handleIndicator,
-          { backgroundColor: colors.outlineVariant },
-        ]}
-      >
-        <BottomSheetScrollView style={styles.contentContainer}>
-          <View style={styles.header}>
-            <Text variant="titleMedium" style={{ color: colors.onSurface }}>
-              Sort & Filter
-            </Text>
-            <Button
-              mode="text"
-              compact
-              onPress={onClearAll}
-              textColor={colors.onSurfaceVariant}
-            >
-              Clear all
-            </Button>
-          </View>
+	return (
+		<Portal name="library-sort-filter-sheet">
+			<BottomSheet
+				ref={sheetRef}
+				index={0}
+				snapPoints={snapPoints}
+				enablePanDownToClose
+				backdropComponent={renderBackdrop}
+				onChange={handleSheetChanges}
+				backgroundStyle={[
+					styles.background,
+					{ backgroundColor: colors.surfaceContainerHigh },
+				]}
+				handleIndicatorStyle={[
+					styles.handleIndicator,
+					{ backgroundColor: colors.outlineVariant },
+				]}
+			>
+				<BottomSheetScrollView style={styles.contentContainer}>
+					<View style={styles.header}>
+						<Text variant="titleMedium" style={{ color: colors.onSurface }}>
+							Sort & Filter
+						</Text>
+						<Button
+							mode="text"
+							compact
+							onPress={onClearAll}
+							textColor={colors.onSurfaceVariant}
+						>
+							Clear all
+						</Button>
+					</View>
 
-          <Divider style={styles.divider} />
-          <View style={styles.section}>
-            <SortSection
-              sortField={sortField}
-              sortDirection={sortDirection}
-              onSortFieldChange={onSortFieldChange}
-              onToggleDirection={onToggleSortDirection}
-            />
-          </View>
+					<Divider style={styles.divider} />
+					<View style={styles.section}>
+						<SortSection
+							sortField={sortField}
+							sortDirection={sortDirection}
+							onSortFieldChange={onSortFieldChange}
+							onToggleDirection={onToggleSortDirection}
+						/>
+					</View>
 
-          <Divider style={styles.divider} />
-          <View style={styles.section}>
-            <FilterSection
-              artists={artists}
-              albums={albums}
-              activeFilters={activeFilters}
-              onToggleArtist={onToggleArtist}
-              onToggleAlbum={onToggleAlbum}
-              onToggleFavorites={onToggleFavorites}
-            />
-          </View>
+					<Divider style={styles.divider} />
+					<View style={styles.section}>
+						<FilterSection
+							artists={artists}
+							albums={albums}
+							activeFilters={activeFilters}
+							onToggleArtist={onToggleArtist}
+							onToggleAlbum={onToggleAlbum}
+							onToggleFavorites={onToggleFavorites}
+						/>
+					</View>
 
-          <View style={styles.bottomPadding} />
-        </BottomSheetScrollView>
-      </BottomSheet>
-    </Portal>
-  );
+					<View style={styles.bottomPadding} />
+				</BottomSheetScrollView>
+			</BottomSheet>
+		</Portal>
+	);
 }
 
 const styles = StyleSheet.create({
-  background: {
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-  },
-  handleIndicator: {
-    width: 32,
-    height: 4,
-  },
-  contentContainer: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-  },
-  divider: {
-    marginVertical: 4,
-  },
-  section: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  bottomPadding: {
-    height: 34,
-  },
+	background: {
+		borderTopLeftRadius: 28,
+		borderTopRightRadius: 28,
+	},
+	handleIndicator: {
+		width: 32,
+		height: 4,
+	},
+	contentContainer: {
+		flex: 1,
+	},
+	header: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		paddingHorizontal: 16,
+		paddingBottom: 8,
+	},
+	divider: {
+		marginVertical: 4,
+	},
+	section: {
+		paddingHorizontal: 16,
+		paddingVertical: 12,
+	},
+	bottomPadding: {
+		height: 34,
+	},
 });

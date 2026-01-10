@@ -6,11 +6,15 @@ export * from './types';
 export * from './mappers';
 export * from './config';
 export * from './youtube-music-provider';
+export * from './plugin-module';
 
 const logger = getLogger('YouTubeMusic');
 
 let defaultInstance: ReturnType<typeof createYouTubeMusicProvider> | null = null;
 
+/**
+ * @deprecated Use YouTubeMusicPluginModule.create() instead for clean architecture
+ */
 export function getYouTubeMusicProvider(
 	config?: YouTubeMusicConfig
 ): ReturnType<typeof createYouTubeMusicProvider> {
@@ -20,6 +24,9 @@ export function getYouTubeMusicProvider(
 	return defaultInstance;
 }
 
+/**
+ * @deprecated Use plugin system for lifecycle management
+ */
 export function resetYouTubeMusicProvider(): void {
 	if (defaultInstance) {
 		defaultInstance.onDestroy().catch((error) => {

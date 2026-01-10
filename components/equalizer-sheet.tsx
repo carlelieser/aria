@@ -6,7 +6,7 @@
  * Uses M3 theming.
  */
 
-import React, { forwardRef, useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef, useEffect } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import BottomSheet, {
 	BottomSheetBackdrop,
@@ -16,186 +16,188 @@ import BottomSheet, {
 import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { Portal } from '@rn-primitives/portal';
 import { Text, Divider, Switch } from 'react-native-paper';
-import Animated, {
-	useAnimatedStyle,
-	withSpring,
-	useSharedValue,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
 import { Icon } from '@/components/ui/icon';
 import { SlidersHorizontal, Check, Info } from 'lucide-react-native';
 import { useEqualizer } from '@/hooks/use-equalizer';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 
 interface EqualizerSheetProps {
-	onDismiss?: () => void;
+	isOpen: boolean;
+	onClose: () => void;
 }
 
-export const EqualizerSheet = forwardRef<BottomSheetMethods, EqualizerSheetProps>(
-	function EqualizerSheet({ onDismiss }, ref) {
-		const { colors } = useAppTheme();
-		const {
-			isEnabled,
-			selectedPresetId,
-			currentGains,
-			presets,
-			bands,
-			selectPreset,
-			toggleEnabled,
-			resetToFlat,
-		} = useEqualizer();
+export function EqualizerSheet({ isOpen, onClose }: EqualizerSheetProps) {
+	const { colors } = useAppTheme();
+	const sheetRef = useRef<BottomSheetMethods>(null);
+	const {
+		isEnabled,
+		selectedPresetId,
+		currentGains,
+		presets,
+		bands,
+		selectPreset,
+		toggleEnabled,
+	} = useEqualizer();
 
-		const snapPoints = useMemo(() => ['85%'], []);
+	const snapPoints = useMemo(() => ['85%'], []);
 
-		const handleSheetChanges = useCallback(
-			(index: number) => {
-				if (index === -1) {
-					onDismiss?.();
-				}
-			},
-			[onDismiss]
-		);
+	useEffect(() => {
+		if (isOpen) {
+			sheetRef.current?.snapToIndex(0);
+		}
+	}, [isOpen]);
 
-		const renderBackdrop = useCallback(
-			(props: BottomSheetBackdropProps) => (
-				<BottomSheetBackdrop
-					{...props}
-					disappearsOnIndex={-1}
-					appearsOnIndex={0}
-					opacity={0.5}
-				/>
-			),
-			[]
-		);
+	const handleSheetChanges = useCallback(
+		(index: number) => {
+			if (index === -1) {
+				onClose();
+			}
+		},
+		[onClose]
+	);
 
-		const handlePresetSelect = useCallback(
-			(presetId: string) => {
-				selectPreset(presetId);
-			},
-			[selectPreset]
-		);
+	const renderBackdrop = useCallback(
+		(props: BottomSheetBackdropProps) => (
+			<BottomSheetBackdrop
+				{...props}
+				disappearsOnIndex={-1}
+				appearsOnIndex={0}
+				opacity={0.5}
+				pressBehavior="close"
+			/>
+		),
+		[]
+	);
 
-		return (
-			<Portal name="equalizer-sheet">
-				<BottomSheet
-					ref={ref}
-					index={-1}
-					snapPoints={snapPoints}
-					enablePanDownToClose
-					backdropComponent={renderBackdrop}
-					onChange={handleSheetChanges}
-					backgroundStyle={[
-						styles.background,
-						{ backgroundColor: colors.surfaceContainerHigh },
-					]}
-					handleIndicatorStyle={[
-						styles.handleIndicator,
-						{ backgroundColor: colors.outlineVariant },
-					]}
-				>
-					<BottomSheetScrollView style={styles.contentContainer}>
-						<View style={styles.header}>
-							<View style={styles.headerLeft}>
-								<Icon as={SlidersHorizontal} size={24} color={colors.primary} />
-								<Text variant="titleLarge" style={{ color: colors.onSurface }}>
-									Equalizer
-								</Text>
-							</View>
-							<Switch
-								value={isEnabled}
-								onValueChange={toggleEnabled}
-								color={colors.primary}
-							/>
-						</View>
+	const handlePresetSelect = useCallback(
+		(presetId: string) => {
+			selectPreset(presetId);
+		},
+		[selectPreset]
+	);
 
-						<View
-							style={[
-								styles.infoContainer,
-								{ backgroundColor: colors.surfaceContainerHighest },
-							]}
-						>
-							<Icon as={Info} size={16} color={colors.onSurfaceVariant} />
-							<Text
-								variant="bodySmall"
-								style={{ color: colors.onSurfaceVariant, flex: 1 }}
-							>
-								Visual preview only. Audio processing requires native modules not
-								available in expo-av.
+	if (!isOpen) {
+		return null;
+	}
+
+	return (
+		<Portal name="equalizer-sheet">
+			<BottomSheet
+				ref={sheetRef}
+				index={0}
+				snapPoints={snapPoints}
+				enablePanDownToClose
+				backdropComponent={renderBackdrop}
+				onChange={handleSheetChanges}
+				backgroundStyle={[
+					styles.background,
+					{ backgroundColor: colors.surfaceContainerHigh },
+				]}
+				handleIndicatorStyle={[
+					styles.handleIndicator,
+					{ backgroundColor: colors.outlineVariant },
+				]}
+			>
+				<BottomSheetScrollView style={styles.contentContainer}>
+					<View style={styles.header}>
+						<View style={styles.headerLeft}>
+							<Icon as={SlidersHorizontal} size={24} color={colors.primary} />
+							<Text variant="titleLarge" style={{ color: colors.onSurface }}>
+								Equalizer
 							</Text>
 						</View>
+						<Switch
+							value={isEnabled}
+							onValueChange={toggleEnabled}
+							color={colors.primary}
+						/>
+					</View>
 
-						<Divider style={{ backgroundColor: colors.outlineVariant }} />
-
-						<View style={[styles.visualizerContainer, !isEnabled && styles.disabled]}>
-							{bands.map((band, index) => (
-								<EqualizerBand
-									key={band.frequency}
-									label={band.label}
-									gain={currentGains[index]}
-									isEnabled={isEnabled}
-								/>
-							))}
-						</View>
-
+					<View
+						style={[
+							styles.infoContainer,
+							{ backgroundColor: colors.surfaceContainerHighest },
+						]}
+					>
+						<Icon as={Info} size={16} color={colors.onSurfaceVariant} />
 						<Text
-							variant="labelLarge"
-							style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}
+							variant="bodySmall"
+							style={{ color: colors.onSurfaceVariant, flex: 1 }}
 						>
-							Presets
+							Visual preview only. Audio processing requires native modules not
+							available in expo-av.
 						</Text>
+					</View>
 
-						<View style={styles.presetGrid}>
-							{presets.map((preset) => (
-								<Pressable
-									key={preset.id}
-									onPress={() => handlePresetSelect(preset.id)}
-									disabled={!isEnabled}
-									style={({ pressed }) => [
-										styles.presetButton,
-										{
-											backgroundColor:
-												selectedPresetId === preset.id
-													? colors.primaryContainer
-													: pressed
-														? colors.surfaceContainerHighest
-														: colors.surfaceContainer,
-											borderColor:
-												selectedPresetId === preset.id
-													? colors.primary
-													: colors.outline,
-											opacity: isEnabled ? 1 : 0.5,
-										},
-									]}
+					<Divider style={{ backgroundColor: colors.outlineVariant }} />
+
+					<View style={[styles.visualizerContainer, !isEnabled && styles.disabled]}>
+						{bands.map((band, index) => (
+							<EqualizerBand
+								key={band.frequency}
+								label={band.label}
+								gain={currentGains[index]}
+								isEnabled={isEnabled}
+							/>
+						))}
+					</View>
+
+					<Text
+						variant="labelLarge"
+						style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}
+					>
+						Presets
+					</Text>
+
+					<View style={styles.presetGrid}>
+						{presets.map((preset) => (
+							<Pressable
+								key={preset.id}
+								onPress={() => handlePresetSelect(preset.id)}
+								disabled={!isEnabled}
+								style={({ pressed }) => [
+									styles.presetButton,
+									{
+										backgroundColor:
+											selectedPresetId === preset.id
+												? colors.primaryContainer
+												: pressed
+													? colors.surfaceContainerHighest
+													: colors.surfaceContainer,
+										borderColor:
+											selectedPresetId === preset.id
+												? colors.primary
+												: colors.outline,
+										opacity: isEnabled ? 1 : 0.5,
+									},
+								]}
+							>
+								<Text
+									variant="bodyMedium"
+									style={{
+										color:
+											selectedPresetId === preset.id
+												? colors.onPrimaryContainer
+												: colors.onSurface,
+										fontWeight: selectedPresetId === preset.id ? '600' : '400',
+									}}
 								>
-									<Text
-										variant="bodyMedium"
-										style={{
-											color:
-												selectedPresetId === preset.id
-													? colors.onPrimaryContainer
-													: colors.onSurface,
-											fontWeight: selectedPresetId === preset.id ? '600' : '400',
-										}}
-									>
-										{preset.name}
-									</Text>
-									{selectedPresetId === preset.id && (
-										<Icon
-											as={Check}
-											size={16}
-											color={colors.onPrimaryContainer}
-										/>
-									)}
-								</Pressable>
-							))}
-						</View>
+									{preset.name}
+								</Text>
+								{selectedPresetId === preset.id && (
+									<Icon as={Check} size={16} color={colors.onPrimaryContainer} />
+								)}
+							</Pressable>
+						))}
+					</View>
 
-						<View style={styles.bottomPadding} />
-					</BottomSheetScrollView>
-				</BottomSheet>
-			</Portal>
-		);
-	}
-);
+					<View style={styles.bottomPadding} />
+				</BottomSheetScrollView>
+			</BottomSheet>
+		</Portal>
+	);
+}
 
 interface EqualizerBandProps {
 	label: string;
@@ -233,10 +235,7 @@ function EqualizerBand({ label, gain, isEnabled }: EqualizerBandProps) {
 					]}
 				/>
 			</View>
-			<Text
-				variant="labelSmall"
-				style={{ color: colors.onSurfaceVariant, marginTop: 4 }}
-			>
+			<Text variant="labelSmall" style={{ color: colors.onSurfaceVariant, marginTop: 4 }}>
 				{label}
 			</Text>
 			<Text

@@ -4,7 +4,10 @@ import {
 	useDownloadedTracks,
 	useDownloadStore,
 } from '@/src/application/state/download-store';
-import type { DownloadInfo, DownloadedTrackMetadata } from '@/src/domain/value-objects/download-state';
+import type {
+	DownloadInfo,
+	DownloadedTrackMetadata,
+} from '@/src/domain/value-objects/download-state';
 
 interface DownloadStats {
 	activeCount: number;

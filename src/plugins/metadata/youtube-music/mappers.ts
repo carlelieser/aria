@@ -50,7 +50,9 @@ export function mapThumbnailsToArtwork(thumbnails?: YouTubeThumbnail[]): Artwork
 	return result;
 }
 
-export function mapYouTubeDuration(duration?: YouTubeDuration | string | number | unknown): Duration {
+export function mapYouTubeDuration(
+	duration?: YouTubeDuration | string | number | unknown
+): Duration {
 	if (!duration) {
 		return Duration.ZERO;
 	}
@@ -172,14 +174,13 @@ export function mapYouTubeTrack(
 
 	const trackId = TrackId.create('youtube-music', videoId);
 	// Check multiple possible duration field locations
-	const duration = mapYouTubeDuration(
-		item.duration ?? item.length ?? item.length_seconds
-	);
+	const duration = mapYouTubeDuration(item.duration ?? item.length ?? item.length_seconds);
 	// Use track artists if available, otherwise fall back to album/provided artists
 	const trackArtists = item.artists && item.artists.length > 0 ? item.artists : fallbackArtists;
 	const artists = mapYouTubeArtistReferences(trackArtists);
 	// Use track thumbnails if available, otherwise fall back to album thumbnails
-	const trackThumbnails = item.thumbnails && item.thumbnails.length > 0 ? item.thumbnails : fallbackThumbnails;
+	const trackThumbnails =
+		item.thumbnails && item.thumbnails.length > 0 ? item.thumbnails : fallbackThumbnails;
 	const artwork = mapThumbnailsToArtwork(trackThumbnails);
 
 	const params: CreateTrackParams = {

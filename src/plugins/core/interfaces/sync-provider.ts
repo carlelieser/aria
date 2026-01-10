@@ -1,9 +1,5 @@
 import type { BasePlugin } from './base-plugin';
 import type { Result, AsyncResult } from '@shared/types/result';
-import type { Track } from '@domain/entities/track';
-import type { Playlist } from '@domain/entities/playlist';
-import type { Album } from '@domain/entities/album';
-import type { Artist } from '@domain/entities/artist';
 
 export type SyncCapability =
 	| 'sync-library'
@@ -94,7 +90,7 @@ export interface SyncProgress {
 
 	readonly estimatedTimeRemaining?: number;
 
-	readonly errors: Array<{ entityId: string; error: string }>;
+	readonly errors: { entityId: string; error: string }[];
 
 	readonly conflicts: SyncConflict[];
 

@@ -45,10 +45,7 @@ export function createPendingDownload(
 	});
 }
 
-export function createDownloadingInfo(
-	existing: DownloadInfo,
-	progress: number
-): DownloadInfo {
+export function createDownloadingInfo(existing: DownloadInfo, progress: number): DownloadInfo {
 	return Object.freeze({
 		...existing,
 		status: 'downloading',

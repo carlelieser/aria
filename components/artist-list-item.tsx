@@ -43,7 +43,10 @@ export const ArtistListItem = memo(function ArtistListItem({
 	}, [onPress, artist]);
 
 	const artwork = getBestArtwork(artist.artwork, 48);
-	const listeners = useMemo(() => formatListeners(artist.monthlyListeners), [artist.monthlyListeners]);
+	const listeners = useMemo(
+		() => formatListeners(artist.monthlyListeners),
+		[artist.monthlyListeners]
+	);
 	const genres = useMemo(() => artist.genres?.slice(0, 2).join(', '), [artist.genres]);
 
 	const infoText = useMemo(
@@ -83,7 +86,11 @@ export const ArtistListItem = memo(function ArtistListItem({
 					{artist.name}
 				</Text>
 				{infoText && (
-					<Text variant="bodyMedium" numberOfLines={1} style={{ color: colors.onSurfaceVariant }}>
+					<Text
+						variant="bodyMedium"
+						numberOfLines={1}
+						style={{ color: colors.onSurfaceVariant }}
+					>
 						{infoText}
 					</Text>
 				)}

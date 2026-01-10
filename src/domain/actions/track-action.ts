@@ -29,12 +29,16 @@ export interface TrackAction {
 	readonly sourcePlugin?: string;
 }
 
-export type TrackActionSource = 'library' | 'search' | 'player' | 'queue';
+export type TrackActionSource = 'library' | 'search' | 'player' | 'queue' | 'playlist';
 
 export interface TrackActionContext {
 	readonly track: Track;
 
 	readonly source: TrackActionSource;
+
+	readonly playlistId?: string;
+
+	readonly trackPosition?: number;
 }
 
 export const CORE_ACTION_IDS = {
@@ -42,11 +46,14 @@ export const CORE_ACTION_IDS = {
 	REMOVE_FROM_LIBRARY: 'remove-from-library',
 	ADD_TO_QUEUE: 'add-to-queue',
 	ADD_TO_PLAYLIST: 'add-to-playlist',
+	REMOVE_FROM_PLAYLIST: 'remove-from-playlist',
 	TOGGLE_FAVORITE: 'toggle-favorite',
 	VIEW_ARTIST: 'view-artist',
 	VIEW_ALBUM: 'view-album',
 	DOWNLOAD: 'download',
 	REMOVE_DOWNLOAD: 'remove-download',
+	SLEEP_TIMER: 'sleep-timer',
+	TOGGLE_LYRICS: 'toggle-lyrics',
 } as const;
 
 export type CoreActionId = (typeof CORE_ACTION_IDS)[keyof typeof CORE_ACTION_IDS];

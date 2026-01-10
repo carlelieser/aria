@@ -4,6 +4,8 @@ export {
 	type SpotifyLibraryProvider,
 } from './spotify-provider';
 
+export { SpotifyPluginModule } from './plugin-module';
+
 export {
 	type SpotifyConfig,
 	DEFAULT_CONFIG,

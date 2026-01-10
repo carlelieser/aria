@@ -55,6 +55,26 @@ export class LibraryService {
 	updatePlaylist(playlistId: string, updates: Partial<Playlist>): void {
 		useLibraryStore.getState().updatePlaylist(playlistId, updates);
 	}
+
+	addTrackToPlaylist(playlistId: string, track: Track): void {
+		useLibraryStore.getState().addTrackToPlaylist(playlistId, track);
+	}
+
+	removeTrackFromPlaylist(playlistId: string, position: number): void {
+		useLibraryStore.getState().removeTrackFromPlaylist(playlistId, position);
+	}
+
+	renamePlaylist(playlistId: string, name: string): void {
+		useLibraryStore.getState().renamePlaylist(playlistId, name);
+	}
+
+	reorderPlaylistTracks(playlistId: string, fromIndex: number, toIndex: number): void {
+		useLibraryStore.getState().reorderPlaylistTracks(playlistId, fromIndex, toIndex);
+	}
+
+	getPlaylistById(playlistId: string): Playlist | undefined {
+		return useLibraryStore.getState().getPlaylistById(playlistId);
+	}
 }
 
 export const libraryService = new LibraryService();

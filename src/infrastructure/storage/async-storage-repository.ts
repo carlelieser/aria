@@ -93,7 +93,7 @@ class AsyncStorageRepository implements StorageRepository {
 			const errors: string[] = [];
 
 			for (let i = 0; i < pairs.length; i++) {
-				const [prefixedKey, value] = pairs[i];
+				const [, value] = pairs[i];
 				const originalKey = keys[i];
 
 				if (value !== null) {

@@ -23,10 +23,7 @@ interface AlbumListItemProps {
 	onPress?: (album: Album) => void;
 }
 
-export const AlbumListItem = memo(function AlbumListItem({
-	album,
-	onPress,
-}: AlbumListItemProps) {
+export const AlbumListItem = memo(function AlbumListItem({ album, onPress }: AlbumListItemProps) {
 	const { colors } = useAppTheme();
 
 	const handlePress = useCallback(() => {
@@ -41,7 +38,9 @@ export const AlbumListItem = memo(function AlbumListItem({
 	const artistNames = useMemo(() => formatArtistNames(album.artists), [album.artists]);
 	const albumInfo = useMemo(() => {
 		return [
-			album.albumType ? album.albumType.charAt(0).toUpperCase() + album.albumType.slice(1) : null,
+			album.albumType
+				? album.albumType.charAt(0).toUpperCase() + album.albumType.slice(1)
+				: null,
 			album.trackCount ? `${album.trackCount} tracks` : null,
 		]
 			.filter(Boolean)
@@ -49,11 +48,7 @@ export const AlbumListItem = memo(function AlbumListItem({
 	}, [album.albumType, album.trackCount]);
 
 	return (
-		<TouchableOpacity
-			style={styles.container}
-			onPress={handlePress}
-			activeOpacity={0.7}
-		>
+		<TouchableOpacity style={styles.container} onPress={handlePress} activeOpacity={0.7}>
 			<View
 				style={[
 					styles.artworkContainer,
@@ -78,11 +73,19 @@ export const AlbumListItem = memo(function AlbumListItem({
 				<Text variant="bodyLarge" numberOfLines={1} style={{ color: colors.onSurface }}>
 					{album.name}
 				</Text>
-				<Text variant="bodyMedium" numberOfLines={1} style={{ color: colors.onSurfaceVariant }}>
+				<Text
+					variant="bodyMedium"
+					numberOfLines={1}
+					style={{ color: colors.onSurfaceVariant }}
+				>
 					{artistNames}
 				</Text>
 				{albumInfo && (
-					<Text variant="bodySmall" numberOfLines={1} style={{ color: colors.onSurfaceVariant }}>
+					<Text
+						variant="bodySmall"
+						numberOfLines={1}
+						style={{ color: colors.onSurfaceVariant }}
+					>
 						{albumInfo}
 					</Text>
 				)}

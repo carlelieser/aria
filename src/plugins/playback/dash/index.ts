@@ -16,6 +16,7 @@ import type {
 } from '@plugins/core/interfaces/base-plugin';
 import { ok, err, type Result, type AsyncResult } from '@shared/types/result';
 import { getLogger } from '@shared/services/logger';
+import { PLUGIN_MANIFEST, PLAYBACK_CAPABILITIES } from './config';
 
 const logger = getLogger('DashPlayback');
 
@@ -24,31 +25,9 @@ function isDashUrl(url: string): boolean {
 }
 
 export class DashPlaybackProvider implements PlaybackProvider {
-	readonly manifest: PluginManifest = {
-		id: 'dash-playback',
-		name: 'DASH Playback',
-		version: '1.0.0',
-		description: 'DASH audio playback using expo-video',
-		author: 'Aria',
-		category: 'playback-provider',
-		capabilities: [
-			'play',
-			'pause',
-			'seek',
-			'volume-control',
-			'queue-management',
-			'background-play',
-		],
-	};
+	readonly manifest: PluginManifest = PLUGIN_MANIFEST;
 
-	readonly capabilities: Set<PlaybackCapability> = new Set([
-		'play',
-		'pause',
-		'seek',
-		'volume-control',
-		'queue-management',
-		'background-play',
-	]);
+	readonly capabilities: Set<PlaybackCapability> = new Set(PLAYBACK_CAPABILITIES);
 
 	readonly configSchema = [];
 	status: PluginStatus = 'uninitialized';
@@ -222,7 +201,7 @@ export class DashPlaybackProvider implements PlaybackProvider {
 				this.player.pause();
 				this.statusSubscription?.remove();
 				this.player.release();
-			} catch (e) {}
+			} catch {}
 			this.player = null;
 			this.statusSubscription = null;
 		}
@@ -405,7 +384,7 @@ export class DashPlaybackProvider implements PlaybackProvider {
 		this.listeners.forEach((listener) => {
 			try {
 				listener(event);
-			} catch (e) {}
+			} catch {}
 		});
 	}
 
@@ -435,3 +414,6 @@ export class DashPlaybackProvider implements PlaybackProvider {
 }
 
 export const dashPlaybackProvider = new DashPlaybackProvider();
+
+export { DashPlaybackPluginModule } from './plugin-module';
+export { PLUGIN_MANIFEST as DASH_MANIFEST } from './config';

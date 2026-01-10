@@ -1,4 +1,3 @@
-import type Innertube from 'youtubei.js/react-native';
 import type { SearchOptions, SearchResults } from '@plugins/core/interfaces/metadata-provider';
 import { createSearchResults } from '@plugins/core/interfaces/metadata-provider';
 import type { Track } from '@domain/entities/track';

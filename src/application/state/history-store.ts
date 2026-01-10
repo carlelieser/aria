@@ -24,7 +24,9 @@ function rehydrateTrack(serialized: unknown): Track {
 			? Duration.fromMilliseconds(raw.duration)
 			: raw.duration instanceof Duration
 				? raw.duration
-				: Duration.fromMilliseconds((raw.duration as { totalMilliseconds: number }).totalMilliseconds);
+				: Duration.fromMilliseconds(
+						(raw.duration as { totalMilliseconds: number }).totalMilliseconds
+					);
 
 	return {
 		...raw,
@@ -105,8 +107,21 @@ export const useHistoryStore = create<HistoryState>()(
 	)
 );
 
+/**
+ * Memoized selector cache for useRecentlyPlayed.
+ * Prevents creating new arrays on every render when underlying data hasn't changed.
+ */
+const recentlyPlayedCache = new Map<number, { entriesLength: number; tracks: Track[] }>();
+
 export const useRecentlyPlayed = (limit = 10) =>
 	useHistoryStore((state) => {
+		const cached = recentlyPlayedCache.get(limit);
+
+		// Return cached value if entries haven't changed
+		if (cached && cached.entriesLength === state.recentlyPlayed.length) {
+			return cached.tracks;
+		}
+
 		const seen = new Set<string>();
 		const uniqueTracks: Track[] = [];
 
@@ -119,11 +134,32 @@ export const useRecentlyPlayed = (limit = 10) =>
 			}
 		}
 
+		// Cache the result
+		recentlyPlayedCache.set(limit, {
+			entriesLength: state.recentlyPlayed.length,
+			tracks: uniqueTracks,
+		});
+
 		return uniqueTracks;
 	});
 
+/**
+ * Memoized selector cache for useRecentlyPlayedEntries.
+ */
+const recentlyPlayedEntriesCache = new Map<
+	number,
+	{ entriesLength: number; entries: HistoryEntry[] }
+>();
+
 export const useRecentlyPlayedEntries = (limit = 10) =>
 	useHistoryStore((state) => {
+		const cached = recentlyPlayedEntriesCache.get(limit);
+
+		// Return cached value if entries haven't changed
+		if (cached && cached.entriesLength === state.recentlyPlayed.length) {
+			return cached.entries;
+		}
+
 		const seen = new Set<string>();
 		const uniqueEntries: HistoryEntry[] = [];
 
@@ -135,6 +171,12 @@ export const useRecentlyPlayedEntries = (limit = 10) =>
 				if (uniqueEntries.length >= limit) break;
 			}
 		}
+
+		// Cache the result
+		recentlyPlayedEntriesCache.set(limit, {
+			entriesLength: state.recentlyPlayed.length,
+			entries: uniqueEntries,
+		});
 
 		return uniqueEntries;
 	});

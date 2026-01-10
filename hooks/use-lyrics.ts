@@ -17,8 +17,7 @@ export function useLyrics() {
 
 	// Fetch lyrics when track changes
 	useEffect(() => {
-		const { clear, setLoading, setLyrics, setError } =
-			useLyricsStore.getState();
+		const { clear, setLoading, setLyrics, setError } = useLyricsStore.getState();
 
 		if (!currentTrack) {
 			clear();

@@ -97,11 +97,19 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 					// Header structure for album details
 					header?: {
 						title?: { text?: string };
-						subtitle?: { runs?: Array<{ text?: string; endpoint?: { browseId?: string } }> };
-						strapline_text_one?: { runs?: Array<{ text?: string; endpoint?: { browseId?: string } }> };
-						thumbnail?: { contents?: Array<{ url?: string; width?: number; height?: number }> };
+						subtitle?: {
+							runs?: { text?: string; endpoint?: { browseId?: string } }[];
+						};
+						strapline_text_one?: {
+							runs?: { text?: string; endpoint?: { browseId?: string } }[];
+						};
+						thumbnail?: {
+							contents?: { url?: string; width?: number; height?: number }[];
+						};
 					};
-					background?: { contents?: Array<{ url?: string; width?: number; height?: number }> };
+					background?: {
+						contents?: { url?: string; width?: number; height?: number }[];
+					};
 				};
 
 				// Extract artists from various possible locations
@@ -117,7 +125,13 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 							id: run.endpoint?.browseId,
 							name: run.text || '',
 						}))
-						.filter((a) => a.name && !a.name.match(/^\d{4}$/) && a.name !== '•' && a.name !== ' • ');
+						.filter(
+							(a) =>
+								a.name &&
+								!a.name.match(/^\d{4}$/) &&
+								a.name !== '•' &&
+								a.name !== ' • '
+						);
 				}
 
 				// Try header.strapline_text_one.runs
@@ -128,16 +142,25 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 							id: run.endpoint?.browseId,
 							name: run.text || '',
 						}))
-						.filter((a) => a.name && !a.name.match(/^\d{4}$/) && a.name !== '•' && a.name !== ' • ');
+						.filter(
+							(a) =>
+								a.name &&
+								!a.name.match(/^\d{4}$/) &&
+								a.name !== '•' &&
+								a.name !== ' • '
+						);
 				}
 
 				// Extract title from header if not available at top level
 				const title = info.title?.text || info.name || info.header?.title?.text;
 
 				// Extract thumbnails from various locations
-				let thumbnails = info.thumbnails as import('./types').YouTubeThumbnail[] | undefined;
+				let thumbnails = info.thumbnails as
+					| import('./types').YouTubeThumbnail[]
+					| undefined;
 				if ((!thumbnails || thumbnails.length === 0) && info.header?.thumbnail?.contents) {
-					thumbnails = info.header.thumbnail.contents as import('./types').YouTubeThumbnail[];
+					thumbnails = info.header.thumbnail
+						.contents as import('./types').YouTubeThumbnail[];
 				}
 				if ((!thumbnails || thumbnails.length === 0) && info.background?.contents) {
 					thumbnails = info.background.contents as import('./types').YouTubeThumbnail[];
@@ -212,8 +235,12 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 					artists?: import('./types').YouTubeArtist[];
 					thumbnails?: import('./types').YouTubeThumbnail[];
 					header?: {
-						subtitle?: { runs?: Array<{ text?: string; endpoint?: { browseId?: string } }> };
-						strapline_text_one?: { runs?: Array<{ text?: string; endpoint?: { browseId?: string } }> };
+						subtitle?: {
+							runs?: { text?: string; endpoint?: { browseId?: string } }[];
+						};
+						strapline_text_one?: {
+							runs?: { text?: string; endpoint?: { browseId?: string } }[];
+						};
 						thumbnails?: import('./types').YouTubeThumbnail[];
 					};
 				};
@@ -233,18 +260,33 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 							id: run.endpoint?.browseId,
 							name: run.text || '',
 						}))
-						.filter((a) => a.name && !a.name.match(/^\d{4}$/) && a.name !== '•' && a.name !== ' • ');
+						.filter(
+							(a) =>
+								a.name &&
+								!a.name.match(/^\d{4}$/) &&
+								a.name !== '•' &&
+								a.name !== ' • '
+						);
 				}
 
 				// Try header.strapline_text_one.runs
-				if ((!albumArtists || albumArtists.length === 0) && info.header?.strapline_text_one?.runs) {
+				if (
+					(!albumArtists || albumArtists.length === 0) &&
+					info.header?.strapline_text_one?.runs
+				) {
 					albumArtists = info.header.strapline_text_one.runs
 						.filter((run) => run.endpoint?.browseId || run.text)
 						.map((run) => ({
 							id: run.endpoint?.browseId,
 							name: run.text || '',
 						}))
-						.filter((a) => a.name && !a.name.match(/^\d{4}$/) && a.name !== '•' && a.name !== ' • ');
+						.filter(
+							(a) =>
+								a.name &&
+								!a.name.match(/^\d{4}$/) &&
+								a.name !== '•' &&
+								a.name !== ' • '
+						);
 				}
 
 				// Extract album-level thumbnails to use as fallback for tracks
@@ -274,7 +316,7 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 			try {
 				const client = await clientManager.getClient();
 				const artistInfo = await client.music.getArtist(artistId);
-				const info = artistInfo as { sections?: Array<{ contents?: unknown[] }> };
+				const info = artistInfo as { sections?: { contents?: unknown[] }[] };
 
 				if (!artistInfo || !info.sections) {
 					return ok(emptySearchResults());

@@ -12,10 +12,7 @@ import { FilterChip } from '@/components/library/filter-chip';
 import { useAppTheme } from '@/lib/theme';
 import type { ArtistReference } from '@/src/domain/entities/artist';
 import type { AlbumReference } from '@/src/domain/entities/album';
-import type {
-	SearchFilters,
-	SearchContentType,
-} from '@/src/domain/utils/search-filtering';
+import type { SearchFilters, SearchContentType } from '@/src/domain/utils/search-filtering';
 
 interface ExploreFilterSectionProps {
 	artists: ArtistReference[];
@@ -57,10 +54,7 @@ export function ExploreFilterSection({
 				<Text variant="bodyMedium" style={{ color: colors.onSurface }}>
 					Favorites only
 				</Text>
-				<Switch
-					value={activeFilters.favoritesOnly}
-					onValueChange={onToggleFavorites}
-				/>
+				<Switch value={activeFilters.favoritesOnly} onValueChange={onToggleFavorites} />
 			</View>
 
 			{artists.length > 0 && (

@@ -5,10 +5,7 @@ import type { Album } from '@domain/entities/album';
 import type { Artist } from '@domain/entities/artist';
 import type { Playlist } from '@domain/entities/playlist';
 import type { SearchResults } from '@plugins/core/interfaces/metadata-provider';
-import {
-	createSearchResults,
-	emptySearchResults,
-} from '@plugins/core/interfaces/metadata-provider';
+import { createSearchResults } from '@plugins/core/interfaces/metadata-provider';
 import type { SpotifyClient } from './client';
 import {
 	mapSpotifySavedTracks,

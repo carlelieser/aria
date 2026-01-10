@@ -17,7 +17,7 @@ import type {
 	AudioSourceCapability,
 } from '@plugins/core/interfaces/audio-source-provider';
 import type { PluginManifest, PluginInitContext } from '@plugins/core/interfaces/base-plugin';
-import { ok, err, type Result, type AsyncResult } from '@shared/types/result';
+import { ok, err, type AsyncResult } from '@shared/types/result';
 
 interface LocalFile {
 	id: string;

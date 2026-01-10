@@ -13,18 +13,12 @@ export function useLibraryFilter() {
 	const allTracks = useTracks();
 	const favorites = useFavorites();
 
-	const { searchQuery, sortField, sortDirection, activeFilters, isFilterSheetOpen } =
-		useLibraryFilterStore(
-			useShallow((s) => ({
-				searchQuery: s.searchQuery,
-				sortField: s.sortField,
-				sortDirection: s.sortDirection,
-				activeFilters: s.activeFilters,
-				isFilterSheetOpen: s.isFilterSheetOpen,
-			}))
-		);
-
 	const {
+		searchQuery,
+		sortField,
+		sortDirection,
+		activeFilters,
+		isFilterSheetOpen,
 		setSearchQuery,
 		setSortField,
 		setSortDirection,
@@ -37,6 +31,11 @@ export function useLibraryFilter() {
 		setFilterSheetOpen,
 	} = useLibraryFilterStore(
 		useShallow((s) => ({
+			searchQuery: s.searchQuery,
+			sortField: s.sortField,
+			sortDirection: s.sortDirection,
+			activeFilters: s.activeFilters,
+			isFilterSheetOpen: s.isFilterSheetOpen,
 			setSearchQuery: s.setSearchQuery,
 			setSortField: s.setSortField,
 			setSortDirection: s.setSortDirection,

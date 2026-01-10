@@ -111,7 +111,10 @@ export class ArtistService {
 
 				const albumsResult = provider.hasCapability('get-artist-albums')
 					? await provider.getArtistAlbums(idToUse, { limit: 20 })
-					: { success: true as const, data: { items: [], offset: 0, limit: 0, hasMore: false } };
+					: {
+							success: true as const,
+							data: { items: [], offset: 0, limit: 0, hasMore: false },
+						};
 
 				if (!artistInfoResult.success && !albumsResult.success) {
 					logger.warn(`Failed to fetch artist data from ${provider.manifest.id}`);

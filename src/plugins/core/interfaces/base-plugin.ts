@@ -16,7 +16,8 @@ export type PluginCategory =
 	| 'sync-provider'
 	| 'lyrics-provider'
 	| 'recommendation'
-	| 'visualizer';
+	| 'visualizer'
+	| 'actions-provider';
 
 export interface PluginCapabilities {
 	readonly canSearch?: boolean;
@@ -59,7 +60,7 @@ export interface PluginConfigSchema {
 
 	readonly required?: boolean;
 
-	readonly options?: Array<{ label: string; value: unknown }>;
+	readonly options?: { label: string; value: unknown }[];
 
 	readonly pattern?: string;
 

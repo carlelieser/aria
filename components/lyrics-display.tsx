@@ -6,14 +6,7 @@
  */
 
 import { useRef, useEffect, useCallback } from 'react';
-import {
-	View,
-	StyleSheet,
-	ScrollView,
-	Pressable,
-	type NativeSyntheticEvent,
-	type NativeScrollEvent,
-} from 'react-native';
+import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { Text } from 'react-native-paper';
 import Animated, {
 	useSharedValue,
@@ -39,8 +32,7 @@ const VISIBLE_LINES = 5;
 
 export function LyricsDisplay({ maxHeight, onLineTap }: LyricsDisplayProps) {
 	const { colors } = useAppTheme();
-	const { lyrics, currentLineIndex, isLoading, hasAnyLyrics, hasSyncedLyrics } =
-		useLyrics();
+	const { lyrics, currentLineIndex, isLoading, hasAnyLyrics, hasSyncedLyrics } = useLyrics();
 	const { seekTo } = usePlayer();
 	const scrollViewRef = useRef<ScrollView>(null);
 	const isUserScrolling = useRef(false);
@@ -171,10 +163,7 @@ export function LyricsDisplay({ maxHeight, onLineTap }: LyricsDisplayProps) {
 				contentContainerStyle={styles.plainLyricsContent}
 				showsVerticalScrollIndicator={false}
 			>
-				<Text
-					variant="bodyMedium"
-					style={{ color: colors.onSurface, lineHeight: 24 }}
-				>
+				<Text variant="bodyMedium" style={{ color: colors.onSurface, lineHeight: 24 }}>
 					{lyrics?.plainLyrics}
 				</Text>
 			</ScrollView>

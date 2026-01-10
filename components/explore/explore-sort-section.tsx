@@ -10,10 +10,7 @@ import { Text } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
 import { Check, ArrowUp, ArrowDown } from 'lucide-react-native';
 import { useAppTheme } from '@/lib/theme';
-import type {
-	SearchSortField,
-	SearchSortDirection,
-} from '@/src/domain/utils/search-filtering';
+import type { SearchSortField, SearchSortDirection } from '@/src/domain/utils/search-filtering';
 
 interface ExploreSortSectionProps {
 	sortField: SearchSortField;

@@ -98,16 +98,8 @@ export const BatchActionBar = memo(function BatchActionBar({
 					onPress={onDownload}
 					disabled={isDownloading}
 				/>
-				<ActionButton
-					icon={Library}
-					label="Library"
-					onPress={onAddToLibrary}
-				/>
-				<ActionButton
-					icon={ListPlus}
-					label="Queue"
-					onPress={onAddToQueue}
-				/>
+				<ActionButton icon={Library} label="Library" onPress={onAddToLibrary} />
+				<ActionButton icon={ListPlus} label="Queue" onPress={onAddToQueue} />
 			</View>
 		</Animated.View>
 	);

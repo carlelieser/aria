@@ -107,7 +107,9 @@ export class DownloadService {
 					return err(new Error('Cached file not found'));
 				}
 
-				logger.debug(`Source file size: ${('size' in sourceInfo) ? sourceInfo.size : 'unknown'}`);
+				logger.debug(
+					`Source file size: ${'size' in sourceInfo ? sourceInfo.size : 'unknown'}`
+				);
 
 				await FileSystem.copyAsync({
 					from: sourcePath,

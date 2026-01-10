@@ -1,0 +1,442 @@
+/**
+ * PlaylistScreen
+ *
+ * Display playlist details and tracks with CRUD operations.
+ * Uses M3 theming.
+ */
+
+import { useCallback, useMemo, useState } from 'react';
+import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { useLocalSearchParams, router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
+import DraggableFlatList, {
+	ScaleDecorator,
+	type RenderItemParams,
+} from 'react-native-draggable-flatlist';
+import {
+	ChevronLeftIcon,
+	ListMusicIcon,
+	PlayIcon,
+	Trash2Icon,
+	PencilIcon,
+	GripVerticalIcon,
+	MoreVerticalIcon,
+	CheckIcon,
+} from 'lucide-react-native';
+import { Text, IconButton, Button, Menu } from 'react-native-paper';
+import { Icon } from '@/components/ui/icon';
+import { TrackListItem } from '@/components/track-list-item';
+import { EmptyState } from '@/components/empty-state';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { InputDialog } from '@/components/ui/input-dialog';
+import { usePlaylist, useLibraryStore } from '@/src/application/state/library-store';
+import { usePlayer } from '@/hooks/use-player';
+import { useToast } from '@/hooks/use-toast';
+import { useAppTheme, M3Shapes } from '@/lib/theme';
+import { getPlaylistDuration, type PlaylistTrack } from '@/src/domain/entities/playlist';
+import { getBestArtwork } from '@/src/domain/value-objects/artwork';
+import { getArtistNames } from '@/src/domain/entities/track';
+
+function formatDuration(ms: number): string {
+	const totalMinutes = Math.floor(ms / 60000);
+	const hours = Math.floor(totalMinutes / 60);
+	const minutes = totalMinutes % 60;
+
+	if (hours > 0) {
+		return `${hours} hr ${minutes} min`;
+	}
+	return `${minutes} min`;
+}
+
+export default function PlaylistScreen() {
+	const insets = useSafeAreaInsets();
+	const { id } = useLocalSearchParams<{ id: string }>();
+	const { colors } = useAppTheme();
+	const { playQueue } = usePlayer();
+	const { success } = useToast();
+
+	const [menuVisible, setMenuVisible] = useState(false);
+	const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+	const [renameDialogVisible, setRenameDialogVisible] = useState(false);
+	const [isEditMode, setIsEditMode] = useState(false);
+
+	const playlist = usePlaylist(id);
+	const removePlaylist = useLibraryStore((state) => state.removePlaylist);
+	const renamePlaylist = useLibraryStore((state) => state.renamePlaylist);
+	const reorderPlaylistTracks = useLibraryStore((state) => state.reorderPlaylistTracks);
+
+	const tracks = useMemo(() => playlist?.tracks.map((pt) => pt.track) ?? [], [playlist?.tracks]);
+	const totalDuration = playlist ? getPlaylistDuration(playlist) : 0;
+	const artworkUrl = playlist?.artwork?.[0]?.url ?? tracks[0]?.artwork?.[0]?.url;
+
+	const handlePlayAll = useCallback(() => {
+		if (tracks.length > 0) {
+			playQueue(tracks, 0);
+			router.push('/player');
+		}
+	}, [tracks, playQueue]);
+
+	const handleDeletePlaylist = useCallback(() => {
+		if (playlist) {
+			removePlaylist(playlist.id);
+			success('Playlist deleted', playlist.name);
+			router.back();
+		}
+	}, [playlist, removePlaylist, success]);
+
+	const handleRenamePlaylist = useCallback(
+		(newName: string) => {
+			if (playlist) {
+				renamePlaylist(playlist.id, newName);
+				success('Playlist renamed', newName);
+				setRenameDialogVisible(false);
+			}
+		},
+		[playlist, renamePlaylist, success]
+	);
+
+	const handleDragEnd = useCallback(
+		({ from, to }: { from: number; to: number }) => {
+			if (playlist && from !== to) {
+				reorderPlaylistTracks(playlist.id, from, to);
+			}
+		},
+		[playlist, reorderPlaylistTracks]
+	);
+
+	const toggleEditMode = useCallback(() => {
+		setIsEditMode((prev) => !prev);
+		setMenuVisible(false);
+	}, []);
+
+	const renderDraggableItem = useCallback(
+		({ item, drag, isActive }: RenderItemParams<PlaylistTrack>) => {
+			const artwork = getBestArtwork(item.track.artwork, 48);
+			const artistNames = getArtistNames(item.track);
+
+			return (
+				<ScaleDecorator>
+					<TouchableOpacity
+						onLongPress={drag}
+						disabled={isActive}
+						style={[
+							styles.draggableItem,
+							{
+								backgroundColor: isActive
+									? colors.surfaceContainerHighest
+									: colors.background,
+							},
+						]}
+						activeOpacity={0.7}
+					>
+						<IconButton
+							icon={() => (
+								<Icon as={GripVerticalIcon} size={20} color={colors.onSurfaceVariant} />
+							)}
+							onPress={drag}
+							size={20}
+						/>
+						<Image
+							source={{ uri: artwork?.url }}
+							style={styles.draggableArtwork}
+							contentFit="cover"
+						/>
+						<View style={styles.draggableInfo}>
+							<Text
+								variant="bodyLarge"
+								numberOfLines={1}
+								style={{ color: colors.onSurface }}
+							>
+								{item.track.title}
+							</Text>
+							<Text
+								variant="bodyMedium"
+								numberOfLines={1}
+								style={{ color: colors.onSurfaceVariant }}
+							>
+								{artistNames}
+							</Text>
+						</View>
+					</TouchableOpacity>
+				</ScaleDecorator>
+			);
+		},
+		[colors]
+	);
+
+	if (!playlist) {
+		return (
+			<View style={[styles.container, { backgroundColor: colors.background }]}>
+				<View
+					style={[
+						styles.header,
+						{ backgroundColor: colors.surfaceContainerHigh, paddingTop: insets.top + 16 },
+					]}
+				>
+					<View style={styles.headerRow}>
+						<IconButton
+							icon={() => <Icon as={ChevronLeftIcon} size={22} color={colors.onSurface} />}
+							onPress={() => router.back()}
+							style={styles.backButton}
+						/>
+						<Text variant="titleMedium" style={{ color: colors.onSurfaceVariant }}>
+							Playlist
+						</Text>
+					</View>
+				</View>
+				<EmptyState
+					icon={ListMusicIcon}
+					title="Playlist not found"
+					description="This playlist may have been deleted"
+				/>
+			</View>
+		);
+	}
+
+	return (
+		<View style={[styles.container, { backgroundColor: colors.background }]}>
+			<View
+				style={[
+					styles.header,
+					{ backgroundColor: colors.surfaceContainerHigh, paddingTop: insets.top + 16 },
+				]}
+			>
+				<View style={styles.headerRow}>
+					<IconButton
+						icon={() => <Icon as={ChevronLeftIcon} size={22} color={colors.onSurface} />}
+						onPress={() => router.back()}
+						style={styles.backButton}
+					/>
+					<Text variant="titleMedium" style={{ color: colors.onSurfaceVariant }}>
+						Playlist
+					</Text>
+					<View style={styles.headerSpacer} />
+					{isEditMode ? (
+						<IconButton
+							icon={() => <Icon as={CheckIcon} size={22} color={colors.primary} />}
+							onPress={toggleEditMode}
+						/>
+					) : (
+						<Menu
+							visible={menuVisible}
+							onDismiss={() => setMenuVisible(false)}
+							anchor={
+								<IconButton
+									icon={() => (
+										<Icon as={MoreVerticalIcon} size={22} color={colors.onSurface} />
+									)}
+									onPress={() => setMenuVisible(true)}
+								/>
+							}
+							contentStyle={{ backgroundColor: colors.surfaceContainerHigh }}
+						>
+							<Menu.Item
+								leadingIcon={() => (
+									<Icon as={GripVerticalIcon} size={20} color={colors.onSurface} />
+								)}
+								onPress={toggleEditMode}
+								title="Reorder Tracks"
+								titleStyle={{ color: colors.onSurface }}
+								disabled={tracks.length < 2}
+							/>
+							<Menu.Item
+								leadingIcon={() => (
+									<Icon as={PencilIcon} size={20} color={colors.onSurface} />
+								)}
+								onPress={() => {
+									setMenuVisible(false);
+									setRenameDialogVisible(true);
+								}}
+								title="Rename Playlist"
+								titleStyle={{ color: colors.onSurface }}
+							/>
+							<Menu.Item
+								leadingIcon={() => <Icon as={Trash2Icon} size={20} color={colors.error} />}
+								onPress={() => {
+									setMenuVisible(false);
+									setDeleteDialogVisible(true);
+								}}
+								title="Delete Playlist"
+								titleStyle={{ color: colors.error }}
+							/>
+						</Menu>
+					)}
+				</View>
+
+				<View style={styles.playlistInfo}>
+					{artworkUrl ? (
+						<Image source={{ uri: artworkUrl }} style={styles.playlistArtwork} contentFit="cover" />
+					) : (
+						<View
+							style={[styles.playlistArtwork, { backgroundColor: colors.surfaceContainerHighest }]}
+						>
+							<Icon as={ListMusicIcon} size={64} color={colors.onSurfaceVariant} />
+						</View>
+					)}
+					<View style={styles.playlistText}>
+						<Text
+							variant="headlineSmall"
+							style={{
+								color: colors.onSurface,
+								fontWeight: '700',
+								textAlign: 'center',
+							}}
+						>
+							{playlist.name}
+						</Text>
+						{playlist.description && (
+							<Text
+								variant="bodyMedium"
+								style={{ color: colors.onSurfaceVariant, textAlign: 'center' }}
+							>
+								{playlist.description}
+							</Text>
+						)}
+						<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
+							{tracks.length} {tracks.length === 1 ? 'track' : 'tracks'}
+							{totalDuration > 0 && ` · ${formatDuration(totalDuration)}`}
+						</Text>
+					</View>
+					{tracks.length > 0 && (
+						<Button
+							mode="contained"
+							icon={() => <Icon as={PlayIcon} size={18} color={colors.onPrimary} />}
+							onPress={handlePlayAll}
+						>
+							Play All
+						</Button>
+					)}
+				</View>
+			</View>
+
+			{isEditMode ? (
+				<View style={styles.editModeContainer}>
+					<View style={[styles.editModeHeader, { backgroundColor: colors.primaryContainer }]}>
+						<Text variant="bodyMedium" style={{ color: colors.onPrimaryContainer }}>
+							Drag tracks to reorder
+						</Text>
+					</View>
+					<DraggableFlatList
+						data={playlist.tracks}
+						keyExtractor={(item) => `${item.track.id.value}-${item.position}`}
+						renderItem={renderDraggableItem}
+						onDragEnd={handleDragEnd}
+						contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
+					/>
+				</View>
+			) : (
+				<ScrollView
+					contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 80 }]}
+				>
+					{tracks.length === 0 ? (
+						<EmptyState
+							icon={ListMusicIcon}
+							title="No tracks yet"
+							description="Add tracks to this playlist from the track options menu"
+						/>
+					) : (
+						playlist.tracks.map((playlistTrack, index) => (
+							<TrackListItem
+								key={`${playlist.id}-${index}-${playlistTrack.track.id.value}`}
+								track={playlistTrack.track}
+								source="playlist"
+								queue={tracks}
+								queueIndex={index}
+								playlistId={playlist.id}
+								trackPosition={playlistTrack.position}
+							/>
+						))
+					)}
+				</ScrollView>
+			)}
+
+			<ConfirmationDialog
+				visible={deleteDialogVisible}
+				title="Delete Playlist"
+				message={`Are you sure you want to delete "${playlist.name}"? This action cannot be undone.`}
+				confirmLabel="Delete"
+				destructive
+				onConfirm={handleDeletePlaylist}
+				onCancel={() => setDeleteDialogVisible(false)}
+			/>
+
+			<InputDialog
+				visible={renameDialogVisible}
+				title="Rename Playlist"
+				placeholder="Playlist name"
+				initialValue={playlist.name}
+				confirmLabel="Rename"
+				onConfirm={handleRenamePlaylist}
+				onCancel={() => setRenameDialogVisible(false)}
+			/>
+		</View>
+	);
+}
+
+const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+	},
+	header: {
+		paddingHorizontal: 16,
+		paddingBottom: 24,
+		borderBottomLeftRadius: 24,
+		borderBottomRightRadius: 24,
+	},
+	headerRow: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: 12,
+		marginBottom: 24,
+	},
+	headerSpacer: {
+		flex: 1,
+	},
+	backButton: {
+		opacity: 0.7,
+	},
+	playlistInfo: {
+		alignItems: 'center',
+		gap: 16,
+	},
+	playlistArtwork: {
+		width: 160,
+		height: 160,
+		borderRadius: 12,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	playlistText: {
+		alignItems: 'center',
+		gap: 4,
+	},
+	scrollContent: {
+		paddingHorizontal: 16,
+		paddingVertical: 16,
+		gap: 8,
+	},
+	editModeContainer: {
+		flex: 1,
+	},
+	editModeHeader: {
+		paddingHorizontal: 16,
+		paddingVertical: 12,
+		alignItems: 'center',
+	},
+	draggableItem: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		paddingRight: 16,
+		paddingVertical: 8,
+	},
+	draggableArtwork: {
+		width: 48,
+		height: 48,
+		borderRadius: M3Shapes.small,
+	},
+	draggableInfo: {
+		flex: 1,
+		marginLeft: 12,
+	},
+});

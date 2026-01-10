@@ -16,21 +16,16 @@ export function useSelection() {
 		}))
 	);
 
-	const {
-		enterSelectionMode,
-		exitSelectionMode,
-		toggleTrackSelection,
-		selectAll,
-		deselectAll,
-	} = useSelectionStore(
-		useShallow((s) => ({
-			enterSelectionMode: s.enterSelectionMode,
-			exitSelectionMode: s.exitSelectionMode,
-			toggleTrackSelection: s.toggleTrackSelection,
-			selectAll: s.selectAll,
-			deselectAll: s.deselectAll,
-		}))
-	);
+	const { enterSelectionMode, exitSelectionMode, toggleTrackSelection, selectAll, deselectAll } =
+		useSelectionStore(
+			useShallow((s) => ({
+				enterSelectionMode: s.enterSelectionMode,
+				exitSelectionMode: s.exitSelectionMode,
+				toggleTrackSelection: s.toggleTrackSelection,
+				selectAll: s.selectAll,
+				deselectAll: s.deselectAll,
+			}))
+		);
 
 	const isSelected = useCallback(
 		(trackId: string) => selectedTrackIds.has(trackId),

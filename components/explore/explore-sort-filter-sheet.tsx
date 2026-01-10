@@ -5,7 +5,7 @@
  * Uses M3 theming.
  */
 
-import React, { forwardRef, useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import BottomSheet, {
 	BottomSheetBackdrop,
@@ -28,6 +28,8 @@ import type { ArtistReference } from '@/src/domain/entities/artist';
 import type { AlbumReference } from '@/src/domain/entities/album';
 
 interface ExploreSortFilterSheetProps {
+	isOpen: boolean;
+	onClose: () => void;
 	sortField: SearchSortField;
 	sortDirection: SearchSortDirection;
 	activeFilters: SearchFilters;
@@ -40,41 +42,42 @@ interface ExploreSortFilterSheetProps {
 	onToggleAlbum: (albumId: string) => void;
 	onToggleFavorites: () => void;
 	onClearAll: () => void;
-	onDismiss?: () => void;
 }
 
-export const ExploreSortFilterSheet = forwardRef<
-	BottomSheetMethods,
-	ExploreSortFilterSheetProps
->(function ExploreSortFilterSheet(
-	{
-		sortField,
-		sortDirection,
-		activeFilters,
-		artists,
-		albums,
-		onSortFieldChange,
-		onToggleSortDirection,
-		onContentTypeChange,
-		onToggleArtist,
-		onToggleAlbum,
-		onToggleFavorites,
-		onClearAll,
-		onDismiss,
-	},
-	ref
-) {
+export function ExploreSortFilterSheet({
+	isOpen,
+	onClose,
+	sortField,
+	sortDirection,
+	activeFilters,
+	artists,
+	albums,
+	onSortFieldChange,
+	onToggleSortDirection,
+	onContentTypeChange,
+	onToggleArtist,
+	onToggleAlbum,
+	onToggleFavorites,
+	onClearAll,
+}: ExploreSortFilterSheetProps) {
 	const { colors } = useAppTheme();
+	const sheetRef = useRef<BottomSheetMethods>(null);
 
 	const snapPoints = useMemo(() => ['60%', '85%'], []);
+
+	useEffect(() => {
+		if (isOpen) {
+			sheetRef.current?.snapToIndex(0);
+		}
+	}, [isOpen]);
 
 	const handleSheetChanges = useCallback(
 		(index: number) => {
 			if (index === -1) {
-				onDismiss?.();
+				onClose();
 			}
 		},
-		[onDismiss]
+		[onClose]
 	);
 
 	const renderBackdrop = useCallback(
@@ -84,16 +87,21 @@ export const ExploreSortFilterSheet = forwardRef<
 				disappearsOnIndex={-1}
 				appearsOnIndex={0}
 				opacity={0.5}
+				pressBehavior="close"
 			/>
 		),
 		[]
 	);
 
+	if (!isOpen) {
+		return null;
+	}
+
 	return (
 		<Portal name="explore-sort-filter-sheet">
 			<BottomSheet
-				ref={ref}
-				index={-1}
+				ref={sheetRef}
+				index={0}
 				snapPoints={snapPoints}
 				enablePanDownToClose
 				backdropComponent={renderBackdrop}
@@ -150,7 +158,7 @@ export const ExploreSortFilterSheet = forwardRef<
 			</BottomSheet>
 		</Portal>
 	);
-});
+}
 
 const styles = StyleSheet.create({
 	background: {

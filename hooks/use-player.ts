@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { usePlayerStore } from '@/src/application/state/player-store';
 import { useHistoryStore } from '@/src/application/state/history-store';
 import { playbackService } from '@/src/application/services/playback-service';
@@ -6,17 +7,33 @@ import type { Track } from '@/src/domain/entities/track';
 import { Duration } from '@/src/domain/value-objects/duration';
 
 export function usePlayer() {
-	const currentTrack = usePlayerStore((state) => state.currentTrack);
-	const status = usePlayerStore((state) => state.status);
-	const position = usePlayerStore((state) => state.position);
-	const duration = usePlayerStore((state) => state.duration);
-	const volume = usePlayerStore((state) => state.volume);
-	const isMuted = usePlayerStore((state) => state.isMuted);
-	const repeatMode = usePlayerStore((state) => state.repeatMode);
-	const isShuffled = usePlayerStore((state) => state.isShuffled);
-	const queue = usePlayerStore((state) => state.queue);
-	const queueIndex = usePlayerStore((state) => state.queueIndex);
-	const error = usePlayerStore((state) => state.error);
+	const {
+		currentTrack,
+		status,
+		position,
+		duration,
+		volume,
+		isMuted,
+		repeatMode,
+		isShuffled,
+		queue,
+		queueIndex,
+		error,
+	} = usePlayerStore(
+		useShallow((state) => ({
+			currentTrack: state.currentTrack,
+			status: state.status,
+			position: state.position,
+			duration: state.duration,
+			volume: state.volume,
+			isMuted: state.isMuted,
+			repeatMode: state.repeatMode,
+			isShuffled: state.isShuffled,
+			queue: state.queue,
+			queueIndex: state.queueIndex,
+			error: state.error,
+		}))
+	);
 
 	const addToHistory = useHistoryStore((state) => state.addToHistory);
 

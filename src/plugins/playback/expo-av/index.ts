@@ -121,6 +121,43 @@ export class ExpoAudioPlaybackProvider implements PlaybackProvider {
 		return this.capabilities.has(capability);
 	}
 
+	canHandle(url: string): boolean {
+		// Handle HLS streams, direct audio URLs, and local files
+		// Do NOT handle DASH streams (data:application/dash+xml)
+		if (url.startsWith('data:application/dash+xml')) {
+			return false;
+		}
+
+		// Handle HLS manifests
+		if (url.includes('.m3u8') || url.includes('manifest/hls')) {
+			return true;
+		}
+
+		// Handle direct audio files
+		if (
+			url.endsWith('.mp3') ||
+			url.endsWith('.m4a') ||
+			url.endsWith('.aac') ||
+			url.endsWith('.wav') ||
+			url.endsWith('.ogg') ||
+			url.endsWith('.flac')
+		) {
+			return true;
+		}
+
+		// Handle local files
+		if (url.startsWith('file://') || url.startsWith('/')) {
+			return true;
+		}
+
+		// Handle HTTP(S) URLs that aren't DASH
+		if (url.startsWith('http://') || url.startsWith('https://')) {
+			return true;
+		}
+
+		return false;
+	}
+
 	async play(
 		track: Track,
 		streamUrl: string,
@@ -148,7 +185,9 @@ export class ExpoAudioPlaybackProvider implements PlaybackProvider {
 
 				const { createAudioPlayer } = await import('expo-audio');
 
-				const source: { uri: string; headers?: Record<string, string> } = { uri: streamUrl };
+				const source: { uri: string; headers?: Record<string, string> } = {
+					uri: streamUrl,
+				};
 				if (headers) source.headers = headers;
 
 				logger.debug('Creating audio player...');
@@ -436,3 +475,6 @@ export class ExpoAudioPlaybackProvider implements PlaybackProvider {
 }
 
 export const expoAudioPlaybackProvider = new ExpoAudioPlaybackProvider();
+
+export { ExpoAudioPluginModule } from './plugin-module';
+export { PLUGIN_MANIFEST as EXPO_AUDIO_MANIFEST } from './config';

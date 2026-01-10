@@ -78,7 +78,10 @@ export class PlaybackService {
 			try {
 				await this.activeProvider.stop();
 			} catch (e) {
-				logger.warn('Error stopping previous playback:', e instanceof Error ? e : undefined);
+				logger.warn(
+					'Error stopping previous playback:',
+					e instanceof Error ? e : undefined
+				);
 			}
 		}
 
@@ -202,7 +205,9 @@ export class PlaybackService {
 		if (downloadMetadata) {
 			const fileInfo = await getFileInfo(downloadMetadata.filePath);
 			if (fileInfo.exists) {
-				logger.debug(`Using local download: ${downloadMetadata.filePath} (format: ${downloadMetadata.format})`);
+				logger.debug(
+					`Using local download: ${downloadMetadata.filePath} (format: ${downloadMetadata.format})`
+				);
 				return ok(
 					createAudioStream({
 						url: downloadMetadata.filePath,
@@ -211,7 +216,9 @@ export class PlaybackService {
 					})
 				);
 			} else {
-				logger.warn(`Local file missing, removing from downloads: ${downloadMetadata.filePath}`);
+				logger.warn(
+					`Local file missing, removing from downloads: ${downloadMetadata.filePath}`
+				);
 				await downloadService.removeDownload(trackId);
 			}
 		}

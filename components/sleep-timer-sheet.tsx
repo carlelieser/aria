@@ -27,8 +27,7 @@ interface SleepTimerSheetProps {
 export const SleepTimerSheet = forwardRef<BottomSheetMethods, SleepTimerSheetProps>(
 	function SleepTimerSheet({ onDismiss }, ref) {
 		const { colors } = useAppTheme();
-		const { isActive, mode, formatRemaining, start, startEndOfTrack, cancel } =
-			useSleepTimer();
+		const { isActive, mode, formatRemaining, start, startEndOfTrack, cancel } = useSleepTimer();
 
 		const snapPoints = useMemo(() => ['60%'], []);
 

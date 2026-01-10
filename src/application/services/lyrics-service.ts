@@ -1,6 +1,6 @@
 import type { MetadataProvider, Lyrics } from '../../plugins/core/interfaces/metadata-provider';
 import type { TrackId } from '../../domain/value-objects/track-id';
-import { ok, err, type Result } from '../../shared/types/result';
+import { ok, type Result } from '../../shared/types/result';
 import { getLogger } from '../../shared/services/logger';
 
 const logger = getLogger('LyricsService');

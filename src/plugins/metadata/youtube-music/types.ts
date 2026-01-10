@@ -44,15 +44,15 @@ export interface YouTubeMusicItem {
 	length_seconds?: number;
 
 	/** Subtitle text containing artist/year info for albums */
-	subtitle?: string | { text?: string; runs?: Array<{ text?: string }> };
+	subtitle?: string | { text?: string; runs?: { text?: string }[] };
 
 	/** Author info (alternative to artists) */
 	author?: { name?: string; id?: string } | string;
 
 	/** Flex columns containing artist info */
-	flex_columns?: Array<{
-		title?: { runs?: Array<{ text?: string; endpoint?: { browseId?: string } }> };
-	}>;
+	flex_columns?: {
+		title?: { runs?: { text?: string; endpoint?: { browseId?: string } }[] };
+	}[];
 
 	endpoint?: {
 		payload?: {
@@ -81,20 +81,20 @@ export interface YouTubeVideoInfo {
 		thumbnail?: YouTubeThumbnail[];
 	};
 	streaming_data?: {
-		adaptive_formats?: Array<{
+		adaptive_formats?: {
 			url?: string;
 			itag?: number;
 			bitrate?: number;
 			mime_type?: string;
 			audio_quality?: string;
 			audio_sample_rate?: string;
-		}>;
-		formats?: Array<{
+		}[];
+		formats?: {
 			url?: string;
 			itag?: number;
 			bitrate?: number;
 			mime_type?: string;
-		}>;
+		}[];
 	};
 }
 

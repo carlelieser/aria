@@ -103,44 +103,30 @@ export const useSettingsStore = create<SettingsState>()(
 	)
 );
 
-export const useThemePreference = () =>
-	useSettingsStore((state) => state.themePreference);
+export const useThemePreference = () => useSettingsStore((state) => state.themePreference);
 
-export const useSetThemePreference = () =>
-	useSettingsStore((state) => state.setThemePreference);
+export const useSetThemePreference = () => useSettingsStore((state) => state.setThemePreference);
 
-export const useDefaultTab = () =>
-	useSettingsStore((state) => state.defaultTab);
+export const useDefaultTab = () => useSettingsStore((state) => state.defaultTab);
 
-export const useSetDefaultTab = () =>
-	useSettingsStore((state) => state.setDefaultTab);
+export const useSetDefaultTab = () => useSettingsStore((state) => state.setDefaultTab);
 
-export const useAccentColor = () =>
-	useSettingsStore((state) => state.accentColor);
+export const useAccentColor = () => useSettingsStore((state) => state.accentColor);
 
-export const useSetAccentColor = () =>
-	useSettingsStore((state) => state.setAccentColor);
+export const useSetAccentColor = () => useSettingsStore((state) => state.setAccentColor);
 
-export const useTabOrder = () =>
-	useSettingsStore((state) => state.tabOrder);
+export const useTabOrder = () => useSettingsStore((state) => state.tabOrder);
 
-export const useSetTabOrder = () =>
-	useSettingsStore((state) => state.setTabOrder);
+export const useSetTabOrder = () => useSettingsStore((state) => state.setTabOrder);
 
-export const useResetTabOrder = () =>
-	useSettingsStore((state) => state.resetTabOrder);
+export const useResetTabOrder = () => useSettingsStore((state) => state.resetTabOrder);
 
-export const useEnabledTabs = () =>
-	useSettingsStore((state) => state.enabledTabs);
+export const useEnabledTabs = () => useSettingsStore((state) => state.enabledTabs);
 
-export const useSetEnabledTabs = () =>
-	useSettingsStore((state) => state.setEnabledTabs);
+export const useSetEnabledTabs = () => useSettingsStore((state) => state.setEnabledTabs);
 
-export const useToggleTab = () =>
-	useSettingsStore((state) => state.toggleTab);
+export const useToggleTab = () => useSettingsStore((state) => state.toggleTab);
 
-export const useResetEnabledTabs = () =>
-	useSettingsStore((state) => state.resetEnabledTabs);
+export const useResetEnabledTabs = () => useSettingsStore((state) => state.resetEnabledTabs);
 
-export const useResetAllSettings = () =>
-	useSettingsStore((state) => state.resetAllSettings);
+export const useResetAllSettings = () => useSettingsStore((state) => state.resetAllSettings);

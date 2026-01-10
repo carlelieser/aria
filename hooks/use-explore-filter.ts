@@ -33,16 +33,11 @@ export function useExploreFilter() {
 		relevanceOrderRef.current = createRelevanceOrderMap(searchResults.tracks);
 	}, [searchResults.tracks]);
 
-	const { sortField, sortDirection, activeFilters, isFilterSheetOpen } = useExploreFilterStore(
-		useShallow((s) => ({
-			sortField: s.sortField,
-			sortDirection: s.sortDirection,
-			activeFilters: s.activeFilters,
-			isFilterSheetOpen: s.isFilterSheetOpen,
-		}))
-	);
-
 	const {
+		sortField,
+		sortDirection,
+		activeFilters,
+		isFilterSheetOpen,
 		setSortField,
 		setSortDirection,
 		toggleSortDirection,
@@ -55,6 +50,10 @@ export function useExploreFilter() {
 		setFilterSheetOpen,
 	} = useExploreFilterStore(
 		useShallow((s) => ({
+			sortField: s.sortField,
+			sortDirection: s.sortDirection,
+			activeFilters: s.activeFilters,
+			isFilterSheetOpen: s.isFilterSheetOpen,
 			setSortField: s.setSortField,
 			setSortDirection: s.setSortDirection,
 			toggleSortDirection: s.toggleSortDirection,

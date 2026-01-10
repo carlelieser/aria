@@ -16,28 +16,19 @@ export { M3Colors, SEED_COLOR, type M3ColorScheme } from './colors';
 export { M3Typography, type M3TypographyVariant } from './typography';
 
 // Shapes
-export {
-  M3Shapes,
-  M3ShapeStyles,
-  getShapeRadius,
-  type M3ShapeSize,
-} from './shapes';
+export { M3Shapes, M3ShapeStyles, getShapeRadius, type M3ShapeSize } from './shapes';
 
 // Motion
 export {
-  M3Easing,
-  M3Duration,
-  M3AnimationConfig,
-  type M3EasingType,
-  type M3DurationType,
+	M3Easing,
+	M3Duration,
+	M3AnimationConfig,
+	type M3EasingType,
+	type M3DurationType,
 } from './motion';
 
 // Dynamic theme
-export {
-  useDynamicTheme,
-  getStaticTheme,
-  type AppTheme,
-} from './dynamic-theme';
+export { useDynamicTheme, getStaticTheme, type AppTheme } from './dynamic-theme';
 
 // Theme provider
 export { AppThemeProvider, useAppTheme } from './theme-provider';

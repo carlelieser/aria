@@ -1,4 +1,4 @@
-import type Innertube from 'youtubei.js/react-native';
+import type InnertubeClient from 'youtubei.js/react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import type { StreamOptions } from '@plugins/core/interfaces/audio-source-provider';
 import type { TrackId } from '@domain/value-objects/track-id';
@@ -31,7 +31,7 @@ async function checkCache(videoId: string): Promise<string | null> {
 }
 
 async function tryHlsStream(
-	client: Innertube,
+	client: InnertubeClient,
 	videoId: string,
 	clientType: 'IOS' | 'TV'
 ): Promise<string | null> {
@@ -76,10 +76,7 @@ async function downloadToCache(
 	return null;
 }
 
-async function downloadHlsToCache(
-	manifestUrl: string,
-	videoId: string
-): Promise<string | null> {
+async function downloadHlsToCache(manifestUrl: string, videoId: string): Promise<string | null> {
 	const cacheDir = FileSystem.cacheDirectory + CACHE_DIR;
 	const cachedFilePath = cacheDir + `${videoId}.aac`;
 	const tempDir = cacheDir + `${videoId}_segments/`;
@@ -158,9 +155,7 @@ async function downloadHlsToCache(
 		for (const line of segmentLines) {
 			const trimmed = line.trim();
 			if (trimmed && !trimmed.startsWith('#')) {
-				const segmentUrl = trimmed.startsWith('http')
-					? trimmed
-					: baseUrl + trimmed;
+				const segmentUrl = trimmed.startsWith('http') ? trimmed : baseUrl + trimmed;
 				segmentUrls.push(segmentUrl);
 			}
 		}
@@ -196,7 +191,6 @@ async function downloadHlsToCache(
 
 		// Concatenate all segments into final file
 		// Read all segments and write to final file
-		let totalSize = 0;
 		const chunks: string[] = [];
 
 		for (const segmentPath of segmentPaths) {
@@ -204,18 +198,12 @@ async function downloadHlsToCache(
 				encoding: FileSystem.EncodingType.Base64,
 			});
 			chunks.push(content);
-			const info = await FileSystem.getInfoAsync(segmentPath);
-			if (info.exists && 'size' in info) {
-				totalSize += info.size as number;
-			}
 		}
 
 		// Write concatenated file
-		await FileSystem.writeAsStringAsync(
-			cachedFilePath,
-			chunks.join(''),
-			{ encoding: FileSystem.EncodingType.Base64 }
-		);
+		await FileSystem.writeAsStringAsync(cachedFilePath, chunks.join(''), {
+			encoding: FileSystem.EncodingType.Base64,
+		});
 
 		// Clean up temp segments
 		await FileSystem.deleteAsync(tempDir, { idempotent: true }).catch(() => {});
@@ -241,7 +229,7 @@ async function downloadHlsToCache(
 }
 
 async function tryAdaptiveFormat(
-	client: Innertube,
+	client: InnertubeClient,
 	videoId: string,
 	quality: string,
 	clientType: 'TV' | 'IOS' | 'ANDROID' = 'TV'
@@ -262,7 +250,9 @@ async function tryAdaptiveFormat(
 			return null;
 		}
 
-		logger.debug(`Found format: itag=${format.itag}, mime=${format.mime_type}, bitrate=${format.bitrate}`);
+		logger.debug(
+			`Found format: itag=${format.itag}, mime=${format.mime_type}, bitrate=${format.bitrate}`
+		);
 
 		// Try to get URL - some formats have direct URL, others need deciphering
 		let url: string | undefined;
@@ -335,9 +325,14 @@ export function createStreamingOperations(clientManager: ClientManager): Streami
 					logger.debug('Preferring downloadable format...');
 
 					// Try multiple client types for better compatibility
-					const clientTypes: Array<'TV' | 'ANDROID' | 'IOS'> = ['TV', 'ANDROID', 'IOS'];
+					const clientTypes: ('TV' | 'ANDROID' | 'IOS')[] = ['TV', 'ANDROID', 'IOS'];
 					for (const clientType of clientTypes) {
-						const adaptiveStream = await tryAdaptiveFormat(client, videoId, quality, clientType);
+						const adaptiveStream = await tryAdaptiveFormat(
+							client,
+							videoId,
+							quality,
+							clientType
+						);
 						if (adaptiveStream) {
 							// Try to download and cache the file for reliability
 							logger.debug('Attempting to cache downloaded audio...');
@@ -363,8 +358,9 @@ export function createStreamingOperations(clientManager: ClientManager): Streami
 
 					// Last resort: try downloading from HLS stream
 					logger.debug('Adaptive formats failed, trying HLS download...');
-					const hlsUrl = await tryHlsStream(client, videoId, 'IOS')
-						|| await tryHlsStream(client, videoId, 'TV');
+					const hlsUrl =
+						(await tryHlsStream(client, videoId, 'IOS')) ||
+						(await tryHlsStream(client, videoId, 'TV'));
 
 					if (hlsUrl) {
 						logger.debug('Found HLS manifest, downloading segments...');
@@ -413,9 +409,14 @@ export function createStreamingOperations(clientManager: ClientManager): Streami
 				}
 
 				// Fallback: try adaptive format and cache it
-				const fallbackClients: Array<'TV' | 'ANDROID' | 'IOS'> = ['TV', 'ANDROID', 'IOS'];
+				const fallbackClients: ('TV' | 'ANDROID' | 'IOS')[] = ['TV', 'ANDROID', 'IOS'];
 				for (const clientType of fallbackClients) {
-					const adaptiveStream = await tryAdaptiveFormat(client, videoId, quality, clientType);
+					const adaptiveStream = await tryAdaptiveFormat(
+						client,
+						videoId,
+						quality,
+						clientType
+					);
 					if (adaptiveStream) {
 						const cachedFile = await downloadToCache(
 							adaptiveStream.url,

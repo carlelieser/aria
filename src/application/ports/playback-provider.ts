@@ -1,4 +1,3 @@
-import type { Track } from '../../domain/entities/track';
 import type { Duration } from '../../domain/value-objects/duration';
 import type { PlaybackStatus } from '../../domain/value-objects/playback-state';
 import type { Result } from '../../shared/types/result';

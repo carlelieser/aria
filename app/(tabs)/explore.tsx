@@ -5,19 +5,12 @@
  * Uses M3 theming.
  */
 
-import { useCallback, useRef, useMemo, memo } from 'react';
+import { useCallback, useMemo, memo, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollView, View, StyleSheet, TextInput } from 'react-native';
 import { Text, Button } from 'react-native-paper';
-import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { Icon } from '@/components/ui/icon';
-import {
-	SearchXIcon,
-	HeartIcon,
-	ClockIcon,
-	SparklesIcon,
-	CompassIcon,
-} from 'lucide-react-native';
+import { SearchXIcon, HeartIcon, ClockIcon, SparklesIcon, CompassIcon } from 'lucide-react-native';
 import { TrackCard } from '@/components/track-card';
 import { SelectableTrackListItem } from '@/components/selectable-track-list-item';
 import { AlbumListItem } from '@/components/album-list-item';
@@ -33,7 +26,7 @@ import { EmptyState } from '@/components/empty-state';
 import { TrackListSkeleton } from '@/components/skeletons';
 import { useRecentlyPlayed, useHasHistory } from '@/src/application/state/history-store';
 import { getTrackIdString } from '@/src/domain/value-objects/track-id';
-import { useFavoriteTracks, useTracks } from '@/src/application/state/library-store';
+import { useFavoriteTracks, useRecentlyAddedTracks } from '@/src/application/state/library-store';
 import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
 import type { LucideIcon } from 'lucide-react-native';
@@ -73,7 +66,12 @@ const ExploreSection = memo(function ExploreSection({
 					</Text>
 				</View>
 				{showSeeAll && onSeeAll && (
-					<Button mode="text" compact onPress={onSeeAll} textColor={colors.onSurfaceVariant}>
+					<Button
+						mode="text"
+						compact
+						onPress={onSeeAll}
+						textColor={colors.onSurfaceVariant}
+					>
 						See all
 					</Button>
 				)}
@@ -100,8 +98,7 @@ export default function ExploreScreen() {
 	const insets = useSafeAreaInsets();
 	const { query, isSearching, error, search } = useSearch();
 	const { colors } = useAppTheme();
-
-	const filterSheetRef = useRef<BottomSheetMethods>(null);
+	const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
 
 	const {
 		tracks: filteredTracks,
@@ -134,27 +131,13 @@ export default function ExploreScreen() {
 		toggleTrackSelection,
 	} = useSelection();
 
-	const {
-		downloadSelected,
-		addSelectedToLibrary,
-		addSelectedToQueue,
-		isDownloading,
-	} = useBatchActions();
+	const { downloadSelected, addSelectedToLibrary, addSelectedToQueue, isDownloading } =
+		useBatchActions();
 
 	const recentlyPlayed = useRecentlyPlayed(10);
 	const favoriteTracks = useFavoriteTracks();
-	const libraryTracks = useTracks();
+	const recentlyAdded = useRecentlyAddedTracks(10);
 	const hasHistory = useHasHistory();
-
-	const recentlyAdded = useMemo(() => {
-		return [...libraryTracks]
-			.sort((a, b) => {
-				const dateA = a.addedAt ? new Date(a.addedAt).getTime() : 0;
-				const dateB = b.addedAt ? new Date(b.addedAt).getTime() : 0;
-				return dateB - dateA;
-			})
-			.slice(0, 10);
-	}, [libraryTracks]);
 
 	const isExploreMode = query.trim() === '';
 	const hasExploreContent = hasHistory || favoriteTracks.length > 0 || recentlyAdded.length > 0;
@@ -174,11 +157,11 @@ export default function ExploreScreen() {
 	);
 
 	const handleOpenFilterSheet = useCallback(() => {
-		filterSheetRef.current?.snapToIndex(0);
+		setIsFilterSheetOpen(true);
 	}, []);
 
 	const handleCloseFilterSheet = useCallback(() => {
-		filterSheetRef.current?.close();
+		setIsFilterSheetOpen(false);
 		closeFilterSheet();
 	}, [closeFilterSheet]);
 
@@ -210,7 +193,10 @@ export default function ExploreScreen() {
 			>
 				<View style={styles.headerRow}>
 					<Icon as={CompassIcon} size={28} color={colors.primary} />
-					<Text variant="headlineMedium" style={{ color: colors.onSurface, fontWeight: '700' }}>
+					<Text
+						variant="headlineMedium"
+						style={{ color: colors.onSurface, fontWeight: '700' }}
+					>
 						Explore
 					</Text>
 				</View>
@@ -246,7 +232,11 @@ export default function ExploreScreen() {
 							<EmptyState
 								icon={SearchXIcon}
 								title="No results found"
-								description={hasFilters ? 'Try adjusting your filters' : 'Try searching for something else'}
+								description={
+									hasFilters
+										? 'Try adjusting your filters'
+										: 'Try searching for something else'
+								}
 							/>
 						)}
 
@@ -325,7 +315,8 @@ export default function ExploreScreen() {
 			)}
 
 			<ExploreSortFilterSheet
-				ref={filterSheetRef}
+				isOpen={isFilterSheetOpen}
+				onClose={handleCloseFilterSheet}
 				sortField={sortField}
 				sortDirection={sortDirection}
 				activeFilters={activeFilters}
@@ -338,7 +329,6 @@ export default function ExploreScreen() {
 				onToggleAlbum={toggleAlbumFilter}
 				onToggleFavorites={toggleFavoritesOnly}
 				onClearAll={clearAll}
-				onDismiss={handleCloseFilterSheet}
 			/>
 
 			<BatchActionBar

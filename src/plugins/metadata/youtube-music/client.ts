@@ -1,26 +1,26 @@
-import Innertube from 'youtubei.js/react-native';
+import InnertubeClient from 'youtubei.js/react-native';
 import type { YouTubeMusicConfig } from './config';
 
 export interface ClientManager {
-	getClient(): Promise<Innertube>;
-	createFreshClient(): Promise<Innertube>;
+	getClient(): Promise<InnertubeClient>;
+	createFreshClient(): Promise<InnertubeClient>;
 	destroy(): void;
 	isInitialized(): boolean;
 }
 
 export function createClientManager(config: YouTubeMusicConfig): ClientManager {
-	let client: Innertube | null = null;
-	let initPromise: Promise<Innertube> | null = null;
+	let client: InnertubeClient | null = null;
+	let initPromise: Promise<InnertubeClient> | null = null;
 
-	async function createClient(): Promise<Innertube> {
-		return Innertube.create({
+	async function createClient(): Promise<InnertubeClient> {
+		return InnertubeClient.create({
 			lang: config.lang,
 			location: config.location,
 		});
 	}
 
 	return {
-		async getClient(): Promise<Innertube> {
+		async getClient(): Promise<InnertubeClient> {
 			if (client) return client;
 
 			if (initPromise) return initPromise;
@@ -36,7 +36,7 @@ export function createClientManager(config: YouTubeMusicConfig): ClientManager {
 			}
 		},
 
-		async createFreshClient(): Promise<Innertube> {
+		async createFreshClient(): Promise<InnertubeClient> {
 			return createClient();
 		},
 

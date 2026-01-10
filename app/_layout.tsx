@@ -19,44 +19,54 @@ SplashScreen.preventAutoHideAsync().then(() => SplashScreen.hideAsync());
 lazyBootstrap();
 
 function AppContent() {
-  const { colors, isDark } = useAppTheme();
+	const { colors, isDark } = useAppTheme();
 
-  return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="player" options={{ headerShown: false }} />
-        <Stack.Screen name="plugins" options={{ headerShown: false }} />
-        <Stack.Screen name="artist/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="album/[id]" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="playlist-picker"
-          options={{ headerShown: false, presentation: 'modal' }}
-        />
-      </Stack>
-      <FloatingPlayer />
-      <TrackOptionsSheet />
-      <ToastContainer />
-      <StatusBar style={isDark ? 'light' : 'dark'} />
-      <PortalHost />
-    </View>
-  );
+	return (
+		<View style={[styles.container, { backgroundColor: colors.background }]}>
+			<Stack>
+				<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+				<Stack.Screen name="player" options={{ headerShown: false }} />
+				<Stack.Screen name="plugins" options={{ headerShown: false }} />
+				<Stack.Screen name="artist/[id]" options={{ headerShown: false }} />
+				<Stack.Screen name="album/[id]" options={{ headerShown: false }} />
+				<Stack.Screen
+					name="playlist-picker"
+					options={{ headerShown: false, presentation: 'modal' }}
+				/>
+			</Stack>
+			<FloatingPlayer />
+			<TrackOptionsSheet />
+			<ToastContainer />
+			<StatusBar style={isDark ? 'light' : 'dark'} />
+			<View style={styles.portalHost} pointerEvents="box-none">
+				<PortalHost />
+			</View>
+		</View>
+	);
 }
 
 export default function RootLayout() {
-  return (
-    <GestureHandlerRootView style={styles.container}>
-      <SafeAreaProvider>
-        <AppThemeProvider>
-          <AppContent />
-        </AppThemeProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
-  );
+	return (
+		<GestureHandlerRootView style={styles.container}>
+			<SafeAreaProvider>
+				<AppThemeProvider>
+					<AppContent />
+				</AppThemeProvider>
+			</SafeAreaProvider>
+		</GestureHandlerRootView>
+	);
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+	container: {
+		flex: 1,
+	},
+	portalHost: {
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		right: 0,
+		bottom: 0,
+		zIndex: 9999,
+	},
 });

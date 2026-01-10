@@ -5,15 +5,10 @@
  * Shows checkbox overlay when in selection mode.
  */
 
-import { memo, useCallback, useMemo } from 'react';
+import { memo, useCallback } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { Check } from 'lucide-react-native';
-import Animated, {
-	useAnimatedStyle,
-	withTiming,
-	FadeIn,
-	FadeOut,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, withTiming, FadeIn, FadeOut } from 'react-native-reanimated';
 
 import { TrackListItem } from '@/components/track-list-item';
 import { Icon } from '@/components/ui/icon';
@@ -86,9 +81,7 @@ export const SelectableTrackListItem = memo(function SelectableTrackListItem({
 						hitSlop={8}
 					>
 						<Animated.View style={[styles.checkbox, checkboxAnimatedStyle]}>
-							{isSelected && (
-								<Icon as={Check} size={14} color={colors.onPrimary} />
-							)}
+							{isSelected && <Icon as={Check} size={14} color={colors.onPrimary} />}
 						</Animated.View>
 					</Pressable>
 				</Animated.View>

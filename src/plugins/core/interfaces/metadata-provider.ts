@@ -1,5 +1,5 @@
 import type { BasePlugin } from './base-plugin';
-import type { Result, AsyncResult } from '@shared/types/result';
+import type { AsyncResult } from '@shared/types/result';
 import type { Track } from '@domain/entities/track';
 import type { Album } from '@domain/entities/album';
 import type { Artist } from '@domain/entities/artist';

@@ -25,7 +25,7 @@ function createEvaluator() {
 			const result = fn();
 			logger.debug('Function() success');
 			return result;
-		} catch (fnError) {
+		} catch {
 			logger.debug('Function() failed, trying Jinter');
 
 			try {

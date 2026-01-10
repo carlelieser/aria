@@ -12,9 +12,7 @@ interface SleepTimerState {
 }
 
 export function useSleepTimer() {
-	const [state, setState] = useState<SleepTimerState>(() =>
-		sleepTimerService.getState()
-	);
+	const [state, setState] = useState<SleepTimerState>(() => sleepTimerService.getState());
 
 	useEffect(() => {
 		const unsubscribe = sleepTimerService.subscribe(() => {
