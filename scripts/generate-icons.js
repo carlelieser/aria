@@ -68,17 +68,33 @@ async function generateIcons() {
 				raw: { width: info.width, height: info.height, channels: 4 },
 			});
 		} else if (icon.rounded) {
-			// Create rounded icon for README
+			// Create rounded icon for README - crop out the padding first
+			// The SVG has content roughly in the center, extract and resize
 			const roundedCorners = Buffer.from(
 				`<svg><rect x="0" y="0" width="${icon.size}" height="${icon.size}" rx="${icon.size * 0.22}" ry="${icon.size * 0.22}"/></svg>`
 			);
 
-			pipeline = sharp(svgBuffer)
-				.resize(icon.size, icon.size, {
+			// First render at higher resolution, then crop the content area
+			const fullSize = 1000;
+			const cropPadding = 180; // Padding to remove from each side
+			const cropSize = fullSize - cropPadding * 2;
+
+			const cropped = await sharp(svgBuffer)
+				.resize(fullSize, fullSize, {
 					fit: 'contain',
 					background: BACKGROUND_COLOR,
 				})
 				.flatten({ background: BACKGROUND_COLOR })
+				.extract({
+					left: cropPadding,
+					top: cropPadding,
+					width: cropSize,
+					height: cropSize,
+				})
+				.toBuffer();
+
+			pipeline = sharp(cropped)
+				.resize(icon.size, icon.size)
 				.composite([
 					{
 						input: roundedCorners,
