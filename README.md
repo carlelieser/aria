@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/images/icon.png" alt="Aria" width="128" height="128" />
+  <img src="assets/images/icon-rounded.png" alt="Aria" width="128" height="128" />
 </p>
 
 <h1 align="center">Aria</h1>
