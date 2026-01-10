@@ -23,7 +23,7 @@ import { M3Colors } from '@/lib/theme/colors';
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const POLYGON_SIZE = 200;
-const ICON_SIZE = 60;
+const ICON_SIZE = 84;
 const ANIMATION_DURATION = 400;
 const MORPH_DURATION = 800;
 const MORPH_INTERVAL = 2500;
