@@ -57,7 +57,7 @@
 		"react-native-gesture-handler": "~2.28.0",
 		"react-native-paper": "^5.13.1",
 		"react-native-reanimated": "~4.2.1",
-		"react-native-safe-area-context": "^5.6.1",
+		"react-native-safe-area-context": "^5.6.2",
 		"react-native-screens": "^4.19.0",
 		"react-native-svg": "15.12.1",
 		"react-native-url-polyfill": "^3.0.0",
