@@ -13,7 +13,7 @@ const ICONS = [
 	{ name: 'icon.png', size: 1024 },
 	{ name: 'icon-rounded.png', size: 256, rounded: true },
 	{ name: 'favicon.png', size: 48 },
-	{ name: 'splash-icon.png', size: 512 },
+	{ name: 'splash-icon.png', size: 512, cropped: true },
 	{ name: 'android-icon-foreground.png', size: 432 },
 	{ name: 'android-icon-background.png', size: 432, solidBackground: true },
 	{ name: 'android-icon-monochrome.png', size: 432, monochrome: true },
@@ -67,24 +67,24 @@ async function generateIcons() {
 			pipeline = sharp(pixels, {
 				raw: { width: info.width, height: info.height, channels: 4 },
 			});
-		} else if (icon.rounded) {
-			// Create rounded icon for README - crop out the padding first
-			// The SVG has content roughly in the center, extract and resize
-			const roundedCorners = Buffer.from(
-				`<svg><circle cx="${icon.size / 2}" cy="${icon.size / 2}" r="${icon.size / 2}"/></svg>`
-			);
+		} else if (icon.rounded || icon.cropped) {
+			// Crop out the padding from the SVG
+			const roundedCorners = icon.rounded
+				? Buffer.from(
+						`<svg><circle cx="${icon.size / 2}" cy="${icon.size / 2}" r="${icon.size / 2}"/></svg>`
+					)
+				: null;
 
 			// First render at higher resolution, then crop the content area
 			const fullSize = 1000;
 			const cropPadding = 220; // Padding to remove from each side
 			const cropSize = fullSize - cropPadding * 2;
 
-			const cropped = await sharp(svgBuffer)
+			const croppedBuffer = await sharp(svgBuffer)
 				.resize(fullSize, fullSize, {
 					fit: 'contain',
-					background: BACKGROUND_COLOR,
+					background: { r: 0, g: 0, b: 0, alpha: 0 },
 				})
-				.flatten({ background: BACKGROUND_COLOR })
 				.extract({
 					left: cropPadding,
 					top: cropPadding,
@@ -93,14 +93,18 @@ async function generateIcons() {
 				})
 				.toBuffer();
 
-			pipeline = sharp(cropped)
-				.resize(icon.size, icon.size)
-				.composite([
-					{
-						input: roundedCorners,
-						blend: 'dest-in',
-					},
-				]);
+			pipeline = sharp(croppedBuffer).resize(icon.size, icon.size);
+
+			if (roundedCorners) {
+				pipeline = pipeline
+					.flatten({ background: BACKGROUND_COLOR })
+					.composite([
+						{
+							input: roundedCorners,
+							blend: 'dest-in',
+						},
+					]);
+			}
 		} else {
 			pipeline = sharp(svgBuffer).resize(icon.size, icon.size, {
 				fit: 'contain',
