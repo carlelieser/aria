@@ -76,7 +76,7 @@ async function generateIcons() {
 
 			// First render at higher resolution, then crop the content area
 			const fullSize = 1000;
-			const cropPadding = 300; // Padding to remove from each side
+			const cropPadding = 220; // Padding to remove from each side
 			const cropSize = fullSize - cropPadding * 2;
 
 			const cropped = await sharp(svgBuffer)
