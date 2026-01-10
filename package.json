@@ -26,7 +26,7 @@
 		"@react-native-community/slider": "5.0.1",
 		"@react-navigation/bottom-tabs": "^7.4.0",
 		"@react-navigation/elements": "^2.6.3",
-		"@react-navigation/native": "^7.1.8",
+		"@react-navigation/native": "^7.1.26",
 		"@rn-primitives/portal": "^1.3.0",
 		"@shopify/flash-list": "2.0.2",
 		"event-target-shim": "^6.0.2",
