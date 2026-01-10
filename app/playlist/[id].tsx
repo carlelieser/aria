@@ -132,7 +132,11 @@ export default function PlaylistScreen() {
 					>
 						<IconButton
 							icon={() => (
-								<Icon as={GripVerticalIcon} size={20} color={colors.onSurfaceVariant} />
+								<Icon
+									as={GripVerticalIcon}
+									size={20}
+									color={colors.onSurfaceVariant}
+								/>
 							)}
 							onPress={drag}
 							size={20}
@@ -171,12 +175,17 @@ export default function PlaylistScreen() {
 				<View
 					style={[
 						styles.header,
-						{ backgroundColor: colors.surfaceContainerHigh, paddingTop: insets.top + 16 },
+						{
+							backgroundColor: colors.surfaceContainerHigh,
+							paddingTop: insets.top + 16,
+						},
 					]}
 				>
 					<View style={styles.headerRow}>
 						<IconButton
-							icon={() => <Icon as={ChevronLeftIcon} size={22} color={colors.onSurface} />}
+							icon={() => (
+								<Icon as={ChevronLeftIcon} size={22} color={colors.onSurface} />
+							)}
 							onPress={() => router.back()}
 							style={styles.backButton}
 						/>
@@ -204,7 +213,9 @@ export default function PlaylistScreen() {
 			>
 				<View style={styles.headerRow}>
 					<IconButton
-						icon={() => <Icon as={ChevronLeftIcon} size={22} color={colors.onSurface} />}
+						icon={() => (
+							<Icon as={ChevronLeftIcon} size={22} color={colors.onSurface} />
+						)}
 						onPress={() => router.back()}
 						style={styles.backButton}
 					/>
@@ -224,7 +235,11 @@ export default function PlaylistScreen() {
 							anchor={
 								<IconButton
 									icon={() => (
-										<Icon as={MoreVerticalIcon} size={22} color={colors.onSurface} />
+										<Icon
+											as={MoreVerticalIcon}
+											size={22}
+											color={colors.onSurface}
+										/>
 									)}
 									onPress={() => setMenuVisible(true)}
 								/>
@@ -233,7 +248,11 @@ export default function PlaylistScreen() {
 						>
 							<Menu.Item
 								leadingIcon={() => (
-									<Icon as={GripVerticalIcon} size={20} color={colors.onSurface} />
+									<Icon
+										as={GripVerticalIcon}
+										size={20}
+										color={colors.onSurface}
+									/>
 								)}
 								onPress={toggleEditMode}
 								title="Reorder Tracks"
@@ -252,7 +271,9 @@ export default function PlaylistScreen() {
 								titleStyle={{ color: colors.onSurface }}
 							/>
 							<Menu.Item
-								leadingIcon={() => <Icon as={Trash2Icon} size={20} color={colors.error} />}
+								leadingIcon={() => (
+									<Icon as={Trash2Icon} size={20} color={colors.error} />
+								)}
 								onPress={() => {
 									setMenuVisible(false);
 									setDeleteDialogVisible(true);
@@ -266,10 +287,17 @@ export default function PlaylistScreen() {
 
 				<View style={styles.playlistInfo}>
 					{artworkUrl ? (
-						<Image source={{ uri: artworkUrl }} style={styles.playlistArtwork} contentFit="cover" />
+						<Image
+							source={{ uri: artworkUrl }}
+							style={styles.playlistArtwork}
+							contentFit="cover"
+						/>
 					) : (
 						<View
-							style={[styles.playlistArtwork, { backgroundColor: colors.surfaceContainerHighest }]}
+							style={[
+								styles.playlistArtwork,
+								{ backgroundColor: colors.surfaceContainerHighest },
+							]}
 						>
 							<Icon as={ListMusicIcon} size={64} color={colors.onSurfaceVariant} />
 						</View>
@@ -312,7 +340,12 @@ export default function PlaylistScreen() {
 
 			{isEditMode ? (
 				<View style={styles.editModeContainer}>
-					<View style={[styles.editModeHeader, { backgroundColor: colors.primaryContainer }]}>
+					<View
+						style={[
+							styles.editModeHeader,
+							{ backgroundColor: colors.primaryContainer },
+						]}
+					>
 						<Text variant="bodyMedium" style={{ color: colors.onPrimaryContainer }}>
 							Drag tracks to reorder
 						</Text>
@@ -327,7 +360,10 @@ export default function PlaylistScreen() {
 				</View>
 			) : (
 				<ScrollView
-					contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 80 }]}
+					contentContainerStyle={[
+						styles.scrollContent,
+						{ paddingBottom: insets.bottom + 80 },
+					]}
 				>
 					{tracks.length === 0 ? (
 						<EmptyState

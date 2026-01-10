@@ -73,6 +73,7 @@
 		"@types/node": "^25.0.3",
 		"@types/react": "~19.1.0",
 		"@types/text-encoding": "^0.0.40",
+		"@vitest/coverage-v8": "^4.0.16",
 		"baseline-browser-mapping": "^2.9.12",
 		"eslint": "^9.25.0",
 		"eslint-config-expo": "~10.0.0",

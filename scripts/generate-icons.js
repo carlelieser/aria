@@ -13,7 +13,7 @@ const ICONS = [
 	{ name: 'icon.png', size: 1024 },
 	{ name: 'icon-rounded.png', size: 256, rounded: true },
 	{ name: 'favicon.png', size: 48 },
-	{ name: 'splash-icon.png', size: 512},
+	{ name: 'splash-icon.png', size: 512 },
 	{ name: 'android-icon-foreground.png', size: 432 },
 	{ name: 'android-icon-background.png', size: 432, solidBackground: true },
 	{ name: 'android-icon-monochrome.png', size: 432, monochrome: true },
@@ -96,14 +96,12 @@ async function generateIcons() {
 			pipeline = sharp(croppedBuffer).resize(icon.size, icon.size);
 
 			if (roundedCorners) {
-				pipeline = pipeline
-					.flatten({ background: BACKGROUND_COLOR })
-					.composite([
-						{
-							input: roundedCorners,
-							blend: 'dest-in',
-						},
-					]);
+				pipeline = pipeline.flatten({ background: BACKGROUND_COLOR }).composite([
+					{
+						input: roundedCorners,
+						blend: 'dest-in',
+					},
+				]);
 			}
 		} else {
 			pipeline = sharp(svgBuffer).resize(icon.size, icon.size, {

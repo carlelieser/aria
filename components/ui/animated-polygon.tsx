@@ -91,7 +91,12 @@ export function AnimatedPolygonView({
 
 	// Update points on each animation frame
 	useDerivedValue(() => {
-		const pts = generateInterpolatedPointsWorklet(animatedSegments.value, size, rotation, strokeWidth);
+		const pts = generateInterpolatedPointsWorklet(
+			animatedSegments.value,
+			size,
+			rotation,
+			strokeWidth
+		);
 		runOnJS(setCurrentPoints)(pts);
 		return pts;
 	}, [size, rotation, strokeWidth]);

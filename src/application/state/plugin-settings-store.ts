@@ -13,7 +13,12 @@ import type { PluginConfig } from '../../plugins/core/interfaces/base-plugin';
 /**
  * Default enabled plugins - these are loaded on first launch
  */
-export const DEFAULT_ENABLED_PLUGINS: string[] = ['youtube-music', 'expo-audio', 'dash-player', 'core-library'];
+export const DEFAULT_ENABLED_PLUGINS: string[] = [
+	'youtube-music',
+	'expo-audio',
+	'dash-player',
+	'core-library',
+];
 
 /**
  * Core plugins that cannot be disabled
@@ -170,8 +175,8 @@ export const usePluginSettingsStore = create<PluginSettingsState>()(
 export const useEnabledPlugins = () => usePluginSettingsStore((state) => state.enabledPlugins);
 
 export const useIsPluginEnabled = (pluginId: string) =>
-	usePluginSettingsStore((state) =>
-		REQUIRED_PLUGINS.includes(pluginId) || state.enabledPlugins.includes(pluginId)
+	usePluginSettingsStore(
+		(state) => REQUIRED_PLUGINS.includes(pluginId) || state.enabledPlugins.includes(pluginId)
 	);
 
 export const useTogglePlugin = () => usePluginSettingsStore((state) => state.togglePlugin);

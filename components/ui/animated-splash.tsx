@@ -134,10 +134,7 @@ export function AnimatedSplash({
 	}));
 
 	const polygonContainerStyle = useAnimatedStyle(() => ({
-		transform: [
-			{ scale: polygonScale.value },
-			{ rotate: `${polygonRotation.value}deg` },
-		],
+		transform: [{ scale: polygonScale.value }, { rotate: `${polygonRotation.value}deg` }],
 		opacity: interpolate(translateY.value, [0, -SCREEN_HEIGHT / 3], [1, 0]),
 	}));
 

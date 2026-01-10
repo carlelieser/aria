@@ -71,7 +71,10 @@ export function usePlayer() {
 
 	const togglePlayPause = useCallback(async () => {
 		const state = usePlayerStore.getState();
-		logger.debug('togglePlayPause called', { status: state.status, hasTrack: !!state.currentTrack });
+		logger.debug('togglePlayPause called', {
+			status: state.status,
+			hasTrack: !!state.currentTrack,
+		});
 
 		if (state.status === 'playing') {
 			logger.debug('Pausing playback');

@@ -60,10 +60,7 @@ function AppContent() {
 				<Stack.Screen name="artist/[id]" />
 				<Stack.Screen name="album/[id]" />
 				<Stack.Screen name="playlist/[id]" />
-				<Stack.Screen
-					name="playlist-picker"
-					options={{ presentation: 'modal' }}
-				/>
+				<Stack.Screen name="playlist-picker" options={{ presentation: 'modal' }} />
 			</Stack>
 			<FloatingPlayer />
 			<TrackOptionsSheet />

@@ -140,7 +140,12 @@ function TrackOptionsContent({
 	onClose,
 }: TrackOptionsContentProps) {
 	const { colors } = useAppTheme();
-	const { actions, executeAction } = useTrackActions({ track, source, playlistId, trackPosition });
+	const { actions, executeAction } = useTrackActions({
+		track,
+		source,
+		playlistId,
+		trackPosition,
+	});
 
 	const groups = useMemo(() => {
 		const groupMap = new Map<string, typeof actions>();
