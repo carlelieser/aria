@@ -1,5 +1,7 @@
 # Aria
 
+> **Alpha Release** - This project is in early development. Features may be incomplete, unstable, or subject to breaking changes. Not recommended for production use.
+
 A modern, extensible music player for iOS, Android, and web built with Expo and React Native. Aria features a sophisticated plugin architecture that enables streaming from multiple sources while maintaining clean separation of concerns.
 
 ## Features
@@ -146,7 +148,7 @@ aria/
 │   │   │   ├── lyrics-service.ts
 │   │   │   ├── sleep-timer-service.ts
 │   │   │   └── track-actions-service.ts
-│   │   ├── state/               # 18 Zustand stores
+│   │   ├── state/               # 17 Zustand stores
 │   │   │   ├── player-store.ts
 │   │   │   ├── player-ui-store.ts
 │   │   │   ├── library-store.ts
@@ -308,7 +310,7 @@ export class MyMusicProvider implements BasePlugin, MetadataProvider {
 
 ## State Management
 
-Aria uses Zustand for reactive state management with 18 stores:
+Aria uses Zustand for reactive state management with 17 stores:
 
 | Store | Purpose |
 |:------|:--------|
@@ -324,6 +326,11 @@ Aria uses Zustand for reactive state management with 18 stores:
 | `HistoryStore` | Playback history |
 | `ExploreFilterStore` | Explore filters, sorting options |
 | `PluginSettingsStore` | Plugin configuration |
+| `AlbumStore` | Album details and track listings |
+| `ArtistStore` | Artist details and discography |
+| `SelectionStore` | Multi-select state for batch actions |
+| `ToastStore` | Toast notification queue |
+| `TrackOptionsStore` | Track context menu state |
 
 ## Error Handling
 
