@@ -12,7 +12,7 @@ export function useColorScheme(): 'light' | 'dark' {
 	const themePreference = useSettingsStore((state) => state.themePreference);
 
 	if (themePreference === 'system') {
-		return systemColorScheme ?? 'light';
+		return systemColorScheme === 'dark' ? 'dark' : 'light';
 	}
 
 	return themePreference;
