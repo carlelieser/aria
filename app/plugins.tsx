@@ -207,7 +207,7 @@ function PluginSection({
           {label.toUpperCase()}
         </Text>
       </View>
-      <Surface style={[styles.sectionContent, { backgroundColor: colors.surfaceContainerLow }]}>
+      <View style={[styles.sectionContent, { backgroundColor: colors.surfaceContainerLow }]}>
         {plugins.map((plugin, index) => (
           <PluginItem
             key={plugin.id}
@@ -217,7 +217,7 @@ function PluginSection({
             onToggle={() => onToggle(plugin)}
           />
         ))}
-      </Surface>
+      </View>
     </View>
   );
 }
@@ -242,7 +242,6 @@ function PluginItem({
     <TouchableOpacity
       style={[
         styles.pluginItem,
-        !isLast && { borderBottomWidth: 1, borderBottomColor: colors.outlineVariant },
       ]}
       onPress={onPress}
       activeOpacity={0.7}
@@ -346,11 +345,11 @@ function PluginDetailScreen({
             <Text variant="labelMedium" style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
               DESCRIPTION
             </Text>
-            <Surface style={[styles.detailCard, { backgroundColor: colors.surfaceContainerLow }]}>
+            <View style={[styles.detailCard, { backgroundColor: colors.surfaceContainerLow }]}>
               <Text variant="bodyMedium" style={{ color: colors.onSurface }}>
                 {plugin.description}
               </Text>
-            </Surface>
+            </View>
           </View>
         )}
 
@@ -358,11 +357,11 @@ function PluginDetailScreen({
           <Text variant="labelMedium" style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
             CATEGORY
           </Text>
-          <Surface style={[styles.detailCard, { backgroundColor: colors.surfaceContainerLow }]}>
+          <View style={[styles.detailCard, { backgroundColor: colors.surfaceContainerLow }]}>
             <Text variant="bodyMedium" style={{ color: colors.onSurface }}>
               {categoryLabels[plugin.category] || plugin.category}
             </Text>
-          </Surface>
+          </View>
         </View>
 
         {plugin.capabilities.length > 0 && (
@@ -370,7 +369,7 @@ function PluginDetailScreen({
             <Text variant="labelMedium" style={[styles.sectionTitle, { color: colors.onSurfaceVariant }]}>
               CAPABILITIES
             </Text>
-            <Surface style={[styles.detailCard, { backgroundColor: colors.surfaceContainerLow }]}>
+            <View style={[styles.detailCard, { backgroundColor: colors.surfaceContainerLow }]}>
               <View style={styles.capabilitiesContainer}>
                 {plugin.capabilities.map((cap) => (
                   <View key={cap} style={[styles.capabilityChip, { backgroundColor: colors.surfaceContainerHighest }]}>
@@ -380,7 +379,7 @@ function PluginDetailScreen({
                   </View>
                 ))}
               </View>
-            </Surface>
+            </View>
           </View>
         )}
       </ScrollView>
@@ -413,7 +412,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   sectionContent: {
-    marginHorizontal: 16,
     borderRadius: 16,
     overflow: 'hidden',
   },
@@ -468,7 +466,6 @@ const styles = StyleSheet.create({
   },
   detailCard: {
     borderRadius: 16,
-    padding: 16,
     marginTop: 8,
   },
   capabilitiesContainer: {

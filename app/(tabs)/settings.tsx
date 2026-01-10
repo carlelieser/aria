@@ -386,7 +386,7 @@ function SettingsSection({ title, children }: { title: string; children: React.R
       >
         {title.toUpperCase()}
       </Text>
-      <Surface style={[styles.sectionContent, { backgroundColor: colors.surfaceContainerLow }]}>
+      <Surface elevation={0} style={[styles.sectionContent, { backgroundColor: colors.surfaceContainerLow }]}>
         {children}
       </Surface>
     </View>
@@ -455,6 +455,7 @@ function SettingsItem({
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
+    paddingHorizontal: 8,
   },
   scrollContent: {
     paddingBottom: 32,
@@ -468,7 +469,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   sectionContent: {
-    marginHorizontal: 16,
     borderRadius: 16,
     overflow: 'hidden',
   },

@@ -62,6 +62,22 @@ export class ExpoAudioPlaybackProvider implements PlaybackProvider {
 	private listeners: Set<PlaybackEventListener> = new Set();
 	private positionUpdateInterval: ReturnType<typeof setInterval> | null = null;
 	private isInitialized: boolean = false;
+	private operationLock: Promise<void> = Promise.resolve();
+
+	// Ensures sound operations are serialized to avoid threading issues on Android
+	private async withLock<T>(operation: () => Promise<T>): Promise<T> {
+		const previousLock = this.operationLock;
+		let resolve: () => void;
+		this.operationLock = new Promise((r) => {
+			resolve = r;
+		});
+		try {
+			await previousLock;
+			return await operation();
+		} finally {
+			resolve!();
+		}
+	}
 
 	async onInit(context?: PluginInitContext): AsyncResult<void, Error> {
 		if (this.isInitialized) {
@@ -115,108 +131,118 @@ export class ExpoAudioPlaybackProvider implements PlaybackProvider {
 		startPosition?: Duration,
 		headers?: Record<string, string>
 	): AsyncResult<void, Error> {
-		try {
-			logger.debug('play called for track:', track.title);
-			logger.debug('Stream URL length:', streamUrl.length);
-			logger.debug('Headers:', headers ? JSON.stringify(headers) : 'none');
+		return this.withLock(async () => {
+			try {
+				logger.debug('play called for track:', track.title);
+				logger.debug('Stream URL length:', streamUrl.length);
+				logger.debug('Headers:', headers ? JSON.stringify(headers) : 'none');
 
-			if (this.sound) {
-				logger.debug('Unloading previous sound...');
-				await this.sound.unloadAsync();
-				this.sound = null;
+				if (this.sound) {
+					logger.debug('Unloading previous sound...');
+					await this.sound.unloadAsync();
+					this.sound = null;
+				}
+
+				this.currentTrack = track;
+				this.position = Duration.ZERO;
+				this.duration = Duration.ZERO;
+				this.updateStatus('loading');
+
+				const source: { uri: string; headers?: Record<string, string> } = { uri: streamUrl };
+				if (headers) source.headers = headers;
+
+				logger.debug('Creating sound...');
+				const { sound } = await Audio.Sound.createAsync(
+					source,
+					{
+						shouldPlay: true,
+						volume: this.volume,
+						positionMillis: startPosition?.totalMilliseconds ?? 0,
+					},
+					this.onPlaybackStatusUpdate.bind(this)
+				);
+
+				logger.debug('Sound created successfully');
+				this.sound = sound;
+				this.updateStatus('playing');
+				this.emitEvent({ type: 'track-change', track, timestamp: Date.now() });
+
+				return ok(undefined);
+			} catch (error) {
+				logger.error('Error during playback', error instanceof Error ? error : undefined);
+				this.updateStatus('error');
+				const errorObj = error instanceof Error ? error : new Error(String(error));
+				this.emitEvent({ type: 'error', error: errorObj, timestamp: Date.now() });
+				return err(errorObj);
 			}
-
-			this.currentTrack = track;
-			this.position = Duration.ZERO;
-			this.duration = Duration.ZERO;
-			this.updateStatus('loading');
-
-			const source: { uri: string; headers?: Record<string, string> } = { uri: streamUrl };
-			if (headers) source.headers = headers;
-
-			logger.debug('Creating sound...');
-			const { sound } = await Audio.Sound.createAsync(
-				source,
-				{
-					shouldPlay: true,
-					volume: this.volume,
-					positionMillis: startPosition?.totalMilliseconds ?? 0,
-				},
-				this.onPlaybackStatusUpdate.bind(this)
-			);
-
-			logger.debug('Sound created successfully');
-			this.sound = sound;
-			this.updateStatus('playing');
-			this.startPositionUpdates();
-			this.emitEvent({ type: 'track-change', track, timestamp: Date.now() });
-
-			return ok(undefined);
-		} catch (error) {
-			logger.error('Error during playback', error instanceof Error ? error : undefined);
-			this.updateStatus('error');
-			const errorObj = error instanceof Error ? error : new Error(String(error));
-			this.emitEvent({ type: 'error', error: errorObj, timestamp: Date.now() });
-			return err(errorObj);
-		}
+		});
 	}
 
 	async pause(): AsyncResult<void, Error> {
-		if (this.sound && this.playbackStatus === 'playing') {
-			await this.sound.pauseAsync();
-			this.updateStatus('paused');
-			this.stopPositionUpdates();
-		}
-		return ok(undefined);
+		return this.withLock(async () => {
+			if (this.sound && this.playbackStatus === 'playing') {
+				await this.sound.pauseAsync();
+				this.updateStatus('paused');
+			}
+			return ok(undefined);
+		});
 	}
 
 	async resume(): AsyncResult<void, Error> {
-		if (this.sound && this.playbackStatus === 'paused') {
-			await this.sound.playAsync();
-			this.updateStatus('playing');
-			this.startPositionUpdates();
-		}
-		return ok(undefined);
+		return this.withLock(async () => {
+			if (this.sound && this.playbackStatus === 'paused') {
+				await this.sound.playAsync();
+				this.updateStatus('playing');
+			}
+			return ok(undefined);
+		});
 	}
 
 	async stop(): AsyncResult<void, Error> {
-		if (this.sound) {
-			try {
-				await this.sound.stopAsync();
-				await this.sound.unloadAsync();
-			} catch (e) {}
-			this.sound = null;
-		}
-		this.stopPositionUpdates();
-		this.currentTrack = null;
-		this.position = Duration.ZERO;
-		this.duration = Duration.ZERO;
-		this.updateStatus('idle');
-		return ok(undefined);
+		return this.withLock(async () => {
+			if (this.sound) {
+				try {
+					await this.sound.stopAsync();
+					await this.sound.unloadAsync();
+				} catch (e) {}
+				this.sound = null;
+			}
+			this.currentTrack = null;
+			this.position = Duration.ZERO;
+			this.duration = Duration.ZERO;
+			this.updateStatus('idle');
+			return ok(undefined);
+		});
 	}
 
 	async seek(position: Duration): AsyncResult<void, Error> {
-		if (this.sound) {
-			await this.sound.setPositionAsync(position.totalMilliseconds);
-			this.position = position;
-			this.emitEvent({ type: 'position-change', position, timestamp: Date.now() });
-		}
-		return ok(undefined);
+		return this.withLock(async () => {
+			if (this.sound) {
+				await this.sound.setPositionAsync(position.totalMilliseconds);
+				this.position = position;
+				this.emitEvent({ type: 'position-change', position, timestamp: Date.now() });
+			}
+			return ok(undefined);
+		});
 	}
 
 	async setPlaybackRate(rate: number): AsyncResult<void, Error> {
-		if (this.sound) {
-			await this.sound.setRateAsync(Math.max(0.5, Math.min(2.0, rate)), true);
-		}
-		return ok(undefined);
+		return this.withLock(async () => {
+			if (this.sound) {
+				await this.sound.setRateAsync(Math.max(0.5, Math.min(2.0, rate)), true);
+			}
+			return ok(undefined);
+		});
 	}
 
 	async setVolume(volume: number): AsyncResult<void, Error> {
-		this.volume = Math.max(0, Math.min(1, volume));
-		if (this.sound) {
-			await this.sound.setVolumeAsync(this.volume);
-		}
-		return ok(undefined);
+		return this.withLock(async () => {
+			this.volume = Math.max(0, Math.min(1, volume));
+			if (this.sound) {
+				await this.sound.setVolumeAsync(this.volume);
+			}
+			return ok(undefined);
+		});
 	}
 
 	getVolume(): number {
@@ -347,7 +373,16 @@ export class ExpoAudioPlaybackProvider implements PlaybackProvider {
 		if (!status.isLoaded) return;
 
 		if (status.positionMillis !== undefined) {
-			this.position = Duration.fromMilliseconds(status.positionMillis);
+			const newPosition = Duration.fromMilliseconds(status.positionMillis);
+			// Only emit if position changed by at least 500ms to reduce event spam
+			if (Math.abs(newPosition.totalMilliseconds - this.position.totalMilliseconds) >= 500) {
+				this.position = newPosition;
+				this.emitEvent({
+					type: 'position-change',
+					position: this.position,
+					timestamp: Date.now(),
+				});
+			}
 		}
 		if (status.durationMillis !== undefined) {
 			const newDuration = Duration.fromMilliseconds(status.durationMillis);
@@ -361,26 +396,29 @@ export class ExpoAudioPlaybackProvider implements PlaybackProvider {
 			}
 		}
 
-		if (status.isBuffering) {
-			this.updateStatus('buffering');
-		} else if (status.isPlaying) {
-			this.updateStatus('playing');
-		} else if (this.playbackStatus !== 'idle' && this.playbackStatus !== 'loading') {
-			this.updateStatus('paused');
-		}
+		// NOTE: We intentionally do NOT update playback status here based on
+		// status.isPlaying/isBuffering. The status is already set explicitly in
+		// pause(), resume(), play(), and stop() methods. Updating it here causes
+		// race conditions where native callbacks fire with stale state and
+		// overwrite the UI, causing random play/pause flickering.
 
 		if (status.didJustFinish && !status.isLooping) {
 			this.handleTrackCompletion();
 		}
 	}
 
-	private async handleTrackCompletion(): Promise<void> {
-		if (this.currentIndex < this.queue.length - 1) {
-			await this.skipToNext();
-		} else {
-			await this.stop();
-			this.emitEvent({ type: 'ended', timestamp: Date.now() });
-		}
+	private handleTrackCompletion(): void {
+		// Defer to next tick to avoid threading issues on Android
+		// This callback may fire on a background thread, and ExoPlayer
+		// requires all operations to happen on the main thread
+		setTimeout(async () => {
+			if (this.currentIndex < this.queue.length - 1) {
+				await this.skipToNext();
+			} else {
+				await this.stop();
+				this.emitEvent({ type: 'ended', timestamp: Date.now() });
+			}
+		}, 0);
 	}
 
 	private updateStatus(newStatus: PlaybackStatus): void {
@@ -396,23 +434,6 @@ export class ExpoAudioPlaybackProvider implements PlaybackProvider {
 				listener(event);
 			} catch (e) {}
 		});
-	}
-
-	private startPositionUpdates(): void {
-		this.stopPositionUpdates();
-		this.positionUpdateInterval = setInterval(async () => {
-			if (this.sound && this.playbackStatus === 'playing') {
-				const status = await this.sound.getStatusAsync();
-				if (status.isLoaded && status.positionMillis !== undefined) {
-					this.position = Duration.fromMilliseconds(status.positionMillis);
-					this.emitEvent({
-						type: 'position-change',
-						position: this.position,
-						timestamp: Date.now(),
-					});
-				}
-			}
-		}, 1000);
 	}
 
 	private stopPositionUpdates(): void {

@@ -5,7 +5,7 @@
  * Uses M3 theming.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { View, ScrollView, Image, StyleSheet } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -27,6 +27,20 @@ import { albumService } from '@/src/application/services/album-service';
 import { getArtworkUrl, getArtistNames } from '@/src/domain/entities/track';
 import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
+import type { Artwork } from '@/src/domain/value-objects/artwork';
+
+function enrichTracksWithAlbumArtwork(tracks: Track[], albumArtworkUrl?: string): Track[] {
+  if (!albumArtworkUrl) return tracks;
+
+  const fallbackArtwork: Artwork[] = [{ url: albumArtworkUrl }];
+
+  return tracks.map((track) => {
+    if (track.artwork && track.artwork.length > 0) {
+      return track;
+    }
+    return { ...track, artwork: fallbackArtwork };
+  });
+}
 
 function useLibraryAlbumTracks(albumId: string): Track[] {
   const tracks = useTracks();
@@ -73,6 +87,11 @@ export default function AlbumScreen() {
         artwork: albumDetail.album.artwork?.[0]?.url,
       }
     : getAlbumInfo(libraryTracks, id, name);
+
+  const enrichedTracks = useMemo(
+    () => enrichTracksWithAlbumArtwork(displayTracks, albumInfo.artwork),
+    [displayTracks, albumInfo.artwork]
+  );
 
   const hasData = albumDetail.album !== null || libraryTracks.length > 0;
   const showHeaderSkeleton = isLoading && !hasData;
@@ -157,7 +176,7 @@ export default function AlbumScreen() {
               Search for tracks instead
             </Button>
           </View>
-        ) : displayTracks.length === 0 ? (
+        ) : enrichedTracks.length === 0 ? (
           <View style={styles.emptyState}>
             <Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant }}>
               No tracks found for this album
@@ -167,13 +186,12 @@ export default function AlbumScreen() {
             </Button>
           </View>
         ) : (
-          displayTracks.map((track, index) => (
+          enrichedTracks.map((track, index) => (
             <TrackListItem
-              key={track.id.value}
+              key={`album-${index}-${track.id.value}`}
               track={track}
               source="search"
-              fallbackArtworkUrl={albumInfo.artwork}
-              queue={displayTracks}
+              queue={enrichedTracks}
               queueIndex={index}
             />
           ))

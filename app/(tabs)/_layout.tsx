@@ -212,6 +212,7 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
                 <IconComponent
                   size={24}
                   color={isFocused ? colors.primary : colors.onSurfaceVariant}
+                  opacity={isFocused ? 1 : 0.7}
                   strokeWidth={isFocused ? 2.5 : 2}
                 />
                 {showNotificationDot && (
@@ -225,7 +226,7 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
               <Text
                 style={[
                   styles.tabLabel,
-                  { color: isFocused ? colors.primary : colors.onSurfaceVariant },
+                  { color: isFocused ? colors.primary : colors.onSurfaceVariant, opacity: isFocused ? 1 : 0.7},
                 ]}
               >
                 {config.label}
@@ -255,7 +256,7 @@ const styles = StyleSheet.create({
   },
   indicator: {
     position: 'absolute',
-    top: 12,
+    top: 13,
     left: 0,
     width: INDICATOR_WIDTH,
     height: INDICATOR_HEIGHT,

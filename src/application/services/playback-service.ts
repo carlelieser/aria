@@ -265,7 +265,10 @@ export class PlaybackService {
 					store._setDuration(event.duration);
 					break;
 				case 'ended':
-					this.skipToNext();
+					// Defer to next tick to avoid threading issues on Android
+					// The callback may fire on a background thread, and ExoPlayer
+					// requires all operations to happen on the main thread
+					setTimeout(() => this.skipToNext(), 0);
 					break;
 				case 'error':
 					store._setError(event.error.message);

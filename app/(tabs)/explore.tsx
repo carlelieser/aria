@@ -68,8 +68,7 @@ const ExploreSection = memo(function ExploreSection({
 		<View style={styles.section}>
 			<View style={styles.sectionHeader}>
 				<View style={styles.sectionTitleRow}>
-					<Icon as={IconComponent} size={18} color={colors.onSurfaceVariant} />
-					<Text variant="titleMedium" style={titleStyle}>
+					<Text variant="labelLarge" style={titleStyle}>
 						{title}
 					</Text>
 				</View>
