@@ -71,7 +71,7 @@ async function generateIcons() {
 			// Create rounded icon for README - crop out the padding first
 			// The SVG has content roughly in the center, extract and resize
 			const roundedCorners = Buffer.from(
-				`<svg><rect x="0" y="0" width="${icon.size}" height="${icon.size}" rx="${icon.size * 0.22}" ry="${icon.size * 0.22}"/></svg>`
+				`<svg><circle cx="${icon.size / 2}" cy="${icon.size / 2}" r="${icon.size / 2}"/></svg>`
 			);
 
 			// First render at higher resolution, then crop the content area
