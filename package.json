@@ -14,7 +14,8 @@
 		"test": "vitest",
 		"test:run": "vitest run",
 		"test:coverage": "vitest run --coverage",
-		"build:android": "eas build --platform android --local --output out/aria.apk"
+		"build:android": "eas build --platform android --local --output out/aria.apk",
+		"build:apk": "cd android && NODE_ENV=production ./gradlew assembleRelease && echo '\nAPK built: android/app/build/outputs/apk/release/app-release.apk'"
 	},
 	"dependencies": {
 		"@expo/metro-runtime": "~6.1.2",
