@@ -1,7 +1,7 @@
 {
   "name": "aria",
   "main": "lib/entry",
-  "version": "0.2.0-alpha",
+  "version": "0.2.0-beta",
   "author": {
     "name": "Carlos Santos",
     "email": "hello@carlelieser.dev",

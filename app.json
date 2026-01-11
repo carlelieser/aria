@@ -2,7 +2,7 @@
 	"expo": {
 		"name": "Aria",
 		"slug": "aria",
-		"version": "0.2.0-alpha",
+		"version": "0.2.0-beta",
 		"orientation": "portrait",
 		"icon": "./assets/images/icon.png",
 		"scheme": "aria",
