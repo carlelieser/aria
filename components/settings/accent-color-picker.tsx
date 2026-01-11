@@ -5,17 +5,19 @@
  * Uses M3 theming with preset color options.
  */
 
-import { useRef, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
-import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
+import { LinearGradient } from 'expo-linear-gradient';
 import { PaletteIcon } from 'lucide-react-native';
 import { SettingsItem } from '@/components/settings/settings-item';
 import { SettingsBottomSheet } from '@/components/settings/settings-bottom-sheet';
 import { useAppTheme } from '@/lib/theme';
 import { SEED_COLOR } from '@/lib/theme/colors';
 
+// null represents dynamic/Material You colors (wallpaper-extracted on Android 12+)
 const ACCENT_COLORS = [
+	{ value: null, label: 'Dynamic', color: null },
 	{ value: '#7C3AED', label: 'Violet', color: '#7C3AED' },
 	{ value: '#2563EB', label: 'Blue', color: '#2563EB' },
 	{ value: '#0891B2', label: 'Cyan', color: '#0891B2' },
@@ -37,27 +39,26 @@ interface AccentColorPickerProps {
 
 export function AccentColorPicker({ value, onValueChange }: AccentColorPickerProps) {
 	const { colors } = useAppTheme();
-	const sheetRef = useRef<BottomSheetMethods>(null);
+	const [isOpen, setIsOpen] = useState(false);
 
 	const currentColor = value ?? SEED_COLOR;
 	const selectedOption = ACCENT_COLORS.find((c) => c.value === value);
 
 	const handlePress = useCallback(() => {
-		sheetRef.current?.expand();
+		setIsOpen(true);
+	}, []);
+
+	const handleClose = useCallback(() => {
+		setIsOpen(false);
 	}, []);
 
 	const handleSelectColor = useCallback(
-		(color: string) => {
+		(color: string | null) => {
 			onValueChange(color);
-			sheetRef.current?.close();
+			setIsOpen(false);
 		},
 		[onValueChange]
 	);
-
-	const handleReset = useCallback(() => {
-		onValueChange(null);
-		sheetRef.current?.close();
-	}, [onValueChange]);
 
 	const subtitleElement = (
 		<View style={styles.valueRow}>
@@ -79,38 +80,57 @@ export function AccentColorPicker({ value, onValueChange }: AccentColorPickerPro
 			/>
 
 			<SettingsBottomSheet
-				ref={sheetRef}
+				isOpen={isOpen}
+				onClose={handleClose}
 				portalName="accent-color-picker"
 				title="Choose Accent Color"
-				showReset
-				onReset={handleReset}
 			>
 				<View style={styles.colorGrid}>
 					{ACCENT_COLORS.map((colorOption) => {
 						const isSelected = value === colorOption.value;
+						const isDynamic = colorOption.value === null;
 						return (
 							<Pressable
-								key={colorOption.value}
+								key={colorOption.value ?? 'dynamic'}
 								onPress={() => handleSelectColor(colorOption.value)}
 								style={({ pressed }) => [
 									styles.colorItem,
 									pressed && styles.pressed,
 								]}
 							>
-								<View
-									style={[
-										styles.colorSwatch,
-										{ backgroundColor: colorOption.color },
-										isSelected && styles.selectedSwatch,
-										isSelected && { borderColor: colors.onSurface },
-									]}
-								>
-									{isSelected && (
-										<View style={styles.checkmark}>
-											<Text style={styles.checkmarkText}>✓</Text>
-										</View>
-									)}
-								</View>
+								{isDynamic ? (
+									<LinearGradient
+										colors={['#7C3AED', '#2563EB', '#059669', '#EA580C']}
+										start={{ x: 0, y: 0 }}
+										end={{ x: 1, y: 1 }}
+										style={[
+											styles.colorSwatch,
+											isSelected && styles.selectedSwatch,
+											isSelected && { borderColor: colors.onSurface },
+										]}
+									>
+										{isSelected && (
+											<View style={styles.checkmark}>
+												<Text style={styles.checkmarkText}>✓</Text>
+											</View>
+										)}
+									</LinearGradient>
+								) : (
+									<View
+										style={[
+											styles.colorSwatch,
+											{ backgroundColor: colorOption.color },
+											isSelected && styles.selectedSwatch,
+											isSelected && { borderColor: colors.onSurface },
+										]}
+									>
+										{isSelected && (
+											<View style={styles.checkmark}>
+												<Text style={styles.checkmarkText}>✓</Text>
+											</View>
+										)}
+									</View>
+								)}
 								<Text
 									variant="labelSmall"
 									style={[styles.colorLabel, { color: colors.onSurfaceVariant }]}
@@ -150,7 +170,6 @@ const styles = StyleSheet.create({
 	},
 	colorItem: {
 		alignItems: 'center',
-		width: 64,
 	},
 	colorSwatch: {
 		width: 48,

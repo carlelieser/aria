@@ -4,7 +4,7 @@
  * Bottom sheet menu using @gorhom/bottom-sheet with M3 theming.
  */
 
-import React, { forwardRef, useCallback } from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import BottomSheet, {
 	BottomSheetBackdrop,
@@ -33,26 +33,38 @@ export interface ActionSheetGroup {
 }
 
 interface ActionSheetProps {
+	isOpen: boolean;
 	groups: ActionSheetGroup[];
 	onSelect: (itemId: string) => void;
-	onDismiss?: () => void;
+	onClose: () => void;
 	header?: React.ReactNode;
 	portalName: string;
 }
 
-export const ActionSheet = forwardRef<BottomSheetMethods, ActionSheetProps>(function ActionSheet(
-	{ groups, onSelect, onDismiss, header, portalName },
-	ref
-) {
+export function ActionSheet({
+	isOpen,
+	groups,
+	onSelect,
+	onClose,
+	header,
+	portalName,
+}: ActionSheetProps) {
 	const { colors } = useAppTheme();
+	const sheetRef = useRef<BottomSheetMethods>(null);
+
+	useEffect(() => {
+		if (isOpen) {
+			sheetRef.current?.snapToIndex(0);
+		}
+	}, [isOpen]);
 
 	const handleSheetChanges = useCallback(
 		(index: number) => {
 			if (index === -1) {
-				onDismiss?.();
+				onClose();
 			}
 		},
-		[onDismiss]
+		[onClose]
 	);
 
 	const renderBackdrop = useCallback(
@@ -70,19 +82,20 @@ export const ActionSheet = forwardRef<BottomSheetMethods, ActionSheetProps>(func
 	const handleItemPress = useCallback(
 		(itemId: string) => {
 			onSelect(itemId);
-
-			if (ref && 'current' in ref && ref.current) {
-				ref.current.close();
-			}
+			sheetRef.current?.close();
 		},
-		[onSelect, ref]
+		[onSelect]
 	);
+
+	if (!isOpen) {
+		return null;
+	}
 
 	return (
 		<Portal name={`action-sheet-${portalName}`}>
 			<BottomSheet
-				ref={ref}
-				index={-1}
+				ref={sheetRef}
+				index={0}
 				enableDynamicSizing
 				enablePanDownToClose
 				backdropComponent={renderBackdrop}
@@ -127,7 +140,7 @@ export const ActionSheet = forwardRef<BottomSheetMethods, ActionSheetProps>(func
 			</BottomSheet>
 		</Portal>
 	);
-});
+}
 
 function ActionSheetItemComponent({
 	item,

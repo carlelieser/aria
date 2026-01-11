@@ -6,9 +6,9 @@
  */
 
 import { useCallback, useMemo, useState } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import DraggableFlatList, {
 	ScaleDecorator,
@@ -110,6 +110,27 @@ export default function PlaylistScreen() {
 		setMenuVisible(false);
 	}, []);
 
+	// Memoized render function for FlatList virtualization
+	const renderTrackItem = useCallback(
+		({ item, index }: { item: PlaylistTrack; index: number }) => (
+			<TrackListItem
+				track={item.track}
+				source="playlist"
+				queue={tracks}
+				queueIndex={index}
+				playlistId={playlist?.id}
+				trackPosition={item.position}
+			/>
+		),
+		[tracks, playlist?.id]
+	);
+
+	const keyExtractor = useCallback(
+		(item: PlaylistTrack, index: number) =>
+			`${playlist?.id}-${index}-${item.track.id.value}`,
+		[playlist?.id]
+	);
+
 	const renderDraggableItem = useCallback(
 		({ item, drag, isActive }: RenderItemParams<PlaylistTrack>) => {
 			const artwork = getBestArtwork(item.track.artwork, 48);
@@ -173,26 +194,22 @@ export default function PlaylistScreen() {
 		return (
 			<View style={[styles.container, { backgroundColor: colors.background }]}>
 				<View
-					style={[
-						styles.header,
-						{
-							backgroundColor: colors.surfaceContainerHigh,
-							paddingTop: insets.top + 16,
-						},
-					]}
+					style={[styles.header, { backgroundColor: colors.surfaceContainerHigh }]}
 				>
-					<View style={styles.headerRow}>
-						<IconButton
-							icon={() => (
-								<Icon as={ChevronLeftIcon} size={22} color={colors.onSurface} />
-							)}
-							onPress={() => router.back()}
-							style={styles.backButton}
-						/>
-						<Text variant="titleMedium" style={{ color: colors.onSurfaceVariant }}>
-							Playlist
-						</Text>
-					</View>
+					<SafeAreaView edges={['top']} style={styles.headerSafeArea}>
+						<View style={styles.headerRow}>
+							<IconButton
+								icon={() => (
+									<Icon as={ChevronLeftIcon} size={22} color={colors.onSurface} />
+								)}
+								onPress={() => router.back()}
+								style={styles.backButton}
+							/>
+							<Text variant="titleMedium" style={{ color: colors.onSurfaceVariant }}>
+								Playlist
+							</Text>
+						</View>
+					</SafeAreaView>
 				</View>
 				<EmptyState
 					icon={ListMusicIcon}
@@ -206,136 +223,135 @@ export default function PlaylistScreen() {
 	return (
 		<View style={[styles.container, { backgroundColor: colors.background }]}>
 			<View
-				style={[
-					styles.header,
-					{ backgroundColor: colors.surfaceContainerHigh, paddingTop: insets.top + 16 },
-				]}
+				style={[styles.header, { backgroundColor: colors.surfaceContainerHigh }]}
 			>
-				<View style={styles.headerRow}>
-					<IconButton
-						icon={() => (
-							<Icon as={ChevronLeftIcon} size={22} color={colors.onSurface} />
-						)}
-						onPress={() => router.back()}
-						style={styles.backButton}
-					/>
-					<Text variant="titleMedium" style={{ color: colors.onSurfaceVariant }}>
-						Playlist
-					</Text>
-					<View style={styles.headerSpacer} />
-					{isEditMode ? (
+				<SafeAreaView edges={['top']} style={styles.headerSafeArea}>
+					<View style={styles.headerRow}>
 						<IconButton
-							icon={() => <Icon as={CheckIcon} size={22} color={colors.primary} />}
-							onPress={toggleEditMode}
+							icon={() => (
+								<Icon as={ChevronLeftIcon} size={22} color={colors.onSurface} />
+							)}
+							onPress={() => router.back()}
+							style={styles.backButton}
 						/>
-					) : (
-						<Menu
-							visible={menuVisible}
-							onDismiss={() => setMenuVisible(false)}
-							anchor={
-								<IconButton
-									icon={() => (
+						<Text variant="titleMedium" style={{ color: colors.onSurfaceVariant }}>
+							Playlist
+						</Text>
+						<View style={styles.headerSpacer} />
+						{isEditMode ? (
+							<IconButton
+								icon={() => <Icon as={CheckIcon} size={22} color={colors.primary} />}
+								onPress={toggleEditMode}
+							/>
+						) : (
+							<Menu
+								visible={menuVisible}
+								onDismiss={() => setMenuVisible(false)}
+								anchor={
+									<IconButton
+										icon={() => (
+											<Icon
+												as={MoreVerticalIcon}
+												size={22}
+												color={colors.onSurface}
+											/>
+										)}
+										onPress={() => setMenuVisible(true)}
+									/>
+								}
+								contentStyle={{ backgroundColor: colors.surfaceContainerHigh }}
+							>
+								<Menu.Item
+									leadingIcon={() => (
 										<Icon
-											as={MoreVerticalIcon}
-											size={22}
+											as={GripVerticalIcon}
+											size={20}
 											color={colors.onSurface}
 										/>
 									)}
-									onPress={() => setMenuVisible(true)}
+									onPress={toggleEditMode}
+									title="Reorder Tracks"
+									titleStyle={{ color: colors.onSurface }}
+									disabled={tracks.length < 2}
 								/>
-							}
-							contentStyle={{ backgroundColor: colors.surfaceContainerHigh }}
-						>
-							<Menu.Item
-								leadingIcon={() => (
-									<Icon
-										as={GripVerticalIcon}
-										size={20}
-										color={colors.onSurface}
-									/>
-								)}
-								onPress={toggleEditMode}
-								title="Reorder Tracks"
-								titleStyle={{ color: colors.onSurface }}
-								disabled={tracks.length < 2}
-							/>
-							<Menu.Item
-								leadingIcon={() => (
-									<Icon as={PencilIcon} size={20} color={colors.onSurface} />
-								)}
-								onPress={() => {
-									setMenuVisible(false);
-									setRenameDialogVisible(true);
-								}}
-								title="Rename Playlist"
-								titleStyle={{ color: colors.onSurface }}
-							/>
-							<Menu.Item
-								leadingIcon={() => (
-									<Icon as={Trash2Icon} size={20} color={colors.error} />
-								)}
-								onPress={() => {
-									setMenuVisible(false);
-									setDeleteDialogVisible(true);
-								}}
-								title="Delete Playlist"
-								titleStyle={{ color: colors.error }}
-							/>
-						</Menu>
-					)}
-				</View>
-
-				<View style={styles.playlistInfo}>
-					{artworkUrl ? (
-						<Image
-							source={{ uri: artworkUrl }}
-							style={styles.playlistArtwork}
-							contentFit="cover"
-						/>
-					) : (
-						<View
-							style={[
-								styles.playlistArtwork,
-								{ backgroundColor: colors.surfaceContainerHighest },
-							]}
-						>
-							<Icon as={ListMusicIcon} size={64} color={colors.onSurfaceVariant} />
-						</View>
-					)}
-					<View style={styles.playlistText}>
-						<Text
-							variant="headlineSmall"
-							style={{
-								color: colors.onSurface,
-								fontWeight: '700',
-								textAlign: 'center',
-							}}
-						>
-							{playlist.name}
-						</Text>
-						{playlist.description && (
-							<Text
-								variant="bodyMedium"
-								style={{ color: colors.onSurfaceVariant, textAlign: 'center' }}
-							>
-								{playlist.description}
-							</Text>
+								<Menu.Item
+									leadingIcon={() => (
+										<Icon as={PencilIcon} size={20} color={colors.onSurface} />
+									)}
+									onPress={() => {
+										setMenuVisible(false);
+										setRenameDialogVisible(true);
+									}}
+									title="Rename Playlist"
+									titleStyle={{ color: colors.onSurface }}
+								/>
+								<Menu.Item
+									leadingIcon={() => (
+										<Icon as={Trash2Icon} size={20} color={colors.error} />
+									)}
+									onPress={() => {
+										setMenuVisible(false);
+										setDeleteDialogVisible(true);
+									}}
+									title="Delete Playlist"
+									titleStyle={{ color: colors.error }}
+								/>
+							</Menu>
 						)}
-						<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
-							{tracks.length} {tracks.length === 1 ? 'track' : 'tracks'}
-							{totalDuration > 0 && ` · ${formatDuration(totalDuration)}`}
-						</Text>
 					</View>
-					{tracks.length > 0 && (
-						<Button
-							mode="contained"
-							icon={() => <Icon as={PlayIcon} size={18} color={colors.onPrimary} />}
-							onPress={handlePlayAll}
-						>
-							Play All
-						</Button>
-					)}
-				</View>
+
+					<View style={styles.playlistInfo}>
+						{artworkUrl ? (
+							<Image
+								source={{ uri: artworkUrl }}
+								style={styles.playlistArtwork}
+								contentFit="cover"
+							/>
+						) : (
+							<View
+								style={[
+									styles.playlistArtwork,
+									{ backgroundColor: colors.surfaceContainerHighest },
+								]}
+							>
+								<Icon as={ListMusicIcon} size={64} color={colors.onSurfaceVariant} />
+							</View>
+						)}
+						<View style={styles.playlistText}>
+							<Text
+								variant="headlineSmall"
+								style={{
+									color: colors.onSurface,
+									fontWeight: '700',
+									textAlign: 'center',
+								}}
+							>
+								{playlist.name}
+							</Text>
+							{playlist.description && (
+								<Text
+									variant="bodyMedium"
+									style={{ color: colors.onSurfaceVariant, textAlign: 'center' }}
+								>
+									{playlist.description}
+								</Text>
+							)}
+							<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
+								{tracks.length} {tracks.length === 1 ? 'track' : 'tracks'}
+								{totalDuration > 0 && ` · ${formatDuration(totalDuration)}`}
+							</Text>
+						</View>
+						{tracks.length > 0 && (
+							<Button
+								mode="contained"
+								icon={() => <Icon as={PlayIcon} size={18} color={colors.onPrimary} />}
+								onPress={handlePlayAll}
+							>
+								Play All
+							</Button>
+						)}
+					</View>
+				</SafeAreaView>
 			</View>
 
 			{isEditMode ? (
@@ -359,32 +375,27 @@ export default function PlaylistScreen() {
 					/>
 				</View>
 			) : (
-				<ScrollView
+				<FlatList
+					data={playlist.tracks}
+					renderItem={renderTrackItem}
+					keyExtractor={keyExtractor}
 					contentContainerStyle={[
 						styles.scrollContent,
 						{ paddingBottom: insets.bottom + 80 },
 					]}
-				>
-					{tracks.length === 0 ? (
+					ListEmptyComponent={
 						<EmptyState
 							icon={ListMusicIcon}
 							title="No tracks yet"
 							description="Add tracks to this playlist from the track options menu"
 						/>
-					) : (
-						playlist.tracks.map((playlistTrack, index) => (
-							<TrackListItem
-								key={`${playlist.id}-${index}-${playlistTrack.track.id.value}`}
-								track={playlistTrack.track}
-								source="playlist"
-								queue={tracks}
-								queueIndex={index}
-								playlistId={playlist.id}
-								trackPosition={playlistTrack.position}
-							/>
-						))
-					)}
-				</ScrollView>
+					}
+					// Performance optimizations
+					removeClippedSubviews
+					maxToRenderPerBatch={10}
+					windowSize={5}
+					initialNumToRender={15}
+				/>
 			)}
 
 			<ConfirmationDialog
@@ -419,6 +430,9 @@ const styles = StyleSheet.create({
 		paddingBottom: 24,
 		borderBottomLeftRadius: 24,
 		borderBottomRightRadius: 24,
+	},
+	headerSafeArea: {
+		paddingTop: 16,
 	},
 	headerRow: {
 		flexDirection: 'row',

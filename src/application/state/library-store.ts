@@ -82,10 +82,15 @@ export const useLibraryStore = create<LibraryState>()(
 			},
 
 			removeTrack: (trackId: string) => {
-				set((state) => ({
-					tracks: state.tracks.filter((t) => t.id.value !== trackId),
-					favorites: new Set(Array.from(state.favorites).filter((id) => id !== trackId)),
-				}));
+				set((state) => {
+					// Optimized: Direct Set delete instead of Array.from + filter
+					const newFavorites = new Set(state.favorites);
+					newFavorites.delete(trackId);
+					return {
+						tracks: state.tracks.filter((t) => t.id.value !== trackId),
+						favorites: newFavorites,
+					};
+				});
 			},
 
 			toggleFavorite: (trackId: string) => {
@@ -277,18 +282,32 @@ function extractUniqueArtists(tracks: Track[]): UniqueArtist[] {
 }
 
 let cachedArtists: UniqueArtist[] = [];
-let cachedTracksLength = -1;
-let cachedTracksHash = '';
-
-function getTracksHash(tracks: Track[]): string {
-	return tracks.map((t) => t.id.value).join(',');
-}
+let cachedArtistsTracksRef: Track[] | null = null;
 
 export const useTracks = () => useLibraryStore((state) => state.tracks);
 export const usePlaylists = () => useLibraryStore((state) => state.playlists);
 export const useFavorites = () => useLibraryStore((state) => state.favorites);
-export const useFavoriteTracks = () => useLibraryStore((state) => state.getFavoriteTracks());
 export const useIsLibraryLoading = () => useLibraryStore((state) => state.isLoading);
+
+// Memoized favorite tracks selector - avoids creating new array on every render
+let cachedFavoriteTracks: Track[] = [];
+let cachedFavoritesSet: Set<string> | null = null;
+let cachedFavoriteTracksArray: Track[] | null = null;
+
+export const useFavoriteTracks = () =>
+	useLibraryStore((state) => {
+		// Return cached if underlying data hasn't changed (reference equality)
+		if (state.favorites === cachedFavoritesSet && state.tracks === cachedFavoriteTracksArray) {
+			return cachedFavoriteTracks;
+		}
+
+		// Recompute only when favorites or tracks change
+		cachedFavoriteTracks = state.tracks.filter((t) => state.favorites.has(t.id.value));
+		cachedFavoritesSet = state.favorites;
+		cachedFavoriteTracksArray = state.tracks;
+
+		return cachedFavoriteTracks;
+	});
 export const useTrack = (trackId: string) =>
 	useLibraryStore((state) => state.getTrackById(trackId));
 export const usePlaylist = (playlistId: string) =>
@@ -298,34 +317,30 @@ export const useIsFavorite = (trackId: string) =>
 
 export const useUniqueArtists = () =>
 	useLibraryStore((state) => {
-		const tracks = state.tracks;
-		const tracksHash = getTracksHash(tracks);
-
-		if (tracks.length === cachedTracksLength && tracksHash === cachedTracksHash) {
+		// Use reference equality - tracks array only changes when modified
+		if (state.tracks === cachedArtistsTracksRef) {
 			return cachedArtists;
 		}
 
-		cachedArtists = extractUniqueArtists(tracks);
-		cachedTracksLength = tracks.length;
-		cachedTracksHash = tracksHash;
+		cachedArtists = extractUniqueArtists(state.tracks);
+		cachedArtistsTracksRef = state.tracks;
 
 		return cachedArtists;
 	});
 
 let cachedRecentlyAdded: Track[] = [];
-let cachedRecentlyAddedLength = -1;
+let cachedRecentlyAddedTracksRef: Track[] | null = null;
+let cachedRecentlyAddedLimit = -1;
 
 export const useRecentlyAddedTracks = (limit = 10) =>
 	useLibraryStore((state) => {
-		const tracks = state.tracks;
-
-		// Return cached value if tracks haven't changed
-		if (tracks.length === cachedRecentlyAddedLength) {
+		// Use reference equality and check limit parameter
+		if (state.tracks === cachedRecentlyAddedTracksRef && limit === cachedRecentlyAddedLimit) {
 			return cachedRecentlyAdded;
 		}
 
 		// Sort by addedAt descending and take first `limit` tracks
-		cachedRecentlyAdded = [...tracks]
+		cachedRecentlyAdded = [...state.tracks]
 			.sort((a, b) => {
 				const dateA = a.addedAt ? new Date(a.addedAt).getTime() : 0;
 				const dateB = b.addedAt ? new Date(b.addedAt).getTime() : 0;
@@ -333,7 +348,8 @@ export const useRecentlyAddedTracks = (limit = 10) =>
 			})
 			.slice(0, limit);
 
-		cachedRecentlyAddedLength = tracks.length;
+		cachedRecentlyAddedTracksRef = state.tracks;
+		cachedRecentlyAddedLimit = limit;
 
 		return cachedRecentlyAdded;
 	});

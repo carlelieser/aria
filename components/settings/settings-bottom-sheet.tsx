@@ -3,9 +3,10 @@
  *
  * A consistent bottom sheet wrapper for settings screens.
  * Uses M3 theming with standardized styling.
+ * Only renders when open to avoid gesture handler conflicts.
  */
 
-import { forwardRef, useCallback } from 'react';
+import { useCallback, useMemo, useRef, useEffect } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import BottomSheet, {
@@ -20,6 +21,8 @@ import { Icon } from '@/components/ui/icon';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 
 interface SettingsBottomSheetProps {
+	isOpen: boolean;
+	onClose: () => void;
 	portalName: string;
 	title: string;
 	children: React.ReactNode;
@@ -27,79 +30,108 @@ interface SettingsBottomSheetProps {
 	onReset?: () => void;
 }
 
-export const SettingsBottomSheet = forwardRef<BottomSheetMethods, SettingsBottomSheetProps>(
-	function SettingsBottomSheet({ portalName, title, children, showReset, onReset }, ref) {
-		const { colors } = useAppTheme();
+export function SettingsBottomSheet({
+	isOpen,
+	onClose,
+	portalName,
+	title,
+	children,
+	showReset,
+	onReset,
+}: SettingsBottomSheetProps) {
+	const { colors } = useAppTheme();
+	const sheetRef = useRef<BottomSheetMethods>(null);
+	const snapPoints = useMemo(() => ['50%'], []);
 
-		const renderBackdrop = useCallback(
-			(props: BottomSheetBackdropProps) => (
-				<BottomSheetBackdrop
-					{...props}
-					disappearsOnIndex={-1}
-					appearsOnIndex={0}
-					opacity={0.5}
-				/>
-			),
-			[]
-		);
+	useEffect(() => {
+		if (isOpen) {
+			sheetRef.current?.snapToIndex(0);
+		}
+	}, [isOpen]);
 
-		return (
-			<Portal name={portalName}>
-				<BottomSheet
-					ref={ref}
-					index={-1}
-					enableDynamicSizing
-					enablePanDownToClose
-					backdropComponent={renderBackdrop}
-					backgroundStyle={[
-						styles.background,
-						{ backgroundColor: colors.surfaceContainerHigh },
-					]}
-					handleIndicatorStyle={[
-						styles.handleIndicator,
-						{ backgroundColor: colors.outlineVariant },
-					]}
-				>
-					<BottomSheetView style={styles.content}>
-						<Text
-							variant="titleMedium"
-							style={[styles.title, { color: colors.onSurface }]}
-						>
-							{title}
-						</Text>
+	const handleSheetChanges = useCallback(
+		(index: number) => {
+			if (index === -1) {
+				onClose();
+			}
+		},
+		[onClose]
+	);
 
-						{children}
+	const renderBackdrop = useCallback(
+		(props: BottomSheetBackdropProps) => (
+			<BottomSheetBackdrop
+				{...props}
+				disappearsOnIndex={-1}
+				appearsOnIndex={0}
+				opacity={0.5}
+				pressBehavior="close"
+			/>
+		),
+		[]
+	);
 
-						{showReset && onReset && (
-							<Pressable
-								onPress={onReset}
-								style={({ pressed }) => [
-									styles.resetButton,
-									{ backgroundColor: colors.surfaceContainerHighest },
-									pressed && styles.pressed,
-								]}
-							>
-								<Icon
-									as={RotateCcwIcon}
-									size={18}
-									color={colors.onSurfaceVariant}
-								/>
-								<Text
-									variant="labelLarge"
-									style={[styles.resetText, { color: colors.onSurfaceVariant }]}
-								>
-									Reset to Default
-								</Text>
-							</Pressable>
-						)}
-
-						<View style={styles.bottomPadding} />
-					</BottomSheetView>
-				</BottomSheet>
-			</Portal>
-		);
+	if (!isOpen) {
+		return null;
 	}
-);
+
+	return (
+		<Portal name={portalName}>
+			<BottomSheet
+				ref={sheetRef}
+				index={0}
+				snapPoints={snapPoints}
+				enablePanDownToClose
+				backdropComponent={renderBackdrop}
+				onChange={handleSheetChanges}
+				backgroundStyle={[
+					styles.background,
+					{ backgroundColor: colors.surfaceContainerHigh },
+				]}
+				handleIndicatorStyle={[
+					styles.handleIndicator,
+					{ backgroundColor: colors.outlineVariant },
+				]}
+			>
+				<BottomSheetView style={styles.content}>
+					<Text
+						variant="titleMedium"
+						style={[styles.title, { color: colors.onSurface }]}
+					>
+						{title}
+					</Text>
+
+					{children}
+
+					{showReset && onReset && (
+						<Pressable
+							onPress={onReset}
+							style={({ pressed }) => [
+								styles.resetButton,
+								{ backgroundColor: colors.surfaceContainerHighest },
+								pressed && styles.pressed,
+							]}
+						>
+							<Icon
+								as={RotateCcwIcon}
+								size={18}
+								color={colors.onSurfaceVariant}
+							/>
+							<Text
+								variant="labelLarge"
+								style={[styles.resetText, { color: colors.onSurfaceVariant }]}
+							>
+								Reset to Default
+							</Text>
+						</Pressable>
+					)}
+
+					<View style={styles.bottomPadding} />
+				</BottomSheetView>
+			</BottomSheet>
+		</Portal>
+	);
+}
 
 const styles = StyleSheet.create({
 	background: {

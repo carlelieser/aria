@@ -10,9 +10,11 @@ import { StyleSheet, Dimensions, View, Image } from 'react-native';
 import Animated, {
 	useSharedValue,
 	useAnimatedStyle,
+	useAnimatedReaction,
 	withTiming,
 	withSpring,
 	withDelay,
+	withRepeat,
 	Easing,
 	runOnJS,
 	interpolate,
@@ -23,9 +25,8 @@ import { M3Colors } from '@/lib/theme/colors';
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const POLYGON_SIZE = 200;
-const ICON_SIZE = 84;
+const ICON_SIZE = 75;
 const ANIMATION_DURATION = 400;
-const MORPH_DURATION = 800;
 const MORPH_INTERVAL = 2500;
 const ROTATION_DURATION = 4000;
 const MIN_SEGMENTS = 3;
@@ -61,6 +62,7 @@ export function AnimatedSplash({
 	const [segments, setSegments] = useState(MIN_SEGMENTS);
 	const polygonRotation = useSharedValue(0);
 	const polygonScale = useSharedValue(1);
+	const morphCycle = useSharedValue(0);
 
 	const colors = isDark ? M3Colors.dark : M3Colors.light;
 
@@ -75,28 +77,34 @@ export function AnimatedSplash({
 		});
 	}, [segments, polygonScale]);
 
-	// Morph animation loop
+	// Morph animation loop - driven by native thread timing
 	useEffect(() => {
-		const intervalId = setInterval(() => {
-			setSegments((current) => getRandomSegments(current));
-		}, MORPH_INTERVAL);
+		morphCycle.value = withRepeat(
+			withTiming(1, { duration: MORPH_INTERVAL, easing: Easing.linear }),
+			-1,
+			true
+		);
+	}, [morphCycle]);
 
-		return () => clearInterval(intervalId);
-	}, []);
+	useAnimatedReaction(
+		() => Math.round(morphCycle.value),
+		(current, previous) => {
+			if (previous !== null && current !== previous) {
+				runOnJS(setSegments)(getRandomSegments);
+			}
+		}
+	);
 
-	// Continuous rotation
+	// Continuous rotation using withRepeat (runs on native thread, no JS intervals)
 	useEffect(() => {
-		let rotationAngle = 0;
-
-		const intervalId = setInterval(() => {
-			rotationAngle += 360;
-			polygonRotation.value = withTiming(rotationAngle, {
+		polygonRotation.value = withRepeat(
+			withTiming(360, {
 				duration: ROTATION_DURATION,
 				easing: Easing.linear,
-			});
-		}, ROTATION_DURATION);
-
-		return () => clearInterval(intervalId);
+			}),
+			-1, // Infinite repeats
+			false // Don't reverse
+		);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 

@@ -415,5 +415,4 @@ export class DashPlaybackProvider implements PlaybackProvider {
 
 export const dashPlaybackProvider = new DashPlaybackProvider();
 
-export { DashPlaybackPluginModule } from './plugin-module';
 export { PLUGIN_MANIFEST as DASH_MANIFEST } from './config';

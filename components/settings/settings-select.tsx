@@ -5,10 +5,9 @@
  * Uses M3 theming.
  */
 
-import { useRef, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
-import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { type LucideIcon } from 'lucide-react-native';
 import { Icon } from '@/components/ui/icon';
 import { ActionSheet, type ActionSheetGroup } from '@/components/ui/action-sheet';
@@ -39,13 +38,17 @@ export function SettingsSelect<T extends string>({
 	portalName,
 }: SettingsSelectProps<T>) {
 	const { colors } = useAppTheme();
-	const sheetRef = useRef<BottomSheetMethods>(null);
+	const [isOpen, setIsOpen] = useState(false);
 
 	const selectedOption = options.find((opt) => opt.value === value);
 	const selectedLabel = selectedOption?.label ?? value;
 
 	const handlePress = useCallback(() => {
-		sheetRef.current?.expand();
+		setIsOpen(true);
+	}, []);
+
+	const handleClose = useCallback(() => {
+		setIsOpen(false);
 	}, []);
 
 	const handleSelect = useCallback(
@@ -86,9 +89,10 @@ export function SettingsSelect<T extends string>({
 			/>
 
 			<ActionSheet
-				ref={sheetRef}
+				isOpen={isOpen}
 				groups={groups}
 				onSelect={handleSelect}
+				onClose={handleClose}
 				header={header}
 				portalName={portalName}
 			/>

@@ -9,29 +9,34 @@ import { MusicResponsiveListItem } from '@/node_modules/youtubei.js/dist/src/par
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { Text } from 'react-native-paper';
-import { useContext } from 'react';
+import { useContext, useCallback, memo } from 'react';
 import { AppContext } from '@/contexts/app';
 import { router } from 'expo-router';
 import { useAppTheme } from '@/lib/theme';
 
-export function ResponsiveListItem(props: { data: MusicResponsiveListItem }) {
+export const ResponsiveListItem = memo(function ResponsiveListItem(props: {
+	data: MusicResponsiveListItem;
+}) {
 	const context = useContext(AppContext);
 	const { colors } = useAppTheme();
 
+	const handlePress = useCallback(() => {
+		context.setPlaying(props.data);
+		router.push('/player');
+	}, [context, props.data]);
+
 	if (props.data.item_type === 'song') {
 		return (
-			<TouchableOpacity
-				style={styles.container}
-				onPress={() => {
-					context.setPlaying(props.data);
-					router.push('/player');
-				}}
-			>
+			<TouchableOpacity style={styles.container} onPress={handlePress}>
 				<Image
 					source={{
 						uri: props.data.thumbnail?.contents[0].url,
 					}}
 					style={styles.artwork}
+					contentFit="cover"
+					transition={200}
+					cachePolicy="memory-disk"
+					recyclingKey={props.data.id ?? props.data.title}
 				/>
 				<View style={styles.textContainer}>
 					<Text variant="bodyMedium" style={{ color: colors.onSurface }}>
@@ -47,7 +52,7 @@ export function ResponsiveListItem(props: { data: MusicResponsiveListItem }) {
 	}
 
 	return null;
-}
+});
 
 const styles = StyleSheet.create({
 	container: {

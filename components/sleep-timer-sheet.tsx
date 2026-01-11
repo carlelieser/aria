@@ -5,7 +5,7 @@
  * Uses M3 theming.
  */
 
-import React, { forwardRef, useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef, useEffect } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import BottomSheet, {
 	BottomSheetBackdrop,
@@ -21,217 +21,221 @@ import { useSleepTimer, SLEEP_TIMER_PRESETS } from '@/hooks/use-sleep-timer';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 
 interface SleepTimerSheetProps {
-	onDismiss?: () => void;
+	isOpen: boolean;
+	onClose: () => void;
 }
 
-export const SleepTimerSheet = forwardRef<BottomSheetMethods, SleepTimerSheetProps>(
-	function SleepTimerSheet({ onDismiss }, ref) {
-		const { colors } = useAppTheme();
-		const { isActive, mode, formatRemaining, start, startEndOfTrack, cancel } = useSleepTimer();
+export function SleepTimerSheet({ isOpen, onClose }: SleepTimerSheetProps) {
+	const { colors } = useAppTheme();
+	const { isActive, mode, formatRemaining, start, startEndOfTrack, cancel } = useSleepTimer();
+	const sheetRef = useRef<BottomSheetMethods>(null);
 
-		const snapPoints = useMemo(() => ['60%'], []);
+	const snapPoints = useMemo(() => ['60%'], []);
+
+	useEffect(() => {
+		if (isOpen) {
+			sheetRef.current?.snapToIndex(0);
+		}
+	}, [isOpen]);
 
 		const handleSheetChanges = useCallback(
-			(index: number) => {
-				if (index === -1) {
-					onDismiss?.();
-				}
-			},
-			[onDismiss]
-		);
-
-		const renderBackdrop = useCallback(
-			(props: BottomSheetBackdropProps) => (
-				<BottomSheetBackdrop
-					{...props}
-					disappearsOnIndex={-1}
-					appearsOnIndex={0}
-					opacity={0.5}
-				/>
-			),
-			[]
-		);
-
-		const handlePresetSelect = useCallback(
-			(minutes: number) => {
-				start(minutes);
-				if (ref && 'current' in ref && ref.current) {
-					ref.current.close();
-				}
-			},
-			[start, ref]
-		);
-
-		const handleEndOfTrack = useCallback(() => {
-			startEndOfTrack();
-			if (ref && 'current' in ref && ref.current) {
-				ref.current.close();
+		(index: number) => {
+			if (index === -1) {
+				onClose();
 			}
-		}, [startEndOfTrack, ref]);
+		},
+		[onClose]
+	);
 
-		const handleCancel = useCallback(() => {
-			cancel();
-			if (ref && 'current' in ref && ref.current) {
-				ref.current.close();
-			}
-		}, [cancel, ref]);
+	const renderBackdrop = useCallback(
+		(props: BottomSheetBackdropProps) => (
+			<BottomSheetBackdrop
+				{...props}
+				disappearsOnIndex={-1}
+				appearsOnIndex={0}
+				opacity={0.5}
+			/>
+		),
+		[]
+	);
 
-		return (
-			<Portal name="sleep-timer-sheet">
-				<BottomSheet
-					ref={ref}
-					index={-1}
-					snapPoints={snapPoints}
-					enablePanDownToClose
-					backdropComponent={renderBackdrop}
-					onChange={handleSheetChanges}
-					backgroundStyle={[
-						styles.background,
-						{ backgroundColor: colors.surfaceContainerHigh },
-					]}
-					handleIndicatorStyle={[
-						styles.handleIndicator,
-						{ backgroundColor: colors.outlineVariant },
-					]}
-				>
-					<BottomSheetScrollView style={styles.contentContainer}>
-						<View style={styles.header}>
-							<Icon as={Clock} size={24} color={colors.primary} />
-							<Text variant="titleLarge" style={{ color: colors.onSurface }}>
-								Sleep Timer
-							</Text>
-						</View>
+	const handlePresetSelect = useCallback(
+		(minutes: number) => {
+			start(minutes);
+			sheetRef.current?.close();
+		},
+		[start]
+	);
 
-						{isActive && (
-							<View
-								style={[
-									styles.activeTimerContainer,
-									{ backgroundColor: colors.primaryContainer },
-								]}
-							>
-								<Text
-									variant="headlineMedium"
-									style={{ color: colors.onPrimaryContainer, fontWeight: '600' }}
-								>
-									{formatRemaining()}
-								</Text>
-								<Text
-									variant="bodyMedium"
-									style={{ color: colors.onPrimaryContainer }}
-								>
-									remaining
-								</Text>
-								<Button
-									mode="text"
-									textColor={colors.primary}
-									onPress={handleCancel}
-									style={styles.cancelButton}
-								>
-									Cancel Timer
-								</Button>
-							</View>
-						)}
+	const handleEndOfTrack = useCallback(() => {
+		startEndOfTrack();
+		sheetRef.current?.close();
+	}, [startEndOfTrack]);
 
-						{mode === 'end-of-track' && !isActive && (
-							<View
-								style={[
-									styles.activeTimerContainer,
-									{ backgroundColor: colors.primaryContainer },
-								]}
-							>
-								<Icon as={Music2} size={32} color={colors.onPrimaryContainer} />
-								<Text
-									variant="titleMedium"
-									style={{ color: colors.onPrimaryContainer, marginTop: 8 }}
-								>
-									Stopping after current track
-								</Text>
-								<Button
-									mode="text"
-									textColor={colors.primary}
-									onPress={handleCancel}
-									style={styles.cancelButton}
-								>
-									Cancel
-								</Button>
-							</View>
-						)}
+	const handleCancel = useCallback(() => {
+		cancel();
+		sheetRef.current?.close();
+	}, [cancel]);
 
-						<Divider style={{ backgroundColor: colors.outlineVariant }} />
+	if (!isOpen) {
+		return null;
+	}
 
-						<Text
-							variant="labelLarge"
-							style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}
-						>
-							Duration
+	return (
+		<Portal name="sleep-timer-sheet">
+			<BottomSheet
+				ref={sheetRef}
+				index={0}
+				snapPoints={snapPoints}
+				enablePanDownToClose
+				backdropComponent={renderBackdrop}
+				onChange={handleSheetChanges}
+				backgroundStyle={[
+					styles.background,
+					{ backgroundColor: colors.surfaceContainerHigh },
+				]}
+				handleIndicatorStyle={[
+					styles.handleIndicator,
+					{ backgroundColor: colors.outlineVariant },
+				]}
+			>
+				<BottomSheetScrollView style={styles.contentContainer}>
+					<View style={styles.header}>
+						<Icon as={Clock} size={24} color={colors.primary} />
+						<Text variant="titleLarge" style={{ color: colors.onSurface }}>
+							Sleep Timer
 						</Text>
+					</View>
 
-						<View style={styles.presetGrid}>
-							{SLEEP_TIMER_PRESETS.map((preset) => (
-								<Pressable
-									key={preset.minutes}
-									onPress={() => handlePresetSelect(preset.minutes)}
-									style={({ pressed }) => [
-										styles.presetButton,
-										{
-											backgroundColor: pressed
-												? colors.surfaceContainerHighest
-												: colors.surfaceContainer,
-											borderColor: colors.outline,
-										},
-									]}
-								>
-									<Text
-										variant="titleMedium"
-										style={{ color: colors.onSurface, fontWeight: '500' }}
-									>
-										{preset.label}
-									</Text>
-								</Pressable>
-							))}
-						</View>
-
-						<Divider
-							style={[styles.divider, { backgroundColor: colors.outlineVariant }]}
-						/>
-
-						<Pressable
-							onPress={handleEndOfTrack}
-							style={({ pressed }) => [
-								styles.endOfTrackButton,
-								{
-									backgroundColor: pressed
-										? colors.surfaceContainerHighest
-										: 'transparent',
-								},
+					{isActive && (
+						<View
+							style={[
+								styles.activeTimerContainer,
+								{ backgroundColor: colors.primaryContainer },
 							]}
 						>
-							<View style={styles.endOfTrackContent}>
-								<Icon as={Music2} size={22} color={colors.onSurfaceVariant} />
-								<View style={styles.endOfTrackText}>
-									<Text variant="bodyLarge" style={{ color: colors.onSurface }}>
-										End of current track
-									</Text>
-									<Text
-										variant="bodySmall"
-										style={{ color: colors.onSurfaceVariant }}
-									>
-										Stop playback when this track ends
-									</Text>
-								</View>
-								{mode === 'end-of-track' && (
-									<Icon as={Check} size={20} color={colors.primary} />
-								)}
-							</View>
-						</Pressable>
+							<Text
+								variant="headlineMedium"
+								style={{ color: colors.onPrimaryContainer, fontWeight: '600' }}
+							>
+								{formatRemaining()}
+							</Text>
+							<Text
+								variant="bodyMedium"
+								style={{ color: colors.onPrimaryContainer }}
+							>
+								remaining
+							</Text>
+							<Button
+								mode="text"
+								textColor={colors.primary}
+								onPress={handleCancel}
+								style={styles.cancelButton}
+							>
+								Cancel Timer
+							</Button>
+						</View>
+					)}
 
-						<View style={styles.bottomPadding} />
-					</BottomSheetScrollView>
-				</BottomSheet>
-			</Portal>
-		);
-	}
-);
+					{mode === 'end-of-track' && !isActive && (
+						<View
+							style={[
+								styles.activeTimerContainer,
+								{ backgroundColor: colors.primaryContainer },
+							]}
+						>
+							<Icon as={Music2} size={32} color={colors.onPrimaryContainer} />
+							<Text
+								variant="titleMedium"
+								style={{ color: colors.onPrimaryContainer, marginTop: 8 }}
+							>
+								Stopping after current track
+							</Text>
+							<Button
+								mode="text"
+								textColor={colors.primary}
+								onPress={handleCancel}
+								style={styles.cancelButton}
+							>
+								Cancel
+							</Button>
+						</View>
+					)}
+
+					<Divider style={{ backgroundColor: colors.outlineVariant }} />
+
+					<Text
+						variant="labelLarge"
+						style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}
+					>
+						Duration
+					</Text>
+
+					<View style={styles.presetGrid}>
+						{SLEEP_TIMER_PRESETS.map((preset) => (
+							<Pressable
+								key={preset.minutes}
+								onPress={() => handlePresetSelect(preset.minutes)}
+								style={({ pressed }) => [
+									styles.presetButton,
+									{
+										backgroundColor: pressed
+											? colors.surfaceContainerHighest
+											: colors.surfaceContainer,
+										borderColor: colors.outline,
+									},
+								]}
+							>
+								<Text
+									variant="titleMedium"
+									style={{ color: colors.onSurface, fontWeight: '500' }}
+								>
+									{preset.label}
+								</Text>
+							</Pressable>
+						))}
+					</View>
+
+					<Divider
+						style={[styles.divider, { backgroundColor: colors.outlineVariant }]}
+					/>
+
+					<Pressable
+						onPress={handleEndOfTrack}
+						style={({ pressed }) => [
+							styles.endOfTrackButton,
+							{
+								backgroundColor: pressed
+									? colors.surfaceContainerHighest
+									: 'transparent',
+							},
+						]}
+					>
+						<View style={styles.endOfTrackContent}>
+							<Icon as={Music2} size={22} color={colors.onSurfaceVariant} />
+							<View style={styles.endOfTrackText}>
+								<Text variant="bodyLarge" style={{ color: colors.onSurface }}>
+									End of current track
+								</Text>
+								<Text
+									variant="bodySmall"
+									style={{ color: colors.onSurfaceVariant }}
+								>
+									Stop playback when this track ends
+								</Text>
+							</View>
+							{mode === 'end-of-track' && (
+								<Icon as={Check} size={20} color={colors.primary} />
+							)}
+						</View>
+					</Pressable>
+
+					<View style={styles.bottomPadding} />
+				</BottomSheetScrollView>
+			</BottomSheet>
+		</Portal>
+	);
+}
 
 const styles = StyleSheet.create({
 	background: {

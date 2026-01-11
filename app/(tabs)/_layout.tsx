@@ -17,13 +17,6 @@ import Animated, {
 	FadeIn,
 	FadeOut,
 } from 'react-native-reanimated';
-import {
-	MusicIcon,
-	CompassIcon,
-	DownloadIcon,
-	SettingsIcon,
-	type LucideIcon,
-} from 'lucide-react-native';
 import { useAppTheme } from '@/lib/theme';
 import { useDownloadQueue } from '@/hooks/use-download-queue';
 import {
@@ -35,25 +28,11 @@ import {
 	DEFAULT_TAB_ORDER,
 } from '@/src/application/state/settings-store';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-
-export const TAB_BAR_HEIGHT = 80;
+import { TAB_CONFIG, TAB_BAR_HEIGHT } from '@/lib/tab-config';
 
 const TAB_WIDTH = 84;
 const INDICATOR_WIDTH = 64;
 const INDICATOR_HEIGHT = 32;
-
-interface TabConfig {
-	icon: LucideIcon;
-	label: string;
-	route: string;
-}
-
-export const TAB_CONFIG: Record<TabId, TabConfig> = {
-	index: { icon: MusicIcon, label: 'Library', route: '/' },
-	explore: { icon: CompassIcon, label: 'Explore', route: '/explore' },
-	downloads: { icon: DownloadIcon, label: 'Downloads', route: '/downloads' },
-	settings: { icon: SettingsIcon, label: 'Settings', route: '/settings' },
-};
 
 export default function TabLayout() {
 	const defaultTab = useDefaultTab();
@@ -112,7 +91,7 @@ export default function TabLayout() {
 
 	return (
 		<Tabs
-			screenOptions={{ headerShown: false }}
+			screenOptions={{ headerShown: false, animation: "shift" }}
 			tabBar={(props) => <CustomTabBar {...props} tabOrder={validTabOrder} />}
 		>
 			{validTabOrder.map((tabId) => (

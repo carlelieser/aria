@@ -8,10 +8,9 @@
 import { View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { router, usePathname } from 'expo-router';
 import { Text, IconButton } from 'react-native-paper';
-import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { Icon } from '@/components/ui/icon';
 import { ChevronLeftIcon } from 'lucide-react-native';
 import { PlayerControls } from '@/components/player-controls';
@@ -36,13 +35,6 @@ export default function PlayerScreen() {
 	const showLyrics = useShowLyrics();
 	const sleepTimerSheetOpen = useSleepTimerSheetOpen();
 	const closeSleepTimerSheet = usePlayerUIStore((state) => state.closeSleepTimerSheet);
-	const sleepTimerSheetRef = useRef<BottomSheetMethods>(null);
-
-	useEffect(() => {
-		if (sleepTimerSheetOpen) {
-			sleepTimerSheetRef.current?.expand();
-		}
-	}, [sleepTimerSheetOpen]);
 
 	useEffect(() => {
 		if (!currentTrack && pathname === '/player') {
@@ -137,7 +129,7 @@ export default function PlayerScreen() {
 				<PlayerControls size="lg" />
 			</View>
 
-			<SleepTimerSheet ref={sleepTimerSheetRef} onDismiss={closeSleepTimerSheet} />
+			<SleepTimerSheet isOpen={sleepTimerSheetOpen} onClose={closeSleepTimerSheet} />
 		</SafeAreaView>
 	);
 }

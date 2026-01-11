@@ -5,15 +5,14 @@
  * Uses M3 theming with up/down arrows for reordering.
  */
 
-import { useRef, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { Text, Switch } from 'react-native-paper';
-import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { GripVerticalIcon, ChevronUpIcon, ChevronDownIcon } from 'lucide-react-native';
 import { SettingsItem } from '@/components/settings/settings-item';
 import { SettingsBottomSheet } from '@/components/settings/settings-bottom-sheet';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
-import { TAB_CONFIG } from '@/app/(tabs)/_layout';
+import { TAB_CONFIG } from '@/lib/tab-config';
 import {
 	type TabId,
 	DEFAULT_TAB_ORDER,
@@ -29,7 +28,7 @@ import {
 
 export function TabOrderSetting() {
 	const { colors } = useAppTheme();
-	const sheetRef = useRef<BottomSheetMethods>(null);
+	const [isOpen, setIsOpen] = useState(false);
 	const tabOrder = useTabOrder();
 	const setTabOrder = useSetTabOrder();
 	const resetTabOrder = useResetTabOrder();
@@ -38,7 +37,11 @@ export function TabOrderSetting() {
 	const resetEnabledTabs = useResetEnabledTabs();
 
 	const handlePress = useCallback(() => {
-		sheetRef.current?.expand();
+		setIsOpen(true);
+	}, []);
+
+	const handleClose = useCallback(() => {
+		setIsOpen(false);
 	}, []);
 
 	const handleMoveUp = useCallback(
@@ -97,7 +100,8 @@ export function TabOrderSetting() {
 			/>
 
 			<SettingsBottomSheet
-				ref={sheetRef}
+				isOpen={isOpen}
+				onClose={handleClose}
 				portalName="tab-order-setting"
 				title="Reorder Tabs"
 				showReset={!isDefault}

@@ -5,7 +5,9 @@
  * Uses M3 theming.
  */
 
-import { View, Pressable, StyleSheet } from 'react-native';
+import { memo, useMemo } from 'react';
+import { View, StyleSheet } from 'react-native';
+import { RectButton } from 'react-native-gesture-handler';
 import { Text } from 'react-native-paper';
 import { ChevronRightIcon, type LucideIcon } from 'lucide-react-native';
 import { Icon } from '@/components/ui/icon';
@@ -22,7 +24,7 @@ interface SettingsItemProps {
 	rightElement?: React.ReactNode;
 }
 
-export function SettingsItem({
+export const SettingsItem = memo(function SettingsItem({
 	icon: IconComponent,
 	title,
 	subtitle,
@@ -34,18 +36,22 @@ export function SettingsItem({
 }: SettingsItemProps) {
 	const { colors } = useAppTheme();
 
+	// Memoize dynamic style to prevent object recreation on every render
+	const iconContainerStyle = useMemo(
+		() => [
+			styles.iconContainer,
+			{
+				backgroundColor: destructive
+					? `${colors.error}1A`
+					: colors.surfaceContainerHighest,
+			},
+		],
+		[destructive, colors.error, colors.surfaceContainerHighest]
+	);
+
 	const content = (
 		<View style={styles.container}>
-			<View
-				style={[
-					styles.iconContainer,
-					{
-						backgroundColor: destructive
-							? `${colors.error}1A`
-							: colors.surfaceContainerHighest,
-					},
-				]}
-			>
+			<View style={iconContainerStyle}>
 				<Icon
 					as={IconComponent}
 					size={20}
@@ -79,16 +85,19 @@ export function SettingsItem({
 
 	if (onPress) {
 		return (
-			<Pressable onPress={onPress} style={({ pressed }) => pressed && styles.pressed}>
+			<RectButton onPress={onPress} style={styles.button}>
 				{content}
-			</Pressable>
+			</RectButton>
 		);
 	}
 
 	return content;
-}
+});
 
 const styles = StyleSheet.create({
+	button: {
+		backgroundColor: 'transparent',
+	},
 	container: {
 		flexDirection: 'row',
 		alignItems: 'center',
@@ -108,8 +117,5 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontWeight: '500',
-	},
-	pressed: {
-		opacity: 0.7,
 	},
 });

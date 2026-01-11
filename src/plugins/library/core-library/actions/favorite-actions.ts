@@ -26,9 +26,17 @@ export async function executeFavoriteAction(
 	const { track } = context;
 
 	switch (actionId) {
-		case CORE_ACTION_IDS.TOGGLE_FAVORITE:
-			useLibraryStore.getState().toggleFavorite(track.id.value);
+		case CORE_ACTION_IDS.TOGGLE_FAVORITE: {
+			const store = useLibraryStore.getState();
+			const isCurrentlyFavorite = store.isFavorite(track.id.value);
+
+			if (!isCurrentlyFavorite) {
+				store.addTrack(track);
+			}
+
+			store.toggleFavorite(track.id.value);
 			return true;
+		}
 
 		default:
 			return false;

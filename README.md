@@ -26,16 +26,29 @@
 
 ## Features
 
-| | |
-|:--|:--|
-| **Multi-source streaming** | YouTube Music, Spotify, and local files |
-| **Background playback** | Queue management, shuffle, and repeat |
-| **Library management** | Playlists, favorites, and smart filtering |
-| **10-band equalizer** | Customizable presets |
-| **Synchronized lyrics** | Real-time lyric display |
-| **Offline mode** | Download tracks for offline listening |
-| **Material Design 3** | Dynamic theming and adaptive colors |
-| **Plugin architecture** | Extensible provider system |
+### 🎵 Multi-Source Streaming
+Stream from **YouTube Music**, **Spotify**, or your **local library** — all in one place. The plugin architecture makes it easy to add new sources.
+
+### 🎛️ 10-Band Equalizer
+Fine-tune your sound with frequency bands from 32Hz to 16kHz. Choose from 10 built-in presets or create your own.
+
+### 📝 Synced Lyrics
+Follow along with time-synced lyrics that scroll automatically as you listen.
+
+### 📥 Offline Mode
+Download tracks and take your music anywhere. Manage your downloads with a built-in queue and progress tracking.
+
+### 📚 Smart Library
+Organize with playlists, favorites, and powerful filtering. Sort by artist, album, date added, or title. Batch select tracks for bulk actions.
+
+### 🎨 Dynamic Theming
+Material Design 3 with customizable accent colors. Supports light, dark, and system themes.
+
+### 😴 Sleep Timer
+Fall asleep to your music. Set a duration or stop after the current track ends.
+
+### ⚡ Background Playback
+Queue management, shuffle, repeat modes, and gapless playback — your music keeps playing while you do other things.
 
 ---
 

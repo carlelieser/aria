@@ -6,7 +6,7 @@
  */
 
 import { useCallback, useMemo, memo, useState } from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView, View, StyleSheet, TextInput } from 'react-native';
 import { Text, Button } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
@@ -95,7 +95,6 @@ const ExploreSection = memo(function ExploreSection({
 });
 
 export default function ExploreScreen() {
-	const insets = useSafeAreaInsets();
 	const { query, isSearching, error, search } = useSearch();
 	const { colors } = useAppTheme();
 	const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
@@ -186,30 +185,29 @@ export default function ExploreScreen() {
 	return (
 		<View style={[styles.container, { backgroundColor: colors.background }]}>
 			<View
-				style={[
-					styles.headerContainer,
-					{ backgroundColor: colors.surfaceContainerHigh, paddingTop: insets.top + 16 },
-				]}
+				style={[styles.headerContainer, { backgroundColor: colors.surfaceContainerHigh }]}
 			>
-				<View style={styles.headerRow}>
-					<Icon as={CompassIcon} size={28} color={colors.primary} />
-					<Text
-						variant="headlineMedium"
-						style={{ color: colors.onSurface, fontWeight: '700' }}
-					>
-						Explore
-					</Text>
-				</View>
-				<View style={styles.searchRow}>
-					<TextInput
-						value={query}
-						onChangeText={search}
-						style={[styles.searchInput, { color: colors.onSurface }]}
-						placeholderTextColor={colors.onSurfaceVariant}
-						placeholder="Search songs, artists, albums..."
-						autoFocus={false}
-					/>
-				</View>
+				<SafeAreaView edges={['top']} style={styles.headerSafeArea}>
+					<View style={styles.headerRow}>
+						<Icon as={CompassIcon} size={28} color={colors.primary} />
+						<Text
+							variant="headlineMedium"
+							style={{ color: colors.onSurface, fontWeight: '700' }}
+						>
+							Explore
+						</Text>
+					</View>
+					<View style={styles.searchRow}>
+						<TextInput
+							value={query}
+							onChangeText={search}
+							style={[styles.searchInput, { color: colors.onSurface }]}
+							placeholderTextColor={colors.onSurfaceVariant}
+							placeholder="Search songs, artists, albums..."
+							autoFocus={false}
+						/>
+					</View>
+				</SafeAreaView>
 			</View>
 
 			<ScrollView
@@ -352,6 +350,9 @@ const styles = StyleSheet.create({
 		paddingBottom: 16,
 		borderBottomLeftRadius: 24,
 		borderBottomRightRadius: 24,
+	},
+	headerSafeArea: {
+		paddingTop: 16,
 		gap: 16,
 	},
 	headerRow: {

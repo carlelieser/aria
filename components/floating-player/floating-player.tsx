@@ -28,7 +28,7 @@ import { useCurrentTrack, usePlaybackStatus } from '@/src/application/state/play
 import { getArtistNames } from '@/src/domain/entities/track';
 import { getLargestArtwork } from '@/src/domain/value-objects/artwork';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
-import { TAB_BAR_HEIGHT } from '@/app/(tabs)/_layout';
+import { TAB_BAR_HEIGHT } from '@/lib/tab-config';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 

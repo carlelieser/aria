@@ -30,7 +30,7 @@ import {
 import { useCurrentTrack } from '@/src/application/state/player-store';
 import { usePathname } from 'expo-router';
 import { useAppTheme } from '@/lib/theme';
-import { TAB_BAR_HEIGHT } from '@/app/(tabs)/_layout';
+import { TAB_BAR_HEIGHT } from '@/lib/tab-config';
 
 const FLOATING_PLAYER_HEIGHT = 64;
 const FLOATING_PLAYER_MARGIN = 8;

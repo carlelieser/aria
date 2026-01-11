@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View, StyleSheet } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
 
@@ -49,8 +49,7 @@ function AppContent() {
 			<Stack
 				screenOptions={{
 					headerShown: false,
-					animation: 'fade',
-					animationDuration: 300,
+					animation: 'simple_push',
 					contentStyle: { backgroundColor: colors.background },
 				}}
 			>
@@ -83,7 +82,7 @@ function AppContent() {
 export default function RootLayout() {
 	return (
 		<GestureHandlerRootView style={styles.container}>
-			<SafeAreaProvider>
+			<SafeAreaProvider initialMetrics={initialWindowMetrics}>
 				<AppThemeProvider>
 					<AppContent />
 				</AppThemeProvider>
