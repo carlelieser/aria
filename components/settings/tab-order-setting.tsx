@@ -86,8 +86,8 @@ export function TabOrderSetting() {
 
 	const isDefault = isDefaultOrder && isDefaultEnabled;
 
-	const enabledTabsInOrder = tabOrder.filter((id) => enabledTabs.includes(id));
-	const orderSummary = enabledTabsInOrder.map((id) => TAB_CONFIG[id].label).join(', ');
+	const enabledTabsInOrder = tabOrder.filter((id) => enabledTabs.includes(id) && TAB_CONFIG[id]);
+	const orderSummary = enabledTabsInOrder.map((id) => TAB_CONFIG[id]?.label ?? id).join(', ');
 
 	return (
 		<>
@@ -110,6 +110,7 @@ export function TabOrderSetting() {
 				<View style={styles.tabList}>
 					{tabOrder.map((tabId, index) => {
 						const config = TAB_CONFIG[tabId];
+						if (!config?.icon) return null;
 						const TabIcon = config.icon;
 						const isFirst = index === 0;
 						const isLast = index === tabOrder.length - 1;

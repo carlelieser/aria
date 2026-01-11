@@ -6,7 +6,7 @@
  */
 
 import React, { useRef, useMemo, useCallback, useEffect, useState } from 'react';
-import { View, Pressable, StyleSheet, InteractionManager } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import BottomSheet, {
 	BottomSheetBackdrop,
@@ -51,19 +51,19 @@ export function TrackOptionsSheet() {
 
 	// Delay mounting to ensure Portal is ready (fixes production freeze)
 	useEffect(() => {
-		const handle = InteractionManager.runAfterInteractions(() => {
+		const timeoutId = setTimeout(() => {
 			setIsMounted(true);
-		});
-		return () => handle.cancel();
+		}, 0);
+		return () => clearTimeout(timeoutId);
 	}, []);
 
 	useEffect(() => {
 		if (isOpen && track && isMounted) {
-			// Use InteractionManager to avoid navigation conflicts
-			const handle = InteractionManager.runAfterInteractions(() => {
+			// Defer bottom sheet snap to avoid navigation conflicts
+			const timeoutId = setTimeout(() => {
 				bottomSheetRef.current?.snapToIndex(0);
-			});
-			return () => handle.cancel();
+			}, 0);
+			return () => clearTimeout(timeoutId);
 		}
 	}, [isOpen, track, isMounted]);
 

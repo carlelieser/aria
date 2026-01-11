@@ -183,10 +183,16 @@ function generateInterpolatedPointsWorklet(
 ): string {
 	'worklet';
 
-	const validSegments = Math.max(MIN_SEGMENTS, segments);
-	const center = size / 2;
-	const radius = (size - strokeWidth) / 2;
-	const rotationRad = (rotation * Math.PI) / 180;
+	// Guard against NaN or invalid values
+	const safeSegments = Number.isFinite(segments) ? segments : MIN_SEGMENTS;
+	const safeSize = Number.isFinite(size) ? size : DEFAULT_SIZE;
+	const safeRotation = Number.isFinite(rotation) ? rotation : 0;
+	const safeStrokeWidth = Number.isFinite(strokeWidth) ? strokeWidth : DEFAULT_STROKE_WIDTH;
+
+	const validSegments = Math.max(MIN_SEGMENTS, safeSegments);
+	const center = safeSize / 2;
+	const radius = (safeSize - safeStrokeWidth) / 2;
+	const rotationRad = (safeRotation * Math.PI) / 180;
 
 	let points = '';
 	const pointCount = MAX_INTERPOLATION_POINTS;

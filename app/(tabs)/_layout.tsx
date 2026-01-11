@@ -8,7 +8,7 @@
 
 import { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import { Tabs, router } from 'expo-router';
-import { View, Pressable, StyleSheet, Text, InteractionManager } from 'react-native';
+import { View, Pressable, StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
 	useAnimatedStyle,
@@ -51,10 +51,11 @@ export default function TabLayout() {
 
 		// Subscribe to hydration completion
 		const unsubscribe = useSettingsStore.persist.onFinishHydration(() => {
-			// Use InteractionManager to ensure we don't navigate during transitions
-			InteractionManager.runAfterInteractions(() => {
+			// Defer state update to next frame to avoid navigating during transitions
+			const timeoutId = setTimeout(() => {
 				setIsHydrated(true);
-			});
+			}, 0);
+			return () => clearTimeout(timeoutId);
 		});
 
 		return unsubscribe;
@@ -62,11 +63,17 @@ export default function TabLayout() {
 
 	// Ensure tab order is valid and filter by enabled tabs
 	const validTabOrder = useMemo(() => {
-		const validTabs = tabOrder.filter((id) => id in TAB_CONFIG);
+		// Ensure we have valid arrays to work with
+		const safeTabOrder = Array.isArray(tabOrder) && tabOrder.length > 0 ? tabOrder : DEFAULT_TAB_ORDER;
+		const safeEnabledTabs = Array.isArray(enabledTabs) && enabledTabs.length > 0 ? enabledTabs : DEFAULT_TAB_ORDER;
+
+		const validTabs = safeTabOrder.filter((id) => id in TAB_CONFIG);
 		if (validTabs.length !== DEFAULT_TAB_ORDER.length) {
-			return DEFAULT_TAB_ORDER.filter((id) => enabledTabs.includes(id));
+			const filtered = DEFAULT_TAB_ORDER.filter((id) => safeEnabledTabs.includes(id));
+			return filtered.length > 0 ? filtered : DEFAULT_TAB_ORDER;
 		}
-		return validTabs.filter((id) => enabledTabs.includes(id));
+		const filtered = validTabs.filter((id) => safeEnabledTabs.includes(id));
+		return filtered.length > 0 ? filtered : DEFAULT_TAB_ORDER;
 	}, [tabOrder, enabledTabs]);
 
 	useEffect(() => {
@@ -80,11 +87,11 @@ export default function TabLayout() {
 			const targetTab = enabledTabs.includes(defaultTab) ? defaultTab : validTabOrder[0];
 			const config = TAB_CONFIG[targetTab];
 			if (config) {
-				// Use InteractionManager to ensure navigation happens after all animations complete
-				const handle = InteractionManager.runAfterInteractions(() => {
+				// Defer navigation to next frame to ensure all animations complete
+				const timeoutId = setTimeout(() => {
 					router.replace(config.route as '/' | '/explore' | '/downloads' | '/settings');
-				});
-				return () => handle.cancel();
+				}, 0);
+				return () => clearTimeout(timeoutId);
 			}
 		}
 	}, [isHydrated, defaultTab, validTabOrder, enabledTabs]);
@@ -174,9 +181,9 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 					]}
 				/>
 
-				{tabOrder.map((tabId, index) => {
+				{tabOrder.map((tabId) => {
 					const config = TAB_CONFIG[tabId];
-					if (!config) return null;
+					if (!config?.icon) return null;
 					const route = state.routes.find((r) => r.name === tabId);
 					if (!route) return null;
 					const routeIndex = state.routes.indexOf(route);

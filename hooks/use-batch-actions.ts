@@ -5,7 +5,6 @@
  */
 
 import { useState, useCallback } from 'react';
-import { InteractionManager } from 'react-native';
 import type { Track } from '@/src/domain/entities/track';
 import { downloadService } from '@/src/application/services/download-service';
 import { useLibraryStore } from '@/src/application/state/library-store';
@@ -57,7 +56,8 @@ export function useBatchActions(): UseBatchActionsResult {
 			setIsDownloading(true);
 			setDownloadProgress({ completed: 0, total: tracksToDownload.length, failed: 0 });
 
-			InteractionManager.runAfterInteractions(async () => {
+			// Defer download operations to next frame to avoid blocking UI
+			setTimeout(async () => {
 				let completed = 0;
 				let failed = 0;
 
@@ -86,7 +86,7 @@ export function useBatchActions(): UseBatchActionsResult {
 				} else {
 					showError('Download failed', `All ${failed} downloads failed`);
 				}
-			});
+			}, 0);
 		},
 		[success, showError, info]
 	);

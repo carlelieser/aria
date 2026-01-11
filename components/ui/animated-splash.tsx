@@ -6,7 +6,8 @@
  */
 
 import React, { useEffect, useCallback, useState, useRef } from 'react';
-import { StyleSheet, Dimensions, View, Image } from 'react-native';
+import { StyleSheet, Dimensions, View } from 'react-native';
+import IconContent from '@/assets/icon-content.svg';
 import Animated, {
 	useSharedValue,
 	useAnimatedStyle,
@@ -159,11 +160,7 @@ export function AnimatedSplash({
 			/>
 			<View style={styles.content}>
 				<View style={styles.iconWrapper}>
-					<Image
-						source={require('@/assets/icon-content.png')}
-						style={{ width: ICON_SIZE, height: ICON_SIZE }}
-						resizeMode="contain"
-					/>
+					<IconContent width={ICON_SIZE} height={ICON_SIZE} />
 				</View>
 				<Animated.View style={[styles.polygonWrapper, polygonContainerStyle]}>
 					<AnimatedPolygonView
