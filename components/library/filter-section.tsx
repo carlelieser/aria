@@ -20,6 +20,7 @@ interface FilterSectionProps {
 	onToggleArtist: (artistId: string) => void;
 	onToggleAlbum: (albumId: string) => void;
 	onToggleFavorites: () => void;
+	onToggleDownloaded: () => void;
 }
 
 export function FilterSection({
@@ -29,6 +30,7 @@ export function FilterSection({
 	onToggleArtist,
 	onToggleAlbum,
 	onToggleFavorites,
+	onToggleDownloaded,
 }: FilterSectionProps) {
 	const { colors } = useAppTheme();
 
@@ -39,6 +41,13 @@ export function FilterSection({
 					Favorites only
 				</Text>
 				<Switch value={activeFilters.favoritesOnly} onValueChange={onToggleFavorites} />
+			</View>
+
+			<View style={styles.favoritesRow}>
+				<Text variant="bodyMedium" style={{ color: colors.onSurface }}>
+					Downloaded only
+				</Text>
+				<Switch value={activeFilters.downloadedOnly} onValueChange={onToggleDownloaded} />
 			</View>
 
 			{artists.length > 0 && (

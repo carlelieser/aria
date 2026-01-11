@@ -16,13 +16,18 @@ import { PluginRegistry } from '../plugins/core/registry/plugin-registry';
 import { PluginManifestRegistry } from '../plugins/core/registry/plugin-manifest-registry';
 import { PluginLoader } from '../plugins/core/registry/plugin-loader';
 import { PLUGIN_ENTRIES } from '../plugins/plugin-index';
-import { getEnabledPluginsSet, getPluginConfigs } from './state/plugin-settings-store';
+import {
+	getEnabledPluginsSet,
+	getPluginConfigs,
+	waitForPluginSettingsHydration,
+} from './state/plugin-settings-store';
 import { playbackService } from './services/playback-service';
 import { searchService } from './services/search-service';
 import { downloadService } from './services/download-service';
 import { albumService } from './services/album-service';
 import { artistService } from './services/artist-service';
 import { lyricsService } from './services/lyrics-service';
+import { pluginLifecycleService } from './services/plugin-lifecycle-service';
 import { getLogger } from '../shared/services/logger';
 
 const logger = getLogger('Bootstrap');
@@ -109,6 +114,9 @@ async function bootstrapAsync(): Promise<BootstrapResult> {
 	logger.info(`Registering ${PLUGIN_ENTRIES.length} plugin manifest(s)...`);
 	manifestRegistry.registerAll(PLUGIN_ENTRIES);
 
+	// Wait for plugin settings to be hydrated from AsyncStorage
+	await waitForPluginSettingsHydration();
+
 	// Get enabled plugins from settings
 	const userEnabledPlugins = getEnabledPluginsSet();
 	const pluginConfigs = getPluginConfigs();
@@ -134,6 +142,16 @@ async function bootstrapAsync(): Promise<BootstrapResult> {
 
 	// Wire up services with loaded providers
 	await wireServices(pluginRegistry);
+
+	// Initialize plugin lifecycle service for runtime plugin management
+	pluginLifecycleService.initialize(pluginRegistry, loader, manifestRegistry, {
+		searchService,
+		albumService,
+		artistService,
+		lyricsService,
+		playbackService,
+		downloadService,
+	});
 
 	logger.info('Application initialized successfully');
 

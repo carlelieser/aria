@@ -6,7 +6,9 @@
  */
 
 import { View, ScrollView, StyleSheet } from 'react-native';
-import { Text, Button } from 'react-native-paper';
+import { Button } from 'react-native-paper';
+import { ListFilter } from 'lucide-react-native';
+import { Icon } from '@/components/ui/icon';
 import { FilterChip } from './filter-chip';
 import { useAppTheme } from '@/lib/theme';
 import type { ArtistReference } from '@/src/domain/entities/artist';
@@ -20,6 +22,7 @@ interface ActiveFiltersBarProps {
 	onToggleArtist: (artistId: string) => void;
 	onToggleAlbum: (albumId: string) => void;
 	onToggleFavorites: () => void;
+	onToggleDownloaded: () => void;
 	onClearAll: () => void;
 }
 
@@ -30,6 +33,7 @@ export function ActiveFiltersBar({
 	onToggleArtist,
 	onToggleAlbum,
 	onToggleFavorites,
+	onToggleDownloaded,
 	onClearAll,
 }: ActiveFiltersBarProps) {
 	const { colors } = useAppTheme();
@@ -37,7 +41,10 @@ export function ActiveFiltersBar({
 	const selectedAlbums = albums.filter((a) => activeFilters.albumIds.includes(a.id));
 
 	const hasFilters =
-		activeFilters.favoritesOnly || selectedArtists.length > 0 || selectedAlbums.length > 0;
+		activeFilters.favoritesOnly ||
+		activeFilters.downloadedOnly ||
+		selectedArtists.length > 0 ||
+		selectedAlbums.length > 0;
 
 	if (!hasFilters) {
 		return null;
@@ -45,9 +52,6 @@ export function ActiveFiltersBar({
 
 	return (
 		<View style={styles.container}>
-			<Text variant="labelMedium" style={{ color: colors.onSurfaceVariant }}>
-				Filtered:
-			</Text>
 			<ScrollView
 				horizontal
 				showsHorizontalScrollIndicator={false}
@@ -60,6 +64,14 @@ export function ActiveFiltersBar({
 						selected
 						showRemoveIcon
 						onRemove={onToggleFavorites}
+					/>
+				)}
+				{activeFilters.downloadedOnly && (
+					<FilterChip
+						label="Downloaded"
+						selected
+						showRemoveIcon
+						onRemove={onToggleDownloaded}
 					/>
 				)}
 				{selectedArtists.map((artist) => (

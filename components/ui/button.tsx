@@ -72,7 +72,7 @@ function getSizeStyles(size: ButtonSize): {
 	switch (size) {
 		case 'sm':
 			return {
-				contentStyle: { height: 32, paddingHorizontal: 12 },
+				contentStyle: { height: 32, paddingHorizontal: 16 },
 				labelStyle: { fontSize: 13 },
 			};
 		case 'lg':

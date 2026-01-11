@@ -10,7 +10,6 @@ import React, { useEffect, useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { Portal } from '@rn-primitives/portal';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
 	useSharedValue,
@@ -27,15 +26,9 @@ import {
 	type Toast,
 	type ToastVariant,
 } from '@/src/application/state/toast-store';
-import { useCurrentTrack } from '@/src/application/state/player-store';
-import { usePathname } from 'expo-router';
 import { useAppTheme } from '@/lib/theme';
-import { TAB_BAR_HEIGHT } from '@/lib/tab-config';
+import { useToastPosition } from '@/hooks/use-toast-position';
 
-const FLOATING_PLAYER_HEIGHT = 64;
-const FLOATING_PLAYER_MARGIN = 8;
-const TOAST_GAP = 8;
-const TAB_ROUTES = ['/', '/explore', '/downloads', '/settings'];
 const SWIPE_THRESHOLD = 50;
 const DISMISS_VELOCITY = 500;
 
@@ -76,33 +69,15 @@ function getVariantColors(
 }
 
 export function ToastContainer() {
-	const insets = useSafeAreaInsets();
 	const currentToast = useCurrentToast();
 	const dismiss = useToastStore((state) => state.dismiss);
-	const currentTrack = useCurrentTrack();
-	const pathname = usePathname();
 	const { colors } = useAppTheme();
+	const bottomOffset = useToastPosition();
 
 	const translateX = useSharedValue(0);
 	const translateY = useSharedValue(100);
 	const opacity = useSharedValue(0);
 	const [visibleToast, setVisibleToast] = useState<Toast | null>(currentToast ?? null);
-
-	const isTabRoute = TAB_ROUTES.includes(pathname);
-	const isFloatingPlayerVisible = pathname !== '/player' && currentTrack !== null;
-
-	// Calculate bottom offset based on visible UI elements
-	let bottomOffset = TOAST_GAP;
-
-	if (isTabRoute) {
-		bottomOffset += TAB_BAR_HEIGHT + insets.bottom;
-	} else {
-		bottomOffset += insets.bottom;
-	}
-
-	if (isFloatingPlayerVisible) {
-		bottomOffset += FLOATING_PLAYER_HEIGHT + FLOATING_PLAYER_MARGIN;
-	}
 
 	const handleDismiss = useCallback(() => {
 		if (currentToast) {

@@ -32,7 +32,7 @@ import { TAB_BAR_HEIGHT } from '@/lib/tab-config';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-const FLOATING_PLAYER_HEIGHT = 64;
+export const FLOATING_PLAYER_HEIGHT = 64;
 const TAB_ROUTES = ['/', '/explore', '/downloads', '/settings'];
 
 export function FloatingPlayer() {

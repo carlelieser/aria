@@ -5,7 +5,7 @@
  * Slides up and fades out when ready.
  */
 
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState, useRef } from 'react';
 import { StyleSheet, Dimensions, View, Image } from 'react-native';
 import Animated, {
 	useSharedValue,
@@ -63,6 +63,7 @@ export function AnimatedSplash({
 	const polygonRotation = useSharedValue(0);
 	const polygonScale = useSharedValue(1);
 	const morphCycle = useSharedValue(0);
+	const isFirstRender = useRef(true);
 
 	const colors = isDark ? M3Colors.dark : M3Colors.light;
 
@@ -70,8 +71,12 @@ export function AnimatedSplash({
 		onAnimationComplete?.();
 	}, [onAnimationComplete]);
 
-	// Pulse on segment change
+	// Pulse on segment change (skip initial mount)
 	useEffect(() => {
+		if (isFirstRender.current) {
+			isFirstRender.current = false;
+			return;
+		}
 		polygonScale.value = withSpring(1.15, { damping: 8, stiffness: 200 }, () => {
 			polygonScale.value = withSpring(1, { damping: 12, stiffness: 150 });
 		});

@@ -7,19 +7,16 @@ export {
 export { SpotifyPluginModule } from './plugin-module';
 
 export {
-	type SpotifyConfig,
-	DEFAULT_CONFIG,
 	PLUGIN_MANIFEST,
 	CONFIG_SCHEMA,
 	METADATA_CAPABILITIES,
-	SPOTIFY_SCOPES,
 	SPOTIFY_API_BASE_URL,
-	SPOTIFY_AUTH_URL,
+	SPOTIFY_LOGIN_URL,
 } from './config';
 
-export { SpotifyClient, createSpotifyClient } from './client';
+export { SpotifyClient, createSpotifyClient, type SpotifyClientConfig } from './client';
 
-export { SpotifyAuthManager, generateAuthState, type AuthState } from './auth';
+export { SpotifyAuthManager, type AuthState } from './auth';
 
 export { createSearchOperations, type SearchOperations } from './search';
 export { createInfoOperations, type InfoOperations } from './info';
@@ -60,6 +57,5 @@ export type {
 	SpotifyImage,
 	SpotifyPagingObject,
 	SpotifySearchResponse,
-	SpotifyTokenResponse,
 	SpotifyErrorResponse,
 } from './types';

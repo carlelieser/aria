@@ -11,6 +11,7 @@ import { lazyBootstrap, ensureBootstrapped } from '@/src/application/bootstrap';
 import { FloatingPlayer } from '@/components/floating-player';
 import { TrackOptionsSheet } from '@/components/track-options-menu';
 import { ToastContainer } from '@/components/ui/toast';
+import { ScanProgressToast } from '@/components/ui/scan-progress-toast';
 import { AnimatedSplash } from '@/components/ui/animated-splash';
 import { AppThemeProvider, useAppTheme } from '@/lib/theme';
 
@@ -64,6 +65,7 @@ function AppContent() {
 			<FloatingPlayer />
 			<TrackOptionsSheet />
 			<ToastContainer />
+			<ScanProgressToast />
 			<StatusBar style={isDark ? 'light' : 'dark'} />
 			<View style={styles.portalHost} pointerEvents="box-none">
 				<PortalHost />

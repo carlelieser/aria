@@ -174,17 +174,20 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 					]}
 				/>
 
-				{state.routes.map((route, index) => {
-					const tabId = tabOrder[index];
+				{tabOrder.map((tabId, index) => {
 					const config = TAB_CONFIG[tabId];
-					const isFocused = state.index === index;
+					if (!config) return null;
+					const route = state.routes.find((r) => r.name === tabId);
+					if (!route) return null;
+					const routeIndex = state.routes.indexOf(route);
+					const isFocused = state.index === routeIndex;
 					const IconComponent = config.icon;
 					const showNotificationDot = tabId === 'downloads' && hasActiveDownloads;
 
 					return (
 						<Pressable
-							key={route.key}
-							onPress={() => handleTabPress(index, route.name)}
+							key={tabId}
+							onPress={() => handleTabPress(routeIndex, tabId)}
 							style={styles.tabButton}
 							accessibilityRole="button"
 							accessibilityState={isFocused ? { selected: true } : {}}

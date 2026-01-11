@@ -1,39 +1,13 @@
 import type { PluginConfigSchema, PluginManifest } from '@plugins/core/interfaces/base-plugin';
 import type { MetadataCapability } from '@plugins/core/interfaces/metadata-provider';
 
-export interface SpotifyConfig {
-	readonly clientId: string;
-	readonly clientSecret: string;
-	readonly redirectUri: string;
-	readonly market?: string;
-	readonly enableLogging?: boolean;
-}
-
-export const DEFAULT_CONFIG: Partial<SpotifyConfig> = {
-	market: 'US',
-	enableLogging: false,
-};
-
-export const SPOTIFY_SCOPES = [
-	'user-library-read',
-	'user-library-modify',
-	'playlist-read-private',
-	'playlist-read-collaborative',
-	'playlist-modify-public',
-	'playlist-modify-private',
-	'user-follow-read',
-	'user-follow-modify',
-	'user-top-read',
-	'user-read-recently-played',
-] as const;
-
 export const SPOTIFY_API_BASE_URL = 'https://api.spotify.com/v1';
 
-export const SPOTIFY_AUTH_URL = 'https://accounts.spotify.com';
+export const SPOTIFY_LOGIN_URL = 'https://accounts.spotify.com/login';
 
 export const PLUGIN_MANIFEST: PluginManifest = {
 	id: 'spotify',
-	name: 'Spotify Library',
+	name: 'Spotify',
 	description:
 		'Access your Spotify library including playlists, saved tracks, albums, and followed artists',
 	version: '1.0.0',
@@ -58,32 +32,17 @@ export const PLUGIN_MANIFEST: PluginManifest = {
 		supportsCaching: true,
 		supportsBatch: true,
 	},
-	homepage: 'https://developer.spotify.com',
+	homepage: 'https://spotify.com',
 	icon: 'spotify',
 };
 
 export const CONFIG_SCHEMA: PluginConfigSchema[] = [
 	{
-		key: 'clientId',
-		type: 'string',
-		label: 'Client ID',
-		description: 'Spotify application client ID from the Developer Dashboard',
-		required: true,
-	},
-	{
-		key: 'clientSecret',
-		type: 'string',
-		label: 'Client Secret',
-		description: 'Spotify application client secret from the Developer Dashboard',
-		required: true,
-	},
-	{
-		key: 'redirectUri',
-		type: 'string',
-		label: 'Redirect URI',
-		description: 'OAuth redirect URI configured in your Spotify app',
-		required: true,
-		defaultValue: 'aria://spotify/callback',
+		key: 'auth',
+		type: 'oauth',
+		label: 'Spotify Account',
+		description: 'Sign in to your Spotify account to access your library',
+		icon: 'Music',
 	},
 	{
 		key: 'market',

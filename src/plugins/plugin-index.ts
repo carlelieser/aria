@@ -15,6 +15,7 @@ import type { PluginManifestEntry } from './core/interfaces/plugin-module';
 import { PLUGIN_MANIFEST as CORE_LIBRARY_MANIFEST } from './library/core-library/config';
 import { PLUGIN_MANIFEST as YOUTUBE_MUSIC_MANIFEST } from './metadata/youtube-music/config';
 import { PLUGIN_MANIFEST as SPOTIFY_MANIFEST } from './metadata/spotify/config';
+import { PLUGIN_MANIFEST as LOCAL_LIBRARY_MANIFEST } from './metadata/local-library/config';
 import { PLUGIN_MANIFEST as EXPO_AUDIO_MANIFEST } from './playback/expo-av/config';
 import { PLUGIN_MANIFEST as DASH_MANIFEST } from './playback/dash/config';
 
@@ -55,6 +56,15 @@ export const PLUGIN_ENTRIES: PluginManifestEntry[] = [
 			return SpotifyPluginModule;
 		},
 		isBuiltIn: false,
+	},
+	{
+		manifest: LOCAL_LIBRARY_MANIFEST,
+		load: async () => {
+			const { LocalLibraryPluginModule } =
+				await import('./metadata/local-library/plugin-module');
+			return LocalLibraryPluginModule;
+		},
+		isBuiltIn: true,
 	},
 
 	// Playback Providers

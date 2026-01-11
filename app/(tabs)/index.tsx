@@ -12,7 +12,7 @@ import { Text, SegmentedButtons } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
 import { PageLayout } from '@/components/page-layout';
 import { EmptyState } from '@/components/empty-state';
-import { MusicIcon, ListMusicIcon, UsersIcon } from 'lucide-react-native';
+import { MusicIcon, ListMusicIcon, UsersIcon, DiscIcon } from 'lucide-react-native';
 import { useState, useCallback, memo } from 'react';
 import { Image } from 'expo-image';
 import {
@@ -20,13 +20,16 @@ import {
 	usePlaylists,
 	useIsLibraryLoading,
 	useUniqueArtists,
+	useUniqueAlbums,
 	type UniqueArtist,
+	type UniqueAlbum,
 } from '@/src/application/state/library-store';
 import { TrackListItem } from '@/components/track-list-item';
 import {
 	TrackListSkeleton,
 	PlaylistListSkeleton,
 	ArtistListSkeleton,
+	AlbumListSkeleton,
 } from '@/components/skeletons';
 import { ActiveFiltersBar, SortFilterFAB, LibrarySortFilterSheet } from '@/components/library';
 import { useLibraryFilter } from '@/hooks/use-library-filter';
@@ -35,7 +38,7 @@ import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
 import type { Playlist } from '@/src/domain/entities/playlist';
 
-type ChipType = 'playlists' | 'artists' | 'songs';
+type ChipType = 'playlists' | 'albums' | 'artists' | 'songs';
 
 export default function HomeScreen() {
 	const [selected, setSelected] = useState<ChipType>('playlists');
@@ -56,6 +59,7 @@ export default function HomeScreen() {
 		toggleArtistFilter,
 		toggleAlbumFilter,
 		toggleFavoritesOnly,
+		toggleDownloadedOnly,
 		clearFilters,
 		clearAll,
 	} = useLibraryFilter();
@@ -63,6 +67,7 @@ export default function HomeScreen() {
 	const { artists: filterArtists, albums: filterAlbums } = useUniqueFilterOptions(allTracks);
 
 	const artists = useUniqueArtists();
+	const albums = useUniqueAlbums();
 
 	const handleOpenFilterSheet = useCallback(() => {
 		setIsFilterSheetOpen(true);
@@ -77,6 +82,7 @@ export default function HomeScreen() {
 
 	const segmentedButtons = [
 		{ value: 'playlists', label: 'Playlists', icon: 'playlist-music' },
+		{ value: 'albums', label: 'Albums', icon: 'album' },
 		{ value: 'artists', label: 'Artists', icon: 'account-music' },
 		{ value: 'songs', label: 'Songs', icon: 'music-note' },
 	];
@@ -100,6 +106,7 @@ export default function HomeScreen() {
 						onToggleArtist={toggleArtistFilter}
 						onToggleAlbum={toggleAlbumFilter}
 						onToggleFavorites={toggleFavoritesOnly}
+						onToggleDownloaded={toggleDownloadedOnly}
 						onClearAll={clearFilters}
 					/>
 				</View>
@@ -116,6 +123,7 @@ export default function HomeScreen() {
 				{selected === 'playlists' && (
 					<PlaylistsList playlists={playlists} isLoading={isLoading} />
 				)}
+				{selected === 'albums' && <AlbumsList albums={albums} isLoading={isLoading} />}
 				{selected === 'artists' && <ArtistsList artists={artists} isLoading={isLoading} />}
 			</View>
 
@@ -136,6 +144,7 @@ export default function HomeScreen() {
 				onToggleArtist={toggleArtistFilter}
 				onToggleAlbum={toggleAlbumFilter}
 				onToggleFavorites={toggleFavoritesOnly}
+				onToggleDownloaded={toggleDownloadedOnly}
 				onClearAll={clearAll}
 			/>
 		</PageLayout>
@@ -236,6 +245,31 @@ function ArtistsList({ artists, isLoading }: { artists: UniqueArtist[]; isLoadin
 	);
 }
 
+function AlbumsList({ albums, isLoading }: { albums: UniqueAlbum[]; isLoading: boolean }) {
+	if (isLoading) {
+		return <AlbumListSkeleton count={6} />;
+	}
+
+	if (albums.length === 0) {
+		return (
+			<EmptyState
+				icon={DiscIcon}
+				title="No albums yet"
+				description="Add some music to see your albums here"
+			/>
+		);
+	}
+
+	return (
+		<FlashList
+			data={albums}
+			keyExtractor={(item) => item.id}
+			renderItem={({ item }) => <AlbumItem album={item} />}
+			showsVerticalScrollIndicator={false}
+		/>
+	);
+}
+
 const PlaylistItem = memo(function PlaylistItem({ playlist }: { playlist: Playlist }) {
 	const { colors } = useAppTheme();
 	const trackCount = playlist.tracks.length;
@@ -327,6 +361,54 @@ const ArtistItem = memo(function ArtistItem({ artist }: { artist: UniqueArtist }
 	);
 });
 
+const AlbumItem = memo(function AlbumItem({ album }: { album: UniqueAlbum }) {
+	const { colors } = useAppTheme();
+
+	const handlePress = () => {
+		router.push({
+			pathname: '/album/[id]',
+			params: { id: album.id },
+		});
+	};
+
+	return (
+		<TouchableOpacity style={styles.listItem} activeOpacity={0.7} onPress={handlePress}>
+			{album.artworkUrl ? (
+				<Image
+					source={{ uri: album.artworkUrl }}
+					style={styles.albumArtwork}
+					contentFit="cover"
+					transition={200}
+					cachePolicy="memory-disk"
+					recyclingKey={album.id}
+				/>
+			) : (
+				<View
+					style={[
+						styles.albumArtwork,
+						{ backgroundColor: colors.surfaceContainerHighest },
+					]}
+				>
+					<Icon as={DiscIcon} color={colors.onSurfaceVariant} />
+				</View>
+			)}
+
+			<View style={styles.listItemText}>
+				<Text variant="bodyLarge" numberOfLines={1} style={{ color: colors.onSurface }}>
+					{album.name}
+				</Text>
+				<Text
+					variant="bodySmall"
+					numberOfLines={1}
+					style={{ color: colors.onSurfaceVariant }}
+				>
+					{album.artistName} · {album.trackCount} {album.trackCount === 1 ? 'track' : 'tracks'}
+				</Text>
+			</View>
+		</TouchableOpacity>
+	);
+});
+
 const styles = StyleSheet.create({
 	tabsRow: {
 		paddingHorizontal: 16,
@@ -358,6 +440,13 @@ const styles = StyleSheet.create({
 		width: 56,
 		height: 56,
 		borderRadius: 28,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	albumArtwork: {
+		width: 56,
+		height: 56,
+		borderRadius: 8,
 		alignItems: 'center',
 		justifyContent: 'center',
 	},

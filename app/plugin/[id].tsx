@@ -13,8 +13,9 @@ import { Icon } from '@/components/ui/icon';
 import { PageLayout } from '@/components/page-layout';
 import { EmptyState } from '@/components/empty-state';
 import { SettingsSection } from '@/components/settings/settings-section';
+import { PluginSettingsSection } from '@/components/plugin/plugin-settings-section';
 import { PuzzleIcon, LockIcon } from 'lucide-react-native';
-import { useTogglePlugin } from '@/src/application/state/plugin-settings-store';
+import { togglePluginRuntime } from '@/src/application/services/plugin-lifecycle-service';
 import { useAppTheme } from '@/lib/theme';
 import {
 	categoryIcons,
@@ -27,14 +28,13 @@ export default function PluginDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
 	const { colors } = useAppTheme();
 	const plugin = usePluginById(id);
-	const togglePlugin = useTogglePlugin();
 	const { isEnabled, statusInfo, StatusIcon, statusColor } = usePluginDisplayStatus(plugin);
 
 	const handleToggle = useCallback(() => {
 		if (plugin && !plugin.isRequired) {
-			togglePlugin(plugin.id);
+			togglePluginRuntime(plugin.id);
 		}
-	}, [plugin, togglePlugin]);
+	}, [plugin]);
 
 	if (!plugin) {
 		return (
@@ -162,6 +162,8 @@ export default function PluginDetailScreen() {
 						</View>
 					</SettingsSection>
 				)}
+
+				<PluginSettingsSection pluginId={plugin.id} />
 			</ScrollView>
 		</PageLayout>
 	);

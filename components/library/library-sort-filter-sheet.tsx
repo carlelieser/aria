@@ -35,6 +35,7 @@ interface LibrarySortFilterSheetProps {
 	onToggleArtist: (artistId: string) => void;
 	onToggleAlbum: (albumId: string) => void;
 	onToggleFavorites: () => void;
+	onToggleDownloaded: () => void;
 	onClearAll: () => void;
 }
 
@@ -51,6 +52,7 @@ export function LibrarySortFilterSheet({
 	onToggleArtist,
 	onToggleAlbum,
 	onToggleFavorites,
+	onToggleDownloaded,
 	onClearAll,
 }: LibrarySortFilterSheetProps) {
 	const { colors } = useAppTheme();
@@ -142,6 +144,7 @@ export function LibrarySortFilterSheet({
 							onToggleArtist={onToggleArtist}
 							onToggleAlbum={onToggleAlbum}
 							onToggleFavorites={onToggleFavorites}
+							onToggleDownloaded={onToggleDownloaded}
 						/>
 					</View>
 

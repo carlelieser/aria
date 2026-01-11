@@ -15,14 +15,8 @@ import type { TrackId } from '@domain/value-objects/track-id';
 import type { Result } from '@shared/types/result';
 import { ok, err } from '@shared/types/result';
 
-import {
-	type SpotifyConfig,
-	DEFAULT_CONFIG,
-	PLUGIN_MANIFEST,
-	CONFIG_SCHEMA,
-	METADATA_CAPABILITIES,
-} from './config';
-import { SpotifyClient, createSpotifyClient } from './client';
+import { PLUGIN_MANIFEST, CONFIG_SCHEMA, METADATA_CAPABILITIES } from './config';
+import { SpotifyClient, createSpotifyClient, type SpotifyClientConfig } from './client';
 import { createSearchOperations, type SearchOperations } from './search';
 import { createInfoOperations, type InfoOperations } from './info';
 import { createLibraryOperations, type LibraryOperations } from './library';
@@ -35,9 +29,9 @@ export interface SpotifyLibraryProvider extends MetadataProvider {
 
 	isAuthenticated(): boolean;
 
-	getAuthorizationUrl(state: string): string;
+	getLoginUrl(): string;
 
-	exchangeAuthorizationCode(code: string): Promise<Result<void, Error>>;
+	setSpDcCookie(cookie: string): Promise<Result<void, Error>>;
 
 	logout(): Promise<Result<void, Error>>;
 }
@@ -49,15 +43,15 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 
 	status: PluginStatus = 'uninitialized';
 
-	private config: SpotifyConfig;
+	private config: SpotifyClientConfig;
 	private client: SpotifyClient | null = null;
 	private searchOps: SearchOperations | null = null;
 	private infoOps: InfoOperations | null = null;
 	private libraryOps: LibraryOperations | null = null;
 	private recommendationOps: RecommendationOperations | null = null;
 
-	constructor(config: SpotifyConfig) {
-		this.config = { ...DEFAULT_CONFIG, ...config } as SpotifyConfig;
+	constructor(config: SpotifyClientConfig = {}) {
+		this.config = config;
 	}
 
 	get library(): LibraryOperations {
@@ -71,12 +65,8 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 		try {
 			this.status = 'initializing';
 
-			const mergedConfig: SpotifyConfig = {
-				...this.config,
-				clientId: (context.config.clientId as string) || this.config.clientId,
-				clientSecret: (context.config.clientSecret as string) || this.config.clientSecret,
-				redirectUri: (context.config.redirectUri as string) || this.config.redirectUri,
-				market: (context.config.market as string) || this.config.market,
+			const mergedConfig: SpotifyClientConfig = {
+				market: (context.config.market as string) || this.config.market || 'US',
 			};
 
 			this.client = createSpotifyClient(mergedConfig);
@@ -135,18 +125,18 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 		return this.client?.isAuthenticated() ?? false;
 	}
 
-	getAuthorizationUrl(state: string): string {
+	getLoginUrl(): string {
 		if (!this.client) {
 			throw new Error('Plugin not initialized');
 		}
-		return this.client.getAuthManager().getAuthorizationUrl(state);
+		return this.client.getAuthManager().getLoginUrl();
 	}
 
-	async exchangeAuthorizationCode(code: string): Promise<Result<void, Error>> {
+	async setSpDcCookie(cookie: string): Promise<Result<void, Error>> {
 		if (!this.client) {
 			return err(new Error('Plugin not initialized'));
 		}
-		return this.client.getAuthManager().exchangeCode(code);
+		return this.client.getAuthManager().setSpDcCookie(cookie);
 	}
 
 	async logout(): Promise<Result<void, Error>> {
@@ -270,6 +260,6 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 	}
 }
 
-export function createSpotifyProvider(config: SpotifyConfig): SpotifyProvider {
+export function createSpotifyProvider(config: SpotifyClientConfig = {}): SpotifyProvider {
 	return new SpotifyProvider(config);
 }

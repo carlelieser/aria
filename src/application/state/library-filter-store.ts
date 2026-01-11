@@ -23,6 +23,8 @@ interface LibraryFilterState {
 	toggleAlbumFilter: (albumId: string) => void;
 	setFavoritesOnly: (enabled: boolean) => void;
 	toggleFavoritesOnly: () => void;
+	setDownloadedOnly: (enabled: boolean) => void;
+	toggleDownloadedOnly: () => void;
 	clearFilters: () => void;
 	clearAll: () => void;
 	setFilterSheetOpen: (isOpen: boolean) => void;
@@ -82,6 +84,19 @@ export const useLibraryFilterStore = create<LibraryFilterState>()((set) => ({
 			activeFilters: {
 				...state.activeFilters,
 				favoritesOnly: !state.activeFilters.favoritesOnly,
+			},
+		})),
+
+	setDownloadedOnly: (enabled) =>
+		set((state) => ({
+			activeFilters: { ...state.activeFilters, downloadedOnly: enabled },
+		})),
+
+	toggleDownloadedOnly: () =>
+		set((state) => ({
+			activeFilters: {
+				...state.activeFilters,
+				downloadedOnly: !state.activeFilters.downloadedOnly,
 			},
 		})),
 

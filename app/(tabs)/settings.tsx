@@ -5,10 +5,9 @@
  * Uses M3 theming.
  */
 
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, Linking } from 'react-native';
 import { useCallback, useState } from 'react';
 import { router } from 'expo-router';
-import { Text } from 'react-native-paper';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { VersionDialog } from '@/components/ui/version-dialog';
 import { PageLayout } from '@/components/page-layout';
@@ -21,7 +20,6 @@ import { EqualizerSheet } from '@/components/equalizer-sheet';
 import {
 	TrashIcon,
 	InfoIcon,
-	HeartIcon,
 	PuzzleIcon,
 	HardDriveIcon,
 	SettingsIcon,
@@ -35,6 +33,8 @@ import {
 	CompassIcon,
 	DownloadIcon,
 	RotateCcwIcon,
+	CodeIcon,
+	GithubIcon,
 	type LucideIcon,
 } from 'lucide-react-native';
 import { useLibraryStore } from '@/src/application/state/library-store';
@@ -52,7 +52,6 @@ import { useDownloadQueue, formatFileSize } from '@/hooks/use-download-queue';
 import { useEqualizer } from '@/hooks/use-equalizer';
 import { clearAllDownloads } from '@/src/infrastructure/filesystem/download-manager';
 import { useToast } from '@/hooks/use-toast';
-import { useAppTheme } from '@/lib/theme';
 import Constants from 'expo-constants';
 
 const THEME_OPTIONS: { value: ThemePreference; label: string; icon: LucideIcon }[] = [
@@ -81,7 +80,6 @@ export default function SettingsScreen() {
 	const { stats } = useDownloadQueue();
 	const { isEnabled: eqEnabled, currentPreset } = useEqualizer();
 	const { success, error } = useToast();
-	const { colors } = useAppTheme();
 	const [equalizerSheetOpen, setEqualizerSheetOpen] = useState(false);
 	const [clearLibraryDialogVisible, setClearLibraryDialogVisible] = useState(false);
 	const [clearDownloadsDialogVisible, setClearDownloadsDialogVisible] = useState(false);
@@ -188,6 +186,16 @@ export default function SettingsScreen() {
 	return (
 		<PageLayout header={{ icon: SettingsIcon, title: 'Settings' }}>
 			<ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+				<SettingsSection title="Plugins">
+					<SettingsItem
+						icon={PuzzleIcon}
+						title="Manage Plugins"
+						subtitle="Music sources, playback, and more"
+						onPress={() => router.push('/plugins')}
+						showChevron
+					/>
+				</SettingsSection>
+
 				<SettingsSection title="Appearance">
 					<SettingsSelect
 						icon={SunMoonIcon}
@@ -215,16 +223,6 @@ export default function SettingsScreen() {
 						title="Equalizer"
 						subtitle={eqEnabled ? `${currentPreset.name} (On)` : 'Off'}
 						onPress={openEqualizerSheet}
-						showChevron
-					/>
-				</SettingsSection>
-
-				<SettingsSection title="Plugins">
-					<SettingsItem
-						icon={PuzzleIcon}
-						title="Manage Plugins"
-						subtitle="Music sources, playback, and more"
-						onPress={() => router.push('/plugins')}
 						showChevron
 					/>
 				</SettingsSection>
@@ -294,26 +292,20 @@ export default function SettingsScreen() {
 						showChevron
 					/>
 					<SettingsItem
-						icon={HeartIcon}
-						title="Made with love"
-						subtitle="A clean architecture music player"
+						icon={CodeIcon}
+						title="Created by Carlos Santos"
+						subtitle="Built with Expo and React Native"
+						onPress={() => Linking.openURL('https://carlelieser.dev')}
+						showChevron
+					/>
+					<SettingsItem
+						icon={GithubIcon}
+						title="Open Source"
+						subtitle="View source code on GitHub"
+						onPress={() => Linking.openURL('https://github.com/carlelieser/aria')}
+						showChevron
 					/>
 				</SettingsSection>
-
-				<View style={styles.footer}>
-					<Text
-						variant="bodySmall"
-						style={[styles.footerText, { color: colors.onSurfaceVariant }]}
-					>
-						Aria Music Player
-					</Text>
-					<Text
-						variant="labelSmall"
-						style={[styles.footerSubtext, { color: colors.onSurfaceVariant }]}
-					>
-						Built with Expo, React Native, and TypeScript
-					</Text>
-				</View>
 			</ScrollView>
 
 			<EqualizerSheet isOpen={equalizerSheetOpen} onClose={closeEqualizerSheet} />
@@ -388,17 +380,5 @@ const styles = StyleSheet.create({
 	},
 	scrollContent: {
 		paddingBottom: 32,
-	},
-	footer: {
-		alignItems: 'center',
-		marginTop: 32,
-		paddingHorizontal: 16,
-	},
-	footerText: {
-		textAlign: 'center',
-	},
-	footerSubtext: {
-		textAlign: 'center',
-		marginTop: 4,
 	},
 });

@@ -34,6 +34,12 @@ export class DownloadService {
 		}
 	}
 
+	removeAudioSourceProvider(providerId: string): void {
+		this.audioSourceProviders = this.audioSourceProviders.filter(
+			(p) => p.manifest.id !== providerId
+		);
+	}
+
 	async downloadTrack(track: Track): Promise<Result<void, Error>> {
 		const trackId = track.id.value;
 		const store = useDownloadStore.getState();

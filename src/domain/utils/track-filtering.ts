@@ -9,12 +9,14 @@ export interface LibraryFilters {
 	readonly artistIds: string[];
 	readonly albumIds: string[];
 	readonly favoritesOnly: boolean;
+	readonly downloadedOnly: boolean;
 }
 
 export const DEFAULT_FILTERS: LibraryFilters = {
 	artistIds: [],
 	albumIds: [],
 	favoritesOnly: false,
+	downloadedOnly: false,
 };
 
 export function sortTracks(
@@ -113,12 +115,18 @@ export function matchesFilters(
 }
 
 export function hasActiveFilters(filters: LibraryFilters): boolean {
-	return filters.favoritesOnly || filters.artistIds.length > 0 || filters.albumIds.length > 0;
+	return (
+		filters.favoritesOnly ||
+		filters.downloadedOnly ||
+		filters.artistIds.length > 0 ||
+		filters.albumIds.length > 0
+	);
 }
 
 export function countActiveFilters(filters: LibraryFilters): number {
 	let count = 0;
 	if (filters.favoritesOnly) count += 1;
+	if (filters.downloadedOnly) count += 1;
 	count += filters.artistIds.length;
 	count += filters.albumIds.length;
 	return count;

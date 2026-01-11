@@ -1,6 +1,7 @@
 export { TrackListItemSkeleton, TrackListSkeleton } from './track-list-item-skeleton';
 export { PlaylistItemSkeleton, PlaylistListSkeleton } from './playlist-item-skeleton';
 export { ArtistItemSkeleton, ArtistListSkeleton } from './artist-item-skeleton';
+export { AlbumItemSkeleton, AlbumListSkeleton } from './album-item-skeleton';
 export {
 	PlayerArtworkSkeleton,
 	PlayerBufferingOverlay,

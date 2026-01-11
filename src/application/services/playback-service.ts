@@ -71,6 +71,12 @@ export class PlaybackService {
 		}
 	}
 
+	removeAudioSourceProvider(providerId: string): void {
+		this.audioSourceProviders = this.audioSourceProviders.filter(
+			(p) => p.manifest.id !== providerId
+		);
+	}
+
 	async play(track: Track): Promise<Result<void, Error>> {
 		// Stop current playback FIRST to ensure clean transition
 		if (this.activeProvider) {

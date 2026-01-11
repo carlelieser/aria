@@ -13,6 +13,8 @@ import { Text, IconButton } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
 import { ChevronLeftIcon, type LucideIcon } from 'lucide-react-native';
 import { useAppTheme } from '@/lib/theme';
+import { useCurrentTrack } from '@/src/application/state/player-store';
+import { FLOATING_PLAYER_HEIGHT } from '@/components/floating-player';
 import type { ReactNode } from 'react';
 
 interface PageHeaderProps {
@@ -47,6 +49,8 @@ interface PageLayoutProps {
 	children: ReactNode;
 }
 
+const PLAYER_BOTTOM_PADDING = FLOATING_PLAYER_HEIGHT + 16;
+
 export function PageLayout({
 	header,
 	edges = ['top'],
@@ -56,6 +60,8 @@ export function PageLayout({
 	children,
 }: PageLayoutProps) {
 	const { colors } = useAppTheme();
+	const currentTrack = useCurrentTrack();
+	const hasActiveTrack = currentTrack !== null;
 
 	return (
 		<SafeAreaView
@@ -63,7 +69,14 @@ export function PageLayout({
 			edges={edges}
 		>
 			{header && <PageHeader {...header} />}
-			<View style={[styles.content, contentPadding && styles.contentPadding, contentStyle]}>
+			<View
+				style={[
+					styles.content,
+					contentPadding && styles.contentPadding,
+					hasActiveTrack && { paddingBottom: PLAYER_BOTTOM_PADDING },
+					contentStyle,
+				]}
+			>
 				{children}
 			</View>
 		</SafeAreaView>

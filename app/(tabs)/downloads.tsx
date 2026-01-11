@@ -21,30 +21,10 @@ import { clearAllDownloads } from '@/src/infrastructure/filesystem/download-mana
 import { useToast } from '@/hooks/use-toast';
 import { usePlayer } from '@/hooks/use-player';
 import { useAppTheme } from '@/lib/theme';
-import type { DownloadInfo } from '@/src/domain/value-objects/download-state';
 import type { Track } from '@/src/domain/entities/track';
-import { createTrack } from '@/src/domain/entities/track';
-import { TrackId } from '@/src/domain/value-objects/track-id';
-import { Duration } from '@/src/domain/value-objects/duration';
+import { createTrackFromDownloadInfo } from '@/src/domain/utils/create-track-from-download';
 
 type TabType = 'active' | 'completed' | 'failed';
-
-function createTrackFromDownloadInfo(info: DownloadInfo): Track {
-	const trackId = TrackId.tryFromString(info.trackId) ?? TrackId.create('unknown', info.trackId);
-
-	return createTrack({
-		id: trackId,
-		title: info.title,
-		artists: [{ id: 'unknown', name: info.artistName }],
-		duration: Duration.ZERO,
-		artwork: info.artworkUrl ? [{ url: info.artworkUrl, width: 48, height: 48 }] : undefined,
-		source: {
-			type: 'streaming',
-			sourcePlugin: trackId.sourceType,
-			sourceId: trackId.sourceId,
-		},
-	});
-}
 
 export default function DownloadsScreen() {
 	const [selectedTab, setSelectedTab] = useState<TabType>('active');

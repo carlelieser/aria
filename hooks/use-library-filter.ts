@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useTracks, useFavorites } from '@/src/application/state/library-store';
+import { useDownloadedTracks } from '@/src/application/state/download-store';
 import { useLibraryFilterStore } from '@/src/application/state/library-filter-store';
 import {
 	filterTracks,
@@ -8,10 +9,12 @@ import {
 	hasActiveFilters,
 	countActiveFilters,
 } from '@/src/domain/utils/track-filtering';
+import { createTrackFromDownloadedMetadata } from '@/src/domain/utils/create-track-from-download';
 
 export function useLibraryFilter() {
 	const allTracks = useTracks();
 	const favorites = useFavorites();
+	const downloadedTracksMap = useDownloadedTracks();
 
 	const {
 		searchQuery,
@@ -26,6 +29,7 @@ export function useLibraryFilter() {
 		toggleArtistFilter,
 		toggleAlbumFilter,
 		toggleFavoritesOnly,
+		toggleDownloadedOnly,
 		clearFilters,
 		clearAll,
 		setFilterSheetOpen,
@@ -43,15 +47,43 @@ export function useLibraryFilter() {
 			toggleArtistFilter: s.toggleArtistFilter,
 			toggleAlbumFilter: s.toggleAlbumFilter,
 			toggleFavoritesOnly: s.toggleFavoritesOnly,
+			toggleDownloadedOnly: s.toggleDownloadedOnly,
 			clearFilters: s.clearFilters,
 			clearAll: s.clearAll,
 			setFilterSheetOpen: s.setFilterSheetOpen,
 		}))
 	);
 
+	const downloadedIds = useMemo(() => {
+		return new Set(downloadedTracksMap.keys());
+	}, [downloadedTracksMap]);
+
+	const baseTracks = useMemo(() => {
+		if (!activeFilters.downloadedOnly) {
+			return allTracks;
+		}
+
+		const libraryTrackIds = new Set(allTracks.map((t) => t.id.value));
+		const downloadedLibraryTracks = allTracks.filter((t) => downloadedIds.has(t.id.value));
+		const nonLibraryDownloads: ReturnType<typeof createTrackFromDownloadedMetadata>[] = [];
+
+		for (const [trackId, metadata] of downloadedTracksMap) {
+			if (!libraryTrackIds.has(trackId)) {
+				nonLibraryDownloads.push(createTrackFromDownloadedMetadata(metadata));
+			}
+		}
+
+		return [...downloadedLibraryTracks, ...nonLibraryDownloads];
+	}, [allTracks, activeFilters.downloadedOnly, downloadedIds, downloadedTracksMap]);
+
+	const filtersWithoutDownloaded = useMemo(
+		() => ({ ...activeFilters, downloadedOnly: false }),
+		[activeFilters]
+	);
+
 	const filteredTracks = useMemo(() => {
-		return filterTracks(allTracks, searchQuery, activeFilters, favorites);
-	}, [allTracks, searchQuery, activeFilters, favorites]);
+		return filterTracks(baseTracks, searchQuery, filtersWithoutDownloaded, favorites);
+	}, [baseTracks, searchQuery, filtersWithoutDownloaded, favorites]);
 
 	const tracks = useMemo(() => {
 		return sortTracks(filteredTracks, sortField, sortDirection);
@@ -88,6 +120,7 @@ export function useLibraryFilter() {
 		toggleArtistFilter,
 		toggleAlbumFilter,
 		toggleFavoritesOnly,
+		toggleDownloadedOnly,
 		clearFilters,
 
 		clearAll,

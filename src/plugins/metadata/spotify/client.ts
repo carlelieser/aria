@@ -1,7 +1,7 @@
 import type { Result } from '@shared/types/result';
 import { ok, err } from '@shared/types/result';
 import { SpotifyAuthManager } from './auth';
-import { SPOTIFY_API_BASE_URL, type SpotifyConfig } from './config';
+import { SPOTIFY_API_BASE_URL } from './config';
 import type {
 	SpotifyErrorResponse,
 	SpotifySearchResponse,
@@ -26,18 +26,22 @@ interface RateLimitState {
 	windowStart: number;
 }
 
+export interface SpotifyClientConfig {
+	readonly market?: string;
+}
+
 export class SpotifyClient {
 	private authManager: SpotifyAuthManager;
-	private config: SpotifyConfig;
+	private config: SpotifyClientConfig;
 	private rateLimit: RateLimitState = {
 		retryAfter: null,
 		requestCount: 0,
 		windowStart: Date.now(),
 	};
 
-	constructor(config: SpotifyConfig) {
+	constructor(config: SpotifyClientConfig = {}) {
 		this.config = config;
-		this.authManager = new SpotifyAuthManager(config);
+		this.authManager = new SpotifyAuthManager();
 	}
 
 	getAuthManager(): SpotifyAuthManager {
@@ -77,11 +81,12 @@ export class SpotifyClient {
 			}
 
 			if (response.status === 401) {
-				const refreshResult = await this.authManager.refreshAccessToken();
-				if (refreshResult.success) {
+				// Token expired - try to get a new one
+				const tokenResult = await this.authManager.getAccessToken();
+				if (tokenResult.success) {
 					return this._request<T>(endpoint, options);
 				}
-				return err(new Error('Authentication expired'));
+				return err(new Error('Authentication expired. Please log in again.'));
 			}
 
 			if (!response.ok) {
@@ -426,7 +431,7 @@ export class SpotifyClient {
 	}
 
 	async initialize(): Promise<Result<boolean, Error>> {
-		return this.authManager.loadStoredTokens();
+		return this.authManager.loadStoredAuth();
 	}
 
 	isAuthenticated(): boolean {
@@ -442,6 +447,6 @@ export class SpotifyClient {
 	}
 }
 
-export function createSpotifyClient(config: SpotifyConfig): SpotifyClient {
+export function createSpotifyClient(config: SpotifyClientConfig = {}): SpotifyClient {
 	return new SpotifyClient(config);
 }

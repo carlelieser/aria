@@ -259,6 +259,14 @@ export interface UniqueArtist {
 	artworkUrl?: string;
 }
 
+export interface UniqueAlbum {
+	id: string;
+	name: string;
+	artistName: string;
+	trackCount: number;
+	artworkUrl?: string;
+}
+
 function extractUniqueArtists(tracks: Track[]): UniqueArtist[] {
 	const artistMap = new Map<string, UniqueArtist>();
 
@@ -279,6 +287,29 @@ function extractUniqueArtists(tracks: Track[]): UniqueArtist[] {
 	}
 
 	return Array.from(artistMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function extractUniqueAlbums(tracks: Track[]): UniqueAlbum[] {
+	const albumMap = new Map<string, UniqueAlbum>();
+
+	for (const track of tracks) {
+		if (!track.album) continue;
+
+		const existing = albumMap.get(track.album.id);
+		if (existing) {
+			existing.trackCount += 1;
+		} else {
+			albumMap.set(track.album.id, {
+				id: track.album.id,
+				name: track.album.name,
+				artistName: track.artists[0]?.name ?? 'Unknown Artist',
+				trackCount: 1,
+				artworkUrl: track.artwork?.[0]?.url,
+			});
+		}
+	}
+
+	return Array.from(albumMap.values()).sort((a, b) => a.name.localeCompare(b.name));
 }
 
 let cachedArtists: UniqueArtist[] = [];
@@ -326,6 +357,21 @@ export const useUniqueArtists = () =>
 		cachedArtistsTracksRef = state.tracks;
 
 		return cachedArtists;
+	});
+
+let cachedAlbums: UniqueAlbum[] = [];
+let cachedAlbumsTracksRef: Track[] | null = null;
+
+export const useUniqueAlbums = () =>
+	useLibraryStore((state) => {
+		if (state.tracks === cachedAlbumsTracksRef) {
+			return cachedAlbums;
+		}
+
+		cachedAlbums = extractUniqueAlbums(state.tracks);
+		cachedAlbumsTracksRef = state.tracks;
+
+		return cachedAlbums;
 	});
 
 let cachedRecentlyAdded: Track[] = [];

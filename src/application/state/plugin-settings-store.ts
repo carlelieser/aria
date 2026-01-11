@@ -75,6 +75,11 @@ const customStorage = {
 	},
 };
 
+let resolveHydration: (() => void) | null = null;
+const hydrationPromise = new Promise<void>((resolve) => {
+	resolveHydration = resolve;
+});
+
 export const usePluginSettingsStore = create<PluginSettingsState>()(
 	persist(
 		(set, get) => ({
@@ -167,6 +172,11 @@ export const usePluginSettingsStore = create<PluginSettingsState>()(
 		{
 			name: 'aria-plugin-settings',
 			storage: createJSONStorage(() => customStorage),
+			onRehydrateStorage: () => {
+				return () => {
+					resolveHydration?.();
+				};
+			},
 		}
 	)
 );
@@ -190,7 +200,15 @@ export const useResetPluginSettings = () =>
 	usePluginSettingsStore((state) => state.resetPluginSettings);
 
 /**
+ * Wait for the plugin settings store to be hydrated from AsyncStorage
+ */
+export function waitForPluginSettingsHydration(): Promise<void> {
+	return hydrationPromise;
+}
+
+/**
  * Get enabled plugins as a Set (for efficient lookups)
+ * Note: Call waitForPluginSettingsHydration() first to ensure persisted state is loaded
  */
 export function getEnabledPluginsSet(): Set<string> {
 	return new Set(usePluginSettingsStore.getState().enabledPlugins);
@@ -198,6 +216,7 @@ export function getEnabledPluginsSet(): Set<string> {
 
 /**
  * Get all plugin configs
+ * Note: Call waitForPluginSettingsHydration() first to ensure persisted state is loaded
  */
 export function getPluginConfigs(): Record<string, PluginConfig> {
 	return usePluginSettingsStore.getState().pluginConfigs;

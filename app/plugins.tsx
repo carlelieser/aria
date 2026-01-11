@@ -15,7 +15,7 @@ import { PageLayout } from '@/components/page-layout';
 import { EmptyState } from '@/components/empty-state';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { ChevronRightIcon, PuzzleIcon, LockIcon } from 'lucide-react-native';
-import { useTogglePlugin } from '@/src/application/state/plugin-settings-store';
+import { togglePluginRuntime } from '@/src/application/services/plugin-lifecycle-service';
 import { PluginListSkeleton } from '@/components/skeletons';
 import { useAppTheme } from '@/lib/theme';
 import {
@@ -29,17 +29,13 @@ import {
 
 export default function PluginsScreen() {
 	const { plugins, pluginsByCategory, isLoading } = usePluginList();
-	const togglePlugin = useTogglePlugin();
 
-	const handleTogglePlugin = useCallback(
-		(plugin: PluginDisplayInfo) => {
-			if (plugin.isRequired) {
-				return;
-			}
-			togglePlugin(plugin.id);
-		},
-		[togglePlugin]
-	);
+	const handleTogglePlugin = useCallback((plugin: PluginDisplayInfo) => {
+		if (plugin.isRequired) {
+			return;
+		}
+		togglePluginRuntime(plugin.id);
+	}, []);
 
 	return (
 		<PageLayout header={{ title: 'Plugins', showBack: true, compact: true }}>

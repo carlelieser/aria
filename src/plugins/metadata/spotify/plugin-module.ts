@@ -8,8 +8,9 @@
 import type { PluginConfig } from '@plugins/core/interfaces/base-plugin';
 import type { PluginModule } from '@plugins/core/interfaces/plugin-module';
 import type { MetadataProvider } from '@plugins/core/interfaces/metadata-provider';
-import { PLUGIN_MANIFEST, DEFAULT_CONFIG, type SpotifyConfig } from './config';
+import { PLUGIN_MANIFEST } from './config';
 import { createSpotifyProvider } from './spotify-provider';
+import type { SpotifyClientConfig } from './client';
 
 /**
  * Spotify plugin module for self-registration
@@ -17,25 +18,17 @@ import { createSpotifyProvider } from './spotify-provider';
 export const SpotifyPluginModule: PluginModule<MetadataProvider> = {
 	manifest: PLUGIN_MANIFEST,
 
-	defaultConfig: DEFAULT_CONFIG as PluginConfig,
+	defaultConfig: { market: 'US' } as PluginConfig,
 
 	async create(config?: PluginConfig) {
-		const spotifyConfig = config as Partial<SpotifyConfig>;
-		// Spotify requires auth config to be provided
-		if (
-			!spotifyConfig?.clientId ||
-			!spotifyConfig?.clientSecret ||
-			!spotifyConfig?.redirectUri
-		) {
-			throw new Error(
-				'Spotify plugin requires clientId, clientSecret, and redirectUri configuration'
-			);
-		}
-		return createSpotifyProvider(spotifyConfig as SpotifyConfig);
+		const clientConfig: SpotifyClientConfig = {
+			market: (config?.market as string) || 'US',
+		};
+		return createSpotifyProvider(clientConfig);
 	},
 
 	async validate() {
-		// Could validate that OAuth is configured, etc.
+		// Validation happens when user attempts to authenticate
 	},
 };
 

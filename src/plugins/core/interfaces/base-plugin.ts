@@ -50,7 +50,7 @@ export type PluginManifest = ExtendedPluginManifest;
 export interface PluginConfigSchema {
 	readonly key: string;
 
-	readonly type: 'string' | 'number' | 'boolean' | 'select';
+	readonly type: 'string' | 'number' | 'boolean' | 'select' | 'folder-list' | 'oauth';
 
 	readonly label: string;
 
@@ -67,6 +67,8 @@ export interface PluginConfigSchema {
 	readonly min?: number;
 
 	readonly max?: number;
+
+	readonly icon?: string;
 }
 
 export type PluginConfig = Record<string, unknown>;
