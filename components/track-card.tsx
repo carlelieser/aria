@@ -10,7 +10,9 @@ import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { Text } from 'react-native-paper';
+import { Music } from 'lucide-react-native';
 
+import { Icon } from '@/components/ui/icon';
 import { usePlayer } from '@/hooks/use-player';
 import type { Track } from '@/src/domain/entities/track';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
@@ -55,15 +57,24 @@ export const TrackCard = memo(function TrackCard({
 
 	return (
 		<TouchableOpacity style={styles.container} onPress={handlePress} activeOpacity={0.7}>
-			<View style={styles.artworkContainer}>
-				<Image
-					source={{ uri: artworkUrl }}
-					style={styles.artwork}
-					contentFit="cover"
-					transition={200}
-					cachePolicy="memory-disk"
-					recyclingKey={track.id.value}
-				/>
+			<View
+				style={[
+					styles.artworkContainer,
+					!artworkUrl && { backgroundColor: colors.surfaceContainerHighest },
+				]}
+			>
+				{artworkUrl ? (
+					<Image
+						source={{ uri: artworkUrl }}
+						style={styles.artwork}
+						contentFit="cover"
+						transition={200}
+						cachePolicy="memory-disk"
+						recyclingKey={track.id.value}
+					/>
+				) : (
+					<Icon as={Music} size={48} color={colors.onSurfaceVariant} />
+				)}
 				<DownloadIndicator trackId={track.id.value} size="lg" />
 			</View>
 			<View style={styles.infoContainer}>
@@ -88,6 +99,12 @@ const styles = StyleSheet.create({
 	},
 	artworkContainer: {
 		position: 'relative',
+		width: 128,
+		height: 128,
+		borderRadius: M3Shapes.medium,
+		justifyContent: 'center',
+		alignItems: 'center',
+		overflow: 'hidden',
 	},
 	artwork: {
 		width: 128,

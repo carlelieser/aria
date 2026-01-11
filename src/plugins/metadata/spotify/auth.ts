@@ -135,6 +135,16 @@ export class SpotifyAuthManager {
 		return this.spDcCookie !== null;
 	}
 
+	async checkAuthentication(): Promise<boolean> {
+		console.log('[SpotifyAuthManager] checkAuthentication - spDcCookie before:', !!this.spDcCookie);
+		if (!this.spDcCookie) {
+			const result = await this._loadStoredAuth();
+			console.log('[SpotifyAuthManager] loadStoredAuth result:', result);
+		}
+		console.log('[SpotifyAuthManager] checkAuthentication - spDcCookie after:', !!this.spDcCookie);
+		return this.spDcCookie !== null;
+	}
+
 	async loadStoredAuth(): Promise<Result<boolean, Error>> {
 		return this._loadStoredAuth();
 	}

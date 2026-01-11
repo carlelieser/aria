@@ -107,6 +107,17 @@ export function mapSpotifyTrack(track: SpotifyTrack): Track | null {
 		return null;
 	}
 
+	// Debug: Log album data to understand missing artwork
+	if (!track.album?.images || track.album.images.length === 0) {
+		console.log('[SpotifyMapper] Track missing album images:', {
+			trackId: track.id,
+			trackName: track.name,
+			hasAlbum: !!track.album,
+			albumName: track.album?.name,
+			images: track.album?.images,
+		});
+	}
+
 	const trackId = TrackId.create('spotify', track.id);
 	const duration = Duration.fromMilliseconds(track.duration_ms);
 	const artists = mapSpotifyArtistReferences(track.artists);

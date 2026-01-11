@@ -29,6 +29,8 @@ export interface SpotifyLibraryProvider extends MetadataProvider {
 
 	isAuthenticated(): boolean;
 
+	checkAuthentication(): Promise<boolean>;
+
 	getLoginUrl(): string;
 
 	setSpDcCookie(cookie: string): Promise<Result<void, Error>>;
@@ -123,6 +125,13 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 
 	isAuthenticated(): boolean {
 		return this.client?.isAuthenticated() ?? false;
+	}
+
+	async checkAuthentication(): Promise<boolean> {
+		if (!this.client) {
+			return false;
+		}
+		return this.client.checkAuthentication();
 	}
 
 	getLoginUrl(): string {

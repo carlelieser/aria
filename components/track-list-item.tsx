@@ -9,7 +9,7 @@ import { memo, useCallback } from 'react';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { CheckCircle, AlertCircle, X, Trash2 } from 'lucide-react-native';
+import { CheckCircle, AlertCircle, X, Trash2, Music } from 'lucide-react-native';
 import { Text, IconButton } from 'react-native-paper';
 
 import { Icon } from '@/components/ui/icon';
@@ -187,15 +187,24 @@ export const TrackListItem = memo(function TrackListItem({
 			delayLongPress={300}
 			activeOpacity={0.7}
 		>
-			<View style={styles.artworkContainer}>
-				<Image
-					source={{ uri: artworkUrl }}
-					style={styles.artwork}
-					contentFit="cover"
-					transition={200}
-					cachePolicy="memory-disk"
-					recyclingKey={track.id.value}
-				/>
+			<View
+				style={[
+					styles.artworkContainer,
+					!artworkUrl && { backgroundColor: colors.surfaceContainerHighest },
+				]}
+			>
+				{artworkUrl ? (
+					<Image
+						source={{ uri: artworkUrl }}
+						style={styles.artwork}
+						contentFit="cover"
+						transition={200}
+						cachePolicy="memory-disk"
+						recyclingKey={track.id.value}
+					/>
+				) : (
+					<Icon as={Music} size={24} color={colors.onSurfaceVariant} />
+				)}
 				{!downloadInfo && <DownloadIndicator trackId={track.id.value} size="sm" />}
 			</View>
 
@@ -257,6 +266,12 @@ const styles = StyleSheet.create({
 	},
 	artworkContainer: {
 		position: 'relative',
+		width: 48,
+		height: 48,
+		borderRadius: M3Shapes.small,
+		justifyContent: 'center',
+		alignItems: 'center',
+		overflow: 'hidden',
 	},
 	artwork: {
 		width: 48,

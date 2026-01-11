@@ -29,7 +29,7 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 }: PluginOAuthFieldProps) {
 	const { colors } = useAppTheme();
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
-	const [isLoading, setIsLoading] = useState(false);
+	const [isLoading, setIsLoading] = useState(true);
 	const [showLoginModal, setShowLoginModal] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -53,10 +53,32 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 	}, [pluginId]);
 
 	useEffect(() => {
-		const plugin = getPlugin();
-		if (plugin) {
-			setIsAuthenticated(plugin.isAuthenticated());
-		}
+		let cancelled = false;
+
+		const checkAuthStatus = async () => {
+			const plugin = getPlugin();
+			console.log('[PluginOAuthField] plugin:', plugin?.manifest.id, 'status:', plugin?.status);
+
+			if (!plugin) {
+				console.log('[PluginOAuthField] No plugin found');
+				setIsLoading(false);
+				return;
+			}
+
+			const authenticated = await plugin.checkAuthentication();
+			console.log('[PluginOAuthField] authenticated:', authenticated);
+
+			if (!cancelled) {
+				setIsAuthenticated(authenticated);
+				setIsLoading(false);
+			}
+		};
+
+		void checkAuthStatus();
+
+		return () => {
+			cancelled = true;
+		};
 	}, [getPlugin]);
 
 	const handleConnect = useCallback(() => {
@@ -136,7 +158,6 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 					) : (
 						<Button
 							variant={isAuthenticated ? 'outline' : 'default'}
-							size="sm"
 							onPress={isAuthenticated ? handleDisconnect : handleConnect}
 						>
 							{isAuthenticated ? 'Disconnect' : 'Connect'}
