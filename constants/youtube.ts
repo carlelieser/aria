@@ -18,6 +18,31 @@ const defaultConfig: YouTubeClientConfig = {
 let youtubeClientInstance: Innertube | null = null;
 let clientInitPromise: Promise<Innertube> | null = null;
 
+/**
+ * Preload the innertube client in the background.
+ * Call this early in app startup to have the client ready when needed.
+ */
+export function preloadYouTubeClient(): void {
+	if (youtubeClientInstance || clientInitPromise) return;
+
+	clientInitPromise = (async () => {
+		try {
+			youtubeClientInstance = await Innertube.create({
+				...defaultConfig,
+			});
+			logger.info('YouTube client preloaded successfully');
+			return youtubeClientInstance;
+		} catch (error) {
+			logger.error(
+				'Failed to preload YouTube client:',
+				error instanceof Error ? error : undefined
+			);
+			clientInitPromise = null;
+			throw error;
+		}
+	})();
+}
+
 export async function getYouTubeClient(
 	config: YouTubeClientConfig = defaultConfig
 ): Promise<Innertube> {

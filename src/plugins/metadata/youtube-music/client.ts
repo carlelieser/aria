@@ -1,7 +1,9 @@
 import InnertubeClient from 'youtubei.js/react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import type { YouTubeMusicConfig } from './config';
+import { getLogger } from '@shared/services/logger';
 
+const logger = getLogger('InnertubeClient');
 const CACHE_DIR = 'innertube/';
 
 class InnertubeCache {
@@ -67,6 +69,51 @@ class InnertubeCache {
 
 const innertubeCache = new InnertubeCache();
 
+// Shared preloaded client instance for faster startup
+let preloadedClient: InnertubeClient | null = null;
+let preloadPromise: Promise<InnertubeClient> | null = null;
+
+/**
+ * Preload the innertube client in the background.
+ * Call this early in app startup to have the client ready when needed.
+ */
+export function preloadInnertubeClient(config?: Partial<YouTubeMusicConfig>): void {
+	if (preloadedClient || preloadPromise) return;
+
+	preloadPromise = (async () => {
+		try {
+			preloadedClient = await InnertubeClient.create({
+				lang: config?.lang ?? 'en',
+				location: config?.location,
+				cache: innertubeCache,
+			});
+			logger.info('Innertube client preloaded successfully');
+			return preloadedClient;
+		} catch (error) {
+			logger.error(
+				'Failed to preload innertube client:',
+				error instanceof Error ? error : undefined
+			);
+			preloadPromise = null;
+			throw error;
+		}
+	})();
+}
+
+/**
+ * Get the preloaded client if available, otherwise return null.
+ */
+export function getPreloadedClient(): InnertubeClient | null {
+	return preloadedClient;
+}
+
+/**
+ * Get the preload promise if preloading is in progress.
+ */
+export function getPreloadPromise(): Promise<InnertubeClient> | null {
+	return preloadPromise;
+}
+
 export interface ClientManager {
 	getClient(): Promise<InnertubeClient>;
 	createFreshClient(): Promise<InnertubeClient>;
@@ -90,8 +137,20 @@ export function createClientManager(config: YouTubeMusicConfig): ClientManager {
 		async getClient(): Promise<InnertubeClient> {
 			if (client) return client;
 
+			// Use preloaded client if available
+			if (preloadedClient) {
+				client = preloadedClient;
+				return client;
+			}
+
+			// Use preload promise if preloading is in progress
+			if (preloadPromise && !initPromise) {
+				initPromise = preloadPromise;
+			}
+
 			if (initPromise) return initPromise;
 
+			// Fall back to creating a new client
 			initPromise = createClient();
 
 			try {

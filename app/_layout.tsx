@@ -8,6 +8,7 @@ import * as SplashScreen from 'expo-splash-screen';
 
 import { PortalHost } from '@rn-primitives/portal';
 import { lazyBootstrap, ensureBootstrapped } from '@/src/application/bootstrap';
+import { preloadInnertubeClient } from '@/src/plugins/metadata/youtube-music/client';
 import { FloatingPlayer } from '@/components/floating-player';
 import { TrackOptionsSheet } from '@/components/track-options-menu';
 import { ToastContainer } from '@/components/ui/toast';
@@ -22,6 +23,9 @@ SplashScreen.preventAutoHideAsync().then(() => SplashScreen.hideAsync());
 
 // Start lazy initialization in background (non-blocking)
 lazyBootstrap();
+
+// Preload innertube client in background so it's ready when needed
+preloadInnertubeClient();
 
 function AppContent() {
 	const { colors, isDark } = useAppTheme();
