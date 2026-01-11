@@ -78,7 +78,7 @@
     "text-encoding": "^0.7.0",
     "web-streams-polyfill": "^4.2.0",
     "youtubei.js": "^16.0.1",
-    "zustand": "^4.5.7"
+    "zustand": "^5.0.9"
   },
   "devDependencies": {
     "@testing-library/react-native": "^13.3.3",
