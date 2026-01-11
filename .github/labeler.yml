@@ -61,6 +61,17 @@ ci:
                 - '.github/**/*'
                 - 'eas.json'
 
+# Expo configuration changes
+expo:
+    - changed-files:
+          - any-glob-to-any-file:
+                - 'app.json'
+                - 'app.config.js'
+                - 'app.config.ts'
+                - 'eas.json'
+                - 'metro.config.js'
+                - 'babel.config.js'
+
 # Documentation
 documentation:
     - changed-files:

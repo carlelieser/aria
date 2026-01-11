@@ -59,6 +59,11 @@ jobs:
                   npx tsc --noEmit
                   npm run test:run
 
+            - name: Run Expo checks
+              run: |
+                  npx expo-doctor
+                  npx expo install --check
+
     build-android:
         name: Build Android Production
         runs-on: ubuntu-latest
