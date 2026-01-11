@@ -293,15 +293,15 @@ export default function SettingsScreen() {
 					/>
 					<SettingsItem
 						icon={CodeIcon}
-						title="Created by Carlos Santos"
-						subtitle="Built with Expo and React Native"
+						title="Developer"
+						subtitle="Carlos Santos"
 						onPress={() => Linking.openURL('https://carlelieser.dev')}
 						showChevron
 					/>
 					<SettingsItem
 						icon={GithubIcon}
-						title="Open Source"
-						subtitle="View source code on GitHub"
+						title="Source Code"
+						subtitle="View on GitHub"
 						onPress={() => Linking.openURL('https://github.com/carlelieser/aria')}
 						showChevron
 					/>
