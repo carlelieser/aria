@@ -165,11 +165,11 @@ const styles = StyleSheet.create({
 	colorGrid: {
 		flexDirection: 'row',
 		flexWrap: 'wrap',
-		gap: 16,
-		justifyContent: 'flex-start',
 	},
 	colorItem: {
+		width: '25%',
 		alignItems: 'center',
+		paddingVertical: 8,
 	},
 	colorSwatch: {
 		width: 48,

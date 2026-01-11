@@ -6,8 +6,7 @@
  */
 
 import React, { useEffect, useCallback, useState, useRef } from 'react';
-import { StyleSheet, Dimensions, View } from 'react-native';
-import IconContent from '@/assets/icon-content.svg';
+import { StyleSheet, Dimensions, View, Image } from 'react-native';
 import Animated, {
 	useSharedValue,
 	useAnimatedStyle,
@@ -72,6 +71,10 @@ export function AnimatedSplash({
 		onAnimationComplete?.();
 	}, [onAnimationComplete]);
 
+	const updateSegments = useCallback(() => {
+		setSegments((prev) => getRandomSegments(prev));
+	}, []);
+
 	// Pulse on segment change (skip initial mount)
 	useEffect(() => {
 		if (isFirstRender.current) {
@@ -96,9 +99,10 @@ export function AnimatedSplash({
 		() => Math.round(morphCycle.value),
 		(current, previous) => {
 			if (previous !== null && current !== previous) {
-				runOnJS(setSegments)(getRandomSegments);
+				runOnJS(updateSegments)();
 			}
-		}
+		},
+		[updateSegments]
 	);
 
 	// Continuous rotation using withRepeat (runs on native thread, no JS intervals)
@@ -160,7 +164,11 @@ export function AnimatedSplash({
 			/>
 			<View style={styles.content}>
 				<View style={styles.iconWrapper}>
-					<IconContent width={ICON_SIZE} height={ICON_SIZE} />
+					<Image
+						source={require('@/assets/icon-content.png')}
+						style={{ width: ICON_SIZE, height: ICON_SIZE }}
+						resizeMode="contain"
+					/>
 				</View>
 				<Animated.View style={[styles.polygonWrapper, polygonContainerStyle]}>
 					<AnimatedPolygonView

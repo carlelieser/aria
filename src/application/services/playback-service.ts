@@ -21,9 +21,29 @@ export class PlaybackService {
 	private activeProvider: PlaybackProvider | null = null;
 	private audioSourceProviders: AudioSourceProvider[] = [];
 	private eventListener: PlaybackEventListener | null = null;
+	private playLock: Promise<void> = Promise.resolve();
 
 	constructor() {
 		this.setupEventListener();
+	}
+
+	/**
+	 * Serialize play operations to prevent race conditions
+	 * when rapidly switching tracks.
+	 */
+	private async withPlayLock<T>(operation: () => Promise<T>): Promise<T> {
+		const previousLock = this.playLock;
+		let resolve: () => void;
+		this.playLock = new Promise<void>((r) => {
+			resolve = r;
+		});
+
+		try {
+			await previousLock;
+			return await operation();
+		} finally {
+			resolve!();
+		}
 	}
 
 	setPlaybackProviders(providers: PlaybackProvider[]): void {
@@ -78,59 +98,61 @@ export class PlaybackService {
 	}
 
 	async play(track: Track): Promise<Result<void, Error>> {
-		// Stop current playback FIRST to ensure clean transition
-		if (this.activeProvider) {
-			logger.debug('Stopping current playback before starting new track...');
+		return this.withPlayLock(async () => {
+			// Stop current playback FIRST to ensure clean transition
+			if (this.activeProvider) {
+				logger.debug('Stopping current playback before starting new track...');
+				try {
+					await this.activeProvider.stop();
+				} catch (e) {
+					logger.warn(
+						'Error stopping previous playback:',
+						e instanceof Error ? e : undefined
+					);
+				}
+			}
+
+			// Now update UI state with new track
+			usePlayerStore.getState().play(track);
+
 			try {
-				await this.activeProvider.stop();
-			} catch (e) {
-				logger.warn(
-					'Error stopping previous playback:',
-					e instanceof Error ? e : undefined
+				const streamResult = await this.getAudioStream(track);
+
+				if (!streamResult.success) {
+					usePlayerStore.getState()._setError(streamResult.error.message);
+					return err(streamResult.error);
+				}
+
+				const audioStream = streamResult.data;
+				const provider = this.getProviderForUrl(audioStream.url);
+
+				if (!provider) {
+					const error = new Error('No playback provider available for this stream type');
+					usePlayerStore.getState()._setError(error.message);
+					return err(error);
+				}
+
+				this.activeProvider = provider;
+
+				const playResult = await provider.play(
+					track,
+					audioStream.url,
+					undefined,
+					audioStream.headers
 				);
+
+				if (!playResult.success) {
+					usePlayerStore.getState()._setError(playResult.error.message);
+					return err(playResult.error);
+				}
+
+				return ok(undefined);
+			} catch (error) {
+				const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+				usePlayerStore.getState()._setError(errorMessage);
+				return err(error instanceof Error ? error : new Error(errorMessage));
 			}
-		}
-
-		// Now update UI state with new track
-		usePlayerStore.getState().play(track);
-
-		try {
-			const streamResult = await this.getAudioStream(track);
-
-			if (!streamResult.success) {
-				usePlayerStore.getState()._setError(streamResult.error.message);
-				return err(streamResult.error);
-			}
-
-			const audioStream = streamResult.data;
-			const provider = this.getProviderForUrl(audioStream.url);
-
-			if (!provider) {
-				const error = new Error('No playback provider available for this stream type');
-				usePlayerStore.getState()._setError(error.message);
-				return err(error);
-			}
-
-			this.activeProvider = provider;
-
-			const playResult = await provider.play(
-				track,
-				audioStream.url,
-				undefined,
-				audioStream.headers
-			);
-
-			if (!playResult.success) {
-				usePlayerStore.getState()._setError(playResult.error.message);
-				return err(playResult.error);
-			}
-
-			return ok(undefined);
-		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-			usePlayerStore.getState()._setError(errorMessage);
-			return err(error instanceof Error ? error : new Error(errorMessage));
-		}
+		});
 	}
 
 	async pause(): Promise<Result<void, Error>> {
