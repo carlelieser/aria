@@ -1,60 +1,60 @@
 name: Feature Request
 description: Suggest a new feature or enhancement
-title: "[Feature]: "
-labels: ["enhancement", "triage"]
+title: '[Feature]: '
+labels: ['enhancement', 'triage']
 body:
-  - type: markdown
-    attributes:
-      value: |
-        Thanks for suggesting a feature! Please fill out the information below.
+    - type: markdown
+      attributes:
+          value: |
+              Thanks for suggesting a feature! Please fill out the information below.
 
-  - type: textarea
-    id: problem
-    attributes:
-      label: Problem statement
-      description: Is your feature request related to a problem? Describe it.
-      placeholder: I'm always frustrated when...
-    validations:
-      required: true
+    - type: textarea
+      id: problem
+      attributes:
+          label: Problem statement
+          description: Is your feature request related to a problem? Describe it.
+          placeholder: I'm always frustrated when...
+      validations:
+          required: true
 
-  - type: textarea
-    id: solution
-    attributes:
-      label: Proposed solution
-      description: Describe the solution you'd like to see
-    validations:
-      required: true
+    - type: textarea
+      id: solution
+      attributes:
+          label: Proposed solution
+          description: Describe the solution you'd like to see
+      validations:
+          required: true
 
-  - type: textarea
-    id: alternatives
-    attributes:
-      label: Alternatives considered
-      description: Describe any alternative solutions or features you've considered
+    - type: textarea
+      id: alternatives
+      attributes:
+          label: Alternatives considered
+          description: Describe any alternative solutions or features you've considered
 
-  - type: dropdown
-    id: platform
-    attributes:
-      label: Platform
-      description: Which platform(s) would this affect?
-      multiple: true
-      options:
-        - iOS
-        - Android
-        - Web
-        - All platforms
+    - type: dropdown
+      id: platform
+      attributes:
+          label: Platform
+          description: Which platform(s) would this affect?
+          multiple: true
+          options:
+              - iOS
+              - Android
+              - Web
+              - All platforms
 
-  - type: dropdown
-    id: priority
-    attributes:
-      label: Priority
-      description: How important is this feature to you?
-      options:
-        - Nice to have
-        - Important
-        - Critical
+    - type: dropdown
+      id: priority
+      attributes:
+          label: Priority
+          description: How important is this feature to you?
+          options:
+              - Nice to have
+              - Important
+              - Critical
 
-  - type: textarea
-    id: additional
-    attributes:
-      label: Additional context
-      description: Add any other context, mockups, or screenshots about the feature request here.
+    - type: textarea
+      id: additional
+      attributes:
+          label: Additional context
+          description: Add any other context, mockups, or screenshots about the feature request here.

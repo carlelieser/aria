@@ -41,9 +41,7 @@ export const SettingsItem = memo(function SettingsItem({
 		() => [
 			styles.iconContainer,
 			{
-				backgroundColor: destructive
-					? `${colors.error}1A`
-					: colors.surfaceContainerHighest,
+				backgroundColor: destructive ? `${colors.error}1A` : colors.surfaceContainerHighest,
 			},
 		],
 		[destructive, colors.error, colors.surfaceContainerHighest]

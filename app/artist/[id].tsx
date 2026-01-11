@@ -141,9 +141,7 @@ export default function ArtistScreen() {
 
 	return (
 		<View style={[styles.container, { backgroundColor: colors.background }]}>
-			<View
-				style={[styles.header, { backgroundColor: colors.surfaceContainerHigh }]}
-			>
+			<View style={[styles.header, { backgroundColor: colors.surfaceContainerHigh }]}>
 				<SafeAreaView edges={['top']} style={styles.headerSafeArea}>
 					<View style={styles.headerRow}>
 						<IconButton
@@ -160,7 +158,10 @@ export default function ArtistScreen() {
 
 					<View style={styles.artistInfo}>
 						{artistInfo.artwork ? (
-							<Image source={{ uri: artistInfo.artwork }} style={styles.artistAvatar} />
+							<Image
+								source={{ uri: artistInfo.artwork }}
+								style={styles.artistAvatar}
+							/>
 						) : (
 							<View
 								style={[
@@ -183,12 +184,18 @@ export default function ArtistScreen() {
 								{artistInfo.name}
 							</Text>
 							{artistInfo.monthlyListeners && (
-								<Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant }}>
+								<Text
+									variant="bodyMedium"
+									style={{ color: colors.onSurfaceVariant }}
+								>
 									{formatListeners(artistInfo.monthlyListeners)}
 								</Text>
 							)}
 							{libraryTracks.length > 0 && (
-								<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
+								<Text
+									variant="bodySmall"
+									style={{ color: colors.onSurfaceVariant }}
+								>
 									{libraryTracks.length}{' '}
 									{libraryTracks.length === 1 ? 'track' : 'tracks'} in library
 								</Text>

@@ -71,7 +71,8 @@ export function usePluginSettings(pluginId: string) {
 				if (error) {
 					setErrors((prev) => ({ ...prev, [key]: error }));
 				} else {
-					const finalValue = schema.type === 'number' && value !== '' ? Number(value) : value;
+					const finalValue =
+						schema.type === 'number' && value !== '' ? Number(value) : value;
 					updatePluginConfig(pluginId, { [key]: finalValue });
 				}
 			}

@@ -2,7 +2,10 @@ import type { Track } from '@/src/domain/entities/track';
 import { createTrack } from '@/src/domain/entities/track';
 import { TrackId } from '@/src/domain/value-objects/track-id';
 import { Duration } from '@/src/domain/value-objects/duration';
-import type { DownloadInfo, DownloadedTrackMetadata } from '@/src/domain/value-objects/download-state';
+import type {
+	DownloadInfo,
+	DownloadedTrackMetadata,
+} from '@/src/domain/value-objects/download-state';
 
 export function createTrackFromDownloadInfo(info: DownloadInfo): Track {
 	const trackId = TrackId.tryFromString(info.trackId) ?? TrackId.create('unknown', info.trackId);

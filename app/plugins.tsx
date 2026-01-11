@@ -117,11 +117,7 @@ function PluginItem({
 			</View>
 
 			<View style={styles.actions}>
-				<Switch
-					value={isEnabled}
-					onValueChange={onToggle}
-					disabled={plugin.isRequired}
-				/>
+				<Switch value={isEnabled} onValueChange={onToggle} disabled={plugin.isRequired} />
 				<Icon as={ChevronRightIcon} size={20} color={colors.onSurfaceVariant} />
 			</View>
 		</Pressable>

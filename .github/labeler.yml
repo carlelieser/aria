@@ -2,90 +2,90 @@
 
 # Architecture layers
 domain:
-  - changed-files:
-      - any-glob-to-any-file: 'src/domain/**/*'
+    - changed-files:
+          - any-glob-to-any-file: 'src/domain/**/*'
 
 application:
-  - changed-files:
-      - any-glob-to-any-file: 'src/application/**/*'
+    - changed-files:
+          - any-glob-to-any-file: 'src/application/**/*'
 
 infrastructure:
-  - changed-files:
-      - any-glob-to-any-file: 'src/infrastructure/**/*'
+    - changed-files:
+          - any-glob-to-any-file: 'src/infrastructure/**/*'
 
 # App areas
 ui:
-  - changed-files:
-      - any-glob-to-any-file:
-          - 'app/**/*'
-          - 'components/**/*'
+    - changed-files:
+          - any-glob-to-any-file:
+                - 'app/**/*'
+                - 'components/**/*'
 
 plugins:
-  - changed-files:
-      - any-glob-to-any-file: 'src/plugins/**/*'
+    - changed-files:
+          - any-glob-to-any-file: 'src/plugins/**/*'
 
 # Platform specific
 android:
-  - changed-files:
-      - any-glob-to-any-file: 'android/**/*'
+    - changed-files:
+          - any-glob-to-any-file: 'android/**/*'
 
 ios:
-  - changed-files:
-      - any-glob-to-any-file: 'ios/**/*'
+    - changed-files:
+          - any-glob-to-any-file: 'ios/**/*'
 
 # Test changes
 test:
-  - changed-files:
-      - any-glob-to-any-file:
-          - 'test/**/*'
-          - '**/*.test.ts'
-          - '**/*.test.tsx'
-          - '**/*.spec.ts'
-          - '**/*.spec.tsx'
+    - changed-files:
+          - any-glob-to-any-file:
+                - 'test/**/*'
+                - '**/*.test.ts'
+                - '**/*.test.tsx'
+                - '**/*.spec.ts'
+                - '**/*.spec.tsx'
 
 # Configuration changes
 config:
-  - changed-files:
-      - any-glob-to-any-file:
-          - '*.json'
-          - '*.config.js'
-          - '*.config.ts'
-          - '.eslintrc*'
-          - '.prettierrc*'
-          - 'tsconfig*.json'
+    - changed-files:
+          - any-glob-to-any-file:
+                - '*.json'
+                - '*.config.js'
+                - '*.config.ts'
+                - '.eslintrc*'
+                - '.prettierrc*'
+                - 'tsconfig*.json'
 
 # CI/CD changes
 ci:
-  - changed-files:
-      - any-glob-to-any-file:
-          - '.github/**/*'
-          - 'eas.json'
+    - changed-files:
+          - any-glob-to-any-file:
+                - '.github/**/*'
+                - 'eas.json'
 
 # Documentation
 documentation:
-  - changed-files:
-      - any-glob-to-any-file:
-          - '**/*.md'
-          - 'docs/**/*'
+    - changed-files:
+          - any-glob-to-any-file:
+                - '**/*.md'
+                - 'docs/**/*'
 
 # Dependencies
 dependencies:
-  - changed-files:
-      - any-glob-to-any-file:
-          - 'package.json'
-          - 'package-lock.json'
+    - changed-files:
+          - any-glob-to-any-file:
+                - 'package.json'
+                - 'package-lock.json'
 
 # Assets
 assets:
-  - changed-files:
-      - any-glob-to-any-file: 'assets/**/*'
+    - changed-files:
+          - any-glob-to-any-file: 'assets/**/*'
 
 # Hooks
 hooks:
-  - changed-files:
-      - any-glob-to-any-file: 'hooks/**/*'
+    - changed-files:
+          - any-glob-to-any-file: 'hooks/**/*'
 
 # Shared utilities
 shared:
-  - changed-files:
-      - any-glob-to-any-file: 'src/shared/**/*'
+    - changed-files:
+          - any-glob-to-any-file: 'src/shared/**/*'

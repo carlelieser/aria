@@ -1,45 +1,45 @@
 version: 2
 updates:
-  # npm dependencies
-  - package-ecosystem: 'npm'
-    directory: '/'
-    schedule:
-      interval: 'weekly'
-      day: 'monday'
-    open-pull-requests-limit: 10
-    commit-message:
-      prefix: 'chore(deps):'
-    labels:
-      - 'dependencies'
-      - 'chore'
-    groups:
-      expo:
-        patterns:
-          - 'expo*'
-          - '@expo/*'
-        update-types:
-          - 'minor'
-          - 'patch'
-      react:
-        patterns:
-          - 'react'
-          - 'react-dom'
-          - 'react-native'
-          - '@types/react*'
-      dev-dependencies:
-        dependency-type: 'development'
-        update-types:
-          - 'minor'
-          - 'patch'
+    # npm dependencies
+    - package-ecosystem: 'npm'
+      directory: '/'
+      schedule:
+          interval: 'weekly'
+          day: 'monday'
+      open-pull-requests-limit: 10
+      commit-message:
+          prefix: 'chore(deps):'
+      labels:
+          - 'dependencies'
+          - 'chore'
+      groups:
+          expo:
+              patterns:
+                  - 'expo*'
+                  - '@expo/*'
+              update-types:
+                  - 'minor'
+                  - 'patch'
+          react:
+              patterns:
+                  - 'react'
+                  - 'react-dom'
+                  - 'react-native'
+                  - '@types/react*'
+          dev-dependencies:
+              dependency-type: 'development'
+              update-types:
+                  - 'minor'
+                  - 'patch'
 
-  # GitHub Actions
-  - package-ecosystem: 'github-actions'
-    directory: '/'
-    schedule:
-      interval: 'weekly'
-      day: 'monday'
-    commit-message:
-      prefix: 'ci(deps):'
-    labels:
-      - 'ci'
-      - 'dependencies'
+    # GitHub Actions
+    - package-ecosystem: 'github-actions'
+      directory: '/'
+      schedule:
+          interval: 'weekly'
+          day: 'monday'
+      commit-message:
+          prefix: 'ci(deps):'
+      labels:
+          - 'ci'
+          - 'dependencies'

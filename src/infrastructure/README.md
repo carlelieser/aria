@@ -27,6 +27,7 @@ infrastructure/
 Implementation of `StorageRepository` using React Native's AsyncStorage.
 
 **Features:**
+
 - Automatic key prefixing with `@aria:` to avoid conflicts
 - JSON serialization/deserialization
 - Result type for error handling
@@ -40,14 +41,14 @@ import { asyncStorageRepository } from '@/infrastructure/storage';
 
 // Save data
 await asyncStorageRepository.set('user-settings', {
-  theme: 'dark',
-  volume: 0.8,
+	theme: 'dark',
+	volume: 0.8,
 });
 
 // Load data
 const result = await asyncStorageRepository.get<UserSettings>('user-settings');
 if (result.success) {
-  console.log(result.data);
+	console.log(result.data);
 }
 
 // Check if key exists
@@ -64,6 +65,7 @@ const keysResult = await asyncStorageRepository.getKeys('settings:');
 Implementation of `PlaybackProvider` using Expo AV for audio playback.
 
 **Features:**
+
 - Streaming audio support
 - Background playback capability
 - Lock screen controls
@@ -74,6 +76,7 @@ Implementation of `PlaybackProvider` using Expo AV for audio playback.
 - Event emission for state changes
 
 **Events:**
+
 - `status-change` - Playback status changed
 - `track-change` - Current track changed
 - `position-change` - Playback position updated
@@ -91,14 +94,14 @@ await expoAVPlaybackProvider.initialize();
 
 // Listen to events
 const cleanup = expoAVPlaybackProvider.addEventListener((event) => {
-  switch (event.type) {
-    case 'status-change':
-      console.log('Status:', event.status);
-      break;
-    case 'track-change':
-      console.log('Now playing:', event.track?.title);
-      break;
-  }
+	switch (event.type) {
+		case 'status-change':
+			console.log('Status:', event.status);
+			break;
+		case 'track-change':
+			console.log('Now playing:', event.track?.title);
+			break;
+	}
 });
 
 // Play a track
@@ -153,6 +156,7 @@ await disposeContainer();
 Metadata provider for local audio files stored on the device.
 
 **Features:**
+
 - In-memory file storage
 - File name parsing for basic metadata
 - Search functionality
@@ -191,6 +195,7 @@ All plugins implement the `BasePlugin` interface:
 - **MetadataProvider**: Provides track metadata and search
 
 Plugins are registered in the DI container with unique keys:
+
 - `PlaybackProvider` - The active playback provider
 - `MetadataProvider:{id}` - Metadata providers by ID
 
@@ -202,9 +207,9 @@ All infrastructure methods use the `Result<T, E>` type for explicit error handli
 const result = await storage.get('key');
 
 if (result.success) {
-  // Use result.data
+	// Use result.data
 } else {
-  // Handle result.error
+	// Handle result.error
 }
 ```
 
@@ -223,12 +228,12 @@ import { AsyncStorageRepository } from '@/infrastructure/storage';
 jest.mock('@react-native-async-storage/async-storage');
 
 describe('AsyncStorageRepository', () => {
-  it('should store and retrieve data', async () => {
-    const repo = new AsyncStorageRepository();
-    await repo.set('test', { foo: 'bar' });
-    const result = await repo.get('test');
-    expect(result.success).toBe(true);
-  });
+	it('should store and retrieve data', async () => {
+		const repo = new AsyncStorageRepository();
+		await repo.set('test', { foo: 'bar' });
+		const result = await repo.get('test');
+		expect(result.success).toBe(true);
+	});
 });
 ```
 
@@ -240,19 +245,19 @@ Test the full stack with real implementations:
 import { initializeContainer, getPlaybackProvider } from '@/infrastructure/di';
 
 describe('Infrastructure Integration', () => {
-  beforeAll(async () => {
-    await initializeContainer();
-  });
+	beforeAll(async () => {
+		await initializeContainer();
+	});
 
-  afterAll(async () => {
-    await disposeContainer();
-  });
+	afterAll(async () => {
+		await disposeContainer();
+	});
 
-  it('should play audio', async () => {
-    const playback = getPlaybackProvider();
-    await playback.play(mockTrack, mockStreamUrl);
-    expect(playback.getStatus()).toBe('playing');
-  });
+	it('should play audio', async () => {
+		const playback = getPlaybackProvider();
+		await playback.play(mockTrack, mockStreamUrl);
+		expect(playback.getStatus()).toBe('playing');
+	});
 });
 ```
 

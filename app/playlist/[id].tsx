@@ -126,8 +126,7 @@ export default function PlaylistScreen() {
 	);
 
 	const keyExtractor = useCallback(
-		(item: PlaylistTrack, index: number) =>
-			`${playlist?.id}-${index}-${item.track.id.value}`,
+		(item: PlaylistTrack, index: number) => `${playlist?.id}-${index}-${item.track.id.value}`,
 		[playlist?.id]
 	);
 
@@ -193,9 +192,7 @@ export default function PlaylistScreen() {
 	if (!playlist) {
 		return (
 			<View style={[styles.container, { backgroundColor: colors.background }]}>
-				<View
-					style={[styles.header, { backgroundColor: colors.surfaceContainerHigh }]}
-				>
+				<View style={[styles.header, { backgroundColor: colors.surfaceContainerHigh }]}>
 					<SafeAreaView edges={['top']} style={styles.headerSafeArea}>
 						<View style={styles.headerRow}>
 							<IconButton
@@ -222,9 +219,7 @@ export default function PlaylistScreen() {
 
 	return (
 		<View style={[styles.container, { backgroundColor: colors.background }]}>
-			<View
-				style={[styles.header, { backgroundColor: colors.surfaceContainerHigh }]}
-			>
+			<View style={[styles.header, { backgroundColor: colors.surfaceContainerHigh }]}>
 				<SafeAreaView edges={['top']} style={styles.headerSafeArea}>
 					<View style={styles.headerRow}>
 						<IconButton
@@ -240,7 +235,9 @@ export default function PlaylistScreen() {
 						<View style={styles.headerSpacer} />
 						{isEditMode ? (
 							<IconButton
-								icon={() => <Icon as={CheckIcon} size={22} color={colors.primary} />}
+								icon={() => (
+									<Icon as={CheckIcon} size={22} color={colors.primary} />
+								)}
 								onPress={toggleEditMode}
 							/>
 						) : (
@@ -314,7 +311,11 @@ export default function PlaylistScreen() {
 									{ backgroundColor: colors.surfaceContainerHighest },
 								]}
 							>
-								<Icon as={ListMusicIcon} size={64} color={colors.onSurfaceVariant} />
+								<Icon
+									as={ListMusicIcon}
+									size={64}
+									color={colors.onSurfaceVariant}
+								/>
 							</View>
 						)}
 						<View style={styles.playlistText}>
@@ -344,7 +345,9 @@ export default function PlaylistScreen() {
 						{tracks.length > 0 && (
 							<Button
 								mode="contained"
-								icon={() => <Icon as={PlayIcon} size={18} color={colors.onPrimary} />}
+								icon={() => (
+									<Icon as={PlayIcon} size={18} color={colors.onPrimary} />
+								)}
 								onPress={handlePlayAll}
 							>
 								Play All

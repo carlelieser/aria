@@ -25,8 +25,4 @@ export {
 } from './storage/local-library-store';
 
 // Re-export mappers for external use
-export {
-	localTrackToTrack,
-	localAlbumToAlbum,
-	localArtistToArtist,
-} from './mappers';
+export { localTrackToTrack, localAlbumToAlbum, localArtistToArtist } from './mappers';

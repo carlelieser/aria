@@ -50,7 +50,9 @@ export class PermissionService {
 		const pending = this._pendingRequests.get(type);
 
 		if (pending) {
-			logger.debug(`Permission request '${type}' already in progress, awaiting existing request`);
+			logger.debug(
+				`Permission request '${type}' already in progress, awaiting existing request`
+			);
 			return pending as PendingRequest<T>;
 		}
 
@@ -60,7 +62,9 @@ export class PermissionService {
 
 		try {
 			const result = await request;
-			logger.debug(`Permission request '${type}' completed: ${result.success ? 'granted' : 'denied'}`);
+			logger.debug(
+				`Permission request '${type}' completed: ${result.success ? 'granted' : 'denied'}`
+			);
 			return result;
 		} finally {
 			this._pendingRequests.delete(type);
@@ -106,7 +110,9 @@ export class PermissionService {
 				multiple: false,
 			});
 
-			logger.debug(`iOS picker result: canceled=${result.canceled}, assets=${result.assets?.length ?? 0}`);
+			logger.debug(
+				`iOS picker result: canceled=${result.canceled}, assets=${result.assets?.length ?? 0}`
+			);
 
 			if (result.canceled || !result.assets || result.assets.length === 0) {
 				return err(new Error('Directory selection cancelled'));

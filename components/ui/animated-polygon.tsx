@@ -87,7 +87,13 @@ export function AnimatedPolygonView({
 			stiffness: springConfig.stiffness ?? 100,
 			mass: springConfig.mass ?? 1,
 		});
-	}, [animatedSegments, segments, springConfig.damping, springConfig.stiffness, springConfig.mass]);
+	}, [
+		animatedSegments,
+		segments,
+		springConfig.damping,
+		springConfig.stiffness,
+		springConfig.mass,
+	]);
 
 	// Update points on each animation frame
 	useDerivedValue(() => {

@@ -168,7 +168,9 @@ export async function extractDuration(fileUri: string): AsyncResult<number, Erro
 		return ok(metadata.format.duration ?? 0);
 	} catch (error) {
 		return err(
-			error instanceof Error ? error : new Error(`Failed to extract duration: ${String(error)}`)
+			error instanceof Error
+				? error
+				: new Error(`Failed to extract duration: ${String(error)}`)
 		);
 	}
 }

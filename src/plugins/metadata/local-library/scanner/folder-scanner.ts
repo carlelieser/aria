@@ -84,7 +84,9 @@ export async function scanFolder(
 		const isSafUri = folderUri.startsWith('content://');
 
 		logger.info(`Starting folder scan: ${folderUri}`);
-		logger.debug(`Platform: ${Platform.OS}, SAF URI: ${isSafUri}, Recursive: ${options?.recursive ?? true}`);
+		logger.debug(
+			`Platform: ${Platform.OS}, SAF URI: ${isSafUri}, Recursive: ${options?.recursive ?? true}`
+		);
 
 		if (isSafUri && Platform.OS === 'android') {
 			await _scanSafDirectory(folderUri, files, options?.recursive ?? true, options);
@@ -96,7 +98,10 @@ export async function scanFolder(
 		return ok(files);
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
-		logger.error(`Failed to scan folder: ${message}`, error instanceof Error ? error : undefined);
+		logger.error(
+			`Failed to scan folder: ${message}`,
+			error instanceof Error ? error : undefined
+		);
 		return err(
 			error instanceof Error ? error : new Error(`Failed to scan folder: ${String(error)}`)
 		);
@@ -146,12 +151,18 @@ async function _scanSafDirectory(
 					}
 				}
 			} catch (entryError) {
-				logger.warn(`Failed to process entry: ${entryUri}`, entryError instanceof Error ? entryError : undefined);
+				logger.warn(
+					`Failed to process entry: ${entryUri}`,
+					entryError instanceof Error ? entryError : undefined
+				);
 				continue;
 			}
 		}
 	} catch (error) {
-		logger.error(`Failed to read SAF directory: ${dirUri}`, error instanceof Error ? error : undefined);
+		logger.error(
+			`Failed to read SAF directory: ${dirUri}`,
+			error instanceof Error ? error : undefined
+		);
 	}
 }
 
@@ -184,7 +195,8 @@ async function _scanDirectoryRecursive(
 						options?.onProgress?.(results.length + 1, entry);
 
 						const fileInfo = await FileSystem.getInfoAsync(entryUri);
-						const size = fileInfo.exists && 'size' in fileInfo ? (fileInfo.size as number) : 0;
+						const size =
+							fileInfo.exists && 'size' in fileInfo ? (fileInfo.size as number) : 0;
 						const modTime =
 							fileInfo.exists && 'modificationTime' in fileInfo
 								? (fileInfo.modificationTime as number) * 1000
@@ -200,12 +212,18 @@ async function _scanDirectoryRecursive(
 					}
 				}
 			} catch (entryError) {
-				logger.warn(`Failed to process file: ${entryUri}`, entryError instanceof Error ? entryError : undefined);
+				logger.warn(
+					`Failed to process file: ${entryUri}`,
+					entryError instanceof Error ? entryError : undefined
+				);
 				continue;
 			}
 		}
 	} catch (error) {
-		logger.error(`Failed to read directory: ${dirUri}`, error instanceof Error ? error : undefined);
+		logger.error(
+			`Failed to read directory: ${dirUri}`,
+			error instanceof Error ? error : undefined
+		);
 	}
 }
 

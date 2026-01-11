@@ -1,96 +1,96 @@
 name: Build
 
 on:
-  workflow_dispatch:
-    inputs:
-      platform:
-        description: 'Platform to build'
-        required: true
-        default: 'all'
-        type: choice
-        options:
-          - all
-          - android
-          - ios
-      profile:
-        description: 'Build profile'
-        required: true
-        default: 'preview'
-        type: choice
-        options:
-          - development
-          - preview
-          - production
+    workflow_dispatch:
+        inputs:
+            platform:
+                description: 'Platform to build'
+                required: true
+                default: 'all'
+                type: choice
+                options:
+                    - all
+                    - android
+                    - ios
+            profile:
+                description: 'Build profile'
+                required: true
+                default: 'preview'
+                type: choice
+                options:
+                    - development
+                    - preview
+                    - production
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.profile }}
-  cancel-in-progress: true
+    group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.profile }}
+    cancel-in-progress: true
 
 jobs:
-  build-android:
-    name: Build Android
-    if: ${{ inputs.platform == 'all' || inputs.platform == 'android' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
+    build-android:
+        name: Build Android
+        if: ${{ inputs.platform == 'all' || inputs.platform == 'android' }}
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v6
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 20
-          cache: 'npm'
+            - name: Setup Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 20
+                  cache: 'npm'
 
-      - name: Setup EAS
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+            - name: Setup EAS
+              uses: expo/expo-github-action@v8
+              with:
+                  eas-version: latest
+                  token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Install dependencies
-        run: npm ci
+            - name: Install dependencies
+              run: npm ci
 
-      - name: Build Android
-        run: eas build --platform android --profile ${{ inputs.profile }} --non-interactive
+            - name: Build Android
+              run: eas build --platform android --profile ${{ inputs.profile }} --non-interactive
 
-  build-ios:
-    name: Build iOS
-    if: ${{ inputs.platform == 'all' || inputs.platform == 'ios' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
+    build-ios:
+        name: Build iOS
+        if: ${{ inputs.platform == 'all' || inputs.platform == 'ios' }}
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v6
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 20
-          cache: 'npm'
+            - name: Setup Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 20
+                  cache: 'npm'
 
-      - name: Setup EAS
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+            - name: Setup EAS
+              uses: expo/expo-github-action@v8
+              with:
+                  eas-version: latest
+                  token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Install dependencies
-        run: npm ci
+            - name: Install dependencies
+              run: npm ci
 
-      - name: Build iOS
-        run: eas build --platform ios --profile ${{ inputs.profile }} --non-interactive
+            - name: Build iOS
+              run: eas build --platform ios --profile ${{ inputs.profile }} --non-interactive
 
-  build-summary:
-    name: Build Summary
-    runs-on: ubuntu-latest
-    needs: [build-android, build-ios]
-    if: always()
-    steps:
-      - name: Check build results
-        run: |
-          echo "Android build: ${{ needs.build-android.result }}"
-          echo "iOS build: ${{ needs.build-ios.result }}"
-          if [[ "${{ needs.build-android.result }}" == "failure" ]] || [[ "${{ needs.build-ios.result }}" == "failure" ]]; then
-            echo "One or more builds failed"
-            exit 1
-          fi
-          echo "All requested builds completed successfully!"
+    build-summary:
+        name: Build Summary
+        runs-on: ubuntu-latest
+        needs: [build-android, build-ios]
+        if: always()
+        steps:
+            - name: Check build results
+              run: |
+                  echo "Android build: ${{ needs.build-android.result }}"
+                  echo "iOS build: ${{ needs.build-ios.result }}"
+                  if [[ "${{ needs.build-android.result }}" == "failure" ]] || [[ "${{ needs.build-ios.result }}" == "failure" ]]; then
+                    echo "One or more builds failed"
+                    exit 1
+                  fi
+                  echo "All requested builds completed successfully!"

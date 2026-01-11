@@ -44,7 +44,10 @@ export const PluginTextField = memo(function PluginTextField({
 				autoCorrect={false}
 			/>
 			{schema.description && !error && (
-				<Text variant="bodySmall" style={[styles.helper, { color: colors.onSurfaceVariant }]}>
+				<Text
+					variant="bodySmall"
+					style={[styles.helper, { color: colors.onSurfaceVariant }]}
+				>
 					{schema.description}
 				</Text>
 			)}

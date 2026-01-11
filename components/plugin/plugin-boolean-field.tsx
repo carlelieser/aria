@@ -37,7 +37,10 @@ export const PluginBooleanField = memo(function PluginBooleanField({
 			title={schema.label}
 			subtitle={schema.description}
 			rightElement={
-				<Switch value={value ?? false} onValueChange={(newValue) => onChange(schema.key, newValue)} />
+				<Switch
+					value={value ?? false}
+					onValueChange={(newValue) => onChange(schema.key, newValue)}
+				/>
 			}
 		/>
 	);

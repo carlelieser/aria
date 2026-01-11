@@ -14,7 +14,10 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { useAppTheme } from '@/lib/theme';
 import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plugin';
-import { useFolders, useIsScanning } from '@/src/plugins/metadata/local-library/storage/local-library-store';
+import {
+	useFolders,
+	useIsScanning,
+} from '@/src/plugins/metadata/local-library/storage/local-library-store';
 import { pickFolder } from '@/src/plugins/metadata/local-library/scanner/folder-scanner';
 import { PluginRegistry } from '@/src/plugins/core/registry/plugin-registry';
 import type { LocalLibraryProvider } from '@/src/plugins/metadata/local-library/local-library-provider';
@@ -149,7 +152,6 @@ export const PluginFolderListField = memo(function PluginFolderListField({
 					))}
 				</View>
 			)}
-
 		</View>
 	);
 });
@@ -179,11 +181,7 @@ const FolderItem = memo(function FolderItem({
 				<Icon as={FolderIcon} size="sm" color={colors.onSurfaceVariant} />
 			</View>
 			<View style={styles.folderInfo}>
-				<Text
-					variant="bodyMedium"
-					numberOfLines={1}
-					style={{ color: colors.onSurface }}
-				>
+				<Text variant="bodyMedium" numberOfLines={1} style={{ color: colors.onSurface }}>
 					{name}
 				</Text>
 				<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
@@ -206,11 +204,7 @@ const FolderItem = memo(function FolderItem({
 				enabled={!disabled}
 				style={styles.actionButton}
 			>
-				<Icon
-					as={Trash2Icon}
-					size="sm"
-					color={disabled ? colors.outline : colors.error}
-				/>
+				<Icon as={Trash2Icon} size="sm" color={disabled ? colors.outline : colors.error} />
 			</RectButton>
 		</View>
 	);

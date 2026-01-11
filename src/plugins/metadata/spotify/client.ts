@@ -101,7 +101,10 @@ export class SpotifyClient {
 			const data = await response.json();
 			// Debug: Log raw API response for search requests
 			if (endpoint.includes('/search')) {
-				console.log('[SpotifyClient] Search response:', JSON.stringify(data, null, 2).slice(0, 2000));
+				console.log(
+					'[SpotifyClient] Search response:',
+					JSON.stringify(data, null, 2).slice(0, 2000)
+				);
 			}
 			return ok(data as T);
 		} catch (error) {

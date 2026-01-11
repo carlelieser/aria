@@ -19,17 +19,17 @@ await localFilesProvider.initialize();
 
 // Add a local file
 const fileId = localFilesProvider.addLocalFile({
-  uri: 'file:///path/to/audio.mp3',
-  name: 'Artist - Song Title.mp3',
-  size: 5242880, // bytes
-  mimeType: 'audio/mpeg',
-  duration: 180, // seconds
+	uri: 'file:///path/to/audio.mp3',
+	name: 'Artist - Song Title.mp3',
+	size: 5242880, // bytes
+	mimeType: 'audio/mpeg',
+	duration: 180, // seconds
 });
 
 // Search for files
 const result = await localFilesProvider.search({
-  query: 'song title',
-  limit: 20,
+	query: 'song title',
+	limit: 20,
 });
 
 // Get track info

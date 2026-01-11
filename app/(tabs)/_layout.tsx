@@ -64,8 +64,10 @@ export default function TabLayout() {
 	// Ensure tab order is valid and filter by enabled tabs
 	const validTabOrder = useMemo(() => {
 		// Ensure we have valid arrays to work with
-		const safeTabOrder = Array.isArray(tabOrder) && tabOrder.length > 0 ? tabOrder : DEFAULT_TAB_ORDER;
-		const safeEnabledTabs = Array.isArray(enabledTabs) && enabledTabs.length > 0 ? enabledTabs : DEFAULT_TAB_ORDER;
+		const safeTabOrder =
+			Array.isArray(tabOrder) && tabOrder.length > 0 ? tabOrder : DEFAULT_TAB_ORDER;
+		const safeEnabledTabs =
+			Array.isArray(enabledTabs) && enabledTabs.length > 0 ? enabledTabs : DEFAULT_TAB_ORDER;
 
 		const validTabs = safeTabOrder.filter((id) => id in TAB_CONFIG);
 		if (validTabs.length !== DEFAULT_TAB_ORDER.length) {
@@ -98,7 +100,7 @@ export default function TabLayout() {
 
 	return (
 		<Tabs
-			screenOptions={{ headerShown: false, animation: "shift" }}
+			screenOptions={{ headerShown: false, animation: 'shift' }}
 			tabBar={(props) => <CustomTabBar {...props} tabOrder={validTabOrder} />}
 		>
 			{validTabOrder.map((tabId) => (

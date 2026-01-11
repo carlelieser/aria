@@ -1,88 +1,88 @@
 name: Bug Report
 description: Report a bug or unexpected behavior
-title: "[Bug]: "
-labels: ["bug", "triage"]
+title: '[Bug]: '
+labels: ['bug', 'triage']
 body:
-  - type: markdown
-    attributes:
-      value: |
-        Thanks for taking the time to fill out this bug report!
+    - type: markdown
+      attributes:
+          value: |
+              Thanks for taking the time to fill out this bug report!
 
-  - type: textarea
-    id: description
-    attributes:
-      label: Describe the bug
-      description: A clear and concise description of what the bug is.
-      placeholder: Tell us what happened
-    validations:
-      required: true
+    - type: textarea
+      id: description
+      attributes:
+          label: Describe the bug
+          description: A clear and concise description of what the bug is.
+          placeholder: Tell us what happened
+      validations:
+          required: true
 
-  - type: textarea
-    id: reproduction
-    attributes:
-      label: Steps to reproduce
-      description: Steps to reproduce the behavior
-      placeholder: |
-        1. Go to '...'
-        2. Click on '...'
-        3. Scroll down to '...'
-        4. See error
-    validations:
-      required: true
+    - type: textarea
+      id: reproduction
+      attributes:
+          label: Steps to reproduce
+          description: Steps to reproduce the behavior
+          placeholder: |
+              1. Go to '...'
+              2. Click on '...'
+              3. Scroll down to '...'
+              4. See error
+      validations:
+          required: true
 
-  - type: textarea
-    id: expected
-    attributes:
-      label: Expected behavior
-      description: What you expected to happen
-    validations:
-      required: true
+    - type: textarea
+      id: expected
+      attributes:
+          label: Expected behavior
+          description: What you expected to happen
+      validations:
+          required: true
 
-  - type: dropdown
-    id: platform
-    attributes:
-      label: Platform
-      description: Which platform(s) are affected?
-      multiple: true
-      options:
-        - iOS
-        - Android
-        - Web
-    validations:
-      required: true
+    - type: dropdown
+      id: platform
+      attributes:
+          label: Platform
+          description: Which platform(s) are affected?
+          multiple: true
+          options:
+              - iOS
+              - Android
+              - Web
+      validations:
+          required: true
 
-  - type: input
-    id: version
-    attributes:
-      label: App Version
-      description: What version of the app are you running?
-      placeholder: "1.0.0"
-    validations:
-      required: true
+    - type: input
+      id: version
+      attributes:
+          label: App Version
+          description: What version of the app are you running?
+          placeholder: '1.0.0'
+      validations:
+          required: true
 
-  - type: input
-    id: device
-    attributes:
-      label: Device
-      description: What device are you using?
-      placeholder: "iPhone 15 Pro / Pixel 8 / etc."
+    - type: input
+      id: device
+      attributes:
+          label: Device
+          description: What device are you using?
+          placeholder: 'iPhone 15 Pro / Pixel 8 / etc.'
 
-  - type: input
-    id: os-version
-    attributes:
-      label: OS Version
-      description: What OS version is the device running?
-      placeholder: "iOS 18.0 / Android 14 / etc."
+    - type: input
+      id: os-version
+      attributes:
+          label: OS Version
+          description: What OS version is the device running?
+          placeholder: 'iOS 18.0 / Android 14 / etc.'
 
-  - type: textarea
-    id: logs
-    attributes:
-      label: Relevant log output
-      description: Please copy and paste any relevant log output. This will be automatically formatted as code.
-      render: shell
+    - type: textarea
+      id: logs
+      attributes:
+          label: Relevant log output
+          description: Please copy and paste any relevant log output. This will be automatically formatted as code.
+          render: shell
 
-  - type: textarea
-    id: screenshots
-    attributes:
-      label: Screenshots
-      description: If applicable, add screenshots to help explain the problem.
+    - type: textarea
+      id: screenshots
+      attributes:
+          label: Screenshots
+          description: If applicable, add screenshots to help explain the problem.

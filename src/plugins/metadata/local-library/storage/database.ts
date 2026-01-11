@@ -56,7 +56,9 @@ export async function initializeDatabase(): AsyncResult<void, Error> {
 		return ok(undefined);
 	} catch (error) {
 		return err(
-			error instanceof Error ? error : new Error(`Failed to initialize database: ${String(error)}`)
+			error instanceof Error
+				? error
+				: new Error(`Failed to initialize database: ${String(error)}`)
 		);
 	}
 }
@@ -252,9 +254,7 @@ export async function searchTracks(
 
 		return ok(rows);
 	} catch (error) {
-		return err(
-			error instanceof Error ? error : new Error(`Search failed: ${String(error)}`)
-		);
+		return err(error instanceof Error ? error : new Error(`Search failed: ${String(error)}`));
 	}
 }
 
@@ -264,11 +264,15 @@ export async function getTrackCount(): AsyncResult<number, Error> {
 	}
 
 	try {
-		const result = await db.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM tracks');
+		const result = await db.getFirstAsync<{ count: number }>(
+			'SELECT COUNT(*) as count FROM tracks'
+		);
 		return ok(result?.count ?? 0);
 	} catch (error) {
 		return err(
-			error instanceof Error ? error : new Error(`Failed to get track count: ${String(error)}`)
+			error instanceof Error
+				? error
+				: new Error(`Failed to get track count: ${String(error)}`)
 		);
 	}
 }

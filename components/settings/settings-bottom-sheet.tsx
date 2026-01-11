@@ -94,10 +94,7 @@ export function SettingsBottomSheet({
 				]}
 			>
 				<BottomSheetView style={styles.content}>
-					<Text
-						variant="titleMedium"
-						style={[styles.title, { color: colors.onSurface }]}
-					>
+					<Text variant="titleMedium" style={[styles.title, { color: colors.onSurface }]}>
 						{title}
 					</Text>
 
@@ -112,11 +109,7 @@ export function SettingsBottomSheet({
 								pressed && styles.pressed,
 							]}
 						>
-							<Icon
-								as={RotateCcwIcon}
-								size={18}
-								color={colors.onSurfaceVariant}
-							/>
+							<Icon as={RotateCcwIcon} size={18} color={colors.onSurfaceVariant} />
 							<Text
 								variant="labelLarge"
 								style={[styles.resetText, { color: colors.onSurfaceVariant }]}

@@ -164,7 +164,10 @@ export const useLocalLibraryStore = create<LocalLibraryState>()(
 			removeArtistsForFolder: (_folderUri) => {
 				// Artists are derived from tracks, so we rebuild after track removal
 				const { tracks, albums } = get();
-				const artistMap = _buildArtistsFromTracks(Object.values(tracks), Object.values(albums));
+				const artistMap = _buildArtistsFromTracks(
+					Object.values(tracks),
+					Object.values(albums)
+				);
 				set({ artists: artistMap });
 			},
 

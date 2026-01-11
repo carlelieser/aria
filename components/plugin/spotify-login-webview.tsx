@@ -206,9 +206,7 @@ export const SpotifyLoginWebView = memo(function SpotifyLoginWebView({
 					style={styles.webview}
 				/>
 				{(isLoading || isPolling || pollingTimedOut) && (
-					<View
-						style={[styles.loadingOverlay, { backgroundColor: colors.background }]}
-					>
+					<View style={[styles.loadingOverlay, { backgroundColor: colors.background }]}>
 						{pollingTimedOut ? (
 							<>
 								<Text

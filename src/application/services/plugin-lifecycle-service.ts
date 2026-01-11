@@ -7,7 +7,10 @@
 
 import type { MetadataProvider } from '../../plugins/core/interfaces/metadata-provider';
 import type { AudioSourceProvider } from '../../plugins/core/interfaces/audio-source-provider';
-import type { PluginRegistry, PluginRegistryEvent } from '../../plugins/core/registry/plugin-registry';
+import type {
+	PluginRegistry,
+	PluginRegistryEvent,
+} from '../../plugins/core/registry/plugin-registry';
 import type { PluginLoader } from '../../plugins/core/registry/plugin-loader';
 import type { PluginManifestRegistry } from '../../plugins/core/registry/plugin-manifest-registry';
 import { usePluginSettingsStore, REQUIRED_PLUGINS } from '../state/plugin-settings-store';
@@ -197,7 +200,9 @@ export class PluginLifecycleService {
 
 			// Check if it also has audio source capability
 			const audioSourceProviders = this.pluginRegistry.getAllAudioSourceProviders();
-			const audioSourceProvider = audioSourceProviders.find((p) => p.manifest.id === pluginId);
+			const audioSourceProvider = audioSourceProviders.find(
+				(p) => p.manifest.id === pluginId
+			);
 
 			if (audioSourceProvider) {
 				this.services.playbackService.addAudioSourceProvider(audioSourceProvider);

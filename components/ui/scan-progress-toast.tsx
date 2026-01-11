@@ -212,10 +212,7 @@ export const ScanProgressToast = memo(function ScanProgressToast() {
 						]}
 					>
 						<View style={styles.header}>
-							<Text
-								variant="labelLarge"
-								style={{ color: colors.onPrimaryContainer }}
-							>
+							<Text variant="labelLarge" style={{ color: colors.onPrimaryContainer }}>
 								{phaseMessage}
 							</Text>
 							{!showComplete && (

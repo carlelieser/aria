@@ -3,7 +3,8 @@ import type { Result } from '@shared/types/result';
 import { ok, err } from '@shared/types/result';
 
 const STORAGE_KEY = 'spotify_web_auth';
-const TOKEN_ENDPOINT = 'https://open.spotify.com/get_access_token?reason=transport&productType=web_player';
+const TOKEN_ENDPOINT =
+	'https://open.spotify.com/get_access_token?reason=transport&productType=web_player';
 
 interface StoredAuth {
 	readonly spDcCookie: string;
@@ -136,12 +137,18 @@ export class SpotifyAuthManager {
 	}
 
 	async checkAuthentication(): Promise<boolean> {
-		console.log('[SpotifyAuthManager] checkAuthentication - spDcCookie before:', !!this.spDcCookie);
+		console.log(
+			'[SpotifyAuthManager] checkAuthentication - spDcCookie before:',
+			!!this.spDcCookie
+		);
 		if (!this.spDcCookie) {
 			const result = await this._loadStoredAuth();
 			console.log('[SpotifyAuthManager] loadStoredAuth result:', result);
 		}
-		console.log('[SpotifyAuthManager] checkAuthentication - spDcCookie after:', !!this.spDcCookie);
+		console.log(
+			'[SpotifyAuthManager] checkAuthentication - spDcCookie after:',
+			!!this.spDcCookie
+		);
 		return this.spDcCookie !== null;
 	}
 

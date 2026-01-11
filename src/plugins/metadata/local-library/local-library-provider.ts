@@ -130,7 +130,9 @@ export class LocalLibraryProvider implements MetadataProvider, AudioSourceProvid
 			const domainTracks = tracks.map(localTrackToTrack);
 			return ok(this._paginate(domainTracks, options));
 		} catch (error) {
-			return err(error instanceof Error ? error : new Error(`Search failed: ${String(error)}`));
+			return err(
+				error instanceof Error ? error : new Error(`Search failed: ${String(error)}`)
+			);
 		}
 	}
 
@@ -155,7 +157,9 @@ export class LocalLibraryProvider implements MetadataProvider, AudioSourceProvid
 
 			return ok(this._paginate(matchingAlbums, options));
 		} catch (error) {
-			return err(error instanceof Error ? error : new Error(`Search failed: ${String(error)}`));
+			return err(
+				error instanceof Error ? error : new Error(`Search failed: ${String(error)}`)
+			);
 		}
 	}
 
@@ -176,7 +180,9 @@ export class LocalLibraryProvider implements MetadataProvider, AudioSourceProvid
 
 			return ok(this._paginate(matchingArtists, options));
 		} catch (error) {
-			return err(error instanceof Error ? error : new Error(`Search failed: ${String(error)}`));
+			return err(
+				error instanceof Error ? error : new Error(`Search failed: ${String(error)}`)
+			);
 		}
 	}
 
@@ -250,7 +256,10 @@ export class LocalLibraryProvider implements MetadataProvider, AudioSourceProvid
 	// AudioSourceProvider Implementation
 	// ─────────────────────────────────────────────────────────────────────────────
 
-	async getStreamUrl(trackId: TrackId, _options?: StreamOptions): AsyncResult<AudioStream, Error> {
+	async getStreamUrl(
+		trackId: TrackId,
+		_options?: StreamOptions
+	): AsyncResult<AudioStream, Error> {
 		const state = useLocalLibraryStore.getState();
 		const localTrack = state.tracks[trackId.sourceId];
 
@@ -333,9 +342,7 @@ export class LocalLibraryProvider implements MetadataProvider, AudioSourceProvid
 
 				// Parse metadata
 				const metadataResult = await parseAudioMetadata(file.uri);
-				const metadata = metadataResult.success
-					? metadataResult.data
-					: { duration: 0 };
+				const metadata = metadataResult.success ? metadataResult.data : { duration: 0 };
 
 				// Cache artwork if present
 				let artworkPath: string | undefined;
@@ -383,9 +390,7 @@ export class LocalLibraryProvider implements MetadataProvider, AudioSourceProvid
 		} catch (error) {
 			this._isScanning = false;
 			this._scanProgress = null;
-			return err(
-				error instanceof Error ? error : new Error(`Scan failed: ${String(error)}`)
-			);
+			return err(error instanceof Error ? error : new Error(`Scan failed: ${String(error)}`));
 		}
 	}
 
@@ -473,12 +478,12 @@ export class LocalLibraryProvider implements MetadataProvider, AudioSourceProvid
 
 				// Parse metadata
 				const metadataResult = await parseAudioMetadata(file.uri);
-				const metadata = metadataResult.success
-					? metadataResult.data
-					: { duration: 0 };
+				const metadata = metadataResult.success ? metadataResult.data : { duration: 0 };
 
 				if (!metadataResult.success) {
-					logger.debug(`Failed to parse metadata for ${file.name}: ${metadataResult.error.message}`);
+					logger.debug(
+						`Failed to parse metadata for ${file.name}: ${metadataResult.error.message}`
+					);
 				}
 
 				// Cache artwork if present
@@ -548,9 +553,7 @@ export class LocalLibraryProvider implements MetadataProvider, AudioSourceProvid
 			store.setIsScanning(false);
 			store.setScanProgress(null);
 
-			return err(
-				error instanceof Error ? error : new Error(`Scan failed: ${String(error)}`)
-			);
+			return err(error instanceof Error ? error : new Error(`Scan failed: ${String(error)}`));
 		}
 	}
 
@@ -573,7 +576,9 @@ export class LocalLibraryProvider implements MetadataProvider, AudioSourceProvid
 			return ok(undefined);
 		} catch (error) {
 			return err(
-				error instanceof Error ? error : new Error(`Failed to remove folder: ${String(error)}`)
+				error instanceof Error
+					? error
+					: new Error(`Failed to remove folder: ${String(error)}`)
 			);
 		}
 	}
@@ -660,7 +665,9 @@ export class LocalLibraryProvider implements MetadataProvider, AudioSourceProvid
 				const metadata = metadataResult.success ? metadataResult.data : { duration: 0 };
 
 				if (!metadataResult.success) {
-					logger.debug(`Failed to parse metadata for ${file.name}: ${metadataResult.error.message}`);
+					logger.debug(
+						`Failed to parse metadata for ${file.name}: ${metadataResult.error.message}`
+					);
 				}
 
 				let artworkPath: string | undefined;
@@ -747,7 +754,9 @@ export class LocalLibraryProvider implements MetadataProvider, AudioSourceProvid
 			return ok(undefined);
 		} catch (error) {
 			return err(
-				error instanceof Error ? error : new Error(`Failed to clear library: ${String(error)}`)
+				error instanceof Error
+					? error
+					: new Error(`Failed to clear library: ${String(error)}`)
 			);
 		}
 	}

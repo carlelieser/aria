@@ -57,7 +57,12 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 
 		const checkAuthStatus = async () => {
 			const plugin = getPlugin();
-			console.log('[PluginOAuthField] plugin:', plugin?.manifest.id, 'status:', plugin?.status);
+			console.log(
+				'[PluginOAuthField] plugin:',
+				plugin?.manifest.id,
+				'status:',
+				plugin?.status
+			);
 
 			if (!plugin) {
 				console.log('[PluginOAuthField] No plugin found');
@@ -177,10 +182,7 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 				presentationStyle="fullScreen"
 				onRequestClose={handleLoginCancel}
 			>
-				<SpotifyLoginWebView
-					onSuccess={handleLoginSuccess}
-					onCancel={handleLoginCancel}
-				/>
+				<SpotifyLoginWebView onSuccess={handleLoginSuccess} onCancel={handleLoginCancel} />
 			</Modal>
 		</View>
 	);

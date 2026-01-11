@@ -105,9 +105,7 @@ export default function AlbumScreen() {
 
 	return (
 		<View style={[styles.container, { backgroundColor: colors.background }]}>
-			<View
-				style={[styles.header, { backgroundColor: colors.surfaceContainerHigh }]}
-			>
+			<View style={[styles.header, { backgroundColor: colors.surfaceContainerHigh }]}>
 				<SafeAreaView edges={['top']} style={styles.headerSafeArea}>
 					<View style={styles.headerRow}>
 						<IconButton
@@ -139,7 +137,11 @@ export default function AlbumScreen() {
 											{ backgroundColor: colors.surfaceContainerHighest },
 										]}
 									>
-										<Icon as={DiscIcon} size={64} color={colors.onSurfaceVariant} />
+										<Icon
+											as={DiscIcon}
+											size={64}
+											color={colors.onSurfaceVariant}
+										/>
 									</View>
 								)}
 								<View style={styles.albumText}>

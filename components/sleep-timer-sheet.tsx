@@ -38,7 +38,7 @@ export function SleepTimerSheet({ isOpen, onClose }: SleepTimerSheetProps) {
 		}
 	}, [isOpen]);
 
-		const handleSheetChanges = useCallback(
+	const handleSheetChanges = useCallback(
 		(index: number) => {
 			if (index === -1) {
 				onClose();
@@ -120,10 +120,7 @@ export function SleepTimerSheet({ isOpen, onClose }: SleepTimerSheetProps) {
 							>
 								{formatRemaining()}
 							</Text>
-							<Text
-								variant="bodyMedium"
-								style={{ color: colors.onPrimaryContainer }}
-							>
+							<Text variant="bodyMedium" style={{ color: colors.onPrimaryContainer }}>
 								remaining
 							</Text>
 							<Button
@@ -196,9 +193,7 @@ export function SleepTimerSheet({ isOpen, onClose }: SleepTimerSheetProps) {
 						))}
 					</View>
 
-					<Divider
-						style={[styles.divider, { backgroundColor: colors.outlineVariant }]}
-					/>
+					<Divider style={[styles.divider, { backgroundColor: colors.outlineVariant }]} />
 
 					<Pressable
 						onPress={handleEndOfTrack}

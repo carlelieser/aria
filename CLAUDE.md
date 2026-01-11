@@ -9,6 +9,7 @@
 Clean Architecture with Feature-First Organization
 
 **Critical Rules:**
+
 - Features NEVER import from other features — extract shared code to `shared/`
 - Domain layer contains only pure TypeScript code — no React/React Native imports
 - Data layer implements repository contracts defined in domain
@@ -20,21 +21,22 @@ Clean Architecture with Feature-First Organization
 
 ### Naming Conventions
 
-| Element            | Convention       | Example                                          |
-|:-------------------|:-----------------|:-------------------------------------------------|
-| Components         | `PascalCase`     | `UserProfile`, `AuthScreen`                      |
-| Files (components) | `kebab-case`     | `user-profile.tsx`, `auth-screen.tsx`            |
-| Files (non-comp)   | `kebab-case`     | `user-repository.ts`, `use-auth.ts`              |
-| Hooks              | `use` prefix     | `useAuth`, `useUserProfile`                      |
-| Private members    | `_` prefix       | `_loadData()`, `_isValid`                        |
-| Constants          | `SCREAMING_SNAKE`| `DEFAULT_TIMEOUT`, `MAX_RETRIES`                 |
-| Types/Interfaces   | `PascalCase`     | `User`, `AuthState`, `UserRepository`            |
-| Zustand Actions    | Verb phrases     | `login`, `logout`, `fetchUser`                   |
-| Zustand State      | Noun/adjective   | `isLoading`, `user`, `error`                     |
+| Element            | Convention        | Example                               |
+| :----------------- | :---------------- | :------------------------------------ |
+| Components         | `PascalCase`      | `UserProfile`, `AuthScreen`           |
+| Files (components) | `kebab-case`      | `user-profile.tsx`, `auth-screen.tsx` |
+| Files (non-comp)   | `kebab-case`      | `user-repository.ts`, `use-auth.ts`   |
+| Hooks              | `use` prefix      | `useAuth`, `useUserProfile`           |
+| Private members    | `_` prefix        | `_loadData()`, `_isValid`             |
+| Constants          | `SCREAMING_SNAKE` | `DEFAULT_TIMEOUT`, `MAX_RETRIES`      |
+| Types/Interfaces   | `PascalCase`      | `User`, `AuthState`, `UserRepository` |
+| Zustand Actions    | Verb phrases      | `login`, `logout`, `fetchUser`        |
+| Zustand State      | Noun/adjective    | `isLoading`, `user`, `error`          |
 
 ### Functions
 
 **Rules:**
+
 - Maximum 20 lines per function — extract if longer
 - ALWAYS use aliased imports when appropriate.
 - Single responsibility — one function, one job
@@ -45,6 +47,7 @@ Clean Architecture with Feature-First Organization
 ### Components & Classes
 
 **Rules:**
+
 - Maximum 200 lines per file — split if larger
 - Prefer composition over inheritance
 - Use `readonly` for immutable properties
@@ -55,6 +58,7 @@ Clean Architecture with Feature-First Organization
 ### Immutability
 
 **Rules:**
+
 - Default to `const` for all variables
 - Use `readonly` for object properties that shouldn't change
 - State updates must be immutable (spread operator, `immer`)
@@ -63,6 +67,7 @@ Clean Architecture with Feature-First Organization
 ---
 
 **Rules:**
+
 - Define interfaces/types in domain, implement in data
 - Export factory functions or singleton instances
 - Initialize async dependencies before app render (in `_layout.tsx`)
@@ -77,13 +82,13 @@ Use discriminated union `Result` type in `core/errors/failures.ts`:
 
 ```typescript
 type Failure =
-  | { type: 'server'; message: string; statusCode: number }
-  | { type: 'network'; message: string }
-  | { type: 'timeout'; message: string }
-  | { type: 'cache'; message: string }
-  | { type: 'validation'; message: string; fields: Record<string, string> }
-  | { type: 'notFound'; message: string }
-  | { type: 'unauthorized'; message: string };
+	| { type: 'server'; message: string; statusCode: number }
+	| { type: 'network'; message: string }
+	| { type: 'timeout'; message: string }
+	| { type: 'cache'; message: string }
+	| { type: 'validation'; message: string; fields: Record<string, string> }
+	| { type: 'notFound'; message: string }
+	| { type: 'unauthorized'; message: string };
 ```
 
 ### Result Pattern (neverthrow or custom)
@@ -124,7 +129,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 ### Types
 
 | Type       | Description                                             |
-|:-----------|:--------------------------------------------------------|
+| :--------- | :------------------------------------------------------ |
 | `feat`     | New feature                                             |
 | `fix`      | Bug fix                                                 |
 | `docs`     | Documentation only                                      |
@@ -146,7 +151,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 - WRONG: `console.log()` statements — use a proper logger service
 - WRONG: Magic numbers/strings — define named constants
 - WRONG: Unused code, imports, or parameters — delete them
-- WRONG: Comments that describe *what* code does — code should be self-documenting
+- WRONG: Comments that describe _what_ code does — code should be self-documenting
 - WRONG: `TODO` comments without issue reference
 - WRONG: Non-null assertions (`!`) without justification
 
@@ -182,6 +187,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 Before finalizing anything, you MUST assess against the following checklists:
 
 ### Code Quality
+
 - [ ] Code follows architecture guidelines
 - [ ] No TypeScript errors (`npx tsc --noEmit`)
 - [ ] No ESLint warnings (`npx eslint .`)
@@ -189,16 +195,19 @@ Before finalizing anything, you MUST assess against the following checklists:
 - [ ] No unused imports or dead code
 
 ### Testing
+
 - [ ] All existing tests pass (`npm test`)
 - [ ] New code has appropriate test coverage
 - [ ] Tests follow naming conventions
 
 ### Documentation
+
 - [ ] Public APIs have JSDoc comments
 - [ ] Complex logic has explanatory comments
 - [ ] README updated if needed
 
 ### Git
+
 - [ ] Commits follow conventional commit format
 - [ ] Branch is rebased on latest main
 - [ ] No merge commits in feature branch

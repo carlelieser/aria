@@ -402,7 +402,8 @@ const AlbumItem = memo(function AlbumItem({ album }: { album: UniqueAlbum }) {
 					numberOfLines={1}
 					style={{ color: colors.onSurfaceVariant }}
 				>
-					{album.artistName} · {album.trackCount} {album.trackCount === 1 ? 'track' : 'tracks'}
+					{album.artistName} · {album.trackCount}{' '}
+					{album.trackCount === 1 ? 'track' : 'tracks'}
 				</Text>
 			</View>
 		</TouchableOpacity>
