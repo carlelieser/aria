@@ -24,8 +24,8 @@ import { M3Colors } from '@/lib/theme/colors';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-const POLYGON_SIZE = 200;
-const ICON_SIZE = 75;
+const POLYGON_SIZE = 225;
+const ICON_SIZE = 100;
 const ANIMATION_DURATION = 400;
 const MORPH_INTERVAL = 2500;
 const ROTATION_DURATION = 4000;
