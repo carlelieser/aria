@@ -171,7 +171,10 @@ export class ExpoAudioPlaybackProvider implements PlaybackProvider {
 				logger.debug('Headers:', headers ? JSON.stringify(headers) : 'none');
 
 				if (this.player) {
-					logger.debug('Removing previous player...');
+					logger.debug('Stopping and removing previous player...');
+					try {
+						this.player.pause();
+					} catch {}
 					this.statusSubscription?.remove();
 					this.statusSubscription = null;
 					this.player.remove();
@@ -244,6 +247,7 @@ export class ExpoAudioPlaybackProvider implements PlaybackProvider {
 		return this.withLock(async () => {
 			if (this.player) {
 				try {
+					this.player.pause();
 					this.statusSubscription?.remove();
 					this.statusSubscription = null;
 					this.player.remove();

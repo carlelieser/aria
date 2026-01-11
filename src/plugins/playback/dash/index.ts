@@ -101,7 +101,10 @@ export class DashPlaybackProvider implements PlaybackProvider {
 			logger.debug('Stream URL is DASH:', isDashUrl(streamUrl));
 
 			if (this.player) {
-				logger.debug('Releasing previous player...');
+				logger.debug('Stopping and releasing previous player...');
+				try {
+					this.player.pause();
+				} catch {}
 				this.statusSubscription?.remove();
 				this.player.release();
 				this.player = null;
