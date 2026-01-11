@@ -325,7 +325,11 @@ describe('LibraryStore', () => {
 
 		describe('removeTrackFromPlaylist', () => {
 			it('should remove track from playlist by position', () => {
-				const tracks = [createTestTrack('t1'), createTestTrack('t2'), createTestTrack('t3')];
+				const tracks = [
+					createTestTrack('t1'),
+					createTestTrack('t2'),
+					createTestTrack('t3'),
+				];
 				const playlist = createTestPlaylist('1', 'Playlist', tracks);
 				useLibraryStore.getState().addPlaylist(playlist);
 
@@ -337,7 +341,11 @@ describe('LibraryStore', () => {
 			});
 
 			it('should reindex positions after removal', () => {
-				const tracks = [createTestTrack('t1'), createTestTrack('t2'), createTestTrack('t3')];
+				const tracks = [
+					createTestTrack('t1'),
+					createTestTrack('t2'),
+					createTestTrack('t3'),
+				];
 				const playlist = createTestPlaylist('1', 'Playlist', tracks);
 				useLibraryStore.getState().addPlaylist(playlist);
 
@@ -351,7 +359,11 @@ describe('LibraryStore', () => {
 
 		describe('reorderPlaylistTracks', () => {
 			it('should reorder tracks within playlist', () => {
-				const tracks = [createTestTrack('t1'), createTestTrack('t2'), createTestTrack('t3')];
+				const tracks = [
+					createTestTrack('t1'),
+					createTestTrack('t2'),
+					createTestTrack('t3'),
+				];
 				const playlist = createTestPlaylist('1', 'Playlist', tracks);
 				useLibraryStore.getState().addPlaylist(playlist);
 
@@ -366,7 +378,11 @@ describe('LibraryStore', () => {
 			});
 
 			it('should update position indices after reorder', () => {
-				const tracks = [createTestTrack('t1'), createTestTrack('t2'), createTestTrack('t3')];
+				const tracks = [
+					createTestTrack('t1'),
+					createTestTrack('t2'),
+					createTestTrack('t3'),
+				];
 				const playlist = createTestPlaylist('1', 'Playlist', tracks);
 				useLibraryStore.getState().addPlaylist(playlist);
 

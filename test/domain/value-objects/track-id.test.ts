@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-	TrackId,
-	isValidTrackIdString,
-	getTrackIdString,
-} from '@domain/value-objects/track-id';
+import { TrackId, isValidTrackIdString, getTrackIdString } from '@domain/value-objects/track-id';
 
 describe('TrackId', () => {
 	describe('create', () => {

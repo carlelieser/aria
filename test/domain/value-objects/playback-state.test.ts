@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Duration } from '@domain/value-objects/duration';
+import { TrackId } from '@domain/value-objects/track-id';
 import {
 	isPlaybackActive,
 	isPlaying,
@@ -22,7 +23,7 @@ import type { Track } from '@domain/entities/track';
 
 const createMockTrack = (id: string): Track =>
 	({
-		id: { value: id, sourceType: 'test', sourceId: id },
+		id: TrackId.create('test', id),
 		title: `Track ${id}`,
 		artists: [],
 		duration: Duration.fromSeconds(180),
