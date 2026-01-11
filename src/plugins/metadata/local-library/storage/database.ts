@@ -1,6 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 import { ok, err, type AsyncResult } from '@shared/types/result';
-import type { LocalTrack, LocalAlbum, LocalArtist } from '../types';
+import type { LocalTrack } from '../types';
 
 const DB_NAME = 'local-library.db';
 

@@ -22,9 +22,6 @@ async function _getMusicMetadata(): Promise<typeof import('music-metadata')> {
 	return musicMetadata;
 }
 
-// Maximum file size to read for metadata (10MB) - larger files will be skipped
-const MAX_FILE_SIZE_FOR_METADATA = 10 * 1024 * 1024;
-
 export async function parseAudioMetadata(fileUri: string): AsyncResult<ParsedMetadata, Error> {
 	const fileName = fileUri.split('/').pop() || fileUri;
 
@@ -130,7 +127,7 @@ export async function parseAudioMetadataPartial(
 			year: common.year,
 			duration: format.duration ?? 0,
 		});
-	} catch (error) {
+	} catch {
 		// Return empty partial on error - caller can use filename fallback
 		return ok({});
 	}

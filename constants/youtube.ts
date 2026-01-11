@@ -1,5 +1,4 @@
 import { Innertube } from 'youtubei.js';
-import { getYouTubeMusicProvider } from '../src/plugins/metadata/youtube-music';
 import { getLogger } from '../src/shared/services/logger';
 
 const logger = getLogger('YouTube');
@@ -15,32 +14,6 @@ const defaultConfig: YouTubeClientConfig = {
 	lang: 'en',
 	enableLogging: false,
 };
-
-let pluginProvider: ReturnType<typeof getYouTubeMusicProvider> | null = null;
-
-async function getProvider() {
-	if (!pluginProvider) {
-		pluginProvider = getYouTubeMusicProvider({
-			lang: defaultConfig.lang,
-			enableLogging: defaultConfig.enableLogging,
-		});
-		await pluginProvider.onInit({
-			manifest: pluginProvider.manifest,
-			eventBus: {
-				emit: () => {},
-				on: () => () => {},
-				once: () => () => {},
-				off: () => {},
-			},
-			config: {
-				lang: defaultConfig.lang,
-				enableLogging: defaultConfig.enableLogging,
-			},
-			logger,
-		});
-	}
-	return pluginProvider;
-}
 
 let youtubeClientInstance: Innertube | null = null;
 let clientInitPromise: Promise<Innertube> | null = null;

@@ -7,8 +7,6 @@
 
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { Button } from 'react-native-paper';
-import { ListFilter } from 'lucide-react-native';
-import { Icon } from '@/components/ui/icon';
 import { FilterChip } from './filter-chip';
 import { useAppTheme } from '@/lib/theme';
 import type { ArtistReference } from '@/src/domain/entities/artist';

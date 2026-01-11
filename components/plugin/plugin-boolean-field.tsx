@@ -11,6 +11,7 @@ import { SettingsItem } from '@/components/settings/settings-item';
 import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plugin';
 
 const DEFAULT_BOOLEAN_ICON = CircleDotIcon;
+const iconsMap = icons as Record<string, LucideIcon>;
 
 interface PluginBooleanFieldProps {
 	schema: PluginConfigSchema;
@@ -24,8 +25,8 @@ export const PluginBooleanField = memo(function PluginBooleanField({
 	onChange,
 }: PluginBooleanFieldProps) {
 	const IconComponent = useMemo((): LucideIcon => {
-		if (schema.icon && schema.icon in icons) {
-			return icons[schema.icon as keyof typeof icons] as LucideIcon;
+		if (schema.icon && schema.icon in iconsMap) {
+			return iconsMap[schema.icon];
 		}
 		return DEFAULT_BOOLEAN_ICON;
 	}, [schema.icon]);

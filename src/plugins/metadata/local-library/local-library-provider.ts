@@ -17,8 +17,6 @@ import type {
 import type { PluginInitContext, PluginStatus } from '@plugins/core/interfaces/base-plugin';
 import { ok, err, type AsyncResult } from '@shared/types/result';
 import { getLogger } from '@shared/services/logger';
-
-const logger = getLogger('LocalLibraryProvider');
 import {
 	PLUGIN_MANIFEST,
 	METADATA_CAPABILITIES,
@@ -27,7 +25,7 @@ import {
 	DEFAULT_CONFIG,
 	type LocalLibraryConfig,
 } from './config';
-import type { ScanProgress, LocalTrack, LocalAlbum, LocalArtist, FolderInfo } from './types';
+import type { ScanProgress, LocalTrack, FolderInfo } from './types';
 import { pickAudioFiles, scanFolder as scanFolderFiles } from './scanner/folder-scanner';
 import { parseAudioMetadata } from './scanner/id3-parser';
 import {
@@ -47,9 +45,9 @@ import {
 	localAlbumToAlbum,
 	localArtistToArtist,
 	cacheArtwork,
-	buildAlbumsFromTracks,
-	buildArtistsFromTracks,
 } from './mappers';
+
+const logger = getLogger('LocalLibraryProvider');
 
 export class LocalLibraryProvider implements MetadataProvider, AudioSourceProvider {
 	readonly manifest = PLUGIN_MANIFEST;
