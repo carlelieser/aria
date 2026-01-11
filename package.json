@@ -92,7 +92,7 @@
 		"jsdom": "^27.4.0",
 		"prettier": "^3.7.4",
 		"react-native-svg-transformer": "^1.5.2",
-		"react-test-renderer": "^19.2.3",
+		"react-test-renderer": "^19.1.0",
 		"sharp": "^0.34.5",
 		"typescript": "~5.9.3",
 		"vitest": "^4.0.16"
