@@ -10,7 +10,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView, View, StyleSheet, TextInput } from 'react-native';
 import { Text, Button } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
-import { SearchXIcon, HeartIcon, ClockIcon, SparklesIcon, CompassIcon } from 'lucide-react-native';
+import {
+	SearchXIcon,
+	HeartIcon,
+	ClockIcon,
+	SparklesIcon,
+	CompassIcon,
+	AlertCircleIcon,
+} from 'lucide-react-native';
 import { TrackCard } from '@/components/track-card';
 import { SelectableTrackListItem } from '@/components/selectable-track-list-item';
 import { AlbumListItem } from '@/components/album-list-item';
@@ -221,9 +228,11 @@ export default function ExploreScreen() {
 						{isSearching && <TrackListSkeleton count={6} />}
 
 						{error && !isSearching && (
-							<View style={styles.errorContainer}>
-								<Text style={{ color: colors.error }}>Error: {error}</Text>
-							</View>
+							<EmptyState
+								icon={AlertCircleIcon}
+								title="Something went wrong"
+								description={error}
+							/>
 						)}
 
 						{!isSearching && !error && !hasSearchResults && (
@@ -396,10 +405,6 @@ const styles = StyleSheet.create({
 	},
 	searchResults: {
 		paddingHorizontal: 16,
-	},
-	errorContainer: {
-		paddingVertical: 32,
-		alignItems: 'center',
 	},
 	trackList: {
 		gap: 8,
