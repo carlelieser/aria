@@ -12,6 +12,9 @@ expo-env.d.ts
 # Build output
 out/
 
+# Testing
+coverage/
+
 # Native
 .kotlin/
 *.orig.*
