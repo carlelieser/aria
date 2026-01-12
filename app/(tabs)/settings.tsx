@@ -210,7 +210,15 @@ export default function SettingsScreen() {
 						icon={PuzzleIcon}
 						title="Manage Plugins"
 						subtitle="Music sources, playback, and more"
-						onPress={() => router.push('/plugins')}
+						onPress={() => {
+							try {
+								console.log('[Settings] Navigating to /plugins');
+								router.push('/plugins');
+								console.log('[Settings] router.push completed');
+							} catch (err) {
+								console.error('[Settings] Navigation error:', err);
+							}
+						}}
 						showChevron
 					/>
 				</SettingsSection>
@@ -268,7 +276,7 @@ export default function SettingsScreen() {
 						icon={MusicIcon}
 						title="Library Settings"
 						subtitle="Default tab and display options"
-						onPress={() => router.push('/library-settings')}
+						onPress={() => router.push('/library/settings')}
 						showChevron
 					/>
 					<SettingsItem
