@@ -21,7 +21,7 @@ env:
 jobs:
     validate:
         name: Validate Release
-        runs-on: ubuntu-latest
+        runs-on: self-hosted
         outputs:
             version: ${{ steps.version.outputs.version }}
         steps:
@@ -61,7 +61,7 @@ jobs:
 
     build-android:
         name: Build Android
-        runs-on: ubuntu-latest
+        runs-on: self-hosted
         needs: validate
         steps:
             - name: Checkout repository
@@ -112,7 +112,7 @@ jobs:
 
     create-release:
         name: Create GitHub Release
-        runs-on: ubuntu-latest
+        runs-on: self-hosted
         needs: [validate, build-android]
         permissions:
             contents: write
