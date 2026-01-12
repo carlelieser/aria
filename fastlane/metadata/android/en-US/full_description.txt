@@ -1,0 +1,13 @@
+Aria is a music player built with a plugin architecture, supporting multiple streaming providers including YouTube Music, Spotify, and local files.
+
+<b>Features</b>
+
+• <b>Plugin architecture</b> - Built-in providers for YouTube Music, Spotify, and local files
+• <b>Library management</b> - Organize songs, albums, artists, and playlists
+• <b>Material Design 3</b> - Dynamic theming with accent colors and light/dark/system modes
+• <b>Search & discovery</b> - Search across multiple providers with filtering and sorting
+• <b>Offline downloads</b> - Download music with queue management and storage tracking
+• <b>Synced lyrics</b> - Line-by-line timing with plain text fallback
+• <b>10-band equalizer</b> - Presets including Flat, Bass Boost, and Treble Boost
+• <b>Sleep timer</b> - Presets, custom duration, and end-of-track mode
+• <b>Queue management</b> - Reorder tracks, shuffle, and repeat modes

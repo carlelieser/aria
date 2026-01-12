@@ -1,0 +1,1 @@
+Initial release with plugin-based streaming, library management, offline downloads, synced lyrics, equalizer, and sleep timer.
