@@ -5,6 +5,7 @@
 <h1 align="center">Aria</h1>
 
 <p align="center">
+  <img src="https://img.shields.io/github/actions/workflow/status/carlelieser/aria/ci.yml?branch=main&logo=github&label=CI" alt="CI Status" />
   <img src="https://img.shields.io/badge/Expo-54-000020?logo=expo" alt="Expo 54" />
   <img src="https://img.shields.io/badge/React_Native-0.81-61DAFB?logo=react" alt="React Native 0.81" />
   <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white" alt="TypeScript 5.9" />
