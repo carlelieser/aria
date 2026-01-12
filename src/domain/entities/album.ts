@@ -1,10 +1,11 @@
 import type { ArtistReference } from './artist';
 import type { Artwork } from '../value-objects/artwork';
+import { AlbumId } from '../value-objects/album-id';
 
 export type AlbumType = 'album' | 'single' | 'ep' | 'compilation';
 
 export interface Album {
-	readonly id: string;
+	readonly id: AlbumId;
 
 	readonly name: string;
 
@@ -32,7 +33,7 @@ export interface AlbumReference {
 
 export function toAlbumReference(album: Album): AlbumReference {
 	return {
-		id: album.id,
+		id: album.id.value,
 		name: album.name,
 	};
 }

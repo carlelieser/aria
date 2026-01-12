@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
 import type { Track } from '../../domain/entities/track';
 import type { PlaybackStatus, RepeatMode } from '../../domain/value-objects/playback-state';
 import { Duration } from '../../domain/value-objects/duration';
@@ -255,17 +256,21 @@ export const useIsPaused = () => usePlayerStore((state) => state.status === 'pau
 export const useQueue = () => usePlayerStore((state) => state.queue);
 export const useQueueIndex = () => usePlayerStore((state) => state.queueIndex);
 export const useVolume = () =>
-	usePlayerStore((state) => ({
-		volume: state.volume,
-		isMuted: state.isMuted,
-	}));
+	usePlayerStore(
+		useShallow((state) => ({
+			volume: state.volume,
+			isMuted: state.isMuted,
+		}))
+	);
 export const useRepeatMode = () => usePlayerStore((state) => state.repeatMode);
 export const useIsShuffled = () => usePlayerStore((state) => state.isShuffled);
 export const usePlaybackProgress = () =>
-	usePlayerStore((state) => ({
-		position: state.position,
-		duration: state.duration,
-		percentage: state.duration.isZero()
-			? 0
-			: (state.position.totalMilliseconds / state.duration.totalMilliseconds) * 100,
-	}));
+	usePlayerStore(
+		useShallow((state) => ({
+			position: state.position,
+			duration: state.duration,
+			percentage: state.duration.isZero()
+				? 0
+				: (state.position.totalMilliseconds / state.duration.totalMilliseconds) * 100,
+		}))
+	);

@@ -1,4 +1,5 @@
 import type { Track } from '../../domain/entities/track';
+import type { Album } from '../../domain/entities/album';
 import type {
 	MetadataProvider,
 	SearchOptions,
@@ -139,7 +140,7 @@ export class SearchService {
 			}
 
 			aggregated.tracks = this.deduplicateTracks(aggregated.tracks);
-			aggregated.albums = this.deduplicateById(aggregated.albums);
+			aggregated.albums = this.deduplicateAlbums(aggregated.albums);
 			aggregated.artists = this.deduplicateById(aggregated.artists);
 
 			this.searchCache.set(cacheKey, {
@@ -187,6 +188,21 @@ export class SearchService {
 			if (!seen.has(id)) {
 				seen.add(id);
 				result.push(track);
+			}
+		}
+
+		return result;
+	}
+
+	private deduplicateAlbums(albums: Album[]): Album[] {
+		const seen = new Set<string>();
+		const result: Album[] = [];
+
+		for (const album of albums) {
+			const idValue = album.id.value;
+			if (!seen.has(idValue)) {
+				seen.add(idValue);
+				result.push(album);
 			}
 		}
 

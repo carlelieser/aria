@@ -3,6 +3,7 @@ import type { Album, AlbumType } from '@domain/entities/album';
 import type { Artist, ArtistReference } from '@domain/entities/artist';
 import type { Playlist, PlaylistTrack } from '@domain/entities/playlist';
 import { TrackId } from '@domain/value-objects/track-id';
+import { AlbumId } from '@domain/value-objects/album-id';
 import { Duration } from '@domain/value-objects/duration';
 import { createArtwork, type Artwork } from '@domain/value-objects/artwork';
 import { createStreamingSource } from '@domain/value-objects/audio-source';
@@ -86,7 +87,7 @@ export function mapSpotifySimplifiedTrack(
 
 	if (album) {
 		params.album = {
-			id: album.id,
+			id: AlbumId.create('spotify', album.id).value,
 			name: album.name,
 		};
 
@@ -141,7 +142,7 @@ export function mapSpotifyTrack(track: SpotifyTrack): Track | null {
 
 	if (track.album) {
 		params.album = {
-			id: track.album.id,
+			id: AlbumId.create('spotify', track.album.id).value,
 			name: track.album.name,
 		};
 
@@ -178,7 +179,7 @@ export function mapSpotifySimplifiedAlbum(album: SpotifySimplifiedAlbum): Album 
 	const artwork = mapSpotifyImages(album.images);
 
 	return {
-		id: album.id,
+		id: AlbumId.create('spotify', album.id),
 		name: album.name,
 		artists,
 		artwork: artwork.length > 0 ? artwork : undefined,
@@ -198,7 +199,7 @@ export function mapSpotifyAlbum(album: SpotifyAlbum): Album | null {
 	const copyrights = album.copyrights?.map((c) => c.text) ?? [];
 
 	return {
-		id: album.id,
+		id: AlbumId.create('spotify', album.id),
 		name: album.name,
 		artists,
 		artwork: artwork.length > 0 ? artwork : undefined,

@@ -125,7 +125,7 @@ export default function ArtistScreen() {
 	const handleAlbumPress = (album: Album) => {
 		router.push({
 			pathname: '/album/[id]',
-			params: { id: album.id, name: album.name },
+			params: { id: album.id.value, name: album.name },
 		});
 	};
 
@@ -251,7 +251,7 @@ export default function ArtistScreen() {
 								>
 									{albums.map((album) => (
 										<AlbumCard
-											key={album.id}
+											key={album.id.value}
 											album={album}
 											onPress={() => handleAlbumPress(album)}
 										/>

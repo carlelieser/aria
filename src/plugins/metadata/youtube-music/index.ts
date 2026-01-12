@@ -5,6 +5,7 @@ import { getLogger } from '@shared/services/logger';
 export * from './types';
 export * from './mappers';
 export * from './config';
+export * from './auth';
 export * from './youtube-music-provider';
 export * from './plugin-module';
 

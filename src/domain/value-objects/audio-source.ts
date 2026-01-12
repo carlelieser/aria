@@ -30,7 +30,21 @@ export interface StreamingAudioSource {
 	readonly expiresAt?: number;
 }
 
-export type AudioSource = LocalAudioSource | StreamingAudioSource;
+export interface DownloadedAudioSource {
+	readonly type: 'downloaded';
+
+	readonly filePath: string;
+
+	readonly fileSize: number;
+
+	readonly fileType: AudioFileType;
+
+	readonly downloadedAt: number;
+
+	readonly originalSource: StreamingAudioSource;
+}
+
+export type AudioSource = LocalAudioSource | StreamingAudioSource | DownloadedAudioSource;
 
 export function createLocalSource(
 	filePath: string,
@@ -73,8 +87,40 @@ export function isStreamingSource(source: AudioSource): source is StreamingAudio
 	return source.type === 'streaming';
 }
 
+export function isDownloadedSource(source: AudioSource): source is DownloadedAudioSource {
+	return source.type === 'downloaded';
+}
+
+export function createDownloadedSource(
+	filePath: string,
+	fileSize: number,
+	fileType: AudioFileType,
+	originalSource: StreamingAudioSource
+): DownloadedAudioSource {
+	return Object.freeze({
+		type: 'downloaded',
+		filePath,
+		fileSize,
+		fileType,
+		downloadedAt: Date.now(),
+		originalSource,
+	});
+}
+
+export function canDownload(source: AudioSource): boolean {
+	return source.type === 'streaming';
+}
+
+export function isLocallyAvailable(source: AudioSource): boolean {
+	return source.type === 'local' || source.type === 'downloaded';
+}
+
 export function getPlaybackUri(source: AudioSource): string | null {
 	if (isLocalSource(source)) {
+		return source.filePath;
+	}
+
+	if (isDownloadedSource(source)) {
 		return source.filePath;
 	}
 
@@ -89,7 +135,7 @@ export function getPlaybackUri(source: AudioSource): string | null {
 }
 
 export function needsStreamUrlRefresh(source: AudioSource): boolean {
-	if (isLocalSource(source)) {
+	if (isLocalSource(source) || isDownloadedSource(source)) {
 		return false;
 	}
 

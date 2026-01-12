@@ -9,10 +9,13 @@ const OUTPUT_DIR = path.join(__dirname, '../assets/images');
 // Background color from icon.svg (#fafdff)
 const BACKGROUND_COLOR = { r: 250, g: 253, b: 255, alpha: 1 };
 
+// Default crop padding to remove from SVG (out of 1000px render)
+const DEFAULT_CROP_PADDING = 120;
+
 const ICONS = [
 	{ name: 'icon.png', size: 1024 },
 	{ name: 'icon-rounded.png', size: 256, rounded: true },
-	{ name: 'favicon.png', size: 48 },
+	{ name: 'favicon.png', size: 48, rounded: true, cropPadding: 180 },
 	{ name: 'splash-icon.png', size: 512 },
 	{ name: 'android-icon-foreground.png', size: 432 },
 	{ name: 'android-icon-background.png', size: 432, solidBackground: true },
@@ -67,7 +70,7 @@ async function generateIcons() {
 			pipeline = sharp(pixels, {
 				raw: { width: info.width, height: info.height, channels: 4 },
 			});
-		} else if (icon.rounded || icon.cropped) {
+		} else if (icon.rounded || icon.cropPadding !== undefined) {
 			// Crop out the padding from the SVG
 			const roundedCorners = icon.rounded
 				? Buffer.from(
@@ -77,7 +80,7 @@ async function generateIcons() {
 
 			// First render at higher resolution, then crop the content area
 			const fullSize = 1000;
-			const cropPadding = 120; // Padding to remove from each side
+			const cropPadding = icon.cropPadding ?? DEFAULT_CROP_PADDING;
 			const cropSize = fullSize - cropPadding * 2;
 
 			const croppedBuffer = await sharp(svgBuffer)

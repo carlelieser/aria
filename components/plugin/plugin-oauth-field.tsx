@@ -7,14 +7,21 @@
 import { memo, useCallback, useState, useEffect, useMemo } from 'react';
 import { View, StyleSheet, Modal } from 'react-native';
 import { Text, ActivityIndicator } from 'react-native-paper';
-import { icons, LinkIcon, CheckCircleIcon, type LucideIcon } from 'lucide-react-native';
+import * as LucideIcons from 'lucide-react-native';
+import { LinkIcon, CheckCircleIcon, type LucideIcon } from 'lucide-react-native';
 import { SettingsItem } from '@/components/settings/settings-item';
 import { Button } from '@/components/ui/button';
 import { SpotifyLoginWebView } from '@/components/plugin/spotify-login-webview';
+import { YouTubeMusicLoginWebView } from '@/components/plugin/youtube-music-login-webview';
 import { useAppTheme } from '@/lib/theme';
 import { PluginRegistry } from '@/src/plugins/core/registry/plugin-registry';
 import type { SpotifyLibraryProvider } from '@/src/plugins/metadata/spotify';
+import type { YouTubeMusicLibraryProvider } from '@/src/plugins/metadata/youtube-music';
 import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plugin';
+
+type OAuthCapablePlugin = SpotifyLibraryProvider | YouTubeMusicLibraryProvider;
+
+const OAUTH_PLUGIN_IDS = ['spotify', 'youtube-music'] as const;
 
 const DEFAULT_OAUTH_ICON = LinkIcon;
 
@@ -34,22 +41,23 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 	const [error, setError] = useState<string | null>(null);
 
 	const IconComponent = useMemo((): LucideIcon => {
-		if (schema.icon && schema.icon in icons) {
+		const iconName = schema.icon ? `${schema.icon}Icon` : null;
+		if (iconName && iconName in LucideIcons) {
 			// eslint-disable-next-line import/namespace
-			return icons[schema.icon as keyof typeof icons] as LucideIcon;
+			return LucideIcons[iconName as keyof typeof LucideIcons] as LucideIcon;
 		}
 		return DEFAULT_OAUTH_ICON;
 	}, [schema.icon]);
 
-	const getPlugin = useCallback((): SpotifyLibraryProvider | null => {
+	const getPlugin = useCallback((): OAuthCapablePlugin | null => {
 		const registry = PluginRegistry.getInstance();
 		const plugin = registry.getPlugin(pluginId);
 
-		if (!plugin || plugin.manifest.id !== 'spotify') {
+		if (!plugin || !OAUTH_PLUGIN_IDS.includes(plugin.manifest.id as (typeof OAUTH_PLUGIN_IDS)[number])) {
 			return null;
 		}
 
-		return plugin as SpotifyLibraryProvider;
+		return plugin as OAuthCapablePlugin;
 	}, [pluginId]);
 
 	useEffect(() => {
@@ -92,7 +100,7 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 	}, []);
 
 	const handleLoginSuccess = useCallback(
-		async (spDcCookie: string) => {
+		async (credential: string) => {
 			setShowLoginModal(false);
 			setIsLoading(true);
 			setError(null);
@@ -105,7 +113,15 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 			}
 
 			try {
-				const result = await plugin.setSpDcCookie(spDcCookie);
+				let result;
+
+				if (plugin.manifest.id === 'spotify') {
+					result = await (plugin as SpotifyLibraryProvider).setSpDcCookie(credential);
+				} else if (plugin.manifest.id === 'youtube-music') {
+					result = await (plugin as YouTubeMusicLibraryProvider).setCookies(credential);
+				} else {
+					throw new Error('Unknown plugin type');
+				}
 
 				if (result.success) {
 					setIsAuthenticated(true);
@@ -182,7 +198,12 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 				presentationStyle="fullScreen"
 				onRequestClose={handleLoginCancel}
 			>
-				<SpotifyLoginWebView onSuccess={handleLoginSuccess} onCancel={handleLoginCancel} />
+				{pluginId === 'spotify' && (
+					<SpotifyLoginWebView onSuccess={handleLoginSuccess} onCancel={handleLoginCancel} />
+				)}
+				{pluginId === 'youtube-music' && (
+					<YouTubeMusicLoginWebView onSuccess={handleLoginSuccess} onCancel={handleLoginCancel} />
+				)}
 			</Modal>
 		</View>
 	);

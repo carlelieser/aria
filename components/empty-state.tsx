@@ -16,12 +16,30 @@ interface EmptyStateProps {
 	icon: LucideIcon;
 	/** Title text */
 	title: string;
-	/** Description text */
-	description: string;
+	/** Optional description text */
+	description?: string;
+	/** Compact mode for inline contexts */
+	compact?: boolean;
 }
 
-export function EmptyState({ icon: IconComponent, title, description }: EmptyStateProps) {
+export function EmptyState({
+	icon: IconComponent,
+	title,
+	description,
+	compact = false,
+}: EmptyStateProps) {
 	const { colors } = useAppTheme();
+
+	if (compact) {
+		return (
+			<View style={[styles.compactContainer, { backgroundColor: colors.surfaceContainerLow }]}>
+				<Icon as={IconComponent} size={24} color={colors.onSurfaceVariant} />
+				<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
+					{title}
+				</Text>
+			</View>
+		);
+	}
 
 	return (
 		<View style={styles.container}>
@@ -36,16 +54,18 @@ export function EmptyState({ icon: IconComponent, title, description }: EmptySta
 			>
 				{title}
 			</Text>
-			<Text
-				variant="bodyMedium"
-				style={{
-					color: colors.onSurfaceVariant,
-					textAlign: 'center',
-					paddingHorizontal: 32,
-				}}
-			>
-				{description}
-			</Text>
+			{description && (
+				<Text
+					variant="bodyMedium"
+					style={{
+						color: colors.onSurfaceVariant,
+						textAlign: 'center',
+						paddingHorizontal: 32,
+					}}
+				>
+					{description}
+				</Text>
+			)}
 		</View>
 	);
 }
@@ -61,5 +81,12 @@ const styles = StyleSheet.create({
 		borderRadius: 9999,
 		padding: 24,
 		marginBottom: 16,
+	},
+	compactContainer: {
+		alignItems: 'center',
+		justifyContent: 'center',
+		paddingVertical: 24,
+		borderRadius: 12,
+		gap: 8,
 	},
 });

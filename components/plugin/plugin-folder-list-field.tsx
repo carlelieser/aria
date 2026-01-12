@@ -12,6 +12,7 @@ import { FolderPlusIcon, FolderIcon, Trash2Icon, RefreshCwIcon } from 'lucide-re
 import { RectButton } from 'react-native-gesture-handler';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
+import { EmptyState } from '@/components/empty-state';
 import { useAppTheme } from '@/lib/theme';
 import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plugin';
 import {
@@ -121,7 +122,6 @@ export const PluginFolderListField = memo(function PluginFolderListField({
 				</View>
 				<Button
 					variant="secondary"
-					size="sm"
 					onPress={handleAddFolder}
 					disabled={isScanning || isAddingFolder}
 					icon={<Icon as={FolderPlusIcon} size="sm" color={colors.primary} />}
@@ -130,13 +130,8 @@ export const PluginFolderListField = memo(function PluginFolderListField({
 				</Button>
 			</View>
 
-			{folders.length === 0 ? (
-				<View style={[styles.emptyState, { backgroundColor: colors.surfaceContainerLow }]}>
-					<Icon as={FolderIcon} size="lg" color={colors.onSurfaceVariant} />
-					<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
-						No folders added
-					</Text>
-				</View>
+				{folders.length === 0 ? (
+				<EmptyState icon={FolderIcon} title="No folders added" compact />
 			) : (
 				<View style={[styles.folderList, { backgroundColor: colors.surfaceContainerLow }]}>
 					{folders.map((folder) => (
@@ -225,13 +220,6 @@ const styles = StyleSheet.create({
 	headerText: {
 		flex: 1,
 		gap: 2,
-	},
-	emptyState: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		paddingVertical: 24,
-		borderRadius: 12,
-		gap: 8,
 	},
 	folderList: {
 		borderRadius: 12,

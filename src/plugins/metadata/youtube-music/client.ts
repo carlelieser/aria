@@ -1,6 +1,7 @@
 import InnertubeClient from 'youtubei.js/react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import type { YouTubeMusicConfig } from './config';
+import type { YouTubeMusicAuthManager } from './auth';
 import { getLogger } from '@shared/services/logger';
 
 const logger = getLogger('InnertubeClient');
@@ -117,19 +118,33 @@ export function getPreloadPromise(): Promise<InnertubeClient> | null {
 export interface ClientManager {
 	getClient(): Promise<InnertubeClient>;
 	createFreshClient(): Promise<InnertubeClient>;
+	refreshAuth(): Promise<void>;
 	destroy(): void;
 	isInitialized(): boolean;
 }
 
-export function createClientManager(config: YouTubeMusicConfig): ClientManager {
+export function createClientManager(
+	config: YouTubeMusicConfig,
+	authManager?: YouTubeMusicAuthManager
+): ClientManager {
 	let client: InnertubeClient | null = null;
 	let initPromise: Promise<InnertubeClient> | null = null;
 
 	async function createClient(): Promise<InnertubeClient> {
+		// Get cookies from auth manager if available
+		let cookie: string | undefined;
+		if (authManager) {
+			const cookiesResult = await authManager.getCookies();
+			if (cookiesResult.success) {
+				cookie = cookiesResult.data;
+			}
+		}
+
 		return InnertubeClient.create({
 			lang: config.lang,
 			location: config.location,
 			cache: innertubeCache,
+			cookie,
 		});
 	}
 
@@ -137,7 +152,21 @@ export function createClientManager(config: YouTubeMusicConfig): ClientManager {
 		async getClient(): Promise<InnertubeClient> {
 			if (client) return client;
 
-			// Use preloaded client if available
+			// If auth manager is provided, always create a fresh client
+			// to ensure we have the latest auth state
+			if (authManager) {
+				initPromise = createClient();
+
+				try {
+					client = await initPromise;
+					return client;
+				} catch (error) {
+					initPromise = null;
+					throw error;
+				}
+			}
+
+			// Use preloaded client if available (for unauthenticated access)
 			if (preloadedClient) {
 				client = preloadedClient;
 				return client;
@@ -164,6 +193,13 @@ export function createClientManager(config: YouTubeMusicConfig): ClientManager {
 
 		async createFreshClient(): Promise<InnertubeClient> {
 			return createClient();
+		},
+
+		async refreshAuth(): Promise<void> {
+			// Clear current client to force recreation with new auth
+			client = null;
+			initPromise = null;
+			logger.info('Auth refreshed, client will be recreated on next request');
 		},
 
 		destroy(): void {

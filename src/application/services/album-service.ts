@@ -4,6 +4,7 @@ import { ok, err, type Result } from '../../shared/types/result';
 import { getLogger } from '../../shared/services/logger';
 import type { Track } from '../../domain/entities/track';
 import type { Album } from '../../domain/entities/album';
+import { AlbumId } from '../../domain/value-objects/album-id';
 
 const logger = getLogger('AlbumService');
 
@@ -72,99 +73,88 @@ export class AlbumService {
 		}
 	}
 
-	private async _fetchAlbumDetail(albumId: string): Promise<Result<AlbumDetailResult, Error>> {
+	private async _fetchAlbumDetail(albumIdString: string): Promise<Result<AlbumDetailResult, Error>> {
 		const store = useAlbumStore.getState();
-		store.setLoading(albumId, true);
+		store.setLoading(albumIdString, true);
 
 		if (this.metadataProviders.length === 0) {
 			const error = new Error('No metadata providers available');
-			store.setError(albumId, error.message);
+			store.setError(albumIdString, error.message);
 			return err(error);
 		}
 
-		const [providerPrefix, rawId] = this._parseAlbumId(albumId);
-		const targetProviders = providerPrefix
-			? this.metadataProviders.filter((p) => p.manifest.id === providerPrefix)
-			: this.metadataProviders;
-
-		if (targetProviders.length === 0) {
-			const error = new Error(`No provider found for album ID: ${albumId}`);
-			store.setError(albumId, error.message);
+		const albumId = AlbumId.tryFromString(albumIdString);
+		if (!albumId) {
+			const error = new Error(
+				`Invalid album ID format: ${albumIdString}. Expected "provider:id" format.`
+			);
+			store.setError(albumIdString, error.message);
 			return err(error);
 		}
 
-		for (const provider of targetProviders) {
-			try {
-				if (!provider.hasCapability('get-album-tracks')) {
-					logger.debug(`Provider ${provider.manifest.id} does not support album tracks`);
-					continue;
-				}
+		const targetProvider = this.metadataProviders.find(
+			(p) => p.manifest.id === albumId.sourceType
+		);
 
-				const idToUse = rawId || albumId;
-				logger.debug(`Fetching album ${idToUse} from ${provider.manifest.id}`);
+		if (!targetProvider) {
+			const error = new Error(
+				`No provider found for album source: ${albumId.sourceType}`
+			);
+			store.setError(albumIdString, error.message);
+			return err(error);
+		}
 
-				const [albumInfoResult, tracksResult] = await Promise.all([
-					provider.getAlbumInfo(idToUse),
-					provider.getAlbumTracks(idToUse, { limit: 100 }),
-				]);
+		if (!targetProvider.hasCapability('get-album-tracks')) {
+			const error = new Error(
+				`Provider ${targetProvider.manifest.id} does not support album tracks`
+			);
+			store.setError(albumIdString, error.message);
+			return err(error);
+		}
 
-				if (!tracksResult.success) {
-					logger.warn(
-						`Failed to fetch tracks from ${provider.manifest.id}`,
-						tracksResult.error
-					);
-					continue;
-				}
+		try {
+			logger.debug(`Fetching album ${albumId.sourceId} from ${targetProvider.manifest.id}`);
 
-				const album = albumInfoResult.success ? albumInfoResult.data : null;
-				const tracks = tracksResult.data.items;
+			const [albumInfoResult, tracksResult] = await Promise.all([
+				targetProvider.getAlbumInfo(albumId.sourceId),
+				targetProvider.getAlbumTracks(albumId.sourceId, { limit: 100 }),
+			]);
 
-				const sortedTracks = [...tracks].sort((a, b) => {
-					const numA = a.metadata.trackNumber ?? 0;
-					const numB = b.metadata.trackNumber ?? 0;
-					return numA - numB;
-				});
-
-				const result: AlbumDetailResult = {
-					album,
-					tracks: sortedTracks,
-				};
-
-				this.cache.set(albumId, {
-					result,
-					timestamp: Date.now(),
-				});
-
-				store.setAlbumDetail(albumId, album, sortedTracks);
-				return ok(result);
-			} catch (error) {
-				logger.warn(
-					`Error fetching album from ${provider.manifest.id}`,
-					error instanceof Error ? error : undefined
+			if (!tracksResult.success) {
+				const error = new Error(
+					`Failed to fetch tracks from ${targetProvider.manifest.id}: ${tracksResult.error?.message}`
 				);
+				store.setError(albumIdString, error.message);
+				return err(error);
 			}
+
+			const album = albumInfoResult.success ? albumInfoResult.data : null;
+			const tracks = tracksResult.data.items;
+
+			const sortedTracks = [...tracks].sort((a, b) => {
+				const numA = a.metadata.trackNumber ?? 0;
+				const numB = b.metadata.trackNumber ?? 0;
+				return numA - numB;
+			});
+
+			const result: AlbumDetailResult = {
+				album,
+				tracks: sortedTracks,
+			};
+
+			this.cache.set(albumIdString, {
+				result,
+				timestamp: Date.now(),
+			});
+
+			store.setAlbumDetail(albumIdString, album, sortedTracks);
+			return ok(result);
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+			logger.warn(`Error fetching album from ${targetProvider.manifest.id}`, error instanceof Error ? error : undefined);
+			store.setError(albumIdString, errorMessage);
+			return err(error instanceof Error ? error : new Error(errorMessage));
 		}
-
-		const error = new Error('Failed to fetch album from any provider');
-		store.setError(albumId, error.message);
-		return err(error);
-	}
-
-	private _parseAlbumId(albumId: string): [string | null, string | null] {
-		const colonIndex = albumId.indexOf(':');
-		if (colonIndex === -1) {
-			return [null, null];
-		}
-
-		const prefix = albumId.substring(0, colonIndex);
-		const rawId = albumId.substring(colonIndex + 1);
-
-		const isKnownProvider = this.metadataProviders.some((p) => p.manifest.id === prefix);
-		if (isKnownProvider) {
-			return [prefix, rawId];
-		}
-
-		return [null, null];
 	}
 }
 

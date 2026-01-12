@@ -2,6 +2,7 @@ import type { Track } from '../../domain/entities/track';
 import type { Duration } from '../../domain/value-objects/duration';
 import type { AudioStream, AudioFormat } from '../../domain/value-objects/audio-stream';
 import { createAudioStream } from '../../domain/value-objects/audio-stream';
+import { isLocallyAvailable, getPlaybackUri } from '../../domain/value-objects/audio-source';
 import type {
 	PlaybackProvider,
 	PlaybackEvent,
@@ -228,26 +229,32 @@ export class PlaybackService {
 		logger.debug('Track source:', JSON.stringify(track.source));
 		logger.debug('Available providers:', this.audioSourceProviders.length);
 
-		const trackId = track.id.value;
-		const downloadMetadata = downloadService.getDownloadedTrackMetadata(trackId);
-		if (downloadMetadata) {
-			const fileInfo = await getFileInfo(downloadMetadata.filePath);
-			if (fileInfo.exists) {
-				logger.debug(
-					`Using local download: ${downloadMetadata.filePath} (format: ${downloadMetadata.format})`
-				);
-				return ok(
-					createAudioStream({
-						url: downloadMetadata.filePath,
-						format: downloadMetadata.format as AudioFormat,
-						quality: 'high',
-					})
-				);
-			} else {
-				logger.warn(
-					`Local file missing, removing from downloads: ${downloadMetadata.filePath}`
-				);
-				await downloadService.removeDownload(trackId);
+		const resolvedSource = downloadService.resolveTrackSource(track);
+		logger.debug('Resolved source type:', resolvedSource.type);
+
+		if (isLocallyAvailable(resolvedSource)) {
+			const filePath = getPlaybackUri(resolvedSource);
+			if (filePath) {
+				const fileInfo = await getFileInfo(filePath);
+				if (fileInfo.exists) {
+					logger.debug(`Using local file: ${filePath}`);
+					let format: AudioFormat = 'm4a';
+					if (resolvedSource.type === 'downloaded') {
+						format = resolvedSource.fileType as AudioFormat;
+					} else if (resolvedSource.type === 'local' && resolvedSource.fileType) {
+						format = resolvedSource.fileType as AudioFormat;
+					}
+					return ok(
+						createAudioStream({
+							url: filePath,
+							format,
+							quality: 'high',
+						})
+					);
+				} else if (resolvedSource.type === 'downloaded') {
+					logger.warn(`Downloaded file missing, removing: ${filePath}`);
+					await downloadService.removeDownload(track.id.value);
+				}
 			}
 		}
 

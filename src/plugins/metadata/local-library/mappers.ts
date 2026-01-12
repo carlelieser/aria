@@ -4,6 +4,7 @@ import type { Album } from '@domain/entities/album';
 import type { Artist } from '@domain/entities/artist';
 import { createTrack } from '@domain/entities/track';
 import { TrackId } from '@domain/value-objects/track-id';
+import { AlbumId } from '@domain/value-objects/album-id';
 import { Duration } from '@domain/value-objects/duration';
 import { createLocalSource, type AudioFileType } from '@domain/value-objects/audio-source';
 import { createArtwork, type Artwork } from '@domain/value-objects/artwork';
@@ -94,7 +95,10 @@ export function localTrackToTrack(localTrack: LocalTrack): Track {
 		title: localTrack.title,
 		artists: [{ id: localTrack.artistId, name: localTrack.artistName }],
 		album: localTrack.albumId
-			? { id: localTrack.albumId, name: localTrack.albumName ?? '' }
+			? {
+					id: AlbumId.create('local-library', localTrack.albumId).value,
+					name: localTrack.albumName ?? '',
+				}
 			: undefined,
 		duration: Duration.fromSeconds(localTrack.duration),
 		artwork,
@@ -114,7 +118,7 @@ export function localAlbumToAlbum(localAlbum: LocalAlbum): Album {
 		: undefined;
 
 	return {
-		id: localAlbum.id,
+		id: AlbumId.create('local-library', localAlbum.id),
 		name: localAlbum.name,
 		artists: [{ id: localAlbum.artistId, name: localAlbum.artistName }],
 		artwork,

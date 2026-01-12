@@ -177,7 +177,7 @@ export function AnimatedSplash({
 						fill={colors.onSurface}
 						stroke={colors.onSurface}
 						strokeWidth={40}
-						springConfig={{ damping: 12, stiffness: 80, mass: 0.5 }}
+						springConfig={{ damping: 20, stiffness: 100, mass: 0.5 }}
 					/>
 				</Animated.View>
 			</View>
@@ -202,8 +202,8 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 	},
 	iconWrapper: {
-		width: 124,
-		height: 124,
+		width: 148,
+		height: 148,
 		position: 'absolute',
 		alignItems: 'center',
 		justifyContent: 'center',

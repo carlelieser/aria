@@ -1,4 +1,10 @@
 export { TrackId, type SourceType, isValidTrackIdString, getTrackIdString } from './track-id';
+export {
+	AlbumId,
+	type AlbumSourceType,
+	isValidAlbumIdString,
+	getAlbumIdString,
+} from './album-id';
 export { Duration } from './duration';
 export {
 	type Artwork,
@@ -14,12 +20,17 @@ export {
 	type AudioSource,
 	type LocalAudioSource,
 	type StreamingAudioSource,
+	type DownloadedAudioSource,
 	type AudioFileType,
 	type StreamQuality,
 	createLocalSource,
 	createStreamingSource,
+	createDownloadedSource,
 	isLocalSource,
 	isStreamingSource,
+	isDownloadedSource,
+	canDownload,
+	isLocallyAvailable,
 	getPlaybackUri,
 	needsStreamUrlRefresh,
 	updateStreamUrl,

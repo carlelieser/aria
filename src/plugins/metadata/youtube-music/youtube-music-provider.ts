@@ -21,6 +21,7 @@ import type { Result } from '@shared/types/result';
 import { ok } from '@shared/types/result';
 
 import { installEvaluator } from './evaluator';
+import { YouTubeMusicAuthManager } from './auth';
 import {
 	type YouTubeMusicConfig,
 	DEFAULT_CONFIG,
@@ -37,7 +38,15 @@ import { createRecommendationOperations, RecommendationOperations } from './reco
 
 installEvaluator();
 
-export class YouTubeMusicProvider implements MetadataProvider, AudioSourceProvider {
+export interface YouTubeMusicLibraryProvider extends MetadataProvider, AudioSourceProvider {
+	isAuthenticated(): boolean;
+	checkAuthentication(): Promise<boolean>;
+	getLoginUrl(): string;
+	setCookies(cookies: string): Promise<Result<void, Error>>;
+	logout(): Promise<Result<void, Error>>;
+}
+
+export class YouTubeMusicProvider implements YouTubeMusicLibraryProvider {
 	readonly manifest = PLUGIN_MANIFEST;
 	readonly configSchema = CONFIG_SCHEMA;
 	readonly capabilities = new Set<MetadataCapability>(METADATA_CAPABILITIES);
@@ -51,14 +60,19 @@ export class YouTubeMusicProvider implements MetadataProvider, AudioSourceProvid
 	private infoOps: InfoOperations | null = null;
 	private streamingOps: StreamingOperations | null = null;
 	private recommendationOps: RecommendationOperations | null = null;
+	private readonly _authManager: YouTubeMusicAuthManager;
 
 	constructor(config: YouTubeMusicConfig = DEFAULT_CONFIG) {
 		this.config = { ...DEFAULT_CONFIG, ...config };
+		this._authManager = new YouTubeMusicAuthManager();
 	}
 
 	async onInit(context: PluginInitContext): Promise<Result<void, Error>> {
 		try {
 			this.status = 'initializing';
+
+			// Load any stored authentication
+			await this._authManager.loadStoredAuth();
 
 			const mergedConfig: YouTubeMusicConfig = {
 				...this.config,
@@ -66,7 +80,7 @@ export class YouTubeMusicProvider implements MetadataProvider, AudioSourceProvid
 				location: (context.config.location as string) || this.config.location,
 			};
 
-			this.clientManager = createClientManager(mergedConfig);
+			this.clientManager = createClientManager(mergedConfig, this._authManager);
 			this.searchOps = createSearchOperations(this.clientManager);
 			this.infoOps = createInfoOperations(this.clientManager);
 			this.streamingOps = createStreamingOperations(this.clientManager);
@@ -178,6 +192,37 @@ export class YouTubeMusicProvider implements MetadataProvider, AudioSourceProvid
 		limit?: number
 	): Promise<Result<Track[], Error>> {
 		return this.recommendationOps!.getRecommendations(seed, params, limit);
+	}
+
+	// Authentication methods
+	isAuthenticated(): boolean {
+		return this._authManager.isAuthenticated();
+	}
+
+	async checkAuthentication(): Promise<boolean> {
+		return this._authManager.checkAuthentication();
+	}
+
+	getLoginUrl(): string {
+		return this._authManager.getLoginUrl();
+	}
+
+	async setCookies(cookies: string): Promise<Result<void, Error>> {
+		const result = await this._authManager.setCookies(cookies);
+		if (result.success && this.clientManager) {
+			// Refresh client with new authentication
+			await this.clientManager.refreshAuth();
+		}
+		return result;
+	}
+
+	async logout(): Promise<Result<void, Error>> {
+		const result = await this._authManager.logout();
+		if (result.success && this.clientManager) {
+			// Refresh client to use unauthenticated access
+			await this.clientManager.refreshAuth();
+		}
+		return result;
 	}
 }
 

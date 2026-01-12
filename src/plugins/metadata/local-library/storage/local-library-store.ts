@@ -17,6 +17,7 @@ interface LocalLibraryState {
 	addFolder: (folder: FolderInfo) => void;
 	removeFolder: (folderUri: string) => void;
 	updateFolderScanTime: (folderUri: string) => void;
+	updateFolderTrackCount: (folderUri: string, trackCount: number) => void;
 
 	// Track actions
 	addTrack: (track: LocalTrack) => void;
@@ -95,6 +96,15 @@ export const useLocalLibraryStore = create<LocalLibraryState>()(
 				set({
 					folders: folders.map((f) =>
 						f.uri === folderUri ? { ...f, lastScannedAt: Date.now() } : f
+					),
+				});
+			},
+
+			updateFolderTrackCount: (folderUri, trackCount) => {
+				const { folders } = get();
+				set({
+					folders: folders.map((f) =>
+						f.uri === folderUri ? { ...f, trackCount } : f
 					),
 				});
 			},

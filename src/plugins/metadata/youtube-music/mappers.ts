@@ -2,6 +2,7 @@ import type { Track, CreateTrackParams } from '@domain/entities/track';
 import type { Album } from '@domain/entities/album';
 import type { Artist, ArtistReference } from '@domain/entities/artist';
 import { TrackId } from '@domain/value-objects/track-id';
+import { AlbumId } from '@domain/value-objects/album-id';
 import { Duration } from '@domain/value-objects/duration';
 import { createArtwork, type Artwork } from '@domain/value-objects/artwork';
 import { createStreamingSource } from '@domain/value-objects/audio-source';
@@ -194,8 +195,9 @@ export function mapYouTubeTrack(
 	};
 
 	if (item.album?.name) {
+		const albumSourceId = item.album.id || item.album.name;
 		params.album = {
-			id: item.album.id || item.album.name,
+			id: AlbumId.create('youtube-music', albumSourceId).value,
 			name: item.album.name,
 		};
 
@@ -297,7 +299,7 @@ export function mapYouTubeAlbum(item: YouTubeMusicItem): Album | null {
 	}
 
 	return {
-		id: browseId,
+		id: AlbumId.create('youtube-music', browseId),
 		name,
 		artists,
 		artwork: artwork.length > 0 ? artwork : undefined,

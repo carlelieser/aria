@@ -6,12 +6,12 @@
 
 import { memo, useMemo } from 'react';
 import { Switch } from 'react-native-paper';
-import { icons, CircleDotIcon, type LucideIcon } from 'lucide-react-native';
+import * as LucideIcons from 'lucide-react-native';
+import { CircleDotIcon, type LucideIcon } from 'lucide-react-native';
 import { SettingsItem } from '@/components/settings/settings-item';
 import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plugin';
 
 const DEFAULT_BOOLEAN_ICON = CircleDotIcon;
-const iconsMap = icons as Record<string, LucideIcon>;
 
 interface PluginBooleanFieldProps {
 	schema: PluginConfigSchema;
@@ -25,8 +25,10 @@ export const PluginBooleanField = memo(function PluginBooleanField({
 	onChange,
 }: PluginBooleanFieldProps) {
 	const IconComponent = useMemo((): LucideIcon => {
-		if (schema.icon && schema.icon in iconsMap) {
-			return iconsMap[schema.icon];
+		const iconName = schema.icon ? `${schema.icon}Icon` : null;
+		if (iconName && iconName in LucideIcons) {
+			// eslint-disable-next-line import/namespace
+			return LucideIcons[iconName as keyof typeof LucideIcons] as LucideIcon;
 		}
 		return DEFAULT_BOOLEAN_ICON;
 	}, [schema.icon]);

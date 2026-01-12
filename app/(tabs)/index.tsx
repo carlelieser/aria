@@ -16,14 +16,16 @@ import { MusicIcon, ListMusicIcon, UsersIcon, DiscIcon } from 'lucide-react-nati
 import { useState, useCallback, memo } from 'react';
 import { Image } from 'expo-image';
 import {
-	useTracks,
 	usePlaylists,
 	useIsLibraryLoading,
-	useUniqueArtists,
-	useUniqueAlbums,
 	type UniqueArtist,
 	type UniqueAlbum,
 } from '@/src/application/state/library-store';
+import {
+	useAggregatedTracks,
+	useAggregatedArtists,
+	useAggregatedAlbums,
+} from '@/hooks/use-aggregated-library';
 import { TrackListItem } from '@/components/track-list-item';
 import {
 	TrackListSkeleton,
@@ -43,7 +45,7 @@ type ChipType = 'playlists' | 'albums' | 'artists' | 'songs';
 export default function HomeScreen() {
 	const [selected, setSelected] = useState<ChipType>('playlists');
 	const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
-	const allTracks = useTracks();
+	const allTracks = useAggregatedTracks();
 	const playlists = usePlaylists();
 	const isLoading = useIsLibraryLoading();
 
@@ -66,8 +68,8 @@ export default function HomeScreen() {
 
 	const { artists: filterArtists, albums: filterAlbums } = useUniqueFilterOptions(allTracks);
 
-	const artists = useUniqueArtists();
-	const albums = useUniqueAlbums();
+	const artists = useAggregatedArtists();
+	const albums = useAggregatedAlbums();
 
 	const handleOpenFilterSheet = useCallback(() => {
 		setIsFilterSheetOpen(true);

@@ -264,7 +264,7 @@ export default function ExploreScreen() {
 								))}
 
 								{filteredAlbums.map((album) => (
-									<AlbumListItem key={album.id} album={album} />
+									<AlbumListItem key={album.id.value} album={album} />
 								))}
 
 								{filteredArtists.map((artist) => (

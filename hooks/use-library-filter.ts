@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { useTracks, useFavorites } from '@/src/application/state/library-store';
+import { useFavorites } from '@/src/application/state/library-store';
 import { useDownloadedTracks } from '@/src/application/state/download-store';
 import { useLibraryFilterStore } from '@/src/application/state/library-filter-store';
 import {
@@ -10,9 +10,10 @@ import {
 	countActiveFilters,
 } from '@/src/domain/utils/track-filtering';
 import { createTrackFromDownloadedMetadata } from '@/src/domain/utils/create-track-from-download';
+import { useAggregatedTracks } from './use-aggregated-library';
 
 export function useLibraryFilter() {
-	const allTracks = useTracks();
+	const allTracks = useAggregatedTracks();
 	const favorites = useFavorites();
 	const downloadedTracksMap = useDownloadedTracks();
 

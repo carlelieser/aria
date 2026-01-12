@@ -2,6 +2,13 @@ import * as FileSystem from 'expo-file-system/legacy';
 import type { Track } from '../../domain/entities/track';
 import { getArtistNames } from '../../domain/entities/track';
 import { getLargestArtwork } from '../../domain/value-objects/artwork';
+import {
+	canDownload,
+	createDownloadedSource,
+	isStreamingSource,
+	type AudioSource,
+	type AudioFileType,
+} from '../../domain/value-objects/audio-source';
 import type { AudioSourceProvider } from '../../plugins/core/interfaces/audio-source-provider';
 import { createDownloadedTrackMetadata } from '../../domain/value-objects/download-state';
 import { useDownloadStore } from '../state/download-store';
@@ -40,9 +47,37 @@ export class DownloadService {
 		);
 	}
 
+	canDownloadTrack(track: Track): boolean {
+		const trackId = track.id.value;
+		const store = useDownloadStore.getState();
+
+		if (!canDownload(track.source)) {
+			return false;
+		}
+
+		if (store.isDownloaded(trackId)) {
+			return false;
+		}
+
+		if (store.isDownloading(trackId) || this.activeDownloads.get(trackId)) {
+			return false;
+		}
+
+		return true;
+	}
+
 	async downloadTrack(track: Track): Promise<Result<void, Error>> {
 		const trackId = track.id.value;
 		const store = useDownloadStore.getState();
+
+		if (!canDownload(track.source)) {
+			const reason =
+				track.source.type === 'local'
+					? 'Local library tracks are already on device'
+					: 'Track is already downloaded';
+			logger.debug(`Cannot download ${trackId}: ${reason}`);
+			return err(new Error(reason));
+		}
 
 		if (store.isDownloaded(trackId)) {
 			logger.debug(`Track ${trackId} already downloaded`);
@@ -218,6 +253,24 @@ export class DownloadService {
 
 	getDownloadedTrackMetadata(trackId: string) {
 		return useDownloadStore.getState().getDownloadedTrack(trackId);
+	}
+
+	resolveTrackSource(track: Track): AudioSource {
+		if (!isStreamingSource(track.source)) {
+			return track.source;
+		}
+
+		const metadata = this.getDownloadedTrackMetadata(track.id.value);
+		if (!metadata) {
+			return track.source;
+		}
+
+		return createDownloadedSource(
+			metadata.filePath,
+			metadata.fileSize,
+			metadata.format as AudioFileType,
+			track.source
+		);
 	}
 
 	async verifyDownload(trackId: string): Promise<boolean> {

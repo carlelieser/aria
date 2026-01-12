@@ -30,7 +30,7 @@ export const AlbumListItem = memo(function AlbumListItem({ album, onPress }: Alb
 		if (onPress) {
 			onPress(album);
 		} else {
-			router.push(`/album/${album.id}`);
+			router.push(`/album/${album.id.value}`);
 		}
 	}, [onPress, album]);
 
@@ -62,7 +62,7 @@ export const AlbumListItem = memo(function AlbumListItem({ album, onPress }: Alb
 						contentFit="cover"
 						transition={200}
 						cachePolicy="memory-disk"
-						recyclingKey={album.id}
+						recyclingKey={album.id.value}
 					/>
 				) : (
 					<Icon as={Disc} size={24} color={colors.onSurfaceVariant} />

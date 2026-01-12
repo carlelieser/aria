@@ -45,9 +45,75 @@ import {
 	localAlbumToAlbum,
 	localArtistToArtist,
 	cacheArtwork,
+	generateLocalTrackId,
 } from './mappers';
 
 const logger = getLogger('LocalLibraryProvider');
+
+/** Number of files to process concurrently */
+const BATCH_CONCURRENCY = 5;
+
+/** Minimum interval between progress updates (ms) */
+const PROGRESS_THROTTLE_MS = 100;
+
+/**
+ * Process items in parallel batches with controlled concurrency.
+ */
+async function _processBatched<T, R>(
+	items: T[],
+	processor: (item: T, index: number) => Promise<R>,
+	concurrency: number
+): Promise<R[]> {
+	const results: R[] = [];
+	let index = 0;
+
+	async function processNext(): Promise<void> {
+		const currentIndex = index++;
+		if (currentIndex >= items.length) return;
+
+		const result = await processor(items[currentIndex], currentIndex);
+		results[currentIndex] = result;
+		await processNext();
+	}
+
+	// Start `concurrency` number of parallel processors
+	const workers = Array(Math.min(concurrency, items.length))
+		.fill(null)
+		.map(() => processNext());
+
+	await Promise.all(workers);
+	return results;
+}
+
+/**
+ * Creates a throttled version of a callback that only fires at most once per interval.
+ */
+function _createThrottledProgress(
+	callback: ((progress: ScanProgress) => void) | undefined,
+	intervalMs: number
+): (progress: ScanProgress) => void {
+	if (!callback) return () => {};
+
+	let lastCall = 0;
+	let pendingProgress: ScanProgress | null = null;
+
+	return (progress: ScanProgress) => {
+		const now = Date.now();
+		pendingProgress = progress;
+
+		// Always emit on phase changes or completion
+		if (progress.phase === 'complete' || progress.phase === 'indexing') {
+			callback(progress);
+			lastCall = now;
+			return;
+		}
+
+		if (now - lastCall >= intervalMs) {
+			callback(pendingProgress);
+			lastCall = now;
+		}
+	};
+}
 
 export class LocalLibraryProvider implements MetadataProvider, AudioSourceProvider {
 	readonly manifest = PLUGIN_MANIFEST;
@@ -113,7 +179,11 @@ export class LocalLibraryProvider implements MetadataProvider, AudioSourceProvid
 	}
 
 	supportsTrack(track: Track): boolean {
-		return track.id.sourceType === 'local-library';
+		// Check both TrackId sourceType and source type for local files
+		const isLocalLibraryId =
+			typeof track.id === 'object' && track.id.sourceType === 'local-library';
+		const isLocalSource = track.source.type === 'local';
+		return isLocalLibraryId || isLocalSource;
 	}
 
 	// ─────────────────────────────────────────────────────────────────────────────
@@ -328,40 +398,42 @@ export class LocalLibraryProvider implements MetadataProvider, AudioSourceProvid
 				return ok(0);
 			}
 
-			const localTracks: LocalTrack[] = [];
-			let processed = 0;
+			// Create throttled progress callback to reduce re-renders
+			const throttledProgress = _createThrottledProgress(onProgress, PROGRESS_THROTTLE_MS);
 
-			for (const file of files) {
-				this._scanProgress = {
-					current: processed + 1,
-					total: files.length,
-					currentFile: file.name,
-					phase: 'scanning',
-				};
-				onProgress?.(this._scanProgress);
+			// Process files in parallel batches for better performance
+			const localTracks = await _processBatched(
+				files,
+				async (file, index) => {
+					throttledProgress({
+						current: index + 1,
+						total: files.length,
+						currentFile: file.name,
+						phase: 'scanning',
+					});
 
-				// Parse metadata
-				const metadataResult = await parseAudioMetadata(file.uri);
-				const metadata = metadataResult.success ? metadataResult.data : { duration: 0 };
+					// Parse metadata
+					const metadataResult = await parseAudioMetadata(file.uri);
+					const metadata = metadataResult.success ? metadataResult.data : { duration: 0 };
 
-				// Cache artwork if present
-				let artworkPath: string | undefined;
-				if (metadataResult.success && metadata.artwork) {
-					const cachedPath = await cacheArtwork(
-						file.uri,
-						metadata.artwork.data,
-						metadata.artwork.mimeType
-					);
-					artworkPath = cachedPath ?? undefined;
-				}
+					// Cache artwork if present
+					let artworkPath: string | undefined;
+					if (metadataResult.success && metadata.artwork) {
+						const cachedPath = await cacheArtwork(
+							file.uri,
+							metadata.artwork.data,
+							metadata.artwork.mimeType
+						);
+						artworkPath = cachedPath ?? undefined;
+					}
 
-				// Create local track
-				const localTrack = mapToLocalTrack(file, metadata, artworkPath);
-				localTracks.push(localTrack);
-				store.addTrack(localTrack);
+					return mapToLocalTrack(file, metadata, artworkPath);
+				},
+				BATCH_CONCURRENCY
+			);
 
-				processed++;
-			}
+			// Batch add tracks to store
+			store.addTracks(localTracks);
 
 			// Index in database
 			this._scanProgress = {
@@ -463,46 +535,67 @@ export class LocalLibraryProvider implements MetadataProvider, AudioSourceProvid
 				return ok(0);
 			}
 
-			const localTracks: LocalTrack[] = [];
-			let processed = 0;
+			// Create throttled progress callback to reduce re-renders
+			const throttledProgress = _createThrottledProgress(onProgress, PROGRESS_THROTTLE_MS);
+			let lastStoreUpdate = 0;
 
-			for (const file of files) {
-				this._scanProgress = {
-					current: processed + 1,
-					total: files.length,
-					currentFile: file.name,
-					phase: 'scanning',
-				};
-				store.setScanProgress(this._scanProgress);
-				onProgress?.(this._scanProgress);
+			// Process files in parallel batches for better performance
+			const localTracks = await _processBatched(
+				files,
+				async (file, index) => {
+					const now = Date.now();
 
-				// Parse metadata
-				const metadataResult = await parseAudioMetadata(file.uri);
-				const metadata = metadataResult.success ? metadataResult.data : { duration: 0 };
+					// Throttle store updates to reduce Zustand re-renders
+					if (now - lastStoreUpdate >= PROGRESS_THROTTLE_MS) {
+						this._scanProgress = {
+							current: index + 1,
+							total: files.length,
+							currentFile: file.name,
+							phase: 'scanning',
+						};
+						store.setScanProgress(this._scanProgress);
+						lastStoreUpdate = now;
+					}
 
-				if (!metadataResult.success) {
-					logger.debug(
-						`Failed to parse metadata for ${file.name}: ${metadataResult.error.message}`
-					);
-				}
+					throttledProgress({
+						current: index + 1,
+						total: files.length,
+						currentFile: file.name,
+						phase: 'scanning',
+					});
 
-				// Cache artwork if present
-				let artworkPath: string | undefined;
-				if (metadataResult.success && metadata.artwork) {
-					const cachedPath = await cacheArtwork(
-						file.uri,
-						metadata.artwork.data,
-						metadata.artwork.mimeType
-					);
-					artworkPath = cachedPath ?? undefined;
-				}
+					// Parse metadata
+					const metadataResult = await parseAudioMetadata(file.uri);
+					const metadata = metadataResult.success ? metadataResult.data : { duration: 0 };
 
-				// Create local track
-				const localTrack = mapToLocalTrack(file, metadata, artworkPath);
-				localTracks.push(localTrack);
+					if (!metadataResult.success) {
+						logger.debug(
+							`Failed to parse metadata for ${file.name}: ${metadataResult.error.message}`
+						);
+					}
 
-				processed++;
-			}
+					// Cache artwork if present
+					let artworkPath: string | undefined;
+					if (metadataResult.success && metadata.artwork) {
+						logger.debug(`Artwork found for ${file.name}, caching...`);
+						const trackId = generateLocalTrackId(file.uri);
+						const cachedPath = await cacheArtwork(
+							trackId,
+							metadata.artwork.data,
+							metadata.artwork.mimeType
+						);
+						artworkPath = cachedPath ?? undefined;
+						if (artworkPath) {
+							logger.debug(`Artwork cached at: ${artworkPath}`);
+						} else {
+							logger.warn(`Failed to cache artwork for ${file.name}`);
+						}
+					}
+
+					return mapToLocalTrack(file, metadata, artworkPath);
+				},
+				BATCH_CONCURRENCY
+			);
 
 			logger.info(`Processed ${localTracks.length} tracks, adding to store...`);
 
@@ -525,8 +618,9 @@ export class LocalLibraryProvider implements MetadataProvider, AudioSourceProvid
 			logger.debug('Rebuilding albums and artists...');
 			rebuildAlbumsAndArtists();
 
-			// Update folder scan time
+			// Update folder metadata
 			store.updateFolderScanTime(folderUri);
+			store.updateFolderTrackCount(folderUri, localTracks.length);
 
 			this._scanProgress = {
 				current: files.length,
@@ -648,43 +742,59 @@ export class LocalLibraryProvider implements MetadataProvider, AudioSourceProvid
 				return ok(0);
 			}
 
-			const localTracks: LocalTrack[] = [];
-			let processed = 0;
+			// Create throttled progress callback to reduce re-renders
+			const throttledProgress = _createThrottledProgress(onProgress, PROGRESS_THROTTLE_MS);
+			let lastStoreUpdate = 0;
 
-			for (const file of files) {
-				this._scanProgress = {
-					current: processed + 1,
-					total: files.length,
-					currentFile: file.name,
-					phase: 'scanning',
-				};
-				store.setScanProgress(this._scanProgress);
-				onProgress?.(this._scanProgress);
+			// Process files in parallel batches for better performance
+			const localTracks = await _processBatched(
+				files,
+				async (file, index) => {
+					const now = Date.now();
 
-				const metadataResult = await parseAudioMetadata(file.uri);
-				const metadata = metadataResult.success ? metadataResult.data : { duration: 0 };
+					// Throttle store updates to reduce Zustand re-renders
+					if (now - lastStoreUpdate >= PROGRESS_THROTTLE_MS) {
+						this._scanProgress = {
+							current: index + 1,
+							total: files.length,
+							currentFile: file.name,
+							phase: 'scanning',
+						};
+						store.setScanProgress(this._scanProgress);
+						lastStoreUpdate = now;
+					}
 
-				if (!metadataResult.success) {
-					logger.debug(
-						`Failed to parse metadata for ${file.name}: ${metadataResult.error.message}`
-					);
-				}
+					throttledProgress({
+						current: index + 1,
+						total: files.length,
+						currentFile: file.name,
+						phase: 'scanning',
+					});
 
-				let artworkPath: string | undefined;
-				if (metadataResult.success && metadata.artwork) {
-					const cachedPath = await cacheArtwork(
-						file.uri,
-						metadata.artwork.data,
-						metadata.artwork.mimeType
-					);
-					artworkPath = cachedPath ?? undefined;
-				}
+					const metadataResult = await parseAudioMetadata(file.uri);
+					const metadata = metadataResult.success ? metadataResult.data : { duration: 0 };
 
-				const localTrack = mapToLocalTrack(file, metadata, artworkPath);
-				localTracks.push(localTrack);
+					if (!metadataResult.success) {
+						logger.debug(
+							`Failed to parse metadata for ${file.name}: ${metadataResult.error.message}`
+						);
+					}
 
-				processed++;
-			}
+					let artworkPath: string | undefined;
+					if (metadataResult.success && metadata.artwork) {
+						const trackId = generateLocalTrackId(file.uri);
+						const cachedPath = await cacheArtwork(
+							trackId,
+							metadata.artwork.data,
+							metadata.artwork.mimeType
+						);
+						artworkPath = cachedPath ?? undefined;
+					}
+
+					return mapToLocalTrack(file, metadata, artworkPath);
+				},
+				BATCH_CONCURRENCY
+			);
 
 			logger.info(`Processed ${localTracks.length} tracks, adding to store...`);
 			store.addTracks(localTracks);
@@ -701,6 +811,7 @@ export class LocalLibraryProvider implements MetadataProvider, AudioSourceProvid
 			await indexTracks(localTracks);
 			rebuildAlbumsAndArtists();
 			store.updateFolderScanTime(folderUri);
+			store.updateFolderTrackCount(folderUri, localTracks.length);
 
 			this._scanProgress = {
 				current: files.length,

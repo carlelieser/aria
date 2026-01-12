@@ -1,7 +1,7 @@
 {
 	"name": "aria",
 	"main": "lib/entry",
-	"version": "0.2.1-beta",
+	"version": "0.3.0-beta",
 	"author": {
 		"name": "Carlos Santos",
 		"email": "hello@carlelieser.dev",
@@ -23,7 +23,6 @@
 		"build:android": "eas build --platform android --local --output out/aria.apk"
 	},
 	"dependencies": {
-		"audio-metadata": "file:./modules/audio-metadata",
 		"@expo/metro-runtime": "~6.1.2",
 		"@expo/vector-icons": "^15.0.3",
 		"@gorhom/bottom-sheet": "^5.2.8",
@@ -37,6 +36,8 @@
 		"@react-navigation/native": "^7.1.8",
 		"@rn-primitives/portal": "^1.3.0",
 		"@shopify/flash-list": "2.0.2",
+		"babel-plugin-transform-import-meta": "^2.3.3",
+		"audio-metadata": "file:./modules/audio-metadata",
 		"buffer": "^6.0.3",
 		"event-target-shim": "^6.0.2",
 		"expo": "~54.0.31",
@@ -72,6 +73,7 @@
 		"react-native-safe-area-context": "^5.6.2",
 		"react-native-screens": "~4.16.0",
 		"react-native-svg": "15.15.1",
+		"react-native-svg-transformer": "^1.5.2",
 		"react-native-url-polyfill": "^3.0.0",
 		"react-native-web": "~0.21.2",
 		"react-native-webview": "^13.16.0",
@@ -87,13 +89,11 @@
 		"@types/react": "~19.1.10",
 		"@types/text-encoding": "^0.0.40",
 		"@vitest/coverage-v8": "^4.0.16",
-		"babel-plugin-transform-import-meta": "^2.3.3",
 		"baseline-browser-mapping": "^2.9.14",
 		"eslint": "^9.39.2",
 		"eslint-config-expo": "~10.0.0",
 		"jsdom": "^27.4.0",
 		"prettier": "^3.7.4",
-		"react-native-svg-transformer": "^1.5.2",
 		"react-test-renderer": "^19.1.0",
 		"sharp": "^0.34.5",
 		"typescript": "~5.9.3",

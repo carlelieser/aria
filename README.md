@@ -13,7 +13,7 @@
 
 ---
 
-Open-source, cross-platform music player with a plugin architecture. Runs on iOS, Android, and web.
+A modular, cross-platform music player.
 
 ## Features
 

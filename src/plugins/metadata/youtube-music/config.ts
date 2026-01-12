@@ -13,6 +13,9 @@ export const DEFAULT_CONFIG: YouTubeMusicConfig = {
 	enableLogging: false,
 };
 
+export const YOUTUBE_MUSIC_LOGIN_URL =
+	'https://accounts.google.com/ServiceLogin?service=youtube&continue=https://music.youtube.com';
+
 export const PLUGIN_MANIFEST: PluginManifest = {
 	id: 'youtube-music',
 	name: 'YouTube Music',
@@ -34,6 +37,13 @@ export const PLUGIN_MANIFEST: PluginManifest = {
 };
 
 export const CONFIG_SCHEMA: PluginConfigSchema[] = [
+	{
+		key: 'auth',
+		type: 'oauth',
+		label: 'Google Account',
+		description: 'Sign in with your Google account to access your YouTube Music library',
+		icon: 'User',
+	},
 	{
 		key: 'lang',
 		type: 'string',
