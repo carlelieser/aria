@@ -6,117 +6,97 @@
  */
 
 import { memo, useCallback, useMemo } from 'react';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { Text } from 'react-native-paper';
 import { Disc } from 'lucide-react-native';
 
-import { Icon } from '@/components/ui/icon';
-import { useAppTheme, M3Shapes } from '@/lib/theme';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import { formatArtistNames } from '@/src/domain/entities/artist';
 import type { Album } from '@/src/domain/entities/album';
+import { MediaListItem } from './media-list/media-list-item';
 
-interface AlbumListItemProps {
-	album: Album;
-	onPress?: (album: Album) => void;
+interface AlbumListItemBaseProps {
+	onPress?: () => void;
 }
 
-export const AlbumListItem = memo(function AlbumListItem({ album, onPress }: AlbumListItemProps) {
-	const { colors } = useAppTheme();
+interface AlbumListItemWithAlbum extends AlbumListItemBaseProps {
+	album: Album;
+	id?: never;
+	name?: never;
+	artistName?: never;
+	artworkUrl?: never;
+	trackCount?: never;
+}
 
+interface AlbumListItemWithProps extends AlbumListItemBaseProps {
+	album?: never;
+	id: string;
+	name: string;
+	artistName: string;
+	artworkUrl?: string;
+	trackCount?: number;
+}
+
+export type AlbumListItemProps = AlbumListItemWithAlbum | AlbumListItemWithProps;
+
+export const AlbumListItem = memo(function AlbumListItem(props: AlbumListItemProps) {
+	const isAlbumObject = 'album' in props && props.album !== undefined;
+
+	const id = isAlbumObject ? props.album.id.value : props.id;
+	const name = isAlbumObject ? props.album.name : props.name;
+
+	const artistNames = useMemo(() => {
+		if (isAlbumObject) {
+			return formatArtistNames(props.album.artists);
+		}
+		return props.artistName;
+	}, [isAlbumObject, props]);
+
+	const artworkUrl = useMemo(() => {
+		if (isAlbumObject) {
+			return getBestArtwork(props.album.artwork, 48)?.url;
+		}
+		return props.artworkUrl;
+	}, [isAlbumObject, props]);
+
+	const albumInfo = useMemo(() => {
+		if (isAlbumObject) {
+			const album = props.album;
+			return [
+				album.albumType
+					? album.albumType.charAt(0).toUpperCase() + album.albumType.slice(1)
+					: null,
+				album.trackCount ? `${album.trackCount} tracks` : null,
+			]
+				.filter(Boolean)
+				.join(' · ');
+		}
+		if (props.trackCount !== undefined) {
+			return `${props.trackCount} ${props.trackCount === 1 ? 'track' : 'tracks'}`;
+		}
+		return undefined;
+	}, [isAlbumObject, props]);
+
+	const { onPress } = props;
 	const handlePress = useCallback(() => {
 		if (onPress) {
-			onPress(album);
+			onPress();
 		} else {
-			router.push(`/album/${album.id.value}`);
+			router.push(`/album/${id}`);
 		}
-	}, [onPress, album]);
-
-	const artwork = getBestArtwork(album.artwork, 48);
-	const artistNames = useMemo(() => formatArtistNames(album.artists), [album.artists]);
-	const albumInfo = useMemo(() => {
-		return [
-			album.albumType
-				? album.albumType.charAt(0).toUpperCase() + album.albumType.slice(1)
-				: null,
-			album.trackCount ? `${album.trackCount} tracks` : null,
-		]
-			.filter(Boolean)
-			.join(' · ');
-	}, [album.albumType, album.trackCount]);
+	}, [onPress, id]);
 
 	return (
-		<TouchableOpacity style={styles.container} onPress={handlePress} activeOpacity={0.7}>
-			<View
-				style={[
-					styles.artworkContainer,
-					{ backgroundColor: colors.surfaceContainerHighest },
-				]}
-			>
-				{artwork?.url ? (
-					<Image
-						source={{ uri: artwork.url }}
-						style={styles.artwork}
-						contentFit="cover"
-						transition={200}
-						cachePolicy="memory-disk"
-						recyclingKey={album.id.value}
-					/>
-				) : (
-					<Icon as={Disc} size={24} color={colors.onSurfaceVariant} />
-				)}
-			</View>
-
-			<View style={styles.infoContainer}>
-				<Text variant="bodyLarge" numberOfLines={1} style={{ color: colors.onSurface }}>
-					{album.name}
-				</Text>
-				<Text
-					variant="bodyMedium"
-					numberOfLines={1}
-					style={{ color: colors.onSurfaceVariant }}
-				>
-					{artistNames}
-				</Text>
-				{albumInfo && (
-					<Text
-						variant="bodySmall"
-						numberOfLines={1}
-						style={{ color: colors.onSurfaceVariant }}
-					>
-						{albumInfo}
-					</Text>
-				)}
-			</View>
-		</TouchableOpacity>
+		<MediaListItem
+			title={name}
+			subtitle={artistNames}
+			tertiaryText={albumInfo}
+			onPress={handlePress}
+			artwork={{
+				url: artworkUrl,
+				shape: 'rounded',
+				fallbackIcon: Disc,
+				recyclingKey: id,
+			}}
+		/>
 	);
-});
-
-const styles = StyleSheet.create({
-	container: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		width: '100%',
-		gap: 16,
-		paddingVertical: 12,
-	},
-	artworkContainer: {
-		width: 48,
-		height: 48,
-		borderRadius: M3Shapes.small,
-		justifyContent: 'center',
-		alignItems: 'center',
-		overflow: 'hidden',
-	},
-	artwork: {
-		width: 48,
-		height: 48,
-		borderRadius: M3Shapes.small,
-	},
-	infoContainer: {
-		flex: 1,
-		flexDirection: 'column',
-	},
 });

@@ -3,6 +3,11 @@ export { PlaylistItemSkeleton, PlaylistListSkeleton } from './playlist-item-skel
 export { ArtistItemSkeleton, ArtistListSkeleton } from './artist-item-skeleton';
 export { AlbumItemSkeleton, AlbumListSkeleton } from './album-item-skeleton';
 export {
+	MediaListItemSkeleton,
+	MediaListSkeleton,
+	type MediaListItemSkeletonProps,
+} from './media-list-item-skeleton';
+export {
 	PlayerArtworkSkeleton,
 	PlayerBufferingOverlay,
 	PlayerTrackInfoSkeleton,

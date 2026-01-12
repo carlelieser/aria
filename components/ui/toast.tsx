@@ -150,12 +150,6 @@ export function ToastContainer() {
 		? getVariantColors(visibleToast.variant, colors)
 		: { backgroundColor: colors.inverseSurface, textColor: colors.inverseOnSurface };
 
-	const displayText = visibleToast
-		? visibleToast.description
-			? `${visibleToast.title}\n${visibleToast.description}`
-			: visibleToast.title
-		: '';
-
 	if (!visibleToast) {
 		return null;
 	}
@@ -171,9 +165,14 @@ export function ToastContainer() {
 							animatedStyle,
 						]}
 					>
-						<Text style={[styles.toastText, { color: variantColors.textColor }]}>
-							{displayText}
+						<Text style={[styles.toastTitle, { color: variantColors.textColor }]}>
+							{visibleToast.title}
 						</Text>
+						{visibleToast.description && (
+							<Text style={[styles.toastDescription, { color: variantColors.textColor }]}>
+								{visibleToast.description}
+							</Text>
+						)}
 					</Animated.View>
 				</GestureDetector>
 			</View>
@@ -197,8 +196,15 @@ const styles = StyleSheet.create({
 		shadowOpacity: 0.15,
 		shadowRadius: 8,
 	},
-	toastText: {
+	toastTitle: {
 		fontSize: 14,
+		fontWeight: '500',
 		lineHeight: 20,
+	},
+	toastDescription: {
+		fontSize: 12,
+		lineHeight: 16,
+		marginTop: 2,
+		opacity: 0.9,
 	},
 });

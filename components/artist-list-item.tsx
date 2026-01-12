@@ -1,25 +1,38 @@
 /**
  * ArtistListItem Component
  *
- * Displays an artist in a list format with artwork and name.
+ * Displays an artist in a list format with circular artwork and name.
  * Uses M3 theming.
  */
 
 import { memo, useCallback, useMemo } from 'react';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
-import { Image } from 'expo-image';
-import { Text } from 'react-native-paper';
 import { User } from 'lucide-react-native';
 
-import { Icon } from '@/components/ui/icon';
-import { useAppTheme } from '@/lib/theme';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import type { Artist } from '@/src/domain/entities/artist';
+import { MediaListItem } from './media-list/media-list-item';
 
-interface ArtistListItemProps {
-	artist: Artist;
-	onPress?: (artist: Artist) => void;
+interface ArtistListItemBaseProps {
+	onPress?: () => void;
 }
+
+interface ArtistListItemWithArtist extends ArtistListItemBaseProps {
+	artist: Artist;
+	id?: never;
+	name?: never;
+	artworkUrl?: never;
+	trackCount?: never;
+}
+
+interface ArtistListItemWithProps extends ArtistListItemBaseProps {
+	artist?: never;
+	id: string;
+	name: string;
+	artworkUrl?: string;
+	trackCount?: number;
+}
+
+export type ArtistListItemProps = ArtistListItemWithArtist | ArtistListItemWithProps;
 
 function formatListeners(count: number | undefined): string | null {
 	if (!count) return null;
@@ -32,96 +45,48 @@ function formatListeners(count: number | undefined): string | null {
 	return `${count} listeners`;
 }
 
-export const ArtistListItem = memo(function ArtistListItem({
-	artist,
-	onPress,
-}: ArtistListItemProps) {
-	const { colors } = useAppTheme();
+export const ArtistListItem = memo(function ArtistListItem(props: ArtistListItemProps) {
+	const isArtistObject = 'artist' in props && props.artist !== undefined;
 
+	const id = isArtistObject ? props.artist.id : props.id;
+	const name = isArtistObject ? props.artist.name : props.name;
+
+	const artworkUrl = useMemo(() => {
+		if (isArtistObject) {
+			return getBestArtwork(props.artist.artwork, 48)?.url;
+		}
+		return props.artworkUrl;
+	}, [isArtistObject, props]);
+
+	const subtitle = useMemo(() => {
+		if (isArtistObject) {
+			const artist = props.artist;
+			const listeners = formatListeners(artist.monthlyListeners);
+			const genres = artist.genres?.slice(0, 2).join(', ');
+			return [genres, listeners].filter(Boolean).join(' · ') || undefined;
+		}
+		if (props.trackCount !== undefined) {
+			return `${props.trackCount} ${props.trackCount === 1 ? 'track' : 'tracks'}`;
+		}
+		return undefined;
+	}, [isArtistObject, props]);
+
+	const { onPress } = props;
 	const handlePress = useCallback(() => {
-		onPress?.(artist);
-	}, [onPress, artist]);
-
-	const artwork = getBestArtwork(artist.artwork, 48);
-	const listeners = useMemo(
-		() => formatListeners(artist.monthlyListeners),
-		[artist.monthlyListeners]
-	);
-	const genres = useMemo(() => artist.genres?.slice(0, 2).join(', '), [artist.genres]);
-
-	const infoText = useMemo(
-		() => [genres, listeners].filter(Boolean).join(' · '),
-		[genres, listeners]
-	);
+		onPress?.();
+	}, [onPress]);
 
 	return (
-		<TouchableOpacity
-			style={styles.container}
-			onPress={handlePress}
-			activeOpacity={0.7}
-			disabled={!onPress}
-		>
-			<View
-				style={[
-					styles.artworkContainer,
-					{ backgroundColor: colors.surfaceContainerHighest },
-				]}
-			>
-				{artwork?.url ? (
-					<Image
-						source={{ uri: artwork.url }}
-						style={styles.artwork}
-						contentFit="cover"
-						transition={200}
-						cachePolicy="memory-disk"
-						recyclingKey={artist.id}
-					/>
-				) : (
-					<Icon as={User} size={24} color={colors.onSurfaceVariant} />
-				)}
-			</View>
-
-			<View style={styles.infoContainer}>
-				<Text variant="bodyLarge" numberOfLines={1} style={{ color: colors.onSurface }}>
-					{artist.name}
-				</Text>
-				{infoText && (
-					<Text
-						variant="bodyMedium"
-						numberOfLines={1}
-						style={{ color: colors.onSurfaceVariant }}
-					>
-						{infoText}
-					</Text>
-				)}
-			</View>
-		</TouchableOpacity>
+		<MediaListItem
+			title={name}
+			subtitle={subtitle}
+			onPress={props.onPress ? handlePress : undefined}
+			artwork={{
+				url: artworkUrl,
+				shape: 'circular',
+				fallbackIcon: User,
+				recyclingKey: id,
+			}}
+		/>
 	);
-});
-
-const styles = StyleSheet.create({
-	container: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		width: '100%',
-		gap: 16,
-		paddingVertical: 12,
-	},
-	artworkContainer: {
-		width: 48,
-		height: 48,
-		borderRadius: 24,
-		justifyContent: 'center',
-		alignItems: 'center',
-		overflow: 'hidden',
-	},
-	artwork: {
-		width: 48,
-		height: 48,
-		borderRadius: 24,
-	},
-	infoContainer: {
-		flex: 1,
-		flexDirection: 'column',
-	},
 });

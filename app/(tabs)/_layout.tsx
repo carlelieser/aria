@@ -8,7 +8,7 @@
 
 import { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import { Tabs, router } from 'expo-router';
-import { View, Pressable, StyleSheet, Text } from 'react-native';
+import { View, Pressable, StyleSheet, Text, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
 	useAnimatedStyle,
@@ -30,7 +30,6 @@ import {
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { TAB_CONFIG, TAB_BAR_HEIGHT } from '@/lib/tab-config';
 
-const TAB_WIDTH = 84;
 const INDICATOR_WIDTH = 64;
 const INDICATOR_HEIGHT = 32;
 
@@ -122,18 +121,22 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 	const { colors } = useAppTheme();
 	const insets = useSafeAreaInsets();
 	const { hasActiveDownloads } = useDownloadQueue();
+	const { width: screenWidth } = useWindowDimensions();
 	const tabBarHeight = TAB_BAR_HEIGHT + insets.bottom;
 
-	const indicatorX = useSharedValue(state.index * TAB_WIDTH + (TAB_WIDTH - INDICATOR_WIDTH) / 2);
+	const tabCount = tabOrder.length;
+	const tabWidth = screenWidth / tabCount;
+
+	const indicatorX = useSharedValue(state.index * tabWidth + (tabWidth - INDICATOR_WIDTH) / 2);
 
 	useEffect(() => {
-		const newX = state.index * TAB_WIDTH + (TAB_WIDTH - INDICATOR_WIDTH) / 2;
+		const newX = state.index * tabWidth + (tabWidth - INDICATOR_WIDTH) / 2;
 		indicatorX.value = withSpring(newX, {
 			damping: 25,
 			stiffness: 180,
 			mass: 0.5,
 		});
-	}, [state.index, indicatorX]);
+	}, [state.index, indicatorX, tabWidth]);
 
 	const animatedIndicatorStyle = useAnimatedStyle(() => {
 		return {
@@ -143,7 +146,7 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 
 	const handleTabPress = useCallback(
 		(index: number, routeName: string) => {
-			const newX = index * TAB_WIDTH + (TAB_WIDTH - INDICATOR_WIDTH) / 2;
+			const newX = index * tabWidth + (tabWidth - INDICATOR_WIDTH) / 2;
 			indicatorX.value = withSpring(newX, {
 				damping: 25,
 				stiffness: 180,
@@ -160,7 +163,7 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 				navigation.navigate(routeName);
 			}
 		},
-		[navigation, state.routes, indicatorX]
+		[navigation, state.routes, indicatorX, tabWidth]
 	);
 
 	return (
@@ -240,7 +243,6 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 const styles = StyleSheet.create({
 	tabBar: {
 		flexDirection: 'row',
-		justifyContent: 'center',
 		alignItems: 'center',
 		borderTopWidth: 0,
 		elevation: 0,
@@ -250,6 +252,7 @@ const styles = StyleSheet.create({
 		shadowRadius: 4,
 	},
 	tabsContainer: {
+		flex: 1,
 		flexDirection: 'row',
 	},
 	indicator: {
@@ -261,7 +264,7 @@ const styles = StyleSheet.create({
 		borderRadius: 16,
 	},
 	tabButton: {
-		width: TAB_WIDTH,
+		flex: 1,
 		alignItems: 'center',
 		justifyContent: 'center',
 		height: TAB_BAR_HEIGHT,
