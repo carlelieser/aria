@@ -128,7 +128,9 @@
 			"reactNativeDirectoryCheck": {
 				"exclude": [
 					"@pchmn/expo-material3-theme",
-					"@react-native-cookies/cookies"
+					"@react-native-cookies/cookies",
+					"react-native-track-player",
+					"audio-metadata"
 				]
 			}
 		}
