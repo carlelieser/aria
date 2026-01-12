@@ -1,12 +1,5 @@
-/**
- * AnimatedSplash Component
- *
- * Custom animated splash screen with morphing polygon.
- * Slides up and fades out when ready.
- */
-
 import React, { useEffect, useCallback, useState, useRef } from 'react';
-import { StyleSheet, Dimensions, View, Image } from 'react-native';
+import { StyleSheet, Dimensions, View, Image, Platform } from 'react-native';
 import Animated, {
 	useSharedValue,
 	useAnimatedStyle,
@@ -22,6 +15,8 @@ import Animated, {
 import { AnimatedPolygonView } from './animated-polygon';
 import { M3Colors } from '@/lib/theme/colors';
 
+const IS_WEB = Platform.OS === 'web';
+
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const POLYGON_SIZE = 225;
@@ -33,17 +28,11 @@ const MIN_SEGMENTS = 3;
 const MAX_SEGMENTS = 6;
 
 interface AnimatedSplashProps {
-	/** Whether the app is ready and splash should hide */
 	isReady: boolean;
-	/** Callback when splash animation completes */
 	onAnimationComplete?: () => void;
-	/** Use dark theme colors */
 	isDark?: boolean;
 }
 
-/**
- * Generates a random segment count different from the current one
- */
 function getRandomSegments(current: number): number {
 	let next: number;
 	do {
@@ -121,18 +110,10 @@ export function AnimatedSplash({
 	useEffect(() => {
 		if (isReady) {
 			// Slide up and fade out
-			translateY.value = withTiming(
-				-SCREEN_HEIGHT,
-				{
-					duration: ANIMATION_DURATION,
-					easing: Easing.in(Easing.cubic),
-				},
-				(finished) => {
-					if (finished) {
-						runOnJS(handleAnimationComplete)();
-					}
-				}
-			);
+			translateY.value = withTiming(-SCREEN_HEIGHT, {
+				duration: ANIMATION_DURATION,
+				easing: Easing.in(Easing.cubic),
+			});
 
 			opacity.value = withDelay(
 				ANIMATION_DURATION / 2,
@@ -141,8 +122,30 @@ export function AnimatedSplash({
 					easing: Easing.out(Easing.ease),
 				})
 			);
+
+			// Web fallback: use setTimeout since withTiming callback may not fire
+			if (IS_WEB) {
+				setTimeout(() => {
+					handleAnimationComplete();
+				}, ANIMATION_DURATION + 50);
+			}
 		}
 	}, [isReady, translateY, opacity, handleAnimationComplete]);
+
+	// Native: watch animation completion via useAnimatedReaction
+	useAnimatedReaction(
+		() => translateY.value,
+		(currentValue, previousValue) => {
+			if (
+				previousValue !== null &&
+				currentValue <= -SCREEN_HEIGHT &&
+				previousValue > -SCREEN_HEIGHT
+			) {
+				runOnJS(handleAnimationComplete)();
+			}
+		},
+		[handleAnimationComplete]
+	);
 
 	const containerStyle = useAnimatedStyle(() => ({
 		transform: [{ translateY: translateY.value }],
@@ -156,6 +159,57 @@ export function AnimatedSplash({
 		transform: [{ scale: polygonScale.value }, { rotate: `${polygonRotation.value}deg` }],
 		opacity: interpolate(translateY.value, [0, -SCREEN_HEIGHT / 3], [1, 0]),
 	}));
+
+	// Web: use CSS transitions for reliable animation
+	const [webDismissing, setWebDismissing] = useState(false);
+
+	useEffect(() => {
+		if (IS_WEB && isReady) {
+			setWebDismissing(true);
+			const timer = setTimeout(() => {
+				onAnimationComplete?.();
+			}, ANIMATION_DURATION);
+			return () => clearTimeout(timer);
+		}
+	}, [isReady, onAnimationComplete]);
+
+	// Web uses CSS transitions, native uses Reanimated
+	if (IS_WEB) {
+		return (
+			<View
+				style={[
+					styles.container,
+					{
+						transform: [{ translateY: webDismissing ? -SCREEN_HEIGHT : 0 }],
+						opacity: webDismissing ? 0 : 1,
+						// @ts-expect-error - web-only CSS property
+						transition: `transform ${ANIMATION_DURATION}ms ease-in, opacity ${ANIMATION_DURATION}ms ease-out`,
+					},
+				]}
+			>
+				<View style={[styles.background, { backgroundColor: colors.background }]} />
+				<View style={styles.content}>
+					<View style={styles.iconWrapper}>
+						<Image
+							source={require('@/assets/icon-content.png')}
+							style={{ width: ICON_SIZE, height: ICON_SIZE }}
+							resizeMode="contain"
+						/>
+					</View>
+					<View style={styles.polygonWrapper}>
+						<AnimatedPolygonView
+							segments={segments}
+							size={POLYGON_SIZE}
+							fill={colors.onSurface}
+							stroke={colors.onSurface}
+							strokeWidth={40}
+							springConfig={{ damping: 20, stiffness: 100, mass: 0.5 }}
+						/>
+					</View>
+				</View>
+			</View>
+		);
+	}
 
 	return (
 		<Animated.View style={[styles.container, containerStyle]}>

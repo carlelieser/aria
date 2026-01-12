@@ -4,7 +4,7 @@ import '@/src/lib/crypto-polyfill';
 import '@/src/lib/track-player-setup';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Stack, usePathname, useSegments } from 'expo-router';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
@@ -22,7 +22,8 @@ import { AnimatedSplash } from '@/components/ui/animated-splash';
 import { AppThemeProvider, useAppTheme } from '@/lib/theme';
 import { ErrorBoundary, useGlobalErrorHandlers } from '@/lib/error-capture';
 
-const MIN_SPLASH_DURATION = 1500;
+const MIN_SPLASH_DURATION_MS = 1500;
+const PORTAL_Z_INDEX = 9999;
 
 // Hide native splash immediately to show our custom one
 SplashScreen.preventAutoHideAsync().then(() => SplashScreen.hideAsync());
@@ -38,24 +39,15 @@ function AppContent() {
 	const [isReady, setIsReady] = useState(false);
 	const [showSplash, setShowSplash] = useState(true);
 
-	// Navigation debugging
-	const pathname = usePathname();
-	const segments = useSegments();
-
 	// Install global error handlers
 	useGlobalErrorHandlers();
-
-	// Log all navigation changes
-	useEffect(() => {
-		console.log('[Navigation] Route changed:', { pathname, segments });
-	}, [pathname, segments]);
 
 	useEffect(() => {
 		const startTime = Date.now();
 
 		ensureBootstrapped().then(() => {
 			const elapsed = Date.now() - startTime;
-			const remaining = Math.max(0, MIN_SPLASH_DURATION - elapsed);
+			const remaining = Math.max(0, MIN_SPLASH_DURATION_MS - elapsed);
 
 			setTimeout(() => {
 				setIsReady(true);
@@ -130,6 +122,6 @@ const styles = StyleSheet.create({
 		left: 0,
 		right: 0,
 		bottom: 0,
-		zIndex: 9999,
+		zIndex: PORTAL_Z_INDEX,
 	},
 });

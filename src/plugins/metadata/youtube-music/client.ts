@@ -18,6 +18,20 @@ class InnertubeCache {
 		return this._cacheDir;
 	}
 
+	/**
+	 * Clear session data from cache.
+	 * This forces youtubei.js to regenerate session data with fresh visitor_data
+	 * on the next client creation, which is necessary when authentication changes.
+	 */
+	async clearSessionData(): Promise<void> {
+		try {
+			await this.remove('innertube_session_data');
+			logger.debug('Cleared innertube session data from cache');
+		} catch {
+			// Ignore errors - cache might not exist
+		}
+	}
+
 	async get(key: string): Promise<ArrayBuffer | undefined> {
 		try {
 			const filePath = this._cacheDir + key;
@@ -121,6 +135,7 @@ export interface ClientManager {
 	refreshAuth(): Promise<void>;
 	destroy(): void;
 	isInitialized(): boolean;
+	getCookies(): Promise<string | undefined>;
 }
 
 export function createClientManager(
@@ -137,28 +152,49 @@ export function createClientManager(
 			const cookiesResult = await authManager.getCookies();
 			if (cookiesResult.success) {
 				cookie = cookiesResult.data;
+				// Log cookie names for debugging (not values for security)
+				const cookieNames = cookie
+					.split(';')
+					.map((c) => c.trim().split('=')[0])
+					.filter(Boolean);
+				logger.info(`Creating authenticated client with ${cookieNames.length} cookies`);
+				logger.debug(`Cookie names: ${cookieNames.join(', ')}`);
+			} else {
+				logger.info('Creating unauthenticated client (no cookies available)');
 			}
+		} else {
+			logger.info('Creating unauthenticated client (no auth manager)');
 		}
 
-		return InnertubeClient.create({
+		const client = await InnertubeClient.create({
 			lang: config.lang,
 			location: config.location,
 			cache: innertubeCache,
 			cookie,
 		});
+
+		logger.info(`Client created - logged_in: ${client.session.logged_in}`);
+		return client;
 	}
 
 	return {
 		async getClient(): Promise<InnertubeClient> {
-			if (client) return client;
+			// Return cached client if available
+			if (client) {
+				logger.debug(`Returning cached client - logged_in: ${client.session.logged_in}`);
+				return client;
+			}
 
-			// If auth manager is provided, always create a fresh client
-			// to ensure we have the latest auth state
+			// If auth manager is provided, create a client with current auth state
 			if (authManager) {
+				logger.debug('Creating new client with auth manager');
 				initPromise = createClient();
 
 				try {
 					client = await initPromise;
+					logger.debug(
+						`New authenticated client ready - logged_in: ${client.session.logged_in}`
+					);
 					return client;
 				} catch (error) {
 					initPromise = null;
@@ -166,20 +202,23 @@ export function createClientManager(
 				}
 			}
 
-			// Use preloaded client if available (for unauthenticated access)
+			// Use preloaded client if available (for unauthenticated access only)
 			if (preloadedClient) {
+				logger.debug('Using preloaded unauthenticated client');
 				client = preloadedClient;
 				return client;
 			}
 
 			// Use preload promise if preloading is in progress
 			if (preloadPromise && !initPromise) {
+				logger.debug('Waiting for preload to complete');
 				initPromise = preloadPromise;
 			}
 
 			if (initPromise) return initPromise;
 
-			// Fall back to creating a new client
+			// Fall back to creating a new unauthenticated client
+			logger.debug('Creating new unauthenticated client (no auth manager)');
 			initPromise = createClient();
 
 			try {
@@ -195,11 +234,27 @@ export function createClientManager(
 			return createClient();
 		},
 
+		async getCookies(): Promise<string | undefined> {
+			if (!authManager) {
+				return undefined;
+			}
+			const result = await authManager.getCookies();
+			return result.success ? result.data : undefined;
+		},
+
 		async refreshAuth(): Promise<void> {
-			// Clear current client to force recreation with new auth
+			// Clear all client instances to force recreation with new auth
 			client = null;
 			initPromise = null;
-			logger.info('Auth refreshed, client will be recreated on next request');
+
+			// Also clear the preloaded client since it was created without auth
+			preloadedClient = null;
+			preloadPromise = null;
+
+			// Clear session cache to ensure fresh visitor_data with new auth
+			await innertubeCache.clearSessionData();
+
+			logger.info('Auth refreshed, all clients cleared and session cache purged');
 		},
 
 		destroy(): void {

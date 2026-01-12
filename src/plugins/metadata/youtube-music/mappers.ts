@@ -7,6 +7,7 @@ import { Duration } from '@domain/value-objects/duration';
 import { createArtwork, type Artwork } from '@domain/value-objects/artwork';
 import { createStreamingSource } from '@domain/value-objects/audio-source';
 import { createTrack } from '@domain/entities/track';
+import { UNKNOWN_ARTIST, mapAndFilter } from '@shared/mappers';
 import type { YouTubeMusicItem, YouTubeThumbnail, YouTubeDuration, YouTubeArtist } from './types';
 
 function upgradeThumbailUrl(url: string, targetSize: number = 544): string {
@@ -111,7 +112,7 @@ export function mapYouTubeDuration(
 
 export function mapYouTubeArtistReferences(artists?: YouTubeArtist[]): ArtistReference[] {
 	if (!artists || artists.length === 0) {
-		return [{ id: 'unknown', name: 'Unknown Artist' }];
+		return [UNKNOWN_ARTIST];
 	}
 
 	return artists
@@ -332,15 +333,13 @@ export function mapYouTubeTracks(
 	items: YouTubeMusicItem[],
 	fallbackArtists?: YouTubeArtist[]
 ): Track[] {
-	return items
-		.map((item) => mapYouTubeTrack(item, fallbackArtists))
-		.filter((track): track is Track => track !== null);
+	return mapAndFilter(items, (item) => mapYouTubeTrack(item, fallbackArtists));
 }
 
 export function mapYouTubeAlbums(items: YouTubeMusicItem[]): Album[] {
-	return items.map(mapYouTubeAlbum).filter((album): album is Album => album !== null);
+	return mapAndFilter(items, mapYouTubeAlbum);
 }
 
 export function mapYouTubeArtists(items: YouTubeMusicItem[]): Artist[] {
-	return items.map(mapYouTubeArtist).filter((artist): artist is Artist => artist !== null);
+	return mapAndFilter(items, mapYouTubeArtist);
 }

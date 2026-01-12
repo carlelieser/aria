@@ -1,7 +1,9 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BaseAuthManager, type BaseAuthState } from '@shared/auth';
 import type { Result } from '@shared/types/result';
 import { ok, err } from '@shared/types/result';
+import { getLogger } from '@shared/services/logger';
 
+const logger = getLogger('YouTubeMusic:Auth');
 const STORAGE_KEY = 'youtube_music_web_auth';
 const YOUTUBE_MUSIC_LOGIN_URL =
 	'https://accounts.google.com/ServiceLogin?service=youtube&continue=https://music.youtube.com';
@@ -12,52 +14,22 @@ interface StoredAuth {
 	readonly cookies: string;
 }
 
-export interface YouTubeMusicAuthState {
-	readonly isAuthenticated: boolean;
+export interface YouTubeMusicAuthState extends BaseAuthState {
 	readonly cookies: string | null;
 }
 
-export class YouTubeMusicAuthManager {
+export class YouTubeMusicAuthManager extends BaseAuthManager<StoredAuth, YouTubeMusicAuthState> {
 	private _cookies: string | null = null;
 
-	getLoginUrl(): string {
-		return YOUTUBE_MUSIC_LOGIN_URL;
+	constructor() {
+		super({
+			storageKey: STORAGE_KEY,
+			loginUrl: YOUTUBE_MUSIC_LOGIN_URL,
+		});
 	}
 
-	async setCookies(cookies: string): Promise<Result<void, Error>> {
-		try {
-			const validationResult = this._validateCookies(cookies);
-			if (!validationResult.success) {
-				return validationResult;
-			}
-
-			this._cookies = cookies;
-
-			const storedAuth: StoredAuth = {
-				cookies,
-			};
-			await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(storedAuth));
-
-			return ok(undefined);
-		} catch (error) {
-			this._cookies = null;
-			return err(error instanceof Error ? error : new Error(String(error)));
-		}
-	}
-
-	async getCookies(): Promise<Result<string, Error>> {
-		if (!this._cookies) {
-			const loadResult = await this._loadStoredAuth();
-			if (!loadResult.success || !loadResult.data) {
-				return err(new Error('Not authenticated'));
-			}
-		}
-
-		if (!this._cookies) {
-			return err(new Error('Not authenticated'));
-		}
-
-		return ok(this._cookies);
+	isAuthenticated(): boolean {
+		return this._cookies !== null;
 	}
 
 	getAuthState(): YouTubeMusicAuthState {
@@ -67,29 +39,70 @@ export class YouTubeMusicAuthManager {
 		};
 	}
 
-	isAuthenticated(): boolean {
-		return this._cookies !== null;
+	protected clearCredentials(): void {
+		this._cookies = null;
 	}
 
-	async checkAuthentication(): Promise<boolean> {
-		if (!this._cookies) {
-			await this._loadStoredAuth();
-		}
-		return this._cookies !== null;
+	protected serializeForStorage(): StoredAuth | null {
+		if (!this._cookies) return null;
+		return {
+			cookies: this._cookies,
+		};
 	}
 
-	async loadStoredAuth(): Promise<Result<boolean, Error>> {
-		return this._loadStoredAuth();
+	protected deserializeFromStorage(stored: StoredAuth): void {
+		this._cookies = stored.cookies;
 	}
 
-	async logout(): Promise<Result<void, Error>> {
+	async setCookies(cookies: string): Promise<Result<void, Error>> {
 		try {
-			this._cookies = null;
-			await AsyncStorage.removeItem(STORAGE_KEY);
+			const validationResult = this._validateCookies(cookies);
+			if (!validationResult.success) {
+				logger.error('Cookie validation failed', validationResult.error);
+				return validationResult;
+			}
+
+			this._cookies = cookies;
+
+			const cookieNames = cookies
+				.split(';')
+				.map((c) => c.trim().split('=')[0])
+				.filter(Boolean);
+			logger.info(`Cookies set successfully (${cookieNames.length} cookies)`);
+			logger.debug(`Cookie names: ${cookieNames.join(', ')}`);
+
+			await this.persistCredentials();
+
 			return ok(undefined);
 		} catch (error) {
-			return err(error instanceof Error ? error : new Error(String(error)));
+			this._cookies = null;
+			logger.error('Failed to set cookies', error instanceof Error ? error : undefined);
+			return err(this.wrapError(error));
 		}
+	}
+
+	async getCookies(): Promise<Result<string, Error>> {
+		if (!this._cookies) {
+			logger.debug('No cookies in memory, loading from storage');
+			const loadResult = await this._loadStoredAuth();
+			if (!loadResult.success || !loadResult.data) {
+				logger.debug('No stored cookies found');
+				return err(new Error('Not authenticated'));
+			}
+		}
+
+		if (!this._cookies) {
+			logger.debug('Still no cookies after load attempt');
+			return err(new Error('Not authenticated'));
+		}
+
+		const cookieNames = this._cookies
+			.split(';')
+			.map((c) => c.trim().split('=')[0])
+			.filter(Boolean);
+		logger.debug(`Returning ${cookieNames.length} cookies`);
+
+		return ok(this._cookies);
 	}
 
 	private _validateCookies(cookies: string): Result<void, Error> {
@@ -113,21 +126,5 @@ export class YouTubeMusicAuthManager {
 		}
 
 		return ok(undefined);
-	}
-
-	private async _loadStoredAuth(): Promise<Result<boolean, Error>> {
-		try {
-			const stored = await AsyncStorage.getItem(STORAGE_KEY);
-			if (!stored) {
-				return ok(false);
-			}
-
-			const auth: StoredAuth = JSON.parse(stored);
-			this._cookies = auth.cookies;
-
-			return ok(true);
-		} catch (error) {
-			return err(error instanceof Error ? error : new Error(String(error)));
-		}
 	}
 }

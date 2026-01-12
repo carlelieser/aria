@@ -132,7 +132,10 @@ export class PluginRegistry implements ProviderRegistryInterface {
 		}
 
 		const { plugin, config } = registered;
-		if (plugin.status !== 'uninitialized') return ok(undefined);
+		// Skip if already initialized/active, but allow re-initialization if disabled (hot reload)
+		if (plugin.status !== 'uninitialized' && plugin.status !== 'disabled') {
+			return ok(undefined);
+		}
 
 		const context: PluginInitContext = {
 			manifest: plugin.manifest,

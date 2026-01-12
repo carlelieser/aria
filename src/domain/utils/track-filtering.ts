@@ -1,14 +1,20 @@
 import type { Track } from '../entities/track';
 import type { ArtistReference } from '../entities/artist';
 import type { AlbumReference } from '../entities/album';
+import {
+	getPrimaryArtistName,
+	matchesBaseFilters,
+	extractUniqueArtistsFromItems,
+	extractUniqueAlbumsFromItems,
+	countBaseActiveFilters,
+	hasBaseActiveFilters,
+	type BaseFilters,
+} from './core-filtering';
 
 export type SortField = 'title' | 'artist' | 'dateAdded' | 'duration';
 export type SortDirection = 'asc' | 'desc';
 
-export interface LibraryFilters {
-	readonly artistIds: string[];
-	readonly albumIds: string[];
-	readonly favoritesOnly: boolean;
+export interface LibraryFilters extends BaseFilters {
 	readonly downloadedOnly: boolean;
 }
 
@@ -41,10 +47,6 @@ export function compareTracks(a: Track, b: Track, field: SortField): number {
 		default:
 			return 0;
 	}
-}
-
-function getPrimaryArtistName(track: Track): string {
-	return track.artists[0]?.name ?? '';
 }
 
 function compareDates(a: Date | undefined, b: Date | undefined): number {
@@ -93,67 +95,23 @@ export function matchesFilters(
 	filters: LibraryFilters,
 	favoriteIds: Set<string>
 ): boolean {
-	if (filters.favoritesOnly && !favoriteIds.has(track.id.value)) {
-		return false;
-	}
-
-	if (filters.artistIds.length > 0) {
-		const trackArtistIds = track.artists.map((a) => a.id);
-		const hasMatchingArtist = filters.artistIds.some((id) => trackArtistIds.includes(id));
-		if (!hasMatchingArtist) {
-			return false;
-		}
-	}
-
-	if (filters.albumIds.length > 0) {
-		if (!track.album || !filters.albumIds.includes(track.album.id)) {
-			return false;
-		}
-	}
-
-	return true;
+	return matchesBaseFilters(track, filters, favoriteIds);
 }
 
 export function hasActiveFilters(filters: LibraryFilters): boolean {
-	return (
-		filters.favoritesOnly ||
-		filters.downloadedOnly ||
-		filters.artistIds.length > 0 ||
-		filters.albumIds.length > 0
-	);
+	return hasBaseActiveFilters(filters) || filters.downloadedOnly;
 }
 
 export function countActiveFilters(filters: LibraryFilters): number {
-	let count = 0;
-	if (filters.favoritesOnly) count += 1;
+	let count = countBaseActiveFilters(filters);
 	if (filters.downloadedOnly) count += 1;
-	count += filters.artistIds.length;
-	count += filters.albumIds.length;
 	return count;
 }
 
 export function extractUniqueArtists(tracks: readonly Track[]): ArtistReference[] {
-	const artistMap = new Map<string, ArtistReference>();
-
-	for (const track of tracks) {
-		for (const artist of track.artists) {
-			if (!artistMap.has(artist.id)) {
-				artistMap.set(artist.id, artist);
-			}
-		}
-	}
-
-	return Array.from(artistMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+	return extractUniqueArtistsFromItems(tracks);
 }
 
 export function extractUniqueAlbums(tracks: readonly Track[]): AlbumReference[] {
-	const albumMap = new Map<string, AlbumReference>();
-
-	for (const track of tracks) {
-		if (track.album && !albumMap.has(track.album.id)) {
-			albumMap.set(track.album.id, track.album);
-		}
-	}
-
-	return Array.from(albumMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+	return extractUniqueAlbumsFromItems(tracks);
 }

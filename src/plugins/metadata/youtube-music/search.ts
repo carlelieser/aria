@@ -5,9 +5,12 @@ import type { Album } from '@domain/entities/album';
 import type { Artist } from '@domain/entities/artist';
 import type { Result } from '@shared/types/result';
 import { ok, err } from '@shared/types/result';
+import { getLogger } from '@shared/services/logger';
 import { mapYouTubeTrack, mapYouTubeAlbum, mapYouTubeArtist } from './mappers';
 import type { ClientManager } from './client';
 import type { YouTubeMusicItem } from './types';
+
+const logger = getLogger('YouTubeMusic:Search');
 
 type SearchType = 'song' | 'album' | 'artist';
 
@@ -71,10 +74,16 @@ export function createSearchOperations(clientManager: ClientManager): SearchOper
 	): Promise<Result<SearchResults<T>, Error>> {
 		try {
 			const client = await clientManager.getClient();
+			logger.debug(
+				`Searching for "${query}" (type: ${type}), logged_in: ${client.session.logged_in}`
+			);
 			const searchResults = await client.music.search(query, { type });
 			const items = extractFromShelves(searchResults.contents as unknown[], mapper);
+			logger.debug(`Search returned ${items.length} results`);
 			return ok(paginate(items, options));
 		} catch (error) {
+			const errorMsg = error instanceof Error ? error.message : String(error);
+			logger.error(`Search failed: ${errorMsg}`, error instanceof Error ? error : undefined);
 			return err(
 				error instanceof Error
 					? error

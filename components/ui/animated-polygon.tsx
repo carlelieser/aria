@@ -1,15 +1,9 @@
-/**
- * AnimatedPolygon Component
- *
- * Renders an SVG polygon with a configurable number of segments.
- * Smoothly animates between different segment counts using Reanimated.
- */
-
 import React, { useMemo } from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 import {
 	useSharedValue,
 	useDerivedValue,
+	useAnimatedReaction,
 	withSpring,
 	runOnJS,
 	SharedValue,
@@ -22,32 +16,20 @@ const MIN_SEGMENTS = 3;
 const MAX_INTERPOLATION_POINTS = 360;
 
 interface AnimatedPolygonProps {
-	/** Number of segments/sides for the polygon (minimum 3) */
 	segments: number;
-	/** Size of the SVG viewbox (width and height) */
 	size?: number;
-	/** Fill color of the polygon */
 	fill?: string;
-	/** Stroke color of the polygon */
 	stroke?: string;
-	/** Stroke width */
 	strokeWidth?: number;
-	/** Rotation in degrees */
 	rotation?: number;
-	/** Spring animation configuration */
 	springConfig?: {
 		damping?: number;
 		stiffness?: number;
 		mass?: number;
 	};
-	/** Container style */
 	style?: ViewStyle;
 }
 
-/**
- * Generates points for a regular polygon inscribed in a circle.
- * Uses a high number of interpolation points for smooth morphing.
- */
 function generatePolygonPoints(segments: number, size: number, rotation: number): string {
 	const validSegments = Math.max(MIN_SEGMENTS, Math.round(segments));
 	const center = size / 2;
@@ -95,17 +77,19 @@ export function AnimatedPolygonView({
 		springConfig.mass,
 	]);
 
-	// Update points on each animation frame
-	useDerivedValue(() => {
-		const pts = generateInterpolatedPointsWorklet(
-			animatedSegments.value,
-			size,
-			rotation,
-			strokeWidth
-		);
-		runOnJS(setCurrentPoints)(pts);
-		return pts;
-	}, [size, rotation, strokeWidth]);
+	useAnimatedReaction(
+		() => animatedSegments.value,
+		(currentValue) => {
+			const pts = generateInterpolatedPointsWorklet(
+				currentValue,
+				size,
+				rotation,
+				strokeWidth
+			);
+			runOnJS(setCurrentPoints)(pts);
+		},
+		[size, rotation, strokeWidth]
+	);
 
 	return (
 		<View style={[styles.container, { width: size, height: size }, style]}>

@@ -15,7 +15,7 @@ import type { PluginConfig } from '../../plugins/core/interfaces/base-plugin';
  */
 export const DEFAULT_ENABLED_PLUGINS: string[] = [
 	'youtube-music',
-	'expo-audio',
+	'react-native-track-player',
 	'dash-player',
 	'core-library',
 ];
@@ -23,7 +23,7 @@ export const DEFAULT_ENABLED_PLUGINS: string[] = [
 /**
  * Core plugins that cannot be disabled
  */
-export const REQUIRED_PLUGINS: string[] = ['expo-audio', 'core-library'];
+export const REQUIRED_PLUGINS: string[] = ['react-native-track-player', 'core-library'];
 
 const EMPTY_CONFIG: PluginConfig = Object.freeze({} as PluginConfig);
 

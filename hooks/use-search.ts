@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useSearchStore } from '@/src/application/state/search-store';
 import { searchService } from '@/src/application/services/search-service';
 
-export function useSearch(debounceMs: number = 500) {
+export function useSearch(debounceMs: number = 300) {
 	const store = useSearchStore();
 	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -14,12 +14,14 @@ export function useSearch(debounceMs: number = 500) {
 
 			store.setQuery(query);
 
+			if (!query.trim()) {
+				searchService.cancelSearch();
+				store.clearResults();
+				return;
+			}
+
 			debounceTimerRef.current = setTimeout(async () => {
-				if (query.trim()) {
-					await searchService.search(query);
-				} else {
-					store.clearResults();
-				}
+				await searchService.search(query);
 			}, debounceMs);
 		},
 		[store, debounceMs]
@@ -36,6 +38,7 @@ export function useSearch(debounceMs: number = 500) {
 			if (query.trim()) {
 				await searchService.search(query);
 			} else {
+				searchService.cancelSearch();
 				store.clearResults();
 			}
 		},
@@ -50,8 +53,16 @@ export function useSearch(debounceMs: number = 500) {
 		if (debounceTimerRef.current) {
 			clearTimeout(debounceTimerRef.current);
 		}
+		searchService.cancelSearch();
 		store.clearResults();
 	}, [store]);
+
+	const cancelSearch = useCallback(() => {
+		if (debounceTimerRef.current) {
+			clearTimeout(debounceTimerRef.current);
+		}
+		searchService.cancelSearch();
+	}, []);
 
 	const addRecentSearch = useCallback(
 		(query: string) => {
@@ -76,6 +87,7 @@ export function useSearch(debounceMs: number = 500) {
 			if (debounceTimerRef.current) {
 				clearTimeout(debounceTimerRef.current);
 			}
+			searchService.cancelSearch();
 		};
 	}, []);
 
@@ -99,6 +111,7 @@ export function useSearch(debounceMs: number = 500) {
 		searchImmediate,
 		getSuggestions,
 		clearResults,
+		cancelSearch,
 		addRecentSearch,
 		removeRecentSearch,
 		clearRecentSearches,

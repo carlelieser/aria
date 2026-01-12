@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { useFavorites } from '@/src/application/state/library-store';
+import { useFavorites, usePlaylists } from '@/src/application/state/library-store';
 import { useDownloadedTracks } from '@/src/application/state/download-store';
 import { useLibraryFilterStore } from '@/src/application/state/library-filter-store';
 import {
@@ -9,11 +9,19 @@ import {
 	hasActiveFilters,
 	countActiveFilters,
 } from '@/src/domain/utils/track-filtering';
+import { filterPlaylists, filterAlbums, filterArtists } from '@/src/domain/utils/library-filtering';
 import { createTrackFromDownloadedMetadata } from '@/src/domain/utils/create-track-from-download';
-import { useAggregatedTracks } from './use-aggregated-library';
+import {
+	useAggregatedTracks,
+	useAggregatedAlbums,
+	useAggregatedArtists,
+} from './use-aggregated-library';
 
 export function useLibraryFilter() {
 	const allTracks = useAggregatedTracks();
+	const allPlaylists = usePlaylists();
+	const allAlbums = useAggregatedAlbums();
+	const allArtists = useAggregatedArtists();
 	const favorites = useFavorites();
 	const downloadedTracksMap = useDownloadedTracks();
 
@@ -100,8 +108,23 @@ export function useLibraryFilter() {
 
 	const hasSearchQuery = searchQuery.trim().length > 0;
 
+	const playlists = useMemo(() => {
+		return filterPlaylists(allPlaylists, searchQuery);
+	}, [allPlaylists, searchQuery]);
+
+	const albums = useMemo(() => {
+		return filterAlbums(allAlbums, searchQuery);
+	}, [allAlbums, searchQuery]);
+
+	const artists = useMemo(() => {
+		return filterArtists(allArtists, searchQuery);
+	}, [allArtists, searchQuery]);
+
 	return {
 		tracks,
+		playlists,
+		albums,
+		artists,
 		totalCount: allTracks.length,
 		filteredCount: tracks.length,
 

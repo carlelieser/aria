@@ -7,6 +7,7 @@
 
 import type { MetadataProvider } from '../../plugins/core/interfaces/metadata-provider';
 import type { AudioSourceProvider } from '../../plugins/core/interfaces/audio-source-provider';
+import type { PlaybackProvider } from '../../plugins/core/interfaces/playback-provider';
 import type {
 	PluginRegistry,
 	PluginRegistryEvent,
@@ -38,6 +39,8 @@ interface ServiceRefs {
 	playbackService: {
 		addAudioSourceProvider: (p: AudioSourceProvider) => void;
 		removeAudioSourceProvider: (id: string) => void;
+		addPlaybackProvider: (p: PlaybackProvider) => void;
+		removePlaybackProvider: (id: string) => void;
 	};
 	downloadService: {
 		addAudioSourceProvider: (p: AudioSourceProvider) => void;
@@ -175,6 +178,9 @@ export class PluginLifecycleService {
 		// Remove from audio source services
 		this.services.playbackService.removeAudioSourceProvider(pluginId);
 		this.services.downloadService.removeAudioSourceProvider(pluginId);
+
+		// Remove from playback providers
+		this.services.playbackService.removePlaybackProvider(pluginId);
 	}
 
 	/**
@@ -208,6 +214,14 @@ export class PluginLifecycleService {
 				this.services.playbackService.addAudioSourceProvider(audioSourceProvider);
 				this.services.downloadService.addAudioSourceProvider(audioSourceProvider);
 			}
+		}
+
+		// Check if it's a playback provider
+		const playbackProviders = this.pluginRegistry.getAllPlaybackProviders();
+		const playbackProvider = playbackProviders.find((p) => p.manifest.id === pluginId);
+
+		if (playbackProvider) {
+			this.services.playbackService.addPlaybackProvider(playbackProvider);
 		}
 	}
 

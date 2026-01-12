@@ -1,13 +1,3 @@
-/**
- * PluginsScreen
- *
- * Manage plugins for music sources and features.
- * Shows all available plugins from the manifest registry,
- * with enable/disable functionality.
- */
-
-console.log('[PluginsScreen] Module loaded');
-
 import { View, Pressable, StyleSheet } from 'react-native';
 import { useCallback } from 'react';
 import { router, type Href } from 'expo-router';
@@ -31,18 +21,7 @@ import {
 } from '@/hooks/use-plugin-display';
 
 export default function PluginsScreen() {
-	console.log('[PluginsScreen] Component function called');
-
-	let pluginData;
-	try {
-		pluginData = usePluginList();
-		console.log('[PluginsScreen] usePluginList succeeded, plugins:', pluginData.plugins.length);
-	} catch (err) {
-		console.error('[PluginsScreen] usePluginList error:', err);
-		throw err;
-	}
-
-	const { plugins, pluginsByCategory, isLoading } = pluginData;
+	const { plugins, pluginsByCategory, isLoading } = usePluginList();
 
 	const handleTogglePlugin = useCallback((plugin: PluginDisplayInfo) => {
 		if (plugin.isRequired) {

@@ -1,10 +1,3 @@
-/**
- * LibrarySettingsScreen
- *
- * Settings for the library screen.
- * Uses M3 theming.
- */
-
 import { StyleSheet } from 'react-native';
 import { PageLayout } from '@/components/page-layout';
 import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';

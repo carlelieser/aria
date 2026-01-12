@@ -45,6 +45,8 @@ export interface SearchOptions {
 	readonly sortBy?: 'relevance' | 'popularity' | 'date' | 'duration' | 'title';
 
 	readonly sortOrder?: 'asc' | 'desc';
+
+	readonly signal?: AbortSignal;
 }
 
 export interface SearchResults<T> {

@@ -9,9 +9,18 @@
 
 import React, { Component, type ReactNode, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
-import { ErrorUtils } from 'react-native';
 
 const ERROR_TAG = '[ErrorCapture]';
+
+type ErrorHandler = (error: Error, isFatal?: boolean) => void;
+interface ErrorUtilsType {
+	getGlobalHandler: () => ErrorHandler;
+	setGlobalHandler: (handler: ErrorHandler) => void;
+}
+
+declare const global: {
+	ErrorUtils?: ErrorUtilsType;
+};
 
 interface ErrorInfo {
 	componentStack: string;
@@ -28,9 +37,6 @@ interface ErrorBoundaryProps {
 	fallback?: ReactNode;
 }
 
-/**
- * React Error Boundary - catches errors in component tree
- */
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 	constructor(props: ErrorBoundaryProps) {
 		super(props);
@@ -94,60 +100,34 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 	}
 }
 
-/**
- * Hook to install global error handlers
- * Call this once at app initialization
- */
 export function useGlobalErrorHandlers(): void {
 	useEffect(() => {
-		// Store original handler
-		const originalHandler = ErrorUtils.getGlobalHandler();
+		const errorUtils = global.ErrorUtils;
 
-		// Set custom global error handler for unhandled JS errors
-		ErrorUtils.setGlobalHandler((error: Error, isFatal?: boolean) => {
+		if (!errorUtils) {
+			return;
+		}
+
+		const originalHandler = errorUtils.getGlobalHandler();
+
+		errorUtils.setGlobalHandler((error: Error, isFatal?: boolean) => {
 			console.error(ERROR_TAG, '=== UNHANDLED JS ERROR ===');
 			console.error(ERROR_TAG, 'Fatal:', isFatal);
 			console.error(ERROR_TAG, 'Error:', error.message);
 			console.error(ERROR_TAG, 'Stack:', error.stack);
 			console.error(ERROR_TAG, '==========================');
 
-			// Call original handler
 			if (originalHandler) {
 				originalHandler(error, isFatal);
 			}
 		});
 
-		// Handle unhandled promise rejections
-		const rejectionHandler = (event: PromiseRejectionEvent): void => {
-			console.error(ERROR_TAG, '=== UNHANDLED PROMISE REJECTION ===');
-			console.error(ERROR_TAG, 'Reason:', event.reason);
-			if (event.reason instanceof Error) {
-				console.error(ERROR_TAG, 'Message:', event.reason.message);
-				console.error(ERROR_TAG, 'Stack:', event.reason.stack);
-			}
-			console.error(ERROR_TAG, '===================================');
-		};
-
-		// React Native doesn't have standard PromiseRejectionEvent, use global tracking
-		const originalPromise = global.Promise;
-		const pendingPromises = new Map<Promise<unknown>, string>();
-
-		// Track promise creations for better debugging
-		if (__DEV__) {
-			// In dev mode, we can add extra tracking
-			console.log(ERROR_TAG, 'Global error handlers installed');
-		}
-
-		// Cleanup
 		return () => {
-			ErrorUtils.setGlobalHandler(originalHandler);
+			errorUtils.setGlobalHandler(originalHandler);
 		};
 	}, []);
 }
 
-/**
- * Wrap an async function to log any errors
- */
 export function withErrorLogging<T extends unknown[], R>(
 	fn: (...args: T) => Promise<R>,
 	context: string
@@ -166,13 +146,6 @@ export function withErrorLogging<T extends unknown[], R>(
 			throw error;
 		}
 	};
-}
-
-/**
- * Log navigation events for debugging
- */
-export function logNavigation(action: string, details?: Record<string, unknown>): void {
-	console.log(`[Navigation] ${action}`, details ? JSON.stringify(details) : '');
 }
 
 const styles = StyleSheet.create({

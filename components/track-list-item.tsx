@@ -9,7 +9,7 @@ import { memo, useCallback } from 'react';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { CheckCircle, AlertCircle, X, Trash2, Music } from 'lucide-react-native';
+import { CheckCircle, AlertCircle, X, Trash2, Music, RotateCcw } from 'lucide-react-native';
 import { Text, IconButton } from 'react-native-paper';
 
 import { Icon } from '@/components/ui/icon';
@@ -45,6 +45,8 @@ interface TrackListItemProps {
 	playlistId?: string;
 	/** Track position within the playlist */
 	trackPosition?: number;
+	/** Callback for retrying failed downloads */
+	onRetry?: (track: Track) => void;
 }
 
 export const TrackListItem = memo(function TrackListItem({
@@ -59,6 +61,7 @@ export const TrackListItem = memo(function TrackListItem({
 	queueIndex,
 	playlistId,
 	trackPosition,
+	onRetry,
 }: TrackListItemProps) {
 	const { play, playQueue } = usePlayer();
 	const { removeDownload } = useDownloadActions();
@@ -172,6 +175,16 @@ export const TrackListItem = memo(function TrackListItem({
 					icon={({ size }) => <Trash2 size={size} color={colors.onSurfaceVariant} />}
 					size={20}
 					onPress={handleRemoveDownload}
+				/>
+			);
+		}
+
+		if (isDownloadFailed && onRetry) {
+			return (
+				<IconButton
+					icon={({ size }) => <RotateCcw size={size} color={colors.onSurfaceVariant} />}
+					size={20}
+					onPress={() => onRetry(track)}
 				/>
 			);
 		}

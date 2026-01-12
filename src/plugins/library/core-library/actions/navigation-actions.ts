@@ -43,12 +43,8 @@ export async function executeNavigationAction(
 ): Promise<boolean> {
 	switch (actionId) {
 		case CORE_ACTION_IDS.VIEW_ARTIST:
-			// TODO: Navigate to artist page
-			return true;
-
 		case CORE_ACTION_IDS.VIEW_ALBUM:
-			// TODO: Navigate to album page
-			return true;
+			return false;
 
 		default:
 			return false;

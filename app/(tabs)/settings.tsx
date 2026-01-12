@@ -1,10 +1,3 @@
-/**
- * SettingsScreen
- *
- * App settings and preferences.
- * Uses M3 theming.
- */
-
 import { StyleSheet, Linking } from 'react-native';
 import { useCallback, useState } from 'react';
 import { router } from 'expo-router';
@@ -210,15 +203,7 @@ export default function SettingsScreen() {
 						icon={PuzzleIcon}
 						title="Manage Plugins"
 						subtitle="Music sources, playback, and more"
-						onPress={() => {
-							try {
-								console.log('[Settings] Navigating to /plugins');
-								router.push('/plugins');
-								console.log('[Settings] router.push completed');
-							} catch (err) {
-								console.error('[Settings] Navigation error:', err);
-							}
-						}}
+						onPress={() => router.push('/plugins')}
 						showChevron
 					/>
 				</SettingsSection>

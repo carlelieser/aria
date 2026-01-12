@@ -4,3 +4,4 @@ export { FilterSection } from './filter-section';
 export { ActiveFiltersBar } from './active-filters-bar';
 export { LibrarySortFilterSheet } from './library-sort-filter-sheet';
 export { SortFilterFAB } from './sort-filter-fab';
+export { SearchInput } from './search-input';

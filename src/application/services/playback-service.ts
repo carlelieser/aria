@@ -65,6 +65,29 @@ export class PlaybackService {
 		logger.debug(`Registered ${providers.length} playback provider(s)`);
 	}
 
+	addPlaybackProvider(provider: PlaybackProvider): void {
+		if (this.playbackProviders.some((p) => p.manifest.id === provider.manifest.id)) {
+			return;
+		}
+		this.playbackProviders.push(provider);
+		if (this.eventListener) {
+			provider.addEventListener(this.eventListener);
+		}
+		logger.debug(`Added playback provider: ${provider.manifest.id}`);
+	}
+
+	removePlaybackProvider(providerId: string): void {
+		const index = this.playbackProviders.findIndex((p) => p.manifest.id === providerId);
+		if (index !== -1) {
+			const provider = this.playbackProviders[index];
+			if (this.eventListener) {
+				provider.removeEventListener(this.eventListener);
+			}
+			this.playbackProviders.splice(index, 1);
+			logger.debug(`Removed playback provider: ${providerId}`);
+		}
+	}
+
 	private getProviderForUrl(url: string): PlaybackProvider | null {
 		for (const provider of this.playbackProviders) {
 			if (provider.canHandle && provider.canHandle(url)) {
@@ -298,6 +321,7 @@ export class PlaybackService {
 
 			switch (event.type) {
 				case 'status-change':
+					logger.debug(`Status change: ${event.status}`);
 					store._setStatus(event.status);
 					break;
 				case 'position-change':
@@ -307,12 +331,14 @@ export class PlaybackService {
 					store._setDuration(event.duration);
 					break;
 				case 'ended':
+					logger.debug('Ended event received - calling skipToNext');
 					// Defer to next tick to avoid threading issues on Android
 					// The callback may fire on a background thread, and ExoPlayer
 					// requires all operations to happen on the main thread
 					setTimeout(() => this.skipToNext(), 0);
 					break;
 				case 'error':
+					logger.debug(`Error event: ${event.error.message}`);
 					store._setError(event.error.message);
 					break;
 			}

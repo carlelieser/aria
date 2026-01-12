@@ -1,16 +1,12 @@
-/**
- * HomeScreen
- *
- * Main library screen with tabs for songs, playlists, and artists.
- * Uses M3 theming.
- */
-
 import { View, StyleSheet } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { SegmentedButtons } from 'react-native-paper';
+import { SegmentedButtons, IconButton } from 'react-native-paper';
 import { PageLayout } from '@/components/page-layout';
 import { EmptyState } from '@/components/empty-state';
-import { MusicIcon, ListMusicIcon, UsersIcon, DiscIcon } from 'lucide-react-native';
+import { MusicIcon, ListMusicIcon, UsersIcon, DiscIcon, SearchIcon } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { Icon } from '@/components/ui/icon';
+import { useAppTheme } from '@/lib/theme';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
 	usePlaylists,
@@ -71,8 +67,11 @@ export default function HomeScreen() {
 		return unsubscribe;
 	}, [defaultLibraryTab]);
 
+	const { colors } = useAppTheme();
 	const allTracks = useAggregatedTracks();
 	const playlists = usePlaylists();
+	const artists = useAggregatedArtists();
+	const albums = useAggregatedAlbums();
 	const isLoading = useIsLibraryLoading();
 
 	const {
@@ -94,8 +93,9 @@ export default function HomeScreen() {
 
 	const { artists: filterArtists, albums: filterAlbums } = useUniqueFilterOptions(allTracks);
 
-	const artists = useAggregatedArtists();
-	const albums = useAggregatedAlbums();
+	const handleNavigateToSearch = useCallback(() => {
+		router.push('/library/search');
+	}, []);
 
 	const {
 		isSelectionMode,
@@ -185,8 +185,22 @@ export default function HomeScreen() {
 		{ value: 'songs', label: 'Songs', icon: 'music-note' },
 	];
 
+	const searchButton = (
+		<IconButton
+			icon={() => <Icon as={SearchIcon} size={24} color={colors.onSurface} />}
+			onPress={handleNavigateToSearch}
+		/>
+	);
+
 	return (
-		<PageLayout header={{ icon: MusicIcon, title: 'Library', showBorder: false }}>
+		<PageLayout
+			header={{
+				icon: MusicIcon,
+				title: 'Library',
+				showBorder: false,
+				rightActions: searchButton,
+			}}
+		>
 			<View style={styles.tabsRow}>
 				<SegmentedButtons
 					value={selected}
@@ -300,7 +314,7 @@ function SongsList({
 				<EmptyState
 					icon={MusicIcon}
 					title="No matches"
-					description="Try adjusting your search or filters"
+					description="Try adjusting your filters"
 				/>
 			);
 		}

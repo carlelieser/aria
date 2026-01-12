@@ -2,6 +2,7 @@ import type { MetadataProvider } from '../../plugins/core/interfaces/metadata-pr
 import { useAlbumStore } from '../state/album-store';
 import { ok, err, type Result } from '../../shared/types/result';
 import { getLogger } from '../../shared/services/logger';
+import { CachedService } from '../../shared/cache';
 import type { Track } from '../../domain/entities/track';
 import type { Album } from '../../domain/entities/album';
 import { AlbumId } from '../../domain/value-objects/album-id';
@@ -13,17 +14,15 @@ export interface AlbumDetailResult {
 	tracks: Track[];
 }
 
-interface CacheEntry {
-	result: AlbumDetailResult;
-	timestamp: number;
-}
-
 const CACHE_TTL_MS = 10 * 60 * 1000;
 
 export class AlbumService {
 	private metadataProviders: MetadataProvider[] = [];
-	private pendingRequests = new Map<string, Promise<Result<AlbumDetailResult, Error>>>();
-	private cache = new Map<string, CacheEntry>();
+	private readonly _cachedService = new CachedService<string, AlbumDetailResult>({
+		ttlMs: CACHE_TTL_MS,
+		logger,
+		name: 'AlbumService',
+	});
 
 	setMetadataProviders(providers: MetadataProvider[]): void {
 		this.metadataProviders = providers;
@@ -43,34 +42,17 @@ export class AlbumService {
 	}
 
 	clearCache(): void {
-		this.cache.clear();
-		logger.debug('Album cache cleared');
+		this._cachedService.clearCache();
 	}
 
 	async getAlbumDetail(albumId: string): Promise<Result<AlbumDetailResult, Error>> {
 		const store = useAlbumStore.getState();
 
-		const cachedEntry = this.cache.get(albumId);
-		if (cachedEntry && Date.now() - cachedEntry.timestamp < CACHE_TTL_MS) {
-			logger.debug(`Returning cached album detail for: ${albumId}`);
-			store.setAlbumDetail(albumId, cachedEntry.result.album, cachedEntry.result.tracks);
-			return ok(cachedEntry.result);
-		}
-
-		const pendingRequest = this.pendingRequests.get(albumId);
-		if (pendingRequest) {
-			logger.debug(`Deduplicating album request for: ${albumId}`);
-			return pendingRequest;
-		}
-
-		const fetchPromise = this._fetchAlbumDetail(albumId);
-		this.pendingRequests.set(albumId, fetchPromise);
-
-		try {
-			return await fetchPromise;
-		} finally {
-			this.pendingRequests.delete(albumId);
-		}
+		return this._cachedService.getOrFetch(
+			albumId,
+			() => this._fetchAlbumDetail(albumId),
+			(result) => store.setAlbumDetail(albumId, result.album, result.tracks)
+		);
 	}
 
 	private async _fetchAlbumDetail(
@@ -141,11 +123,6 @@ export class AlbumService {
 				album,
 				tracks: sortedTracks,
 			};
-
-			this.cache.set(albumIdString, {
-				result,
-				timestamp: Date.now(),
-			});
 
 			store.setAlbumDetail(albumIdString, album, sortedTracks);
 			return ok(result);

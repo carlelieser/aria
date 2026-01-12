@@ -1,15 +1,7 @@
-/**
- * ExploreScreen
- *
- * Search and explore music with filtering, sorting, and batch actions.
- * Uses M3 theming.
- */
-
 import { useCallback, useMemo, memo, useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView, View, StyleSheet, TextInput } from 'react-native';
 import { Text, Button } from 'react-native-paper';
-import { Icon } from '@/components/ui/icon';
+import { PageLayout } from '@/components/page-layout';
 import {
 	SearchXIcon,
 	HeartIcon,
@@ -38,6 +30,9 @@ import { useFavoriteTracks, useRecentlyAddedTracks } from '@/src/application/sta
 import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
 import type { LucideIcon } from 'lucide-react-native';
+
+const BATCH_ACTION_BAR_PADDING = 120;
+const DEFAULT_CONTENT_PADDING = 20;
 
 interface ExploreSectionProps {
 	id: string;
@@ -214,45 +209,50 @@ export default function ExploreScreen() {
 		[filteredTracks, selectedTrackIds, addSelectedToPlaylist, exitSelectionMode]
 	);
 
+	const searchInput = (
+		<View style={styles.searchRow}>
+			<TextInput
+				value={query}
+				onChangeText={search}
+				style={[styles.searchInput, { color: colors.onSurface }]}
+				placeholderTextColor={colors.onSurfaceVariant}
+				placeholder="Search songs, artists, albums..."
+				autoFocus={false}
+			/>
+		</View>
+	);
+
 	return (
-		<View style={[styles.container, { backgroundColor: colors.background }]}>
-			<View
-				style={[styles.headerContainer, { backgroundColor: colors.surfaceContainerHigh }]}
-			>
-				<SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-					<View style={styles.headerRow}>
-						<Icon as={CompassIcon} size={28} color={colors.primary} />
-						<Text
-							variant="headlineMedium"
-							style={{ color: colors.onSurface, fontWeight: '700' }}
-						>
-							Explore
-						</Text>
-					</View>
-					<View style={styles.searchRow}>
-						<TextInput
-							value={query}
-							onChangeText={search}
-							style={[styles.searchInput, { color: colors.onSurface }]}
-							placeholderTextColor={colors.onSurfaceVariant}
-							placeholder="Search songs, artists, albums..."
-							autoFocus={false}
-						/>
-					</View>
-				</SafeAreaView>
-			</View>
+		<PageLayout
+			header={{
+				icon: CompassIcon,
+				title: 'Explore',
+				showBorder: false,
+				backgroundColor: colors.surfaceContainerHigh,
+				borderRadius: 24,
+				belowTitle: searchInput,
+				extended: true,
+			}}
+		>
+			{!isExploreMode && isSearching && (
+				<View style={styles.loadingContainer}>
+					<TrackListSkeleton count={10} />
+				</View>
+			)}
 
 			<ScrollView
 				contentContainerStyle={[
 					styles.scrollContent,
-					{ paddingBottom: isSelectionMode ? 120 : 20 },
+					{
+						paddingBottom: isSelectionMode
+							? BATCH_ACTION_BAR_PADDING
+							: DEFAULT_CONTENT_PADDING,
+					},
 				]}
 			>
-				{!isExploreMode && (
+				{!isExploreMode && !isSearching && (
 					<View style={styles.searchResults}>
-						{isSearching && <TrackListSkeleton count={6} />}
-
-						{error && !isSearching && (
+						{error && (
 							<EmptyState
 								icon={AlertCircleIcon}
 								title="Something went wrong"
@@ -260,7 +260,7 @@ export default function ExploreScreen() {
 							/>
 						)}
 
-						{!isSearching && !error && !hasSearchResults && (
+						{!error && !hasSearchResults && (
 							<EmptyState
 								icon={SearchXIcon}
 								title="No results found"
@@ -272,7 +272,7 @@ export default function ExploreScreen() {
 							/>
 						)}
 
-						{!isSearching && !error && hasSearchResults && (
+						{!error && hasSearchResults && (
 							<View style={styles.trackList}>
 								{filteredTracks.map((track, index) => (
 									<SelectableTrackListItem
@@ -380,35 +380,15 @@ export default function ExploreScreen() {
 				onSelectPlaylist={handleSelectPlaylist}
 				selectedCount={selectedCount}
 			/>
-		</View>
+		</PageLayout>
 	);
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-	},
-	headerContainer: {
-		paddingHorizontal: 16,
-		paddingBottom: 16,
-		borderBottomLeftRadius: 24,
-		borderBottomRightRadius: 24,
-	},
-	headerSafeArea: {
-		paddingTop: 16,
-		gap: 16,
-	},
-	headerRow: {
-		flexDirection: 'row',
-		justifyContent: 'flex-start',
-		alignItems: 'center',
-		gap: 12,
-		width: '100%',
-	},
 	searchRow: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		width: '100%',
+		paddingHorizontal: 16,
 	},
 	searchInput: {
 		flex: 1,
@@ -436,6 +416,11 @@ const styles = StyleSheet.create({
 	horizontalScroll: {
 		gap: 16,
 		paddingHorizontal: 16,
+	},
+	loadingContainer: {
+		flex: 1,
+		paddingHorizontal: 16,
+		paddingTop: 24,
 	},
 	searchResults: {
 		paddingHorizontal: 16,

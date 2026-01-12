@@ -8,42 +8,16 @@ import { AlbumId } from '@domain/value-objects/album-id';
 import { Duration } from '@domain/value-objects/duration';
 import { createLocalSource, type AudioFileType } from '@domain/value-objects/audio-source';
 import { createArtwork, type Artwork } from '@domain/value-objects/artwork';
+import {
+	generateLocalTrackId,
+	generateLocalAlbumId,
+	generateLocalArtistId,
+} from '@shared/mappers';
 import type { ScannedFile, ParsedMetadata, LocalTrack, LocalAlbum, LocalArtist } from './types';
 
 const ARTWORK_CACHE_DIR = 'local-library/artwork/';
 
-export function generateLocalTrackId(filePath: string): string {
-	// Create a simple hash from the file path for consistent IDs
-	let hash = 0;
-	for (let i = 0; i < filePath.length; i++) {
-		const char = filePath.charCodeAt(i);
-		hash = (hash << 5) - hash + char;
-		hash = hash & hash; // Convert to 32-bit integer
-	}
-	return `local_${Math.abs(hash).toString(36)}`;
-}
-
-export function generateAlbumId(albumName: string, artistName: string): string {
-	const combined = `${albumName.toLowerCase()}_${artistName.toLowerCase()}`;
-	let hash = 0;
-	for (let i = 0; i < combined.length; i++) {
-		const char = combined.charCodeAt(i);
-		hash = (hash << 5) - hash + char;
-		hash = hash & hash;
-	}
-	return `album_${Math.abs(hash).toString(36)}`;
-}
-
-export function generateArtistId(artistName: string): string {
-	const normalized = artistName.toLowerCase().trim();
-	let hash = 0;
-	for (let i = 0; i < normalized.length; i++) {
-		const char = normalized.charCodeAt(i);
-		hash = (hash << 5) - hash + char;
-		hash = hash & hash;
-	}
-	return `artist_${Math.abs(hash).toString(36)}`;
-}
+export { generateLocalTrackId, generateLocalAlbumId as generateAlbumId, generateLocalArtistId as generateArtistId };
 
 export function mapToLocalTrack(
 	file: ScannedFile,
@@ -52,14 +26,14 @@ export function mapToLocalTrack(
 ): LocalTrack {
 	const id = generateLocalTrackId(file.uri);
 	const artistName = metadata.artist || _parseArtistFromFilename(file.name);
-	const artistId = generateArtistId(artistName);
+	const artistId = generateLocalArtistId(artistName);
 
 	let albumId: string | undefined;
 	let albumName: string | undefined;
 
 	if (metadata.album) {
 		albumName = metadata.album;
-		albumId = generateAlbumId(metadata.album, artistName);
+		albumId = generateLocalAlbumId(metadata.album, artistName);
 	}
 
 	return {

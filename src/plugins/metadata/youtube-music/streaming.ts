@@ -46,14 +46,16 @@ async function tryHlsStream(
 async function downloadToCache(
 	url: string,
 	videoId: string,
-	headers?: Record<string, string>
+	headers?: Record<string, string>,
+	cookies?: string,
+	expectedSize?: number
 ): Promise<string | null> {
 	const cacheDir = FileSystem.cacheDirectory + CACHE_DIR;
 	const cachedFilePath = cacheDir + `${videoId}.m4a`;
 
 	await FileSystem.makeDirectoryAsync(cacheDir, { intermediates: true }).catch(() => {});
 
-	const finalHeaders = {
+	const finalHeaders: Record<string, string> = {
 		Accept: '*/*',
 		Origin: 'https://www.youtube.com',
 		Referer: 'https://www.youtube.com/',
@@ -61,121 +63,360 @@ async function downloadToCache(
 		...headers,
 	};
 
+	if (cookies) {
+		finalHeaders['Cookie'] = cookies;
+		logger.debug('Including authentication cookies in download request');
+	}
+
 	logger.debug(`Downloading with headers: ${Object.keys(finalHeaders).join(', ')}`);
 
 	const downloadResult = await FileSystem.downloadAsync(url, cachedFilePath, {
 		headers: finalHeaders,
 	});
 
-	if (downloadResult.status === 200 || downloadResult.status === 206) {
+	// Only accept 200 OK for complete downloads (not 206 Partial Content)
+	if (downloadResult.status === 200) {
+		// Verify file size if we know the expected size
+		if (expectedSize) {
+			const fileInfo = await FileSystem.getInfoAsync(cachedFilePath);
+			if (fileInfo.exists && 'size' in fileInfo) {
+				const actualSize = fileInfo.size as number;
+				if (actualSize < expectedSize * 0.95) {
+					logger.warn(
+						`Download incomplete: got ${actualSize} bytes, expected ${expectedSize}`
+					);
+					await FileSystem.deleteAsync(cachedFilePath, { idempotent: true });
+					return null;
+				}
+				logger.debug(`Download verified: ${actualSize} bytes (expected ${expectedSize})`);
+			}
+		}
 		logger.debug(`Audio cached to: ${cachedFilePath}`);
 		return cachedFilePath;
 	}
 
+	// 206 means we got a partial response - file may not be seekable
+	if (downloadResult.status === 206) {
+		logger.warn('Got 206 Partial Content - file may not be complete/seekable');
+		// Still try to use it, but log the warning
+		const fileInfo = await FileSystem.getInfoAsync(cachedFilePath);
+		if (fileInfo.exists && 'size' in fileInfo && (fileInfo.size as number) > 10000) {
+			logger.debug(`Partial file cached (${fileInfo.size} bytes): ${cachedFilePath}`);
+			return cachedFilePath;
+		}
+	}
+
 	logger.warn(`Cache download failed with status: ${downloadResult.status}`);
+	await FileSystem.deleteAsync(cachedFilePath, { idempotent: true }).catch(() => {});
 	return null;
 }
 
-async function downloadHlsToCache(manifestUrl: string, videoId: string): Promise<string | null> {
+interface HlsParseResult {
+	initSegmentUrl: string | null;
+	segmentUrls: string[];
+	baseUrl: string;
+}
+
+async function parseHlsManifest(
+	manifestUrl: string,
+	fetchHeaders: Record<string, string>
+): Promise<HlsParseResult | null> {
+	const manifestResponse = await fetch(manifestUrl, { headers: fetchHeaders });
+	if (!manifestResponse.ok) {
+		logger.warn(`Failed to fetch manifest: ${manifestResponse.status}`);
+		return null;
+	}
+
+	const manifestText = await manifestResponse.text();
+	logger.debug(`Manifest length: ${manifestText.length}`);
+
+	// Parse manifest to find audio-only playlist URL
+	const lines = manifestText.split('\n');
+	let audioPlaylistUrl: string | null = null;
+
+	// First, look for #EXT-X-MEDIA:TYPE=AUDIO lines (audio-only streams)
+	for (const line of lines) {
+		const trimmed = line.trim();
+		if (trimmed.startsWith('#EXT-X-MEDIA:') && trimmed.includes('TYPE=AUDIO')) {
+			const uriMatch = trimmed.match(/URI="([^"]+)"/);
+			if (uriMatch) {
+				audioPlaylistUrl = uriMatch[1].startsWith('http')
+					? uriMatch[1]
+					: new URL(uriMatch[1], manifestUrl).href;
+				logger.debug('Found audio-only stream from EXT-X-MEDIA');
+				break;
+			}
+		}
+	}
+
+	// Fallback: check if this is a direct segment playlist (no variants)
+	if (!audioPlaylistUrl) {
+		for (const line of lines) {
+			if (line.trim().startsWith('#EXTINF:')) {
+				audioPlaylistUrl = manifestUrl;
+				logger.debug('Manifest is a direct segment playlist');
+				break;
+			}
+		}
+	}
+
+	if (!audioPlaylistUrl) {
+		logger.warn('No audio playlist found in manifest');
+		return null;
+	}
+
+	logger.debug(`Using audio playlist: ${audioPlaylistUrl.substring(0, 50)}...`);
+
+	// Fetch the audio segment playlist if different from master
+	let segmentPlaylistText = manifestText;
+	if (audioPlaylistUrl !== manifestUrl) {
+		const segmentPlaylistResponse = await fetch(audioPlaylistUrl, {
+			headers: fetchHeaders,
+		});
+		if (!segmentPlaylistResponse.ok) {
+			logger.warn(`Failed to fetch segment playlist: ${segmentPlaylistResponse.status}`);
+			return null;
+		}
+		segmentPlaylistText = await segmentPlaylistResponse.text();
+	}
+
+	// Parse segment URLs and find initialization segment (EXT-X-MAP)
+	const segmentLines = segmentPlaylistText.split('\n');
+	const segmentUrls: string[] = [];
+	let initSegmentUrl: string | null = null;
+	const baseUrl = audioPlaylistUrl.substring(0, audioPlaylistUrl.lastIndexOf('/') + 1);
+
+	for (const line of segmentLines) {
+		const trimmed = line.trim();
+
+		if (trimmed.startsWith('#EXT-X-MAP:')) {
+			const uriMatch = trimmed.match(/URI="([^"]+)"/);
+			if (uriMatch) {
+				initSegmentUrl = uriMatch[1].startsWith('http')
+					? uriMatch[1]
+					: baseUrl + uriMatch[1];
+				logger.debug(`Found init segment: ${initSegmentUrl.substring(0, 50)}...`);
+			}
+		}
+
+		if (trimmed && !trimmed.startsWith('#')) {
+			const segmentUrl = trimmed.startsWith('http') ? trimmed : baseUrl + trimmed;
+			segmentUrls.push(segmentUrl);
+		}
+	}
+
+	if (segmentUrls.length === 0) {
+		logger.warn('No segments found in playlist');
+		return null;
+	}
+
+	return { initSegmentUrl, segmentUrls, baseUrl };
+}
+
+async function concatenateSegmentsToFile(
+	initSegmentPath: string | null,
+	segmentPaths: string[],
+	outputPath: string
+): Promise<boolean> {
+	const allBytes: number[] = [];
+
+	// Add init segment first (contains ftyp + moov atoms required for fMP4 playback)
+	if (initSegmentPath) {
+		const initB64 = await FileSystem.readAsStringAsync(initSegmentPath, {
+			encoding: FileSystem.EncodingType.Base64,
+		});
+		const initBinary = atob(initB64);
+		for (let i = 0; i < initBinary.length; i++) {
+			allBytes.push(initBinary.charCodeAt(i));
+		}
+		logger.debug(`Added init segment: ${initBinary.length} bytes`);
+	}
+
+	// Add media segments
+	for (const segmentPath of segmentPaths) {
+		const b64Content = await FileSystem.readAsStringAsync(segmentPath, {
+			encoding: FileSystem.EncodingType.Base64,
+		});
+		const binaryStr = atob(b64Content);
+		for (let i = 0; i < binaryStr.length; i++) {
+			allBytes.push(binaryStr.charCodeAt(i));
+		}
+	}
+
+	logger.debug(`Total bytes from segments: ${allBytes.length}`);
+
+	// Convert to Uint8Array
+	const uint8 = new Uint8Array(allBytes.length);
+	for (let i = 0; i < allBytes.length; i++) {
+		uint8[i] = allBytes[i];
+	}
+
+	// Convert Uint8Array to base64 string
+	let binary = '';
+	const chunkSize = 8192;
+	for (let i = 0; i < uint8.length; i += chunkSize) {
+		const slice = uint8.subarray(i, Math.min(i + chunkSize, uint8.length));
+		binary += String.fromCharCode.apply(null, Array.from(slice));
+	}
+	const finalB64 = btoa(binary);
+
+	await FileSystem.writeAsStringAsync(outputPath, finalB64, {
+		encoding: FileSystem.EncodingType.Base64,
+	});
+
+	// Verify file
+	const finalInfo = await FileSystem.getInfoAsync(outputPath);
+	return finalInfo.exists && 'size' in finalInfo && (finalInfo.size as number) > 10000;
+}
+
+// Minimum segments needed for immediate playback (~30 seconds at ~2s per segment)
+const MIN_SEGMENTS_FOR_PLAYBACK = 15;
+
+// Background download tracking
+const backgroundDownloads = new Map<string, Promise<void>>();
+
+async function downloadHlsToCache(
+	manifestUrl: string,
+	videoId: string,
+	cookies?: string,
+	forStreaming: boolean = false
+): Promise<string | null> {
 	const cacheDir = FileSystem.cacheDirectory + CACHE_DIR;
-	const cachedFilePath = cacheDir + `${videoId}.aac`;
+	const cachedFilePath = cacheDir + `${videoId}.m4a`;
+	const partialFilePath = cacheDir + `${videoId}_partial.m4a`;
 	const tempDir = cacheDir + `${videoId}_segments/`;
 
 	await FileSystem.makeDirectoryAsync(tempDir, { intermediates: true }).catch(() => {});
 
+	const fetchHeaders: Record<string, string> = {};
+	if (cookies) {
+		fetchHeaders['Cookie'] = cookies;
+		logger.debug('Using authenticated HLS download with cookies');
+	}
+
 	try {
 		logger.debug('Fetching HLS manifest...');
 
-		// Fetch the master manifest
-		const manifestResponse = await fetch(manifestUrl);
-		if (!manifestResponse.ok) {
-			logger.warn(`Failed to fetch manifest: ${manifestResponse.status}`);
-			return null;
-		}
+		const parsed = await parseHlsManifest(manifestUrl, fetchHeaders);
+		if (!parsed) return null;
 
-		const manifestText = await manifestResponse.text();
-		logger.debug(`Manifest length: ${manifestText.length}`);
-
-		// Parse manifest to find audio playlist URL
-		const lines = manifestText.split('\n');
-		let audioPlaylistUrl: string | null = null;
-		let bestBandwidth = 0;
-
-		for (let i = 0; i < lines.length; i++) {
-			const line = lines[i].trim();
-
-			// Look for audio-only streams or highest quality stream
-			if (line.startsWith('#EXT-X-STREAM-INF:')) {
-				const bandwidthMatch = line.match(/BANDWIDTH=(\d+)/);
-				const bandwidth = bandwidthMatch ? parseInt(bandwidthMatch[1], 10) : 0;
-
-				// Get the URL on the next line
-				const nextLine = lines[i + 1]?.trim();
-				if (nextLine && !nextLine.startsWith('#')) {
-					// Prefer audio-only streams, otherwise take highest bandwidth
-					if (line.includes('AUDIO') || bandwidth > bestBandwidth) {
-						bestBandwidth = bandwidth;
-						audioPlaylistUrl = nextLine.startsWith('http')
-							? nextLine
-							: new URL(nextLine, manifestUrl).href;
-					}
-				}
-			}
-
-			// Direct segment playlist (no variants)
-			if (line.startsWith('#EXTINF:') && !audioPlaylistUrl) {
-				audioPlaylistUrl = manifestUrl;
-				break;
-			}
-		}
-
-		if (!audioPlaylistUrl) {
-			logger.warn('No audio playlist found in manifest');
-			return null;
-		}
-
-		logger.debug(`Using audio playlist: ${audioPlaylistUrl.substring(0, 50)}...`);
-
-		// Fetch the audio segment playlist if different from master
-		let segmentPlaylistText = manifestText;
-		if (audioPlaylistUrl !== manifestUrl) {
-			const segmentPlaylistResponse = await fetch(audioPlaylistUrl);
-			if (!segmentPlaylistResponse.ok) {
-				logger.warn(`Failed to fetch segment playlist: ${segmentPlaylistResponse.status}`);
-				return null;
-			}
-			segmentPlaylistText = await segmentPlaylistResponse.text();
-		}
-
-		// Parse segment URLs
-		const segmentLines = segmentPlaylistText.split('\n');
-		const segmentUrls: string[] = [];
-		const baseUrl = audioPlaylistUrl.substring(0, audioPlaylistUrl.lastIndexOf('/') + 1);
-
-		for (const line of segmentLines) {
-			const trimmed = line.trim();
-			if (trimmed && !trimmed.startsWith('#')) {
-				const segmentUrl = trimmed.startsWith('http') ? trimmed : baseUrl + trimmed;
-				segmentUrls.push(segmentUrl);
-			}
-		}
-
-		if (segmentUrls.length === 0) {
-			logger.warn('No segments found in playlist');
-			return null;
-		}
-
+		const { initSegmentUrl, segmentUrls } = parsed;
 		logger.debug(`Found ${segmentUrls.length} segments to download`);
 
-		// Download all segments
+		// Download initialization segment first if present
+		let initSegmentPath: string | null = null;
+		if (initSegmentUrl) {
+			initSegmentPath = `${tempDir}init.mp4`;
+			const initResult = await FileSystem.downloadAsync(initSegmentUrl, initSegmentPath, {
+				headers: fetchHeaders,
+			});
+			if (initResult.status !== 200 && initResult.status !== 206) {
+				logger.warn(`Failed to download init segment: ${initResult.status}`);
+				await FileSystem.deleteAsync(tempDir, { idempotent: true }).catch(() => {});
+				return null;
+			}
+			logger.debug('Init segment downloaded successfully');
+		}
+
+		// For streaming: download minimum segments, return immediately, continue in background
+		if (forStreaming && segmentUrls.length > MIN_SEGMENTS_FOR_PLAYBACK) {
+			const initialSegmentCount = Math.min(MIN_SEGMENTS_FOR_PLAYBACK, segmentUrls.length);
+			logger.debug(`Streaming mode: downloading ${initialSegmentCount} segments for immediate playback`);
+
+			// Download initial segments
+			const initialSegmentPaths: string[] = [];
+			for (let i = 0; i < initialSegmentCount; i++) {
+				const segmentPath = `${tempDir}segment_${i.toString().padStart(4, '0')}.ts`;
+				const result = await FileSystem.downloadAsync(segmentUrls[i], segmentPath, {
+					headers: fetchHeaders,
+				});
+
+				if (result.status !== 200 && result.status !== 206) {
+					logger.warn(`Failed to download segment ${i}: ${result.status}`);
+					await FileSystem.deleteAsync(tempDir, { idempotent: true }).catch(() => {});
+					return null;
+				}
+				initialSegmentPaths.push(segmentPath);
+			}
+
+			// Create partial file for immediate playback
+			const partialSuccess = await concatenateSegmentsToFile(
+				initSegmentPath,
+				initialSegmentPaths,
+				partialFilePath
+			);
+
+			if (!partialSuccess) {
+				logger.warn('Failed to create partial file');
+				await FileSystem.deleteAsync(tempDir, { idempotent: true }).catch(() => {});
+				return null;
+			}
+
+			logger.debug(`Partial file ready for playback: ${partialFilePath}`);
+
+			// Start background download for remaining segments
+			if (!backgroundDownloads.has(videoId)) {
+				const backgroundTask = (async () => {
+					try {
+						logger.debug(`Background: downloading remaining ${segmentUrls.length - initialSegmentCount} segments`);
+						const allSegmentPaths = [...initialSegmentPaths];
+
+						for (let i = initialSegmentCount; i < segmentUrls.length; i++) {
+							const segmentPath = `${tempDir}segment_${i.toString().padStart(4, '0')}.ts`;
+							const result = await FileSystem.downloadAsync(segmentUrls[i], segmentPath, {
+								headers: fetchHeaders,
+							});
+
+							if (result.status !== 200 && result.status !== 206) {
+								logger.warn(`Background: failed to download segment ${i}`);
+								continue; // Continue with other segments
+							}
+							allSegmentPaths.push(segmentPath);
+
+							if ((i + 1) % 20 === 0) {
+								logger.debug(`Background: downloaded ${i + 1}/${segmentUrls.length} segments`);
+							}
+						}
+
+						// Create full cached file
+						const fullSuccess = await concatenateSegmentsToFile(
+							initSegmentPath,
+							allSegmentPaths,
+							cachedFilePath
+						);
+
+						if (fullSuccess) {
+							logger.debug(`Background: full file cached: ${cachedFilePath}`);
+							// Clean up partial file
+							await FileSystem.deleteAsync(partialFilePath, { idempotent: true }).catch(() => {});
+						}
+
+						// Clean up temp segments
+						await FileSystem.deleteAsync(tempDir, { idempotent: true }).catch(() => {});
+					} catch (error) {
+						logger.warn(`Background download error: ${error instanceof Error ? error.message : String(error)}`);
+					} finally {
+						backgroundDownloads.delete(videoId);
+					}
+				})();
+
+				backgroundDownloads.set(videoId, backgroundTask);
+			}
+
+			return partialFilePath;
+		}
+
+		// Full download mode (for offline downloads or short tracks)
+		logger.debug('Full download mode: downloading all segments');
 		const segmentPaths: string[] = [];
 		for (let i = 0; i < segmentUrls.length; i++) {
 			const segmentPath = `${tempDir}segment_${i.toString().padStart(4, '0')}.ts`;
-			const result = await FileSystem.downloadAsync(segmentUrls[i], segmentPath);
+			const result = await FileSystem.downloadAsync(segmentUrls[i], segmentPath, {
+				headers: fetchHeaders,
+			});
 
 			if (result.status !== 200 && result.status !== 206) {
 				logger.warn(`Failed to download segment ${i}: ${result.status}`);
-				// Clean up and fail
 				await FileSystem.deleteAsync(tempDir, { idempotent: true }).catch(() => {});
 				return null;
 			}
@@ -189,43 +430,31 @@ async function downloadHlsToCache(manifestUrl: string, videoId: string): Promise
 
 		logger.debug('All segments downloaded, concatenating...');
 
-		// Concatenate all segments into final file
-		// Read all segments and write to final file
-		const chunks: string[] = [];
-
-		for (const segmentPath of segmentPaths) {
-			const content = await FileSystem.readAsStringAsync(segmentPath, {
-				encoding: FileSystem.EncodingType.Base64,
-			});
-			chunks.push(content);
-		}
-
-		// Write concatenated file
-		await FileSystem.writeAsStringAsync(cachedFilePath, chunks.join(''), {
-			encoding: FileSystem.EncodingType.Base64,
-		});
+		const success = await concatenateSegmentsToFile(initSegmentPath, segmentPaths, cachedFilePath);
 
 		// Clean up temp segments
 		await FileSystem.deleteAsync(tempDir, { idempotent: true }).catch(() => {});
 
-		// Verify file
-		const finalInfo = await FileSystem.getInfoAsync(cachedFilePath);
-		if (!finalInfo.exists || !('size' in finalInfo) || (finalInfo.size as number) < 10000) {
-			logger.warn('Concatenated file is too small or missing');
+		if (!success) {
+			logger.warn('Failed to create cached file');
 			await FileSystem.deleteAsync(cachedFilePath, { idempotent: true }).catch(() => {});
 			return null;
 		}
 
-		logger.debug(`HLS download complete: ${cachedFilePath} (${finalInfo.size} bytes)`);
+		logger.debug(`HLS download complete: ${cachedFilePath}`);
 		return cachedFilePath;
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
 		logger.warn(`HLS download failed: ${message}`);
-		// Clean up
 		await FileSystem.deleteAsync(tempDir, { idempotent: true }).catch(() => {});
 		await FileSystem.deleteAsync(cachedFilePath, { idempotent: true }).catch(() => {});
 		return null;
 	}
+}
+
+interface AdaptiveFormatResult {
+	stream: AudioStream;
+	contentLength?: number;
 }
 
 async function tryAdaptiveFormat(
@@ -233,58 +462,79 @@ async function tryAdaptiveFormat(
 	videoId: string,
 	quality: string,
 	clientType: 'TV' | 'IOS' | 'ANDROID' = 'TV'
-): Promise<AudioStream | null> {
+): Promise<AdaptiveFormatResult | null> {
 	try {
-		logger.debug(`Trying adaptive format with ${clientType} client...`);
+		logger.debug(`[Adaptive] Trying ${clientType} client for video: ${videoId}`);
 		const videoInfo = await client.getInfo(videoId, { client: clientType });
+		logger.debug(`[Adaptive] Got videoInfo from ${clientType}`);
 
 		if (!videoInfo.streaming_data) {
-			logger.debug(`No streaming_data available from ${clientType} client`);
+			logger.warn(`[Adaptive] No streaming_data from ${clientType} client`);
 			return null;
 		}
 
+		logger.debug(`[Adaptive] streaming_data exists, choosing format...`);
 		const format = videoInfo.chooseFormat({ type: 'audio', quality: 'best' });
 
 		if (!format) {
-			logger.debug(`No audio format found from ${clientType} client`);
+			logger.warn(`[Adaptive] No audio format found from ${clientType} client`);
 			return null;
 		}
 
+		// Extract actual format from mime type (e.g., "audio/mp4" -> "m4a", "audio/webm" -> "webm")
+		const mimeType = format.mime_type ?? 'audio/mp4';
+		let audioFormat: 'm4a' | 'mp3' | 'webm' | 'ogg' | 'flac' | 'wav' = 'm4a';
+		if (mimeType.includes('webm')) {
+			audioFormat = 'webm';
+		} else if (mimeType.includes('ogg')) {
+			audioFormat = 'ogg';
+		}
+
+		// Get content length for download verification
+		const contentLength = format.content_length ? Number(format.content_length) : undefined;
+
 		logger.debug(
-			`Found format: itag=${format.itag}, mime=${format.mime_type}, bitrate=${format.bitrate}`
+			`[Adaptive] Found format: itag=${format.itag}, mime=${mimeType}, ` +
+				`bitrate=${format.bitrate}, contentLength=${contentLength ?? 'unknown'}`
 		);
 
 		// Try to get URL - some formats have direct URL, others need deciphering
 		let url: string | undefined;
 
 		if (format.url) {
-			logger.debug('Format has direct URL');
+			logger.debug('[Adaptive] Format has direct URL');
 			url = format.url;
 		} else if (format.decipher) {
-			logger.debug('Deciphering URL...');
+			logger.debug('[Adaptive] Deciphering URL...');
 			url = await format.decipher(client.session.player);
+			logger.debug('[Adaptive] Decipher complete');
+		} else {
+			logger.warn('[Adaptive] Format has no URL and no decipher method');
 		}
 
 		if (url) {
-			logger.debug(`Got URL for ${clientType} client (length: ${url.length})`);
-			return createAudioStream({
-				url,
-				format: 'm4a',
-				quality: quality as 'low' | 'medium' | 'high',
-				headers: {
-					Accept: '*/*',
-					Origin: 'https://www.youtube.com',
-					Referer: 'https://www.youtube.com/',
-					'User-Agent': 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version',
-					Range: 'bytes=0-',
-				},
-			});
+			logger.debug(`[Adaptive] Got URL from ${clientType} (length: ${url.length})`);
+			return {
+				stream: createAudioStream({
+					url,
+					format: audioFormat,
+					quality: quality as 'low' | 'medium' | 'high',
+					// No Range header for downloads - we want the complete file with proper metadata
+					headers: {
+						Accept: '*/*',
+						Origin: 'https://www.youtube.com',
+						Referer: 'https://www.youtube.com/',
+						'User-Agent': 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version',
+					},
+				}),
+				contentLength,
+			};
 		}
 
-		logger.debug(`Failed to get URL from ${clientType} client`);
+		logger.warn(`[Adaptive] Failed to get URL from ${clientType} client`);
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
-		logger.debug(`Adaptive format error with ${clientType} client: ${message}`);
+		logger.error(`[Adaptive] Error with ${clientType} client: ${message}`);
 	}
 	return null;
 }
@@ -306,18 +556,28 @@ export function createStreamingOperations(clientManager: ClientManager): Streami
 
 				logger.debug('Getting stream URL for video:', videoId);
 
-				const cachedPath = await checkCache(videoId);
-				if (cachedPath) {
-					return ok(
-						createAudioStream({
-							url: cachedPath,
-							format: 'm4a',
-							quality,
-						})
-					);
+				// Only use cache for downloads (preferDownloadable), not for streaming
+				// Cached files from HLS downloads are fMP4 which don't support seeking
+				// For streaming, we use HLS directly which supports seeking natively
+				if (preferDownloadable) {
+					const cachedPath = await checkCache(videoId);
+					if (cachedPath) {
+						return ok(
+							createAudioStream({
+								url: cachedPath,
+								format: 'm4a',
+								quality,
+							})
+						);
+					}
 				}
 
 				const client = await clientManager.createFreshClient();
+				const cookies = await clientManager.getCookies();
+
+				if (cookies) {
+					logger.debug('Using authenticated download with cookies');
+				}
 
 				// When preferDownloadable is set (for downloads), try adaptive format first
 				// HLS manifests can't be saved as files, so we need direct URLs for downloads
@@ -327,32 +587,49 @@ export function createStreamingOperations(clientManager: ClientManager): Streami
 					// Try multiple client types for better compatibility
 					const clientTypes: ('TV' | 'ANDROID' | 'IOS')[] = ['TV', 'ANDROID', 'IOS'];
 					for (const clientType of clientTypes) {
-						const adaptiveStream = await tryAdaptiveFormat(
+						const adaptiveResult = await tryAdaptiveFormat(
 							client,
 							videoId,
 							quality,
 							clientType
 						);
-						if (adaptiveStream) {
+						if (adaptiveResult) {
+							const { stream: adaptiveStream, contentLength } = adaptiveResult;
 							// Try to download and cache the file for reliability
-							logger.debug('Attempting to cache downloaded audio...');
+							logger.debug(
+								`Attempting to cache downloaded audio (expected: ${contentLength ?? 'unknown'} bytes)...`
+							);
 							const cachedFile = await downloadToCache(
 								adaptiveStream.url,
 								videoId,
-								adaptiveStream.headers
+								adaptiveStream.headers,
+								cookies,
+								contentLength
 							);
 							if (cachedFile) {
 								return ok(
 									createAudioStream({
 										url: cachedFile,
-										format: 'm4a',
+										format: adaptiveStream.format,
 										quality,
 									})
 								);
 							}
-							// If caching failed, still return the stream URL
+							// If caching failed, return stream URL with cookies for download manager
 							logger.debug('Caching failed, returning stream URL directly');
-							return ok(adaptiveStream);
+							const headersWithCookies = { ...adaptiveStream.headers };
+							if (cookies) {
+								headersWithCookies['Cookie'] = cookies;
+								logger.debug('Including cookies in stream headers for download');
+							}
+							return ok(
+								createAudioStream({
+									url: adaptiveStream.url,
+									format: adaptiveStream.format,
+									quality: adaptiveStream.quality,
+									headers: headersWithCookies,
+								})
+							);
 						}
 					}
 
@@ -364,12 +641,12 @@ export function createStreamingOperations(clientManager: ClientManager): Streami
 
 					if (hlsUrl) {
 						logger.debug('Found HLS manifest, downloading segments...');
-						const cachedFile = await downloadHlsToCache(hlsUrl, videoId);
+						const cachedFile = await downloadHlsToCache(hlsUrl, videoId, cookies);
 						if (cachedFile) {
 							return ok(
 								createAudioStream({
 									url: cachedFile,
-									format: 'aac',
+									format: 'm4a',
 									quality,
 								})
 							);
@@ -381,49 +658,75 @@ export function createStreamingOperations(clientManager: ClientManager): Streami
 					return err(new Error('No downloadable audio format available for this track'));
 				}
 
-				// For streaming playback, prefer HLS as it handles adaptive bitrate better
-				logger.debug('Trying IOS client for HLS stream...');
-				const iosHls = await tryHlsStream(client, videoId, 'IOS');
-				if (iosHls) {
-					logger.debug('Found HLS manifest from IOS client');
-					return ok(
-						createAudioStream({
-							url: iosHls,
-							format: 'aac',
-							quality,
-						})
-					);
-				}
+				// For streaming playback, try adaptive formats first (better quality, seekable)
+				// When authenticated, we cache to local file since RNTP can't forward cookies
+				logger.debug('Streaming playback: trying adaptive formats first...');
 
-				logger.debug('Trying TV client...');
-				const tvHls = await tryHlsStream(client, videoId, 'TV');
-				if (tvHls) {
-					logger.debug('Found HLS manifest from TV client');
-					return ok(
-						createAudioStream({
-							url: tvHls,
-							format: 'aac',
-							quality,
-						})
-					);
-				}
-
-				// Fallback: try adaptive format and cache it
-				const fallbackClients: ('TV' | 'ANDROID' | 'IOS')[] = ['TV', 'ANDROID', 'IOS'];
-				for (const clientType of fallbackClients) {
-					const adaptiveStream = await tryAdaptiveFormat(
+				const playbackClients: ('TV' | 'ANDROID' | 'IOS')[] = ['TV', 'ANDROID', 'IOS'];
+				for (const clientType of playbackClients) {
+					const adaptiveResult = await tryAdaptiveFormat(
 						client,
 						videoId,
 						quality,
 						clientType
 					);
-					if (adaptiveStream) {
-						const cachedFile = await downloadToCache(
-							adaptiveStream.url,
-							videoId,
-							adaptiveStream.headers
-						);
+					if (adaptiveResult) {
+						const { stream: adaptiveStream, contentLength } = adaptiveResult;
+
+						// When authenticated, cache to avoid header forwarding issues
+						if (cookies) {
+							logger.debug(
+								`Got adaptive stream from ${clientType}, caching (expected: ${contentLength ?? 'unknown'} bytes)...`
+							);
+							const cachedFile = await downloadToCache(
+								adaptiveStream.url,
+								videoId,
+								adaptiveStream.headers,
+								cookies,
+								contentLength
+							);
+							if (cachedFile) {
+								logger.debug('Audio cached successfully for playback');
+								return ok(
+									createAudioStream({
+										url: cachedFile,
+										format: adaptiveStream.format,
+										quality,
+									})
+								);
+							}
+						} else {
+							// Unauthenticated: try direct URL (may work for some content)
+							logger.debug(
+								`Got adaptive stream from ${clientType}, trying direct playback...`
+							);
+							return ok(
+								createAudioStream({
+									url: adaptiveStream.url,
+									format: adaptiveStream.format,
+									quality,
+									headers: adaptiveStream.headers,
+								})
+							);
+						}
+					}
+				}
+				logger.debug('Adaptive formats failed, trying HLS...');
+
+				// Try HLS streaming
+				logger.debug('Trying HLS streaming...');
+				const hlsUrl =
+					(await tryHlsStream(client, videoId, 'IOS')) ||
+					(await tryHlsStream(client, videoId, 'TV'));
+
+				if (hlsUrl) {
+					// When authenticated, HLS segments require cookies but RNTP can't forward
+					// headers to segment requests. Cache the audio for reliable playback.
+					if (cookies) {
+						logger.debug('Authenticated user: caching HLS for reliable playback...');
+						const cachedFile = await downloadHlsToCache(hlsUrl, videoId, cookies, true);
 						if (cachedFile) {
+							logger.debug('HLS cached successfully for playback');
 							return ok(
 								createAudioStream({
 									url: cachedFile,
@@ -432,12 +735,33 @@ export function createStreamingOperations(clientManager: ClientManager): Streami
 								})
 							);
 						}
+						logger.debug('HLS caching failed, trying direct HLS as fallback...');
 					}
+
+					// Unauthenticated or caching failed: try direct HLS
+					// Native player handles HLS natively with seeking support
+					logger.debug('Using direct HLS streaming (native player support)');
+					const playbackHeaders: Record<string, string> = {
+						Accept: '*/*',
+						Origin: 'https://www.youtube.com',
+						Referer: 'https://www.youtube.com/',
+						'User-Agent': 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version',
+					};
+					if (cookies) {
+						playbackHeaders['Cookie'] = cookies;
+					}
+					return ok(
+						createAudioStream({
+							url: hlsUrl,
+							format: 'hls',
+							quality,
+							headers: playbackHeaders,
+						})
+					);
 				}
 
-				return err(
-					new Error('No streaming data available - HLS and adaptive formats failed')
-				);
+				// Nothing worked
+				return err(new Error('No streaming data available - all format attempts failed'));
 			} catch (error) {
 				logger.error('getStreamUrl error', error instanceof Error ? error : undefined);
 				return err(

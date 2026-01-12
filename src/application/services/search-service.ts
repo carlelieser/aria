@@ -1,16 +1,12 @@
-import type { Track } from '../../domain/entities/track';
-import type { Album } from '../../domain/entities/album';
-import type {
-	MetadataProvider,
-	SearchOptions,
-} from '../../plugins/core/interfaces/metadata-provider';
+import type { Track, Album } from '@/src/domain';
+import type { MetadataProvider, SearchOptions } from '@plugins/core';
 import {
 	useSearchStore,
 	type SearchSuggestion,
 	type SearchResults as AppSearchResults,
 } from '../state/search-store';
-import { ok, err, type Result } from '../../shared/types/result';
-import { getLogger } from '../../shared/services/logger';
+import { ok, err, type Result } from '@/src/shared';
+import { getLogger } from '@shared/services/logger';
 
 const logger = getLogger('SearchService');
 
@@ -27,6 +23,10 @@ export class SearchService {
 	private pendingSearches = new Map<string, Promise<Result<AppSearchResults, Error>>>();
 
 	private searchCache = new Map<string, CacheEntry>();
+
+	private _currentAbortController: AbortController | null = null;
+
+	private _searchVersion = 0;
 
 	setMetadataProviders(providers: MetadataProvider[]): void {
 		this.metadataProviders = providers;
@@ -54,6 +54,13 @@ export class SearchService {
 	}
 
 	async search(query: string, options?: SearchOptions): Promise<Result<AppSearchResults, Error>> {
+		this._cancelCurrentSearch();
+
+		const abortController = new AbortController();
+		this._currentAbortController = abortController;
+		this._searchVersion++;
+		const searchVersion = this._searchVersion;
+
 		const store = useSearchStore.getState();
 		const cacheKey = this._getCacheKey(query, options);
 
@@ -71,7 +78,17 @@ export class SearchService {
 			return pendingSearch;
 		}
 
-		const searchPromise = this._executeSearch(query, options, cacheKey);
+		const optionsWithSignal: SearchOptions = {
+			...options,
+			signal: abortController.signal,
+		};
+
+		const searchPromise = this._executeSearch(
+			query,
+			optionsWithSignal,
+			cacheKey,
+			searchVersion
+		);
 		this.pendingSearches.set(cacheKey, searchPromise);
 
 		try {
@@ -81,20 +98,40 @@ export class SearchService {
 		}
 	}
 
+	cancelSearch(): void {
+		this._cancelCurrentSearch();
+	}
+
+	private _cancelCurrentSearch(): void {
+		if (this._currentAbortController) {
+			this._currentAbortController.abort();
+			this._currentAbortController = null;
+			logger.debug('Cancelled previous search');
+		}
+	}
+
 	private _getCacheKey(query: string, options?: SearchOptions): string {
 		const normalizedQuery = query.trim().toLowerCase();
-		const optionsKey = options ? JSON.stringify(options) : '';
+		if (!options) {
+			return normalizedQuery;
+		}
+		const { signal: _signal, ...cacheableOptions } = options;
+		const optionsKey =
+			Object.keys(cacheableOptions).length > 0 ? JSON.stringify(cacheableOptions) : '';
 		return `${normalizedQuery}:${optionsKey}`;
 	}
 
 	private async _executeSearch(
 		query: string,
 		options: SearchOptions | undefined,
-		cacheKey: string
+		cacheKey: string,
+		searchVersion: number
 	): Promise<Result<AppSearchResults, Error>> {
 		const store = useSearchStore.getState();
 		store.setSearching(true);
 		store.setQuery(query);
+
+		const signal = options?.signal;
 
 		if (this.metadataProviders.length === 0) {
 			const error = new Error('No metadata providers available');
@@ -104,6 +141,10 @@ export class SearchService {
 
 		try {
 			const searchPromises = this.metadataProviders.map(async (provider) => {
+				if (signal?.aborted) {
+					return { tracks: [], albums: [], artists: [] };
+				}
+
 				try {
 					const [tracksResult, albumsResult, artistsResult] = await Promise.all([
 						provider.searchTracks(query, options),
@@ -111,12 +152,19 @@ export class SearchService {
 						provider.searchArtists(query, options),
 					]);
 
+					if (signal?.aborted) {
+						return { tracks: [], albums: [], artists: [] };
+					}
+
 					return {
 						tracks: tracksResult.success ? tracksResult.data.items : [],
 						albums: albumsResult.success ? albumsResult.data.items : [],
 						artists: artistsResult.success ? artistsResult.data.items : [],
 					};
 				} catch (error) {
+					if (signal?.aborted) {
+						return { tracks: [], albums: [], artists: [] };
+					}
 					logger.warn(
 						`Search failed for provider ${provider.manifest.id}`,
 						error instanceof Error ? error : undefined
@@ -126,6 +174,11 @@ export class SearchService {
 			});
 
 			const results = await Promise.all(searchPromises);
+
+			if (signal?.aborted || searchVersion !== this._searchVersion) {
+				logger.debug(`Search for "${query}" was cancelled or superseded`);
+				return err(new Error('Search cancelled'));
+			}
 
 			const aggregated: AppSearchResults = {
 				tracks: [],
@@ -148,11 +201,19 @@ export class SearchService {
 				timestamp: Date.now(),
 			});
 
+			if (searchVersion !== this._searchVersion) {
+				logger.debug(`Search for "${query}" superseded, not updating store`);
+				return ok(aggregated);
+			}
+
 			store.setResults(aggregated);
 			store.addRecentSearch(query);
 
 			return ok(aggregated);
 		} catch (error) {
+			if (signal?.aborted || searchVersion !== this._searchVersion) {
+				return err(new Error('Search cancelled'));
+			}
 			const errorMessage = error instanceof Error ? error.message : 'Search failed';
 			store.setError(errorMessage);
 			return err(error instanceof Error ? error : new Error(errorMessage));

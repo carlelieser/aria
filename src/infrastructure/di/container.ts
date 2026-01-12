@@ -1,8 +1,8 @@
-import { container, ServiceKeys } from '../../shared/di/container';
-import { asyncStorageRepository } from '../storage/async-storage-repository';
-import { expoAudioPlaybackProvider } from '../../plugins/playback/expo-av';
-import { localFilesProvider } from '../../plugins/metadata/local-files';
-import { getLogger } from '../../shared/services/logger';
+import { container, ServiceKeys } from '@shared/di';
+import { asyncStorageRepository } from '@/src/infrastructure';
+import { rntpPlaybackProvider } from '@plugins/playback/react-native-track-player';
+import { localFilesProvider } from '@plugins/metadata/local-files';
+import { getLogger } from '@shared/services/logger';
 
 const playbackLogger = getLogger('PlaybackProvider');
 const metadataLogger = getLogger('MetadataProvider');
@@ -10,8 +10,8 @@ const metadataLogger = getLogger('MetadataProvider');
 export async function initializeContainer(): Promise<void> {
 	container.registerInstance(ServiceKeys.STORAGE_REPOSITORY, asyncStorageRepository);
 
-	const playbackInitResult = await expoAudioPlaybackProvider.onInit({
-		manifest: expoAudioPlaybackProvider.manifest,
+	const playbackInitResult = await rntpPlaybackProvider.onInit({
+		manifest: rntpPlaybackProvider.manifest,
 		eventBus: {
 			emit: () => {},
 			on: () => () => {},
@@ -28,7 +28,7 @@ export async function initializeContainer(): Promise<void> {
 		);
 	}
 
-	container.registerInstance('PlaybackProvider', expoAudioPlaybackProvider);
+	container.registerInstance('PlaybackProvider', rntpPlaybackProvider);
 
 	const localFilesInitResult = await localFilesProvider.onInit({
 		manifest: localFilesProvider.manifest,
@@ -53,8 +53,7 @@ export async function initializeContainer(): Promise<void> {
 
 export async function disposeContainer(): Promise<void> {
 	if (container.has('PlaybackProvider')) {
-		const playbackProvider =
-			container.resolve<typeof expoAudioPlaybackProvider>('PlaybackProvider');
+		const playbackProvider = container.resolve<typeof rntpPlaybackProvider>('PlaybackProvider');
 		await playbackProvider.onDestroy();
 	}
 
@@ -73,7 +72,7 @@ export function getStorageRepository() {
 }
 
 export function getPlaybackProvider() {
-	return container.resolve<typeof expoAudioPlaybackProvider>('PlaybackProvider');
+	return container.resolve<typeof rntpPlaybackProvider>('PlaybackProvider');
 }
 
 export function getMetadataProvider(providerId: string) {

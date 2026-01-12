@@ -1,11 +1,14 @@
 import { useCallback } from 'react';
 import type { Track } from '@/src/domain/entities/track';
 import { downloadService } from '@/src/application/services/download-service';
+import { useDownloadStore } from '@/src/application/state/download-store';
 import { useToast } from '@/hooks/use-toast';
 
 interface UseDownloadActionsResult {
 	startDownload: (track: Track) => Promise<void>;
+	retryDownload: (track: Track) => Promise<void>;
 	removeDownload: (trackId: string) => Promise<void>;
+	clearFailedDownload: (trackId: string) => void;
 	verifyDownload: (trackId: string) => Promise<boolean>;
 	isDownloaded: (trackId: string) => boolean;
 	isDownloading: (trackId: string) => boolean;
@@ -13,6 +16,10 @@ interface UseDownloadActionsResult {
 
 export function useDownloadActions(): UseDownloadActionsResult {
 	const { success, error } = useToast();
+
+	const clearFailedDownload = useCallback((trackId: string) => {
+		useDownloadStore.getState().removeDownload(trackId);
+	}, []);
 
 	const startDownload = useCallback(
 		async (track: Track) => {
@@ -23,6 +30,18 @@ export function useDownloadActions(): UseDownloadActionsResult {
 			}
 		},
 		[error]
+	);
+
+	const retryDownload = useCallback(
+		async (track: Track) => {
+			clearFailedDownload(track.id.value);
+			const result = await downloadService.downloadTrack(track);
+
+			if (!result.success) {
+				error('Download failed', result.error.message);
+			}
+		},
+		[clearFailedDownload, error]
 	);
 
 	const removeDownload = useCallback(
@@ -52,7 +71,9 @@ export function useDownloadActions(): UseDownloadActionsResult {
 
 	return {
 		startDownload,
+		retryDownload,
 		removeDownload,
+		clearFailedDownload,
 		verifyDownload,
 		isDownloaded,
 		isDownloading,

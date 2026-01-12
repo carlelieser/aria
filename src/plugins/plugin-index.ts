@@ -16,7 +16,7 @@ import { PLUGIN_MANIFEST as CORE_LIBRARY_MANIFEST } from './library/core-library
 import { PLUGIN_MANIFEST as YOUTUBE_MUSIC_MANIFEST } from './metadata/youtube-music/config';
 import { PLUGIN_MANIFEST as SPOTIFY_MANIFEST } from './metadata/spotify/config';
 import { PLUGIN_MANIFEST as LOCAL_LIBRARY_MANIFEST } from './metadata/local-library/config';
-import { PLUGIN_MANIFEST as EXPO_AUDIO_MANIFEST } from './playback/expo-av/config';
+import { PLUGIN_MANIFEST as RNTP_MANIFEST } from './playback/react-native-track-player/config';
 import { PLUGIN_MANIFEST as DASH_MANIFEST } from './playback/dash/config';
 
 /**
@@ -69,10 +69,11 @@ export const PLUGIN_ENTRIES: PluginManifestEntry[] = [
 
 	// Playback Providers
 	{
-		manifest: EXPO_AUDIO_MANIFEST,
+		manifest: RNTP_MANIFEST,
 		load: async () => {
-			const { ExpoAudioPluginModule } = await import('./playback/expo-av/plugin-module');
-			return ExpoAudioPluginModule;
+			const { RNTPPluginModule } =
+				await import('./playback/react-native-track-player/plugin-module');
+			return RNTPPluginModule;
 		},
 		isBuiltIn: true,
 	},

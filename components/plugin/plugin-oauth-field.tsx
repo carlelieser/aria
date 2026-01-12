@@ -68,21 +68,13 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 
 		const checkAuthStatus = async () => {
 			const plugin = getPlugin();
-			console.log(
-				'[PluginOAuthField] plugin:',
-				plugin?.manifest.id,
-				'status:',
-				plugin?.status
-			);
 
 			if (!plugin) {
-				console.log('[PluginOAuthField] No plugin found');
 				setIsLoading(false);
 				return;
 			}
 
 			const authenticated = await plugin.checkAuthentication();
-			console.log('[PluginOAuthField] authenticated:', authenticated);
 
 			if (!cancelled) {
 				setIsAuthenticated(authenticated);

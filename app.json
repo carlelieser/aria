@@ -10,7 +10,10 @@
 		"newArchEnabled": true,
 		"ios": {
 			"supportsTablet": true,
-			"bundleIdentifier": "com.aria.player"
+			"bundleIdentifier": "com.aria.player",
+			"infoPlist": {
+				"UIBackgroundModes": ["audio"]
+			}
 		},
 		"android": {
 			"package": "com.aria.player",
@@ -41,7 +44,7 @@
 					}
 				}
 			],
-			"expo-audio",
+			"./plugins/withTrackPlayer",
 			[
 				"expo-video",
 				{

@@ -1,10 +1,3 @@
-/**
- * DownloadsScreen
- *
- * Manage downloaded tracks.
- * Uses M3 theming.
- */
-
 import { useState, useMemo, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
@@ -17,6 +10,7 @@ import { TrackListItem } from '@/components/track-list-item';
 import { SelectableTrackListItem } from '@/components/selectable-track-list-item';
 import { BatchActionBar } from '@/components/batch-action-bar';
 import { useDownloadQueue, formatFileSize } from '@/hooks/use-download-queue';
+import { useDownloadActions } from '@/hooks/use-download-actions';
 import { useDownloadStore } from '@/src/application/state/download-store';
 import { clearAllDownloads } from '@/src/infrastructure/filesystem/download-manager';
 import { useToast } from '@/hooks/use-toast';
@@ -25,6 +19,9 @@ import { useBatchActions } from '@/hooks/use-batch-actions';
 import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
 import { createTrackFromDownloadInfo } from '@/src/domain/utils/create-track-from-download';
+
+const BATCH_ACTION_BAR_PADDING = 120;
+const DEFAULT_CONTENT_PADDING = 20;
 
 type TabType = 'active' | 'completed' | 'failed';
 
@@ -35,6 +32,7 @@ export default function DownloadsScreen() {
 	const { colors } = useAppTheme();
 
 	const { activeDownloads, completedDownloads, failedDownloads, stats } = useDownloadQueue();
+	const { retryDownload } = useDownloadActions();
 
 	const {
 		isSelectionMode,
@@ -91,6 +89,13 @@ export default function DownloadsScreen() {
 			}
 		},
 		[selectedTab, enterSelectionMode]
+	);
+
+	const handleRetry = useCallback(
+		(track: Track) => {
+			retryDownload(track);
+		},
+		[retryDownload]
 	);
 
 	const handleSelectionToggle = useCallback(
@@ -211,12 +216,20 @@ export default function DownloadsScreen() {
 							}
 
 							return (
-								<TrackListItem track={track} downloadInfo={item} hideOptionsMenu />
+								<TrackListItem
+									track={track}
+									downloadInfo={item}
+									hideOptionsMenu
+									onRetry={item.status === 'failed' ? handleRetry : undefined}
+								/>
 							);
 						}}
 						showsVerticalScrollIndicator={false}
 						contentContainerStyle={{
-							paddingBottom: isSelectionMode && isCompletedTab ? 120 : 20,
+							paddingBottom:
+								isSelectionMode && isCompletedTab
+									? BATCH_ACTION_BAR_PADDING
+									: DEFAULT_CONTENT_PADDING,
 						}}
 						extraData={isSelectionMode ? selectedTrackIds : undefined}
 					/>

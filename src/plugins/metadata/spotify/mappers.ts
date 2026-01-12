@@ -8,6 +8,7 @@ import { Duration } from '@domain/value-objects/duration';
 import { createArtwork, type Artwork } from '@domain/value-objects/artwork';
 import { createStreamingSource } from '@domain/value-objects/audio-source';
 import { createTrack } from '@domain/entities/track';
+import { UNKNOWN_ARTIST, mapAndFilter, mapAndFilterWithIndex } from '@shared/mappers';
 import type {
 	SpotifyTrack,
 	SpotifySimplifiedTrack,
@@ -41,7 +42,7 @@ export function mapSpotifyArtistReference(artist: SpotifySimplifiedArtist): Arti
 
 export function mapSpotifyArtistReferences(artists?: SpotifySimplifiedArtist[]): ArtistReference[] {
 	if (!artists || artists.length === 0) {
-		return [{ id: 'unknown', name: 'Unknown Artist' }];
+		return [UNKNOWN_ARTIST];
 	}
 
 	return artists.map(mapSpotifyArtistReference);
@@ -106,17 +107,6 @@ export function mapSpotifySimplifiedTrack(
 export function mapSpotifyTrack(track: SpotifyTrack): Track | null {
 	if (!track.id || !track.name) {
 		return null;
-	}
-
-	// Debug: Log album data to understand missing artwork
-	if (!track.album?.images || track.album.images.length === 0) {
-		console.log('[SpotifyMapper] Track missing album images:', {
-			trackId: track.id,
-			trackName: track.name,
-			hasAlbum: !!track.album,
-			albumName: track.album?.name,
-			images: track.album?.images,
-		});
 	}
 
 	const trackId = TrackId.create('spotify', track.id);
@@ -277,9 +267,7 @@ export function mapSpotifyPlaylist(playlist: SpotifyPlaylist): Playlist | null {
 	}
 
 	const artwork = mapSpotifyImages(playlist.images);
-	const tracks: PlaylistTrack[] = playlist.tracks.items
-		.map((item, index) => mapSpotifyPlaylistTrack(item, index))
-		.filter((t): t is PlaylistTrack => t !== null);
+	const tracks: PlaylistTrack[] = mapAndFilterWithIndex(playlist.tracks.items, mapSpotifyPlaylistTrack);
 
 	return {
 		id: playlist.id,
@@ -296,23 +284,21 @@ export function mapSpotifyPlaylist(playlist: SpotifyPlaylist): Playlist | null {
 }
 
 export function mapSpotifyTracks(tracks: SpotifyTrack[]): Track[] {
-	return tracks.map(mapSpotifyTrack).filter((track): track is Track => track !== null);
+	return mapAndFilter(tracks, mapSpotifyTrack);
 }
 
 export function mapSpotifySavedTracks(tracks: SpotifySavedTrack[]): Track[] {
-	return tracks.map(mapSpotifySavedTrack).filter((track): track is Track => track !== null);
+	return mapAndFilter(tracks, mapSpotifySavedTrack);
 }
 
 export function mapSpotifySimplifiedAlbums(albums: SpotifySimplifiedAlbum[]): Album[] {
-	return albums.map(mapSpotifySimplifiedAlbum).filter((album): album is Album => album !== null);
+	return mapAndFilter(albums, mapSpotifySimplifiedAlbum);
 }
 
 export function mapSpotifyArtists(artists: SpotifyArtist[]): Artist[] {
-	return artists.map(mapSpotifyArtist).filter((artist): artist is Artist => artist !== null);
+	return mapAndFilter(artists, mapSpotifyArtist);
 }
 
 export function mapSpotifySimplifiedPlaylists(playlists: SpotifySimplifiedPlaylist[]): Playlist[] {
-	return playlists
-		.map(mapSpotifySimplifiedPlaylist)
-		.filter((playlist): playlist is Playlist => playlist !== null);
+	return mapAndFilter(playlists, mapSpotifySimplifiedPlaylist);
 }

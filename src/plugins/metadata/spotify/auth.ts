@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BaseAuthManager, type BaseAuthState } from '@shared/auth';
 import type { Result } from '@shared/types/result';
 import { ok, err } from '@shared/types/result';
 
@@ -19,19 +19,54 @@ interface SpotifyWebTokenResponse {
 	readonly clientId: string;
 }
 
-export interface AuthState {
-	readonly isAuthenticated: boolean;
+export interface AuthState extends BaseAuthState {
 	readonly accessToken: string | null;
 	readonly expiresAt: number | null;
 }
 
-export class SpotifyAuthManager {
+export class SpotifyAuthManager extends BaseAuthManager<StoredAuth, AuthState> {
 	private spDcCookie: string | null = null;
 	private accessToken: string | null = null;
 	private expiresAt: number | null = null;
 
-	getLoginUrl(): string {
-		return 'https://accounts.spotify.com/login';
+	constructor() {
+		super({
+			storageKey: STORAGE_KEY,
+			loginUrl: 'https://accounts.spotify.com/login',
+		});
+	}
+
+	isAuthenticated(): boolean {
+		return this.spDcCookie !== null;
+	}
+
+	getAuthState(): AuthState {
+		return {
+			isAuthenticated: this.spDcCookie !== null,
+			accessToken: this.accessToken,
+			expiresAt: this.expiresAt,
+		};
+	}
+
+	protected clearCredentials(): void {
+		this.spDcCookie = null;
+		this.accessToken = null;
+		this.expiresAt = null;
+	}
+
+	protected serializeForStorage(): StoredAuth | null {
+		if (!this.spDcCookie) return null;
+		return {
+			spDcCookie: this.spDcCookie,
+			accessToken: this.accessToken ?? undefined,
+			expiresAt: this.expiresAt ?? undefined,
+		};
+	}
+
+	protected deserializeFromStorage(stored: StoredAuth): void {
+		this.spDcCookie = stored.spDcCookie;
+		this.accessToken = stored.accessToken ?? null;
+		this.expiresAt = stored.expiresAt ?? null;
 	}
 
 	async setSpDcCookie(cookie: string): Promise<Result<void, Error>> {
@@ -46,17 +81,12 @@ export class SpotifyAuthManager {
 			}
 
 			// Store the cookie
-			const storedAuth: StoredAuth = {
-				spDcCookie: cookie,
-				accessToken: this.accessToken ?? undefined,
-				expiresAt: this.expiresAt ?? undefined,
-			};
-			await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(storedAuth));
+			await this.persistCredentials();
 
 			return ok(undefined);
 		} catch (error) {
 			this.spDcCookie = null;
-			return err(error instanceof Error ? error : new Error(String(error)));
+			return err(this.wrapError(error));
 		}
 	}
 
@@ -111,78 +141,11 @@ export class SpotifyAuthManager {
 			this.expiresAt = data.accessTokenExpirationTimestampMs;
 
 			// Update stored auth with new token
-			const storedAuth: StoredAuth = {
-				spDcCookie: this.spDcCookie,
-				accessToken: this.accessToken,
-				expiresAt: this.expiresAt,
-			};
-			await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(storedAuth));
+			await this.persistCredentials();
 
 			return ok(this.accessToken);
 		} catch (error) {
-			return err(error instanceof Error ? error : new Error(String(error)));
-		}
-	}
-
-	getAuthState(): AuthState {
-		return {
-			isAuthenticated: this.spDcCookie !== null,
-			accessToken: this.accessToken,
-			expiresAt: this.expiresAt,
-		};
-	}
-
-	isAuthenticated(): boolean {
-		return this.spDcCookie !== null;
-	}
-
-	async checkAuthentication(): Promise<boolean> {
-		console.log(
-			'[SpotifyAuthManager] checkAuthentication - spDcCookie before:',
-			!!this.spDcCookie
-		);
-		if (!this.spDcCookie) {
-			const result = await this._loadStoredAuth();
-			console.log('[SpotifyAuthManager] loadStoredAuth result:', result);
-		}
-		console.log(
-			'[SpotifyAuthManager] checkAuthentication - spDcCookie after:',
-			!!this.spDcCookie
-		);
-		return this.spDcCookie !== null;
-	}
-
-	async loadStoredAuth(): Promise<Result<boolean, Error>> {
-		return this._loadStoredAuth();
-	}
-
-	async logout(): Promise<Result<void, Error>> {
-		try {
-			this.spDcCookie = null;
-			this.accessToken = null;
-			this.expiresAt = null;
-			await AsyncStorage.removeItem(STORAGE_KEY);
-			return ok(undefined);
-		} catch (error) {
-			return err(error instanceof Error ? error : new Error(String(error)));
-		}
-	}
-
-	private async _loadStoredAuth(): Promise<Result<boolean, Error>> {
-		try {
-			const stored = await AsyncStorage.getItem(STORAGE_KEY);
-			if (!stored) {
-				return ok(false);
-			}
-
-			const auth: StoredAuth = JSON.parse(stored);
-			this.spDcCookie = auth.spDcCookie;
-			this.accessToken = auth.accessToken ?? null;
-			this.expiresAt = auth.expiresAt ?? null;
-
-			return ok(true);
-		} catch (error) {
-			return err(error instanceof Error ? error : new Error(String(error)));
+			return err(this.wrapError(error));
 		}
 	}
 }
