@@ -25,6 +25,8 @@ export const DEFAULT_ENABLED_PLUGINS: string[] = [
  */
 export const REQUIRED_PLUGINS: string[] = ['expo-audio', 'core-library'];
 
+const EMPTY_CONFIG: PluginConfig = Object.freeze({} as PluginConfig);
+
 interface PluginSettingsState {
 	/** Set of enabled plugin IDs */
 	enabledPlugins: string[];
@@ -132,7 +134,7 @@ export const usePluginSettingsStore = create<PluginSettingsState>()(
 			},
 
 			getPluginConfig: (pluginId: string) => {
-				return get().pluginConfigs[pluginId] ?? {};
+				return get().pluginConfigs[pluginId] ?? EMPTY_CONFIG;
 			},
 
 			setPluginConfig: (pluginId: string, config: PluginConfig) => {
@@ -147,7 +149,7 @@ export const usePluginSettingsStore = create<PluginSettingsState>()(
 
 			updatePluginConfig: (pluginId: string, updates: Partial<PluginConfig>) => {
 				const { pluginConfigs } = get();
-				const existing = pluginConfigs[pluginId] ?? {};
+				const existing = pluginConfigs[pluginId] ?? EMPTY_CONFIG;
 				set({
 					pluginConfigs: {
 						...pluginConfigs,
@@ -192,7 +194,7 @@ export const useIsPluginEnabled = (pluginId: string) =>
 export const useTogglePlugin = () => usePluginSettingsStore((state) => state.togglePlugin);
 
 export const usePluginConfig = (pluginId: string) =>
-	usePluginSettingsStore((state) => state.pluginConfigs[pluginId] ?? {});
+	usePluginSettingsStore((state) => state.pluginConfigs[pluginId] ?? EMPTY_CONFIG);
 
 export const useSetPluginConfig = () => usePluginSettingsStore((state) => state.setPluginConfig);
 

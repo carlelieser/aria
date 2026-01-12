@@ -1,0 +1,165 @@
+# =============================================================================
+# Aria - Maestro Screenshot Flow
+# =============================================================================
+# This flow automates taking screenshots of the Aria app for store listings.
+#
+# Prerequisites:
+#   - Install Maestro: curl -Ls "https://get.maestro.mobile.dev" | bash
+#   - Android emulator running with app installed
+#
+# Usage:
+#   maestro test scripts/screenshots/screenshot-flow.yaml
+# =============================================================================
+
+appId: com.aria.player
+
+---
+
+# Stop and relaunch the app (don't clear state to preserve any setup)
+- stopApp
+- launchApp
+
+# Wait for app to fully initialize - look for bottom tab bar
+- extendedWaitUntil:
+    visible:
+      text: "Library"
+    timeout: 15000
+
+# -----------------------------------------------------------------------------
+# Step 1: Enable Screenshot Mode (load mock data)
+# -----------------------------------------------------------------------------
+
+- tapOn: "Settings"
+- assertVisible: "Settings"
+
+# Scroll to find Developer section
+- scroll
+- scroll
+
+# Tap Screenshot Mode to load mock data
+- tapOn:
+    text: "Screenshot Mode"
+    optional: true
+
+# Wait a moment for data to load
+- waitForAnimationToEnd
+
+# -----------------------------------------------------------------------------
+# Step 2: Library - Songs Tab
+# -----------------------------------------------------------------------------
+
+- tapOn: "Library"
+- waitForAnimationToEnd
+
+# Take screenshot of Songs tab (default view)
+- takeScreenshot: "01_library_songs"
+
+# -----------------------------------------------------------------------------
+# Step 3: Library - Albums Tab
+# -----------------------------------------------------------------------------
+
+- tapOn:
+    text: "Albums"
+- waitForAnimationToEnd
+- takeScreenshot: "02_library_albums"
+
+# -----------------------------------------------------------------------------
+# Step 4: Library - Artists Tab
+# -----------------------------------------------------------------------------
+
+- tapOn:
+    text: "Artists"
+- waitForAnimationToEnd
+- takeScreenshot: "03_library_artists"
+
+# -----------------------------------------------------------------------------
+# Step 5: Library - Playlists Tab
+# -----------------------------------------------------------------------------
+
+- tapOn:
+    text: "Playlists"
+- waitForAnimationToEnd
+- takeScreenshot: "04_library_playlists"
+
+# -----------------------------------------------------------------------------
+# Step 6: Playlist Detail Screen
+# -----------------------------------------------------------------------------
+
+- tapOn:
+    text: "Chill Vibes"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "05_playlist_detail"
+- back
+
+# -----------------------------------------------------------------------------
+# Step 7: Explore Screen
+# -----------------------------------------------------------------------------
+
+- tapOn: "Explore"
+- waitForAnimationToEnd
+- takeScreenshot: "06_explore"
+
+# -----------------------------------------------------------------------------
+# Step 8: Downloads Screen
+# -----------------------------------------------------------------------------
+
+- tapOn: "Downloads"
+- waitForAnimationToEnd
+- takeScreenshot: "07_downloads"
+
+# -----------------------------------------------------------------------------
+# Step 9: Settings Screen
+# -----------------------------------------------------------------------------
+
+- tapOn: "Settings"
+- waitForAnimationToEnd
+- takeScreenshot: "08_settings"
+
+# -----------------------------------------------------------------------------
+# Step 10: Player Screen - Play a track first
+# -----------------------------------------------------------------------------
+
+- tapOn: "Library"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Songs"
+
+# Tap on a track to start playing
+- tapOn:
+    text: "City Lights"
+    optional: true
+- waitForAnimationToEnd
+
+- takeScreenshot: "09_player"
+
+# Close player
+- back
+- waitForAnimationToEnd
+
+# -----------------------------------------------------------------------------
+# Step 11: Album Detail Screen
+# -----------------------------------------------------------------------------
+
+- tapOn:
+    text: "Albums"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Neon Nights"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "10_album_detail"
+- back
+
+# -----------------------------------------------------------------------------
+# Step 12: Artist Detail Screen
+# -----------------------------------------------------------------------------
+
+- tapOn:
+    text: "Artists"
+- waitForAnimationToEnd
+- tapOn:
+    text: "The Midnight Echo"
+    optional: true
+- waitForAnimationToEnd
+- takeScreenshot: "11_artist_detail"

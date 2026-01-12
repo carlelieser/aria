@@ -201,13 +201,7 @@ export default function SettingsScreen() {
 
 	return (
 		<PageLayout header={{ icon: SettingsIcon, title: 'Settings' }}>
-			<ScrollView
-				style={styles.scrollView}
-				contentContainerStyle={[
-					styles.scrollContent,
-					{ paddingBottom: 32 + floatingPlayerPadding },
-				]}
-			>
+			<PlayerAwareScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
 				<SettingsSection title="Plugins">
 					<SettingsItem
 						icon={PuzzleIcon}
@@ -344,7 +338,7 @@ export default function SettingsScreen() {
 						showChevron
 					/>
 				</SettingsSection>
-			</ScrollView>
+			</PlayerAwareScrollView>
 
 			<EqualizerSheet isOpen={equalizerSheetOpen} onClose={closeEqualizerSheet} />
 
@@ -416,5 +410,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		paddingHorizontal: 8,
 	},
-	scrollContent: {},
+	scrollContent: {
+		paddingBottom: 32,
+	},
 });

@@ -6,12 +6,13 @@
  * with enable/disable functionality.
  */
 
-import { View, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
 import { useCallback } from 'react';
 import { router, type Href } from 'expo-router';
 import { Text, Switch } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
 import { PageLayout } from '@/components/page-layout';
+import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { EmptyState } from '@/components/empty-state';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { ChevronRightIcon, PuzzleIcon, LockIcon } from 'lucide-react-native';
@@ -39,7 +40,7 @@ export default function PluginsScreen() {
 
 	return (
 		<PageLayout header={{ title: 'Plugins', showBack: true, compact: true }}>
-			<ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+			<PlayerAwareScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
 				{isLoading ? (
 					<View style={styles.loadingContainer}>
 						<PluginListSkeleton count={4} />
@@ -67,7 +68,7 @@ export default function PluginsScreen() {
 						</SettingsSection>
 					))
 				)}
-			</ScrollView>
+			</PlayerAwareScrollView>
 		</PageLayout>
 	);
 }

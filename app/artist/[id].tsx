@@ -7,9 +7,10 @@
 
 import { useEffect } from 'react';
 import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
+import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, router } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeftIcon, DiscIcon, SearchIcon, UserIcon } from 'lucide-react-native';
 import { Text, IconButton, Button, ActivityIndicator } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
@@ -87,7 +88,6 @@ function AlbumCard({ album, onPress }: AlbumCardProps) {
 }
 
 export default function ArtistScreen() {
-	const insets = useSafeAreaInsets();
 	const { id, name } = useLocalSearchParams<{ id: string; name?: string }>();
 	const { colors } = useAppTheme();
 
@@ -212,12 +212,7 @@ export default function ArtistScreen() {
 				</SafeAreaView>
 			</View>
 
-			<ScrollView
-				contentContainerStyle={[
-					styles.scrollContent,
-					{ paddingBottom: insets.bottom + 80 },
-				]}
-			>
+			<PlayerAwareScrollView contentContainerStyle={styles.scrollContent}>
 				{isLoading && !hasData ? (
 					<View style={styles.loadingState}>
 						<ActivityIndicator size="large" color={colors.primary} />
@@ -295,7 +290,7 @@ export default function ArtistScreen() {
 						)}
 					</>
 				)}
-			</ScrollView>
+			</PlayerAwareScrollView>
 		</View>
 	);
 }
@@ -342,10 +337,10 @@ const styles = StyleSheet.create({
 	},
 	section: {
 		marginBottom: 24,
+		paddingHorizontal: 16,
 	},
 	sectionTitle: {
 		fontWeight: '600',
-		paddingHorizontal: 16,
 		marginBottom: 12,
 	},
 	albumsRow: {

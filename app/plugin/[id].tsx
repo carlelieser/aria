@@ -6,11 +6,12 @@
  */
 
 import { useCallback } from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Text, Switch } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
 import { PageLayout } from '@/components/page-layout';
+import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { EmptyState } from '@/components/empty-state';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { PluginSettingsSection } from '@/components/plugin/plugin-settings-section';
@@ -61,7 +62,7 @@ export default function PluginDetailScreen() {
 				rightActions: headerRightActions,
 			}}
 		>
-			<ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+			<PlayerAwareScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
 				<View style={styles.detailHeader}>
 					<View
 						style={[
@@ -164,7 +165,7 @@ export default function PluginDetailScreen() {
 				)}
 
 				<PluginSettingsSection pluginId={plugin.id} />
-			</ScrollView>
+			</PlayerAwareScrollView>
 		</PageLayout>
 	);
 }

@@ -20,7 +20,10 @@
 		"test": "vitest",
 		"test:run": "vitest run",
 		"test:coverage": "vitest run --coverage",
-		"build:android": "eas build --platform android --local --output out/aria.apk"
+		"build:android": "eas build --platform android --local --output out/aria.apk",
+		"screenshots": "./scripts/screenshots/run-maestro-screenshots.sh --both",
+		"screenshots:light": "./scripts/screenshots/run-maestro-screenshots.sh --light",
+		"screenshots:dark": "./scripts/screenshots/run-maestro-screenshots.sh --dark"
 	},
 	"dependencies": {
 		"@expo/metro-runtime": "~6.1.2",

@@ -92,6 +92,10 @@ src/
 
 See [CLAUDE.md](CLAUDE.md) for architecture details and code standards.
 
+## Publishing
+
+See [PUBLISHING.md](PUBLISHING.md) for app store submission guides (F-Droid, etc.).
+
 ## Contributing
 
 PRs welcome. Use [Conventional Commits](https://conventionalcommits.org). See [CLAUDE.md](CLAUDE.md).

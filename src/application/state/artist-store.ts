@@ -36,6 +36,10 @@ function createEmptyDetail(): ArtistDetail {
 	};
 }
 
+const EMPTY_DETAIL: ArtistDetail = createEmptyDetail();
+const EMPTY_TRACKS: readonly Track[] = [];
+const EMPTY_ALBUMS: readonly Album[] = [];
+
 export const useArtistStore = create<ArtistState>((set) => ({
 	artists: new Map(),
 
@@ -90,15 +94,15 @@ export const useArtistStore = create<ArtistState>((set) => ({
 }));
 
 export function useArtistDetail(artistId: string): ArtistDetail {
-	return useArtistStore((state) => state.artists.get(artistId) ?? createEmptyDetail());
+	return useArtistStore((state) => state.artists.get(artistId) ?? EMPTY_DETAIL);
 }
 
-export function useArtistTopTracks(artistId: string): Track[] {
-	return useArtistStore((state) => state.artists.get(artistId)?.topTracks ?? []);
+export function useArtistTopTracks(artistId: string): readonly Track[] {
+	return useArtistStore((state) => state.artists.get(artistId)?.topTracks ?? EMPTY_TRACKS);
 }
 
-export function useArtistAlbums(artistId: string): Album[] {
-	return useArtistStore((state) => state.artists.get(artistId)?.albums ?? []);
+export function useArtistAlbums(artistId: string): readonly Album[] {
+	return useArtistStore((state) => state.artists.get(artistId)?.albums ?? EMPTY_ALBUMS);
 }
 
 export function useArtistLoading(artistId: string): boolean {

@@ -480,5 +480,4 @@ export class ExpoAudioPlaybackProvider implements PlaybackProvider {
 
 export const expoAudioPlaybackProvider = new ExpoAudioPlaybackProvider();
 
-export { ExpoAudioPluginModule } from './plugin-module';
 export { PLUGIN_MANIFEST as EXPO_AUDIO_MANIFEST } from './config';

@@ -28,6 +28,9 @@ function createEmptyDetail(): AlbumDetail {
 	};
 }
 
+const EMPTY_DETAIL: AlbumDetail = createEmptyDetail();
+const EMPTY_TRACKS: readonly Track[] = [];
+
 export const useAlbumStore = create<AlbumState>((set) => ({
 	albums: new Map(),
 
@@ -76,11 +79,11 @@ export const useAlbumStore = create<AlbumState>((set) => ({
 }));
 
 export function useAlbumDetail(albumId: string): AlbumDetail {
-	return useAlbumStore((state) => state.albums.get(albumId) ?? createEmptyDetail());
+	return useAlbumStore((state) => state.albums.get(albumId) ?? EMPTY_DETAIL);
 }
 
-export function useAlbumTracks(albumId: string): Track[] {
-	return useAlbumStore((state) => state.albums.get(albumId)?.tracks ?? []);
+export function useAlbumTracks(albumId: string): readonly Track[] {
+	return useAlbumStore((state) => state.albums.get(albumId)?.tracks ?? EMPTY_TRACKS);
 }
 
 export function useAlbumLoading(albumId: string): boolean {

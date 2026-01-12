@@ -5,8 +5,9 @@
  * Uses M3 theming.
  */
 
-import { ScrollView, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { PageLayout } from '@/components/page-layout';
+import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { SettingsSelect } from '@/components/settings/settings-select';
 import {
@@ -35,7 +36,7 @@ export default function LibrarySettingsScreen() {
 
 	return (
 		<PageLayout header={{ title: 'Library', showBack: true, compact: true }}>
-			<ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+			<PlayerAwareScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
 				<SettingsSection title="Display">
 					<SettingsSelect
 						icon={MusicIcon}
@@ -46,7 +47,7 @@ export default function LibrarySettingsScreen() {
 						portalName="library-default-tab-select"
 					/>
 				</SettingsSection>
-			</ScrollView>
+			</PlayerAwareScrollView>
 		</PageLayout>
 	);
 }
