@@ -8,18 +8,20 @@
 import { useState, useMemo, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { router } from 'expo-router';
 import { Text, IconButton, SegmentedButtons, Portal, Dialog, Button } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
 import { PageLayout } from '@/components/page-layout';
 import { EmptyState } from '@/components/empty-state';
 import { DownloadIcon, TrashIcon, HardDriveIcon } from 'lucide-react-native';
 import { TrackListItem } from '@/components/track-list-item';
+import { SelectableTrackListItem } from '@/components/selectable-track-list-item';
+import { BatchActionBar } from '@/components/batch-action-bar';
 import { useDownloadQueue, formatFileSize } from '@/hooks/use-download-queue';
 import { useDownloadStore } from '@/src/application/state/download-store';
 import { clearAllDownloads } from '@/src/infrastructure/filesystem/download-manager';
 import { useToast } from '@/hooks/use-toast';
-import { usePlayer } from '@/hooks/use-player';
+import { useSelection } from '@/hooks/use-selection';
+import { useBatchActions } from '@/hooks/use-batch-actions';
 import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
 import { createTrackFromDownloadInfo } from '@/src/domain/utils/create-track-from-download';
@@ -30,10 +32,20 @@ export default function DownloadsScreen() {
 	const [selectedTab, setSelectedTab] = useState<TabType>('active');
 	const [clearDialogVisible, setClearDialogVisible] = useState(false);
 	const { success, error } = useToast();
-	const { playQueue } = usePlayer();
 	const { colors } = useAppTheme();
 
 	const { activeDownloads, completedDownloads, failedDownloads, stats } = useDownloadQueue();
+
+	const {
+		isSelectionMode,
+		selectedTrackIds,
+		selectedCount,
+		enterSelectionMode,
+		exitSelectionMode,
+		toggleTrackSelection,
+	} = useSelection();
+
+	const { addSelectedToLibrary, deleteSelectedDownloads, isDeleting } = useBatchActions();
 
 	const handleClearAllDownloads = useCallback(async () => {
 		setClearDialogVisible(false);
@@ -72,15 +84,39 @@ export default function DownloadsScreen() {
 		[currentList]
 	);
 
-	const handleTrackPress = useCallback(
-		(track: Track, index: number) => {
+	const handleLongPress = useCallback(
+		(track: Track) => {
 			if (selectedTab === 'completed') {
-				playQueue(completedTracks, index);
-				router.push('/player');
+				enterSelectionMode(track.id.value);
 			}
 		},
-		[selectedTab, playQueue, completedTracks]
+		[selectedTab, enterSelectionMode]
 	);
+
+	const handleSelectionToggle = useCallback(
+		(track: Track) => {
+			toggleTrackSelection(track.id.value);
+		},
+		[toggleTrackSelection]
+	);
+
+	const selectedTracks = useMemo(
+		() => completedTracks.filter((t) => selectedTrackIds.has(t.id.value)),
+		[completedTracks, selectedTrackIds]
+	);
+
+	const handleBatchAddToLibrary = useCallback(() => {
+		addSelectedToLibrary(selectedTracks);
+		exitSelectionMode();
+	}, [selectedTracks, addSelectedToLibrary, exitSelectionMode]);
+
+	const handleBatchDeleteDownloads = useCallback(async () => {
+		const trackIds = Array.from(selectedTrackIds);
+		await deleteSelectedDownloads(trackIds);
+		exitSelectionMode();
+	}, [selectedTrackIds, deleteSelectedDownloads, exitSelectionMode]);
+
+	const isCompletedTab = selectedTab === 'completed';
 
 	const getEmptyMessage = () => {
 		switch (selectedTab) {
@@ -158,27 +194,43 @@ export default function DownloadsScreen() {
 						keyExtractor={(item) => item.trackId}
 						renderItem={({ item, index }) => {
 							const track = currentListTracks[index];
+
+							if (isCompletedTab) {
+								return (
+									<SelectableTrackListItem
+										track={track}
+										source="library"
+										isSelectionMode={isSelectionMode}
+										isSelected={selectedTrackIds.has(track.id.value)}
+										onLongPress={handleLongPress}
+										onSelectionToggle={handleSelectionToggle}
+										queue={completedTracks}
+										queueIndex={index}
+									/>
+								);
+							}
+
 							return (
-								<TrackListItem
-									track={track}
-									downloadInfo={item}
-									onPress={
-										selectedTab === 'completed'
-											? () => handleTrackPress(track, index)
-											: undefined
-									}
-									queue={
-										selectedTab === 'completed' ? completedTracks : undefined
-									}
-									queueIndex={selectedTab === 'completed' ? index : undefined}
-								/>
+								<TrackListItem track={track} downloadInfo={item} hideOptionsMenu />
 							);
 						}}
 						showsVerticalScrollIndicator={false}
-						contentContainerStyle={{ paddingBottom: 20 }}
+						contentContainerStyle={{
+							paddingBottom: isSelectionMode && isCompletedTab ? 120 : 20,
+						}}
+						extraData={isSelectionMode ? selectedTrackIds : undefined}
 					/>
 				)}
 			</View>
+
+			<BatchActionBar
+				context="downloads"
+				selectedCount={selectedCount}
+				onCancel={exitSelectionMode}
+				onAddToLibrary={handleBatchAddToLibrary}
+				onDeleteDownloads={handleBatchDeleteDownloads}
+				isProcessing={isDeleting}
+			/>
 
 			<Portal>
 				<Dialog visible={clearDialogVisible} onDismiss={() => setClearDialogVisible(false)}>

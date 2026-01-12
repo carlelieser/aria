@@ -11,26 +11,25 @@ import { SegmentedButtons } from 'react-native-paper';
 import { PageLayout } from '@/components/page-layout';
 import { EmptyState } from '@/components/empty-state';
 import { MusicIcon, ListMusicIcon, UsersIcon, DiscIcon } from 'lucide-react-native';
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
 	usePlaylists,
 	useIsLibraryLoading,
 	type UniqueArtist,
 	type UniqueAlbum,
 } from '@/src/application/state/library-store';
-import {
-	useDefaultLibraryTab,
-	useSettingsStore,
-} from '@/src/application/state/settings-store';
+import { useDefaultLibraryTab, useSettingsStore } from '@/src/application/state/settings-store';
 import {
 	useAggregatedTracks,
 	useAggregatedArtists,
 	useAggregatedAlbums,
 } from '@/hooks/use-aggregated-library';
-import { TrackListItem } from '@/components/track-list-item';
+import { SelectableTrackListItem } from '@/components/selectable-track-list-item';
 import { AlbumListItem } from '@/components/album-list-item';
 import { ArtistListItem } from '@/components/artist-list-item';
 import { PlaylistListItem } from '@/components/media-list';
+import { BatchActionBar } from '@/components/batch-action-bar';
+import { BatchPlaylistPicker } from '@/components/batch-playlist-picker';
 import {
 	TrackListSkeleton,
 	PlaylistListSkeleton,
@@ -40,6 +39,8 @@ import {
 import { ActiveFiltersBar, SortFilterFAB, LibrarySortFilterSheet } from '@/components/library';
 import { useLibraryFilter } from '@/hooks/use-library-filter';
 import { useUniqueFilterOptions } from '@/hooks/use-unique-filter-options';
+import { useSelection } from '@/hooks/use-selection';
+import { useBatchActions } from '@/hooks/use-batch-actions';
 import type { Track } from '@/src/domain/entities/track';
 import type { Playlist } from '@/src/domain/entities/playlist';
 
@@ -49,6 +50,7 @@ export default function HomeScreen() {
 	const defaultLibraryTab = useDefaultLibraryTab();
 	const [selected, setSelected] = useState<ChipType>(defaultLibraryTab);
 	const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+	const [isPlaylistPickerOpen, setIsPlaylistPickerOpen] = useState(false);
 	const hasAppliedDefaultRef = useRef(false);
 
 	// Sync with persisted default after store hydration
@@ -95,6 +97,28 @@ export default function HomeScreen() {
 	const artists = useAggregatedArtists();
 	const albums = useAggregatedAlbums();
 
+	const {
+		isSelectionMode,
+		selectedTrackIds,
+		selectedCount,
+		enterSelectionMode,
+		exitSelectionMode,
+		toggleTrackSelection,
+	} = useSelection();
+
+	const {
+		addSelectedToQueue,
+		addSelectedToPlaylist,
+		removeSelectedFromLibrary,
+		toggleSelectedFavorites,
+		isDeleting,
+	} = useBatchActions();
+
+	const selectedTracks = useMemo(
+		() => filteredTracks.filter((t) => selectedTrackIds.has(t.id.value)),
+		[filteredTracks, selectedTrackIds]
+	);
+
 	const handleOpenFilterSheet = useCallback(() => {
 		setIsFilterSheetOpen(true);
 	}, []);
@@ -102,6 +126,54 @@ export default function HomeScreen() {
 	const handleCloseFilterSheet = useCallback(() => {
 		setIsFilterSheetOpen(false);
 	}, []);
+
+	const handleLongPress = useCallback(
+		(track: Track) => {
+			enterSelectionMode(track.id.value);
+		},
+		[enterSelectionMode]
+	);
+
+	const handleSelectionToggle = useCallback(
+		(track: Track) => {
+			toggleTrackSelection(track.id.value);
+		},
+		[toggleTrackSelection]
+	);
+
+	const handleBatchAddToQueue = useCallback(() => {
+		addSelectedToQueue(selectedTracks);
+		exitSelectionMode();
+	}, [selectedTracks, addSelectedToQueue, exitSelectionMode]);
+
+	const handleBatchToggleFavorites = useCallback(() => {
+		const trackIds = Array.from(selectedTrackIds);
+		toggleSelectedFavorites(trackIds);
+		exitSelectionMode();
+	}, [selectedTrackIds, toggleSelectedFavorites, exitSelectionMode]);
+
+	const handleBatchRemoveFromLibrary = useCallback(() => {
+		const trackIds = Array.from(selectedTrackIds);
+		removeSelectedFromLibrary(trackIds);
+		exitSelectionMode();
+	}, [selectedTrackIds, removeSelectedFromLibrary, exitSelectionMode]);
+
+	const handleOpenPlaylistPicker = useCallback(() => {
+		setIsPlaylistPickerOpen(true);
+	}, []);
+
+	const handleClosePlaylistPicker = useCallback(() => {
+		setIsPlaylistPickerOpen(false);
+	}, []);
+
+	const handleSelectPlaylist = useCallback(
+		(playlistId: string) => {
+			addSelectedToPlaylist(playlistId, selectedTracks);
+			setIsPlaylistPickerOpen(false);
+			exitSelectionMode();
+		},
+		[selectedTracks, addSelectedToPlaylist, exitSelectionMode]
+	);
 
 	const isSongsTab = selected === 'songs';
 	const showActiveFilters = isSongsTab && hasFilters;
@@ -144,6 +216,10 @@ export default function HomeScreen() {
 						tracks={filteredTracks}
 						isLoading={isLoading}
 						hasFilters={hasFilters}
+						isSelectionMode={isSelectionMode}
+						selectedTrackIds={selectedTrackIds}
+						onLongPress={handleLongPress}
+						onSelectionToggle={handleSelectionToggle}
 					/>
 				)}
 				{selected === 'playlists' && (
@@ -153,7 +229,7 @@ export default function HomeScreen() {
 				{selected === 'artists' && <ArtistsList artists={artists} isLoading={isLoading} />}
 			</View>
 
-			{isSongsTab && (
+			{isSongsTab && !isSelectionMode && (
 				<SortFilterFAB filterCount={filterCount} onPress={handleOpenFilterSheet} />
 			)}
 
@@ -173,19 +249,47 @@ export default function HomeScreen() {
 				onToggleDownloaded={toggleDownloadedOnly}
 				onClearAll={clearAll}
 			/>
+
+			<BatchActionBar
+				context="library"
+				selectedCount={selectedCount}
+				onCancel={exitSelectionMode}
+				onAddToQueue={handleBatchAddToQueue}
+				onAddToPlaylist={handleOpenPlaylistPicker}
+				onToggleFavorites={handleBatchToggleFavorites}
+				onRemoveFromLibrary={handleBatchRemoveFromLibrary}
+				isProcessing={isDeleting}
+			/>
+
+			<BatchPlaylistPicker
+				isOpen={isPlaylistPickerOpen}
+				onClose={handleClosePlaylistPicker}
+				onSelectPlaylist={handleSelectPlaylist}
+				selectedCount={selectedCount}
+			/>
 		</PageLayout>
 	);
+}
+
+interface SongsListProps {
+	tracks: Track[];
+	isLoading: boolean;
+	hasFilters: boolean;
+	isSelectionMode: boolean;
+	selectedTrackIds: Set<string>;
+	onLongPress: (track: Track) => void;
+	onSelectionToggle: (track: Track) => void;
 }
 
 function SongsList({
 	tracks,
 	isLoading,
 	hasFilters,
-}: {
-	tracks: Track[];
-	isLoading: boolean;
-	hasFilters: boolean;
-}) {
+	isSelectionMode,
+	selectedTrackIds,
+	onLongPress,
+	onSelectionToggle,
+}: SongsListProps) {
 	if (isLoading) {
 		return <TrackListSkeleton count={8} />;
 	}
@@ -214,9 +318,19 @@ function SongsList({
 			data={tracks}
 			keyExtractor={(item) => item.id.value}
 			renderItem={({ item, index }) => (
-				<TrackListItem track={item} queue={tracks} queueIndex={index} />
+				<SelectableTrackListItem
+					track={item}
+					source="library"
+					isSelectionMode={isSelectionMode}
+					isSelected={selectedTrackIds.has(item.id.value)}
+					onLongPress={onLongPress}
+					onSelectionToggle={onSelectionToggle}
+					queue={tracks}
+					queueIndex={index}
+				/>
 			)}
 			showsVerticalScrollIndicator={false}
+			extraData={isSelectionMode ? selectedTrackIds : undefined}
 		/>
 	);
 }

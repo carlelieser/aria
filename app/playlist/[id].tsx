@@ -26,17 +26,20 @@ import {
 } from 'lucide-react-native';
 import { Text, IconButton, Button, Menu } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
-import { TrackListItem } from '@/components/track-list-item';
+import { SelectableTrackListItem } from '@/components/selectable-track-list-item';
+import { BatchActionBar } from '@/components/batch-action-bar';
 import { EmptyState } from '@/components/empty-state';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { InputDialog } from '@/components/ui/input-dialog';
 import { usePlaylist, useLibraryStore } from '@/src/application/state/library-store';
 import { usePlayer } from '@/hooks/use-player';
 import { useToast } from '@/hooks/use-toast';
+import { useSelection } from '@/hooks/use-selection';
+import { useBatchActions } from '@/hooks/use-batch-actions';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 import { getPlaylistDuration, type PlaylistTrack } from '@/src/domain/entities/playlist';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
-import { getArtistNames } from '@/src/domain/entities/track';
+import { getArtistNames, type Track } from '@/src/domain/entities/track';
 
 function formatDuration(ms: number): string {
 	const totalMinutes = Math.floor(ms / 60000);
@@ -65,6 +68,17 @@ export default function PlaylistScreen() {
 	const removePlaylist = useLibraryStore((state) => state.removePlaylist);
 	const renamePlaylist = useLibraryStore((state) => state.renamePlaylist);
 	const reorderPlaylistTracks = useLibraryStore((state) => state.reorderPlaylistTracks);
+
+	const {
+		isSelectionMode,
+		selectedTrackIds,
+		selectedCount,
+		enterSelectionMode,
+		exitSelectionMode,
+		toggleTrackSelection,
+	} = useSelection();
+
+	const { addSelectedToQueue, removeSelectedFromPlaylist } = useBatchActions();
 
 	const tracks = useMemo(() => playlist?.tracks.map((pt) => pt.track) ?? [], [playlist?.tracks]);
 	const totalDuration = playlist ? getPlaylistDuration(playlist) : 0;
@@ -108,21 +122,62 @@ export default function PlaylistScreen() {
 	const toggleEditMode = useCallback(() => {
 		setIsEditMode((prev) => !prev);
 		setMenuVisible(false);
-	}, []);
+		exitSelectionMode();
+	}, [exitSelectionMode]);
+
+	const handleLongPress = useCallback(
+		(track: Track) => {
+			if (!isEditMode) {
+				enterSelectionMode(track.id.value);
+			}
+		},
+		[isEditMode, enterSelectionMode]
+	);
+
+	const handleSelectionToggle = useCallback(
+		(track: Track) => {
+			toggleTrackSelection(track.id.value);
+		},
+		[toggleTrackSelection]
+	);
+
+	const selectedTracks = useMemo(
+		() => tracks.filter((t) => selectedTrackIds.has(t.id.value)),
+		[tracks, selectedTrackIds]
+	);
+
+	const handleBatchAddToQueue = useCallback(() => {
+		addSelectedToQueue(selectedTracks);
+		exitSelectionMode();
+	}, [selectedTracks, addSelectedToQueue, exitSelectionMode]);
+
+	const handleBatchRemoveFromPlaylist = useCallback(() => {
+		if (!playlist) return;
+
+		// Map selected track IDs to their positions in the playlist
+		const positions = playlist.tracks
+			.filter((pt) => selectedTrackIds.has(pt.track.id.value))
+			.map((pt) => pt.position);
+
+		removeSelectedFromPlaylist(playlist.id, positions);
+		exitSelectionMode();
+	}, [playlist, selectedTrackIds, removeSelectedFromPlaylist, exitSelectionMode]);
 
 	// Memoized render function for FlatList virtualization
 	const renderTrackItem = useCallback(
 		({ item, index }: { item: PlaylistTrack; index: number }) => (
-			<TrackListItem
+			<SelectableTrackListItem
 				track={item.track}
 				source="playlist"
+				isSelectionMode={isSelectionMode}
+				isSelected={selectedTrackIds.has(item.track.id.value)}
+				onLongPress={handleLongPress}
+				onSelectionToggle={handleSelectionToggle}
 				queue={tracks}
 				queueIndex={index}
-				playlistId={playlist?.id}
-				trackPosition={item.position}
 			/>
 		),
-		[tracks, playlist?.id]
+		[tracks, isSelectionMode, selectedTrackIds, handleLongPress, handleSelectionToggle]
 	);
 
 	const keyExtractor = useCallback(
@@ -384,7 +439,11 @@ export default function PlaylistScreen() {
 					keyExtractor={keyExtractor}
 					contentContainerStyle={[
 						styles.scrollContent,
-						{ paddingBottom: insets.bottom + 80 },
+						{
+							paddingBottom: isSelectionMode
+								? insets.bottom + 140
+								: insets.bottom + 80,
+						},
 					]}
 					ListEmptyComponent={
 						<EmptyState
@@ -398,8 +457,17 @@ export default function PlaylistScreen() {
 					maxToRenderPerBatch={10}
 					windowSize={5}
 					initialNumToRender={15}
+					extraData={isSelectionMode ? selectedTrackIds : undefined}
 				/>
 			)}
+
+			<BatchActionBar
+				context="playlist"
+				selectedCount={selectedCount}
+				onCancel={exitSelectionMode}
+				onAddToQueue={handleBatchAddToQueue}
+				onRemoveFromPlaylist={handleBatchRemoveFromPlaylist}
+			/>
 
 			<ConfirmationDialog
 				visible={deleteDialogVisible}

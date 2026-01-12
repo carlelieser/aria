@@ -21,17 +21,28 @@ interface UseBatchActionsResult {
 	downloadSelected: (tracks: Track[]) => Promise<void>;
 	addSelectedToLibrary: (tracks: Track[]) => void;
 	addSelectedToQueue: (tracks: Track[]) => void;
+	removeSelectedFromLibrary: (trackIds: string[]) => void;
+	deleteSelectedDownloads: (trackIds: string[]) => Promise<void>;
+	toggleSelectedFavorites: (trackIds: string[]) => void;
+	addSelectedToPlaylist: (playlistId: string, tracks: Track[]) => void;
+	removeSelectedFromPlaylist: (playlistId: string, positions: number[]) => void;
 	isDownloading: boolean;
+	isDeleting: boolean;
 	downloadProgress: BatchProgress;
 }
 
 export function useBatchActions(): UseBatchActionsResult {
 	const { success, error: showError, info } = useToast();
 	const addTracks = useLibraryStore((s) => s.addTracks);
+	const removeTracks = useLibraryStore((s) => s.removeTracks);
+	const toggleFavorite = useLibraryStore((s) => s.toggleFavorite);
+	const addTrackToPlaylist = useLibraryStore((s) => s.addTrackToPlaylist);
+	const removeTrackFromPlaylist = useLibraryStore((s) => s.removeTrackFromPlaylist);
 	const setQueue = usePlayerStore((s) => s.setQueue);
 	const currentQueue = usePlayerStore((s) => s.queue);
 
 	const [isDownloading, setIsDownloading] = useState(false);
+	const [isDeleting, setIsDeleting] = useState(false);
 	const [downloadProgress, setDownloadProgress] = useState<BatchProgress>({
 		completed: 0,
 		total: 0,
@@ -112,11 +123,95 @@ export function useBatchActions(): UseBatchActionsResult {
 		[currentQueue, setQueue, success]
 	);
 
+	const removeSelectedFromLibrary = useCallback(
+		(trackIds: string[]) => {
+			if (trackIds.length === 0) return;
+
+			removeTracks(trackIds);
+			success(`Removed ${trackIds.length} tracks from library`);
+		},
+		[removeTracks, success]
+	);
+
+	const deleteSelectedDownloads = useCallback(
+		async (trackIds: string[]) => {
+			if (trackIds.length === 0) return;
+
+			setIsDeleting(true);
+			let deleted = 0;
+			let failed = 0;
+
+			for (const trackId of trackIds) {
+				const result = await downloadService.removeDownload(trackId);
+				if (result.success) {
+					deleted++;
+				} else {
+					failed++;
+				}
+			}
+
+			setIsDeleting(false);
+
+			if (failed === 0) {
+				success(`Deleted ${deleted} downloads`);
+			} else if (deleted > 0) {
+				info(`Deleted ${deleted} downloads, ${failed} failed`);
+			} else {
+				showError('Delete failed', `Failed to delete ${failed} downloads`);
+			}
+		},
+		[success, showError, info]
+	);
+
+	const toggleSelectedFavorites = useCallback(
+		(trackIds: string[]) => {
+			if (trackIds.length === 0) return;
+
+			for (const trackId of trackIds) {
+				toggleFavorite(trackId);
+			}
+			success(`Updated favorites for ${trackIds.length} tracks`);
+		},
+		[toggleFavorite, success]
+	);
+
+	const addSelectedToPlaylist = useCallback(
+		(playlistId: string, tracks: Track[]) => {
+			if (tracks.length === 0) return;
+
+			for (const track of tracks) {
+				addTrackToPlaylist(playlistId, track);
+			}
+			success(`Added ${tracks.length} tracks to playlist`);
+		},
+		[addTrackToPlaylist, success]
+	);
+
+	const removeSelectedFromPlaylist = useCallback(
+		(playlistId: string, positions: number[]) => {
+			if (positions.length === 0) return;
+
+			// Sort positions in descending order to avoid index shifting issues
+			const sortedPositions = [...positions].sort((a, b) => b - a);
+			for (const position of sortedPositions) {
+				removeTrackFromPlaylist(playlistId, position);
+			}
+			success(`Removed ${positions.length} tracks from playlist`);
+		},
+		[removeTrackFromPlaylist, success]
+	);
+
 	return {
 		downloadSelected,
 		addSelectedToLibrary,
 		addSelectedToQueue,
+		removeSelectedFromLibrary,
+		deleteSelectedDownloads,
+		toggleSelectedFavorites,
+		addSelectedToPlaylist,
+		removeSelectedFromPlaylist,
 		isDownloading,
+		isDeleting,
 		downloadProgress,
 	};
 }

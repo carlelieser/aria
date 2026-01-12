@@ -2,26 +2,43 @@
  * BatchActionBar Component
  *
  * Fixed bottom bar shown when items are selected.
- * Provides batch actions: Download, Add to Library, Add to Queue.
+ * Provides context-aware batch actions.
  */
 
-import { memo } from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
+import { memo, useMemo } from 'react';
+import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
-import { Download, Library, ListPlus, X } from 'lucide-react-native';
+import {
+	Download,
+	Library,
+	ListPlus,
+	X,
+	Trash2,
+	Heart,
+	ListMusic,
+	Minus,
+} from 'lucide-react-native';
 
 import { Icon } from '@/components/ui/icon';
 import { useAppTheme } from '@/lib/theme';
 
+export type BatchActionContext = 'explore' | 'library' | 'downloads' | 'playlist';
+
 interface BatchActionBarProps {
+	context: BatchActionContext;
 	selectedCount: number;
-	onDownload: () => void;
-	onAddToLibrary: () => void;
-	onAddToQueue: () => void;
 	onCancel: () => void;
-	isDownloading?: boolean;
+	onDownload?: () => void;
+	onAddToLibrary?: () => void;
+	onAddToQueue?: () => void;
+	onAddToPlaylist?: () => void;
+	onRemoveFromLibrary?: () => void;
+	onDeleteDownloads?: () => void;
+	onToggleFavorites?: () => void;
+	onRemoveFromPlaylist?: () => void;
+	isProcessing?: boolean;
 }
 
 interface ActionButtonProps {
@@ -29,10 +46,23 @@ interface ActionButtonProps {
 	label: string;
 	onPress: () => void;
 	disabled?: boolean;
+	destructive?: boolean;
 }
 
-function ActionButton({ icon, label, onPress, disabled }: ActionButtonProps) {
+function ActionButton({ icon, label, onPress, disabled, destructive }: ActionButtonProps) {
 	const { colors } = useAppTheme();
+
+	const iconColor = disabled
+		? colors.onSurfaceVariant
+		: destructive
+			? colors.error
+			: colors.onSurface;
+
+	const textColor = disabled
+		? colors.onSurfaceVariant
+		: destructive
+			? colors.error
+			: colors.onSurface;
 
 	return (
 		<Pressable
@@ -40,31 +70,76 @@ function ActionButton({ icon, label, onPress, disabled }: ActionButtonProps) {
 			onPress={onPress}
 			disabled={disabled}
 		>
-			<Icon
-				as={icon}
-				size={20}
-				color={disabled ? colors.onSurfaceVariant : colors.onSurface}
-			/>
-			<Text
-				variant="labelSmall"
-				style={{ color: disabled ? colors.onSurfaceVariant : colors.onSurface }}
-			>
+			<Icon as={icon} size={20} color={iconColor} />
+			<Text variant="labelSmall" style={{ color: textColor }}>
 				{label}
 			</Text>
 		</Pressable>
 	);
 }
 
-export const BatchActionBar = memo(function BatchActionBar({
-	selectedCount,
-	onDownload,
-	onAddToLibrary,
-	onAddToQueue,
-	onCancel,
-	isDownloading = false,
-}: BatchActionBarProps) {
+interface ActionConfig {
+	icon: typeof Download;
+	label: string;
+	handler: (() => void) | undefined;
+	destructive?: boolean;
+}
+
+function _getActionsForContext(
+	context: BatchActionContext,
+	props: BatchActionBarProps
+): ActionConfig[] {
+	switch (context) {
+		case 'explore':
+			return [
+				{ icon: Download, label: 'Download', handler: props.onDownload },
+				{ icon: Library, label: 'Library', handler: props.onAddToLibrary },
+				{ icon: ListPlus, label: 'Queue', handler: props.onAddToQueue },
+				{ icon: ListMusic, label: 'Playlist', handler: props.onAddToPlaylist },
+			];
+		case 'library':
+			return [
+				{ icon: ListPlus, label: 'Queue', handler: props.onAddToQueue },
+				{ icon: ListMusic, label: 'Playlist', handler: props.onAddToPlaylist },
+				{ icon: Heart, label: 'Favorite', handler: props.onToggleFavorites },
+				{
+					icon: Trash2,
+					label: 'Remove',
+					handler: props.onRemoveFromLibrary,
+					destructive: true,
+				},
+			];
+		case 'downloads':
+			return [
+				{ icon: Library, label: 'Library', handler: props.onAddToLibrary },
+				{
+					icon: Trash2,
+					label: 'Delete',
+					handler: props.onDeleteDownloads,
+					destructive: true,
+				},
+			];
+		case 'playlist':
+			return [
+				{ icon: ListPlus, label: 'Queue', handler: props.onAddToQueue },
+				{
+					icon: Minus,
+					label: 'Remove',
+					handler: props.onRemoveFromPlaylist,
+					destructive: true,
+				},
+			];
+		default:
+			return [];
+	}
+}
+
+export const BatchActionBar = memo(function BatchActionBar(props: BatchActionBarProps) {
+	const { context, selectedCount, onCancel, isProcessing = false } = props;
 	const { colors } = useAppTheme();
 	const insets = useSafeAreaInsets();
+
+	const actions = useMemo(() => _getActionsForContext(context, props), [context, props]);
 
 	if (selectedCount === 0) {
 		return null;
@@ -91,16 +166,25 @@ export const BatchActionBar = memo(function BatchActionBar({
 				</Text>
 			</View>
 
-			<View style={styles.actions}>
-				<ActionButton
-					icon={Download}
-					label="Download"
-					onPress={onDownload}
-					disabled={isDownloading}
-				/>
-				<ActionButton icon={Library} label="Library" onPress={onAddToLibrary} />
-				<ActionButton icon={ListPlus} label="Queue" onPress={onAddToQueue} />
-			</View>
+			<ScrollView
+				horizontal
+				showsHorizontalScrollIndicator={false}
+				contentContainerStyle={styles.actions}
+			>
+				{actions.map(
+					(action) =>
+						action.handler && (
+							<ActionButton
+								key={action.label}
+								icon={action.icon}
+								label={action.label}
+								onPress={action.handler}
+								disabled={isProcessing}
+								destructive={action.destructive}
+							/>
+						)
+				)}
+			</ScrollView>
 		</Animated.View>
 	);
 });
@@ -133,6 +217,7 @@ const styles = StyleSheet.create({
 	actions: {
 		flexDirection: 'row',
 		justifyContent: 'space-around',
+		flexGrow: 1,
 	},
 	actionButton: {
 		alignItems: 'center',

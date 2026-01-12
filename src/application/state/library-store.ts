@@ -14,6 +14,7 @@ interface LibraryState {
 	addTrack: (track: Track) => void;
 	addTracks: (tracks: Track[]) => void;
 	removeTrack: (trackId: string) => void;
+	removeTracks: (trackIds: string[]) => void;
 	toggleFavorite: (trackId: string) => void;
 	isFavorite: (trackId: string) => boolean;
 
@@ -88,6 +89,20 @@ export const useLibraryStore = create<LibraryState>()(
 					newFavorites.delete(trackId);
 					return {
 						tracks: state.tracks.filter((t) => t.id.value !== trackId),
+						favorites: newFavorites,
+					};
+				});
+			},
+
+			removeTracks: (trackIds: string[]) => {
+				set((state) => {
+					const idsToRemove = new Set(trackIds);
+					const newFavorites = new Set(state.favorites);
+					for (const trackId of trackIds) {
+						newFavorites.delete(trackId);
+					}
+					return {
+						tracks: state.tracks.filter((t) => !idsToRemove.has(t.id.value)),
 						favorites: newFavorites,
 					};
 				});

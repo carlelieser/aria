@@ -23,6 +23,7 @@ import { SelectableTrackListItem } from '@/components/selectable-track-list-item
 import { AlbumListItem } from '@/components/album-list-item';
 import { ArtistListItem } from '@/components/artist-list-item';
 import { BatchActionBar } from '@/components/batch-action-bar';
+import { BatchPlaylistPicker } from '@/components/batch-playlist-picker';
 import { ExploreSortFilterSheet } from '@/components/explore';
 import { SortFilterFAB } from '@/components/library/sort-filter-fab';
 import { useSearch } from '@/hooks/use-search';
@@ -105,6 +106,7 @@ export default function ExploreScreen() {
 	const { query, isSearching, error, search } = useSearch();
 	const { colors } = useAppTheme();
 	const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+	const [isPlaylistPickerOpen, setIsPlaylistPickerOpen] = useState(false);
 
 	const {
 		tracks: filteredTracks,
@@ -137,8 +139,13 @@ export default function ExploreScreen() {
 		toggleTrackSelection,
 	} = useSelection();
 
-	const { downloadSelected, addSelectedToLibrary, addSelectedToQueue, isDownloading } =
-		useBatchActions();
+	const {
+		downloadSelected,
+		addSelectedToLibrary,
+		addSelectedToQueue,
+		addSelectedToPlaylist,
+		isDownloading,
+	} = useBatchActions();
 
 	const recentlyPlayed = useRecentlyPlayed(10);
 	const favoriteTracks = useFavoriteTracks();
@@ -188,6 +195,24 @@ export default function ExploreScreen() {
 		addSelectedToQueue(selectedTracks);
 		exitSelectionMode();
 	}, [filteredTracks, selectedTrackIds, addSelectedToQueue, exitSelectionMode]);
+
+	const handleOpenPlaylistPicker = useCallback(() => {
+		setIsPlaylistPickerOpen(true);
+	}, []);
+
+	const handleClosePlaylistPicker = useCallback(() => {
+		setIsPlaylistPickerOpen(false);
+	}, []);
+
+	const handleSelectPlaylist = useCallback(
+		(playlistId: string) => {
+			const selectedTracks = filteredTracks.filter((t) => selectedTrackIds.has(t.id.value));
+			addSelectedToPlaylist(playlistId, selectedTracks);
+			setIsPlaylistPickerOpen(false);
+			exitSelectionMode();
+		},
+		[filteredTracks, selectedTrackIds, addSelectedToPlaylist, exitSelectionMode]
+	);
 
 	return (
 		<View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -339,12 +364,21 @@ export default function ExploreScreen() {
 			/>
 
 			<BatchActionBar
+				context="explore"
 				selectedCount={selectedCount}
 				onDownload={handleBatchDownload}
 				onAddToLibrary={handleBatchAddToLibrary}
 				onAddToQueue={handleBatchAddToQueue}
+				onAddToPlaylist={handleOpenPlaylistPicker}
 				onCancel={exitSelectionMode}
-				isDownloading={isDownloading}
+				isProcessing={isDownloading}
+			/>
+
+			<BatchPlaylistPicker
+				isOpen={isPlaylistPickerOpen}
+				onClose={handleClosePlaylistPicker}
+				onSelectPlaylist={handleSelectPlaylist}
+				selectedCount={selectedCount}
 			/>
 		</View>
 	);
