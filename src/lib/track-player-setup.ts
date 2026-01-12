@@ -1,18 +1,14 @@
 /**
  * React Native Track Player Service Registration
  *
- * Must be imported before the app starts to register the playback service.
+ * Must be imported AFTER expo-router/entry registers the app component.
  * This enables background playback and lock screen controls.
+ * See: https://rntp.dev/docs/basics/playback-service
  */
 
 import TrackPlayer from 'react-native-track-player';
 import { PlaybackService } from '@/src/plugins/playback/react-native-track-player/service';
 
-console.warn('[TrackPlayerSetup] Registering playback service...');
-TrackPlayer.registerPlaybackService(() => {
-	console.warn('[TrackPlayerSetup] Factory called - returning PlaybackService');
-	return PlaybackService;
-});
-console.warn('[TrackPlayerSetup] Registration complete');
+TrackPlayer.registerPlaybackService(() => PlaybackService);
 
 export {};

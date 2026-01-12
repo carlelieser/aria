@@ -87,45 +87,51 @@ export class EventHandler {
 			this.onProgressUpdate.bind(this)
 		);
 
-		// Remote control event listeners (notification/lock screen controls)
+		// Remote control event listeners (fallback for when app is in foreground)
 		const remotePlaySubscription = TrackPlayer.addEventListener(
 			Event.RemotePlay,
-			this.onRemotePlay.bind(this)
+			() => TrackPlayer.play()
 		);
 
 		const remotePauseSubscription = TrackPlayer.addEventListener(
 			Event.RemotePause,
-			this.onRemotePause.bind(this)
+			() => TrackPlayer.pause()
 		);
 
 		const remoteStopSubscription = TrackPlayer.addEventListener(
 			Event.RemoteStop,
-			this.onRemoteStop.bind(this)
+			() => TrackPlayer.stop()
 		);
 
 		const remoteNextSubscription = TrackPlayer.addEventListener(
 			Event.RemoteNext,
-			this.onRemoteNext.bind(this)
+			() => TrackPlayer.skipToNext()
 		);
 
 		const remotePreviousSubscription = TrackPlayer.addEventListener(
 			Event.RemotePrevious,
-			this.onRemotePrevious.bind(this)
+			() => TrackPlayer.skipToPrevious()
 		);
 
 		const remoteSeekSubscription = TrackPlayer.addEventListener(
 			Event.RemoteSeek,
-			this.onRemoteSeek.bind(this)
+			(event: RemoteSeekEvent) => TrackPlayer.seekTo(event.position)
 		);
 
 		const remoteJumpForwardSubscription = TrackPlayer.addEventListener(
 			Event.RemoteJumpForward,
-			this.onRemoteJumpForward.bind(this)
+			async (event: RemoteJumpForwardEvent) => {
+				const position = await TrackPlayer.getPosition();
+				await TrackPlayer.seekTo(position + event.interval);
+			}
 		);
 
 		const remoteJumpBackwardSubscription = TrackPlayer.addEventListener(
 			Event.RemoteJumpBackward,
-			this.onRemoteJumpBackward.bind(this)
+			async (event: RemoteJumpBackwardEvent) => {
+				const position = await TrackPlayer.getPosition();
+				await TrackPlayer.seekTo(Math.max(MIN_SEEK_POSITION, position - event.interval));
+			}
 		);
 
 		this.eventSubscriptions = [
@@ -143,8 +149,6 @@ export class EventHandler {
 			remoteJumpForwardSubscription.remove.bind(remoteJumpForwardSubscription),
 			remoteJumpBackwardSubscription.remove.bind(remoteJumpBackwardSubscription),
 		];
-
-		logger.debug('Event listeners setup complete (including remote controls)');
 	}
 
 	removeEventListeners(): void {
@@ -159,16 +163,13 @@ export class EventHandler {
 	}
 
 	private onPlaybackState(event: RNTPPlaybackState): void {
-		logger.debug('PlaybackState event:', event.state);
 		const newStatus = mapRNTPStateToStatus(event.state);
 		if (newStatus !== this.state.playbackStatus) {
-			logger.debug('Status changing from', this.state.playbackStatus, 'to', newStatus);
 			this.updateStatus(newStatus);
 		}
 	}
 
 	private onTrackChanged(event: PlaybackActiveTrackChangedEvent): void {
-		logger.debug('TrackChanged event:', event.track?.id);
 		if (event.track) {
 			const track = this.state.trackMap.get(event.track.id);
 			if (track && track !== this.state.currentTrack) {
@@ -179,106 +180,20 @@ export class EventHandler {
 	}
 
 	private onPlaybackError(event: PlaybackErrorEvent): void {
-		logger.error(`PlaybackError event: ${event.message} (code: ${event.code})`);
+		logger.error(`PlaybackError: ${event.message} (code: ${event.code})`);
 		const error = new Error(event.message || 'Playback error');
 		this.updateStatus('error');
 		this.emitEvent({ type: 'error', error, timestamp: Date.now() });
 	}
 
 	private onQueueEnded(): void {
-		logger.debug('onQueueEnded called - native PlaybackQueueEnded event received');
 		if (this.state.repeatMode === 'all' && this.state.queue.length > 0) {
-			logger.debug('Repeat mode is all, ignoring queue ended');
 			return;
 		}
-		logger.debug('Emitting ended event');
 		this.emitEvent({ type: 'ended', timestamp: Date.now() });
 	}
 
 	private onProgressUpdate(event: PlaybackProgressUpdatedEvent): void {
 		this.progressTracker.handleProgressUpdate(event.position, event.duration);
-	}
-
-	// Remote control event handlers
-	private async onRemotePlay(): Promise<void> {
-		logger.debug('RemotePlay event received');
-		try {
-			await TrackPlayer.play();
-			logger.debug('RemotePlay: TrackPlayer.play() completed');
-		} catch (error) {
-			logger.error('RemotePlay failed', error instanceof Error ? error : undefined);
-		}
-	}
-
-	private async onRemotePause(): Promise<void> {
-		logger.debug('RemotePause event received');
-		try {
-			await TrackPlayer.pause();
-			logger.debug('RemotePause: TrackPlayer.pause() completed');
-		} catch (error) {
-			logger.error('RemotePause failed', error instanceof Error ? error : undefined);
-		}
-	}
-
-	private async onRemoteStop(): Promise<void> {
-		logger.debug('RemoteStop event received');
-		try {
-			await TrackPlayer.stop();
-			logger.debug('RemoteStop: TrackPlayer.stop() completed');
-		} catch (error) {
-			logger.error('RemoteStop failed', error instanceof Error ? error : undefined);
-		}
-	}
-
-	private async onRemoteNext(): Promise<void> {
-		logger.debug('RemoteNext event received');
-		try {
-			await TrackPlayer.skipToNext();
-			logger.debug('RemoteNext: TrackPlayer.skipToNext() completed');
-		} catch (error) {
-			logger.error('RemoteNext failed', error instanceof Error ? error : undefined);
-		}
-	}
-
-	private async onRemotePrevious(): Promise<void> {
-		logger.debug('RemotePrevious event received');
-		try {
-			await TrackPlayer.skipToPrevious();
-			logger.debug('RemotePrevious: TrackPlayer.skipToPrevious() completed');
-		} catch (error) {
-			logger.error('RemotePrevious failed', error instanceof Error ? error : undefined);
-		}
-	}
-
-	private async onRemoteSeek(event: RemoteSeekEvent): Promise<void> {
-		logger.debug('RemoteSeek event received', { position: event.position });
-		try {
-			await TrackPlayer.seekTo(event.position);
-			logger.debug('RemoteSeek: TrackPlayer.seekTo() completed');
-		} catch (error) {
-			logger.error('RemoteSeek failed', error instanceof Error ? error : undefined);
-		}
-	}
-
-	private async onRemoteJumpForward(event: RemoteJumpForwardEvent): Promise<void> {
-		logger.debug('RemoteJumpForward event received', { interval: event.interval });
-		try {
-			const position = await TrackPlayer.getPosition();
-			await TrackPlayer.seekTo(position + event.interval);
-			logger.debug('RemoteJumpForward: completed');
-		} catch (error) {
-			logger.error('RemoteJumpForward failed', error instanceof Error ? error : undefined);
-		}
-	}
-
-	private async onRemoteJumpBackward(event: RemoteJumpBackwardEvent): Promise<void> {
-		logger.debug('RemoteJumpBackward event received', { interval: event.interval });
-		try {
-			const position = await TrackPlayer.getPosition();
-			await TrackPlayer.seekTo(Math.max(MIN_SEEK_POSITION, position - event.interval));
-			logger.debug('RemoteJumpBackward: completed');
-		} catch (error) {
-			logger.error('RemoteJumpBackward failed', error instanceof Error ? error : undefined);
-		}
 	}
 }

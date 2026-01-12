@@ -1,5 +1,5 @@
 import '@/lib/polyfills';
-// Track player service must be registered before expo-router/entry
-// This ensures the headless JS task can access the service
-import '@/src/lib/track-player-setup';
 import 'expo-router/entry';
+// Track player service must be registered AFTER the app component is registered
+// See: https://rntp.dev/docs/basics/playback-service
+import '@/src/lib/track-player-setup';
