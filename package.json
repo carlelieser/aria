@@ -94,7 +94,7 @@
 		"eslint-config-expo": "~10.0.0",
 		"jsdom": "^27.4.0",
 		"prettier": "^3.7.4",
-		"react-test-renderer": "^19.1.0",
+		"react-test-renderer": "^19.2.3",
 		"sharp": "^0.34.5",
 		"typescript": "~5.9.3",
 		"vitest": "^4.0.16"
