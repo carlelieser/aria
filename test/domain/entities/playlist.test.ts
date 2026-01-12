@@ -6,8 +6,6 @@ import {
 	reorderPlaylistTracks,
 	getPlaylistDuration,
 	getPlaylistTrackCount,
-	type Playlist,
-	type CreatePlaylistParams,
 	type SmartPlaylistCriteria,
 } from '@domain/entities/playlist';
 import { createTrack, type Track } from '@domain/entities/track';

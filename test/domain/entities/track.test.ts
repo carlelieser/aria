@@ -4,7 +4,6 @@ import {
 	getPrimaryArtist,
 	getArtistNames,
 	getArtworkUrl,
-	type Track,
 	type CreateTrackParams,
 } from '@domain/entities/track';
 import { TrackId } from '@domain/value-objects/track-id';

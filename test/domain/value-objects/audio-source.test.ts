@@ -9,7 +9,6 @@ import {
 	updateStreamUrl,
 	QualityBitrates,
 	getQualityLabel,
-	type LocalAudioSource,
 	type StreamingAudioSource,
 } from '@domain/value-objects/audio-source';
 
