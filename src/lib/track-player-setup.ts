@@ -8,6 +8,11 @@
 import TrackPlayer from 'react-native-track-player';
 import { PlaybackService } from '@/src/plugins/playback/react-native-track-player/service';
 
-TrackPlayer.registerPlaybackService(() => PlaybackService);
+console.warn('[TrackPlayerSetup] Registering playback service...');
+TrackPlayer.registerPlaybackService(() => {
+	console.warn('[TrackPlayerSetup] Factory called - returning PlaybackService');
+	return PlaybackService;
+});
+console.warn('[TrackPlayerSetup] Registration complete');
 
 export {};

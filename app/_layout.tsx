@@ -1,7 +1,6 @@
 // Crypto polyfill must be imported first, before youtubei.js
 import '@/src/lib/crypto-polyfill';
-// Track player service must be registered before app renders
-import '@/src/lib/track-player-setup';
+// Note: Track player service is registered in lib/entry.ts (before expo-router/entry)
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Stack } from 'expo-router';
