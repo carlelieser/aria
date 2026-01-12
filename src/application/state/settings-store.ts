@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export type ThemePreference = 'system' | 'light' | 'dark';
 export type TabId = 'index' | 'explore' | 'downloads' | 'settings';
 export type DefaultTab = TabId;
+export type LibraryTabId = 'songs' | 'playlists' | 'artists' | 'albums';
 
 export const DEFAULT_TAB_ORDER: TabId[] = ['index', 'explore', 'downloads', 'settings'];
 export const DEFAULT_ENABLED_TABS: TabId[] = ['index', 'explore', 'downloads', 'settings'];
@@ -13,12 +14,14 @@ export const REQUIRED_TABS: TabId[] = ['settings']; // Tabs that cannot be disab
 interface SettingsState {
 	themePreference: ThemePreference;
 	defaultTab: DefaultTab;
+	defaultLibraryTab: LibraryTabId;
 	accentColor: string | null;
 	tabOrder: TabId[];
 	enabledTabs: TabId[];
 
 	setThemePreference: (preference: ThemePreference) => void;
 	setDefaultTab: (tab: DefaultTab) => void;
+	setDefaultLibraryTab: (tab: LibraryTabId) => void;
 	setAccentColor: (color: string | null) => void;
 	setTabOrder: (order: TabId[]) => void;
 	resetTabOrder: () => void;
@@ -45,6 +48,7 @@ export const useSettingsStore = create<SettingsState>()(
 		(set, get) => ({
 			themePreference: 'system',
 			defaultTab: 'index',
+			defaultLibraryTab: 'songs',
 			accentColor: null,
 			tabOrder: DEFAULT_TAB_ORDER,
 			enabledTabs: DEFAULT_ENABLED_TABS,
@@ -54,6 +58,9 @@ export const useSettingsStore = create<SettingsState>()(
 			},
 			setDefaultTab: (tab: DefaultTab) => {
 				set({ defaultTab: tab });
+			},
+			setDefaultLibraryTab: (tab: LibraryTabId) => {
+				set({ defaultLibraryTab: tab });
 			},
 			setAccentColor: (color: string | null) => {
 				set({ accentColor: color });
@@ -90,6 +97,7 @@ export const useSettingsStore = create<SettingsState>()(
 				set({
 					themePreference: 'system',
 					defaultTab: 'index',
+					defaultLibraryTab: 'songs',
 					accentColor: null,
 					tabOrder: DEFAULT_TAB_ORDER,
 					enabledTabs: DEFAULT_ENABLED_TABS,
@@ -130,3 +138,8 @@ export const useToggleTab = () => useSettingsStore((state) => state.toggleTab);
 export const useResetEnabledTabs = () => useSettingsStore((state) => state.resetEnabledTabs);
 
 export const useResetAllSettings = () => useSettingsStore((state) => state.resetAllSettings);
+
+export const useDefaultLibraryTab = () => useSettingsStore((state) => state.defaultLibraryTab);
+
+export const useSetDefaultLibraryTab = () =>
+	useSettingsStore((state) => state.setDefaultLibraryTab);

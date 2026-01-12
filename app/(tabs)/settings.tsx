@@ -5,11 +5,12 @@
  * Uses M3 theming.
  */
 
-import { ScrollView, StyleSheet, Linking } from 'react-native';
+import { StyleSheet, Linking } from 'react-native';
 import { useCallback, useState } from 'react';
 import { router } from 'expo-router';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { VersionDialog } from '@/components/ui/version-dialog';
+import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { PageLayout } from '@/components/page-layout';
 import { SettingsItem } from '@/components/settings/settings-item';
 import { SettingsSection } from '@/components/settings/settings-section';
@@ -35,6 +36,7 @@ import {
 	RotateCcwIcon,
 	CodeIcon,
 	GithubIcon,
+	CameraIcon,
 	type LucideIcon,
 } from 'lucide-react-native';
 import { useLibraryStore } from '@/src/application/state/library-store';
@@ -52,6 +54,7 @@ import { useDownloadQueue, formatFileSize } from '@/hooks/use-download-queue';
 import { useEqualizer } from '@/hooks/use-equalizer';
 import { clearAllDownloads } from '@/src/infrastructure/filesystem/download-manager';
 import { useToast } from '@/hooks/use-toast';
+import { loadMockData, clearMockData, isMockDataLoaded } from '@/src/dev/load-mock-data';
 import Constants from 'expo-constants';
 
 const THEME_OPTIONS: { value: ThemePreference; label: string; icon: LucideIcon }[] = [
@@ -87,6 +90,7 @@ export default function SettingsScreen() {
 	const [resetSettingsDialogVisible, setResetSettingsDialogVisible] = useState(false);
 	const [resetEqualizerDialogVisible, setResetEqualizerDialogVisible] = useState(false);
 	const [factoryResetDialogVisible, setFactoryResetDialogVisible] = useState(false);
+	const [mockDataLoaded, setMockDataLoaded] = useState(() => isMockDataLoaded());
 
 	const openEqualizerSheet = useCallback(() => {
 		setEqualizerSheetOpen(true);
@@ -153,6 +157,18 @@ export default function SettingsScreen() {
 		setFactoryResetDialogVisible(true);
 	};
 
+	const handleToggleMockData = () => {
+		if (mockDataLoaded) {
+			clearMockData();
+			setMockDataLoaded(false);
+			success('Mock data cleared', 'Screenshot mode disabled');
+		} else {
+			loadMockData();
+			setMockDataLoaded(true);
+			success('Mock data loaded', 'Screenshot mode enabled');
+		}
+	};
+
 	const confirmFactoryReset = async () => {
 		await clearAllDownloads();
 		useDownloadStore.setState({
@@ -185,7 +201,13 @@ export default function SettingsScreen() {
 
 	return (
 		<PageLayout header={{ icon: SettingsIcon, title: 'Settings' }}>
-			<ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+			<ScrollView
+				style={styles.scrollView}
+				contentContainerStyle={[
+					styles.scrollContent,
+					{ paddingBottom: 32 + floatingPlayerPadding },
+				]}
+			>
 				<SettingsSection title="Plugins">
 					<SettingsItem
 						icon={PuzzleIcon}
@@ -246,6 +268,13 @@ export default function SettingsScreen() {
 
 				<SettingsSection title="Library">
 					<SettingsItem
+						icon={MusicIcon}
+						title="Library Settings"
+						subtitle="Default tab and display options"
+						onPress={() => router.push('/library-settings')}
+						showChevron
+					/>
+					<SettingsItem
 						icon={InfoIcon}
 						title="Library Stats"
 						subtitle={`${tracks.length} tracks · ${playlists.length} playlists · ${favorites.size} favorites`}
@@ -280,6 +309,15 @@ export default function SettingsScreen() {
 						subtitle="Clear all data and reset to defaults"
 						onPress={handleFactoryReset}
 						destructive
+					/>
+				</SettingsSection>
+
+				<SettingsSection title="Developer">
+					<SettingsItem
+						icon={CameraIcon}
+						title="Screenshot Mode"
+						subtitle={mockDataLoaded ? 'Loaded (tap to clear)' : 'Load mock data for screenshots'}
+						onPress={handleToggleMockData}
 					/>
 				</SettingsSection>
 
@@ -378,7 +416,5 @@ const styles = StyleSheet.create({
 		flex: 1,
 		paddingHorizontal: 8,
 	},
-	scrollContent: {
-		paddingBottom: 32,
-	},
+	scrollContent: {},
 });

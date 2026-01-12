@@ -5,16 +5,13 @@
  * Uses M3 theming.
  */
 
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { router } from 'expo-router';
-import { Text, SegmentedButtons } from 'react-native-paper';
-import { Icon } from '@/components/ui/icon';
+import { SegmentedButtons } from 'react-native-paper';
 import { PageLayout } from '@/components/page-layout';
 import { EmptyState } from '@/components/empty-state';
 import { MusicIcon, ListMusicIcon, UsersIcon, DiscIcon } from 'lucide-react-native';
-import { useState, useCallback, memo } from 'react';
-import { Image } from 'expo-image';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
 	usePlaylists,
 	useIsLibraryLoading,
@@ -22,11 +19,18 @@ import {
 	type UniqueAlbum,
 } from '@/src/application/state/library-store';
 import {
+	useDefaultLibraryTab,
+	useSettingsStore,
+} from '@/src/application/state/settings-store';
+import {
 	useAggregatedTracks,
 	useAggregatedArtists,
 	useAggregatedAlbums,
 } from '@/hooks/use-aggregated-library';
 import { TrackListItem } from '@/components/track-list-item';
+import { AlbumListItem } from '@/components/album-list-item';
+import { ArtistListItem } from '@/components/artist-list-item';
+import { PlaylistListItem } from '@/components/media-list';
 import {
 	TrackListSkeleton,
 	PlaylistListSkeleton,
@@ -36,15 +40,35 @@ import {
 import { ActiveFiltersBar, SortFilterFAB, LibrarySortFilterSheet } from '@/components/library';
 import { useLibraryFilter } from '@/hooks/use-library-filter';
 import { useUniqueFilterOptions } from '@/hooks/use-unique-filter-options';
-import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
 import type { Playlist } from '@/src/domain/entities/playlist';
 
 type ChipType = 'playlists' | 'albums' | 'artists' | 'songs';
 
 export default function HomeScreen() {
-	const [selected, setSelected] = useState<ChipType>('playlists');
+	const defaultLibraryTab = useDefaultLibraryTab();
+	const [selected, setSelected] = useState<ChipType>(defaultLibraryTab);
 	const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+	const hasAppliedDefaultRef = useRef(false);
+
+	// Sync with persisted default after store hydration
+	useEffect(() => {
+		if (hasAppliedDefaultRef.current) return;
+
+		if (useSettingsStore.persist.hasHydrated()) {
+			hasAppliedDefaultRef.current = true;
+			setSelected(defaultLibraryTab);
+			return;
+		}
+
+		const unsubscribe = useSettingsStore.persist.onFinishHydration(() => {
+			hasAppliedDefaultRef.current = true;
+			setSelected(useSettingsStore.getState().defaultLibraryTab);
+		});
+
+		return unsubscribe;
+	}, [defaultLibraryTab]);
+
 	const allTracks = useAggregatedTracks();
 	const playlists = usePlaylists();
 	const isLoading = useIsLibraryLoading();
@@ -216,7 +240,7 @@ function PlaylistsList({ playlists, isLoading }: { playlists: Playlist[]; isLoad
 		<FlashList
 			data={playlists}
 			keyExtractor={(item) => item.id}
-			renderItem={({ item }) => <PlaylistItem playlist={item} />}
+			renderItem={({ item }) => <PlaylistListItem playlist={item} />}
 			showsVerticalScrollIndicator={false}
 		/>
 	);
@@ -241,7 +265,14 @@ function ArtistsList({ artists, isLoading }: { artists: UniqueArtist[]; isLoadin
 		<FlashList
 			data={artists}
 			keyExtractor={(item) => item.id}
-			renderItem={({ item }) => <ArtistItem artist={item} />}
+			renderItem={({ item }) => (
+				<ArtistListItem
+					id={item.id}
+					name={item.name}
+					artworkUrl={item.artworkUrl}
+					trackCount={item.trackCount}
+				/>
+			)}
 			showsVerticalScrollIndicator={false}
 		/>
 	);
@@ -266,151 +297,19 @@ function AlbumsList({ albums, isLoading }: { albums: UniqueAlbum[]; isLoading: b
 		<FlashList
 			data={albums}
 			keyExtractor={(item) => item.id}
-			renderItem={({ item }) => <AlbumItem album={item} />}
+			renderItem={({ item }) => (
+				<AlbumListItem
+					id={item.id}
+					name={item.name}
+					artistName={item.artistName}
+					artworkUrl={item.artworkUrl}
+					trackCount={item.trackCount}
+				/>
+			)}
 			showsVerticalScrollIndicator={false}
 		/>
 	);
 }
-
-const PlaylistItem = memo(function PlaylistItem({ playlist }: { playlist: Playlist }) {
-	const { colors } = useAppTheme();
-	const trackCount = playlist.tracks.length;
-	const artworkUrl = playlist.artwork?.[0]?.url ?? playlist.tracks[0]?.track.artwork?.[0]?.url;
-
-	const handlePress = () => {
-		router.push({
-			pathname: '/playlist/[id]',
-			params: { id: playlist.id },
-		});
-	};
-
-	return (
-		<TouchableOpacity style={styles.listItem} activeOpacity={0.7} onPress={handlePress}>
-			{artworkUrl ? (
-				<Image
-					source={{ uri: artworkUrl }}
-					style={styles.playlistArtwork}
-					contentFit="cover"
-					transition={200}
-					cachePolicy="memory-disk"
-					recyclingKey={playlist.id}
-				/>
-			) : (
-				<View
-					style={[
-						styles.playlistArtwork,
-						{ backgroundColor: colors.surfaceContainerHighest },
-					]}
-				>
-					<Icon as={ListMusicIcon} color={colors.onSurfaceVariant} />
-				</View>
-			)}
-
-			<View style={styles.listItemText}>
-				<Text variant="bodyLarge" numberOfLines={1} style={{ color: colors.onSurface }}>
-					{playlist.name}
-				</Text>
-				<Text
-					variant="bodySmall"
-					numberOfLines={1}
-					style={{ color: colors.onSurfaceVariant }}
-				>
-					{trackCount} {trackCount === 1 ? 'track' : 'tracks'}
-				</Text>
-			</View>
-		</TouchableOpacity>
-	);
-});
-
-const ArtistItem = memo(function ArtistItem({ artist }: { artist: UniqueArtist }) {
-	const { colors } = useAppTheme();
-
-	return (
-		<TouchableOpacity style={styles.listItem} activeOpacity={0.7}>
-			{artist.artworkUrl ? (
-				<Image
-					source={{ uri: artist.artworkUrl }}
-					style={styles.artistArtwork}
-					contentFit="cover"
-					transition={200}
-					cachePolicy="memory-disk"
-					recyclingKey={artist.id}
-				/>
-			) : (
-				<View
-					style={[
-						styles.artistArtwork,
-						{ backgroundColor: colors.surfaceContainerHighest },
-					]}
-				>
-					<Icon as={UsersIcon} color={colors.onSurfaceVariant} />
-				</View>
-			)}
-
-			<View style={styles.listItemText}>
-				<Text variant="bodyLarge" numberOfLines={1} style={{ color: colors.onSurface }}>
-					{artist.name}
-				</Text>
-				<Text
-					variant="bodySmall"
-					numberOfLines={1}
-					style={{ color: colors.onSurfaceVariant }}
-				>
-					{artist.trackCount} {artist.trackCount === 1 ? 'track' : 'tracks'}
-				</Text>
-			</View>
-		</TouchableOpacity>
-	);
-});
-
-const AlbumItem = memo(function AlbumItem({ album }: { album: UniqueAlbum }) {
-	const { colors } = useAppTheme();
-
-	const handlePress = () => {
-		router.push({
-			pathname: '/album/[id]',
-			params: { id: album.id },
-		});
-	};
-
-	return (
-		<TouchableOpacity style={styles.listItem} activeOpacity={0.7} onPress={handlePress}>
-			{album.artworkUrl ? (
-				<Image
-					source={{ uri: album.artworkUrl }}
-					style={styles.albumArtwork}
-					contentFit="cover"
-					transition={200}
-					cachePolicy="memory-disk"
-					recyclingKey={album.id}
-				/>
-			) : (
-				<View
-					style={[
-						styles.albumArtwork,
-						{ backgroundColor: colors.surfaceContainerHighest },
-					]}
-				>
-					<Icon as={DiscIcon} color={colors.onSurfaceVariant} />
-				</View>
-			)}
-
-			<View style={styles.listItemText}>
-				<Text variant="bodyLarge" numberOfLines={1} style={{ color: colors.onSurface }}>
-					{album.name}
-				</Text>
-				<Text
-					variant="bodySmall"
-					numberOfLines={1}
-					style={{ color: colors.onSurfaceVariant }}
-				>
-					{album.artistName} · {album.trackCount}{' '}
-					{album.trackCount === 1 ? 'track' : 'tracks'}
-				</Text>
-			</View>
-		</TouchableOpacity>
-	);
-});
 
 const styles = StyleSheet.create({
 	tabsRow: {
@@ -424,37 +323,5 @@ const styles = StyleSheet.create({
 	content: {
 		flex: 1,
 		paddingHorizontal: 16,
-	},
-	listItem: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		width: '100%',
-		gap: 16,
-		paddingVertical: 16,
-	},
-	playlistArtwork: {
-		width: 56,
-		height: 56,
-		borderRadius: 8,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	artistArtwork: {
-		width: 56,
-		height: 56,
-		borderRadius: 28,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	albumArtwork: {
-		width: 56,
-		height: 56,
-		borderRadius: 8,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	listItemText: {
-		flex: 1,
-		gap: 4,
 	},
 });
