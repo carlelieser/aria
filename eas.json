@@ -19,7 +19,14 @@
 			"distribution": "internal"
 		},
 		"production": {
-			"autoIncrement": true
+			"autoIncrement": true,
+			"env": {
+				"NODE_ENV": "production"
+			},
+			"android": {
+				"buildType": "apk",
+				"gradleCommand": ":app:assembleRelease"
+			}
 		}
 	},
 	"submit": {
