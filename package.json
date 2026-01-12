@@ -7,6 +7,7 @@
 		"email": "hello@carlelieser.dev",
 		"url": "https://carlelieser.dev"
 	},
+	"license": "MIT",
 	"scripts": {
 		"start": "expo start",
 		"reset-project": "node ./scripts/reset-project.js",
@@ -22,6 +23,7 @@
 		"build:android": "eas build --platform android --local --output out/aria.apk"
 	},
 	"dependencies": {
+		"audio-metadata": "file:./modules/audio-metadata",
 		"@expo/metro-runtime": "~6.1.2",
 		"@expo/vector-icons": "^15.0.3",
 		"@gorhom/bottom-sheet": "^5.2.8",
@@ -85,6 +87,7 @@
 		"@types/react": "~19.1.10",
 		"@types/text-encoding": "^0.0.40",
 		"@vitest/coverage-v8": "^4.0.16",
+		"babel-plugin-transform-import-meta": "^2.3.3",
 		"baseline-browser-mapping": "^2.9.14",
 		"eslint": "^9.39.2",
 		"eslint-config-expo": "~10.0.0",
