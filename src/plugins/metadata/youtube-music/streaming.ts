@@ -43,6 +43,33 @@ async function tryHlsStream(
 	}
 }
 
+const DOWNLOAD_TIMEOUT_MS = 60000; // 60 seconds timeout for downloads
+
+async function downloadWithTimeout(
+	url: string,
+	filePath: string,
+	headers: Record<string, string>,
+	timeoutMs: number
+): Promise<FileSystem.FileSystemDownloadResult | null> {
+	return new Promise((resolve) => {
+		const timeoutId = setTimeout(() => {
+			logger.warn(`Download timed out after ${timeoutMs}ms`);
+			resolve(null);
+		}, timeoutMs);
+
+		FileSystem.downloadAsync(url, filePath, { headers })
+			.then((result) => {
+				clearTimeout(timeoutId);
+				resolve(result);
+			})
+			.catch((error) => {
+				clearTimeout(timeoutId);
+				logger.warn(`Download error: ${error instanceof Error ? error.message : String(error)}`);
+				resolve(null);
+			});
+	});
+}
+
 async function downloadToCache(
 	url: string,
 	videoId: string,
@@ -60,6 +87,8 @@ async function downloadToCache(
 		Origin: 'https://www.youtube.com',
 		Referer: 'https://www.youtube.com/',
 		'User-Agent': 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version',
+		// Request full file with Range header - YouTube servers often require this
+		Range: expectedSize ? `bytes=0-${expectedSize - 1}` : 'bytes=0-',
 		...headers,
 	};
 
@@ -69,41 +98,50 @@ async function downloadToCache(
 	}
 
 	logger.debug(`Downloading with headers: ${Object.keys(finalHeaders).join(', ')}`);
+	logger.debug(`URL length: ${url.length}, expected size: ${expectedSize ?? 'unknown'}`);
 
-	const downloadResult = await FileSystem.downloadAsync(url, cachedFilePath, {
-		headers: finalHeaders,
-	});
+	const downloadResult = await downloadWithTimeout(
+		url,
+		cachedFilePath,
+		finalHeaders,
+		DOWNLOAD_TIMEOUT_MS
+	);
 
-	// Only accept 200 OK for complete downloads (not 206 Partial Content)
-	if (downloadResult.status === 200) {
-		// Verify file size if we know the expected size
-		if (expectedSize) {
-			const fileInfo = await FileSystem.getInfoAsync(cachedFilePath);
-			if (fileInfo.exists && 'size' in fileInfo) {
-				const actualSize = fileInfo.size as number;
-				if (actualSize < expectedSize * 0.95) {
-					logger.warn(
-						`Download incomplete: got ${actualSize} bytes, expected ${expectedSize}`
-					);
-					await FileSystem.deleteAsync(cachedFilePath, { idempotent: true });
-					return null;
-				}
-				logger.debug(`Download verified: ${actualSize} bytes (expected ${expectedSize})`);
-			}
-		}
-		logger.debug(`Audio cached to: ${cachedFilePath}`);
-		return cachedFilePath;
+	if (!downloadResult) {
+		logger.warn('Download failed or timed out');
+		await FileSystem.deleteAsync(cachedFilePath, { idempotent: true }).catch(() => {});
+		return null;
 	}
 
-	// 206 means we got a partial response - file may not be seekable
-	if (downloadResult.status === 206) {
-		logger.warn('Got 206 Partial Content - file may not be complete/seekable');
-		// Still try to use it, but log the warning
+	// Accept both 200 (full response) and 206 (range response) as success
+	// We send Range headers so 206 is expected for successful downloads
+	if (downloadResult.status === 200 || downloadResult.status === 206) {
+		logger.debug(`Download completed with status: ${downloadResult.status}`);
+
+		// Verify file size
 		const fileInfo = await FileSystem.getInfoAsync(cachedFilePath);
-		if (fileInfo.exists && 'size' in fileInfo && (fileInfo.size as number) > 10000) {
-			logger.debug(`Partial file cached (${fileInfo.size} bytes): ${cachedFilePath}`);
-			return cachedFilePath;
+		if (!fileInfo.exists || !('size' in fileInfo)) {
+			logger.warn('Downloaded file does not exist or has no size info');
+			await FileSystem.deleteAsync(cachedFilePath, { idempotent: true }).catch(() => {});
+			return null;
 		}
+
+		const actualSize = fileInfo.size as number;
+
+		if (expectedSize && actualSize < expectedSize * 0.95) {
+			logger.warn(`Download incomplete: got ${actualSize} bytes, expected ${expectedSize}`);
+			await FileSystem.deleteAsync(cachedFilePath, { idempotent: true }).catch(() => {});
+			return null;
+		}
+
+		if (actualSize < 10000) {
+			logger.warn(`Downloaded file too small: ${actualSize} bytes`);
+			await FileSystem.deleteAsync(cachedFilePath, { idempotent: true }).catch(() => {});
+			return null;
+		}
+
+		logger.debug(`Audio cached successfully: ${actualSize} bytes to ${cachedFilePath}`);
+		return cachedFilePath;
 	}
 
 	logger.warn(`Cache download failed with status: ${downloadResult.status}`);
