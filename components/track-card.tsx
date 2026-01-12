@@ -104,7 +104,6 @@ const styles = StyleSheet.create({
 		borderRadius: M3Shapes.medium,
 		justifyContent: 'center',
 		alignItems: 'center',
-		overflow: 'hidden',
 	},
 	artwork: {
 		width: 128,
