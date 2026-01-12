@@ -32,7 +32,9 @@ export function EmptyState({
 
 	if (compact) {
 		return (
-			<View style={[styles.compactContainer, { backgroundColor: colors.surfaceContainerLow }]}>
+			<View
+				style={[styles.compactContainer, { backgroundColor: colors.surfaceContainerLow }]}
+			>
 				<Icon as={IconComponent} size={24} color={colors.onSurfaceVariant} />
 				<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
 					{title}

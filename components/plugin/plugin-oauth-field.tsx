@@ -53,7 +53,10 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 		const registry = PluginRegistry.getInstance();
 		const plugin = registry.getPlugin(pluginId);
 
-		if (!plugin || !OAUTH_PLUGIN_IDS.includes(plugin.manifest.id as (typeof OAUTH_PLUGIN_IDS)[number])) {
+		if (
+			!plugin ||
+			!OAUTH_PLUGIN_IDS.includes(plugin.manifest.id as (typeof OAUTH_PLUGIN_IDS)[number])
+		) {
 			return null;
 		}
 
@@ -199,10 +202,16 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 				onRequestClose={handleLoginCancel}
 			>
 				{pluginId === 'spotify' && (
-					<SpotifyLoginWebView onSuccess={handleLoginSuccess} onCancel={handleLoginCancel} />
+					<SpotifyLoginWebView
+						onSuccess={handleLoginSuccess}
+						onCancel={handleLoginCancel}
+					/>
 				)}
 				{pluginId === 'youtube-music' && (
-					<YouTubeMusicLoginWebView onSuccess={handleLoginSuccess} onCancel={handleLoginCancel} />
+					<YouTubeMusicLoginWebView
+						onSuccess={handleLoginSuccess}
+						onCancel={handleLoginCancel}
+					/>
 				)}
 			</Modal>
 		</View>

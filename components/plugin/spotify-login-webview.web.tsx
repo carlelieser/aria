@@ -6,10 +6,9 @@
 
 import { memo, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text } from 'react-native-paper';
+import { Text, IconButton } from 'react-native-paper';
 import { XIcon } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { IconButton } from 'react-native-paper';
 import { useAppTheme } from '@/lib/theme';
 import type { WebViewNavigation } from 'react-native-webview';
 

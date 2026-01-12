@@ -1,10 +1,5 @@
 export { TrackId, type SourceType, isValidTrackIdString, getTrackIdString } from './track-id';
-export {
-	AlbumId,
-	type AlbumSourceType,
-	isValidAlbumIdString,
-	getAlbumIdString,
-} from './album-id';
+export { AlbumId, type AlbumSourceType, isValidAlbumIdString, getAlbumIdString } from './album-id';
 export { Duration } from './duration';
 export {
 	type Artwork,

@@ -165,13 +165,20 @@ export function AccentColorPicker({ value, onValueChange }: AccentColorPickerPro
 											/>
 											<Text
 												variant="bodyLarge"
-												style={[styles.itemText, { color: colors.onSurface }]}
+												style={[
+													styles.itemText,
+													{ color: colors.onSurface },
+												]}
 											>
 												{colorOption.label}
 											</Text>
 											{isSelected && (
 												<View style={styles.checkWrapper}>
-													<Icon as={Check} size={20} color={colors.primary} />
+													<Icon
+														as={Check}
+														size={20}
+														color={colors.primary}
+													/>
 												</View>
 											)}
 										</View>
@@ -180,7 +187,10 @@ export function AccentColorPicker({ value, onValueChange }: AccentColorPickerPro
 							})}
 
 							<Divider
-								style={[styles.separator, { backgroundColor: colors.outlineVariant }]}
+								style={[
+									styles.separator,
+									{ backgroundColor: colors.outlineVariant },
+								]}
 							/>
 
 							{/* Dynamic color */}
@@ -197,7 +207,10 @@ export function AccentColorPicker({ value, onValueChange }: AccentColorPickerPro
 							>
 								<View style={styles.itemContent}>
 									<View
-										style={[styles.colorIndicator, { backgroundColor: DYNAMIC_COLOR.color }]}
+										style={[
+											styles.colorIndicator,
+											{ backgroundColor: DYNAMIC_COLOR.color },
+										]}
 									/>
 									<Text
 										variant="bodyLarge"

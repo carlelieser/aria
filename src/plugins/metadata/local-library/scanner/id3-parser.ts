@@ -105,7 +105,9 @@ async function _parseWithJsModule(
 		}
 
 		const fileSize = 'size' in fileInfo ? (fileInfo.size as number) : 0;
-		logger.debug(`Parsing metadata with JS for: ${fileName} (${Math.round(fileSize / 1024)}KB)`);
+		logger.debug(
+			`Parsing metadata with JS for: ${fileName} (${Math.round(fileSize / 1024)}KB)`
+		);
 
 		const mm = await _getMusicMetadata();
 

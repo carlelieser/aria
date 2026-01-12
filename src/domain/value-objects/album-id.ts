@@ -1,4 +1,9 @@
-export type AlbumSourceType = 'youtube-music' | 'local-library' | 'spotify' | 'apple-music' | string;
+export type AlbumSourceType =
+	| 'youtube-music'
+	| 'local-library'
+	| 'spotify'
+	| 'apple-music'
+	| string;
 
 export class AlbumId {
 	private constructor(

@@ -25,7 +25,7 @@ import {
 	DEFAULT_CONFIG,
 	type LocalLibraryConfig,
 } from './config';
-import type { ScanProgress, LocalTrack, FolderInfo } from './types';
+import type { ScanProgress, FolderInfo } from './types';
 import { pickAudioFiles, scanFolder as scanFolderFiles } from './scanner/folder-scanner';
 import { parseAudioMetadata } from './scanner/id3-parser';
 import {

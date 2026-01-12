@@ -103,9 +103,7 @@ export const useLocalLibraryStore = create<LocalLibraryState>()(
 			updateFolderTrackCount: (folderUri, trackCount) => {
 				const { folders } = get();
 				set({
-					folders: folders.map((f) =>
-						f.uri === folderUri ? { ...f, trackCount } : f
-					),
+					folders: folders.map((f) => (f.uri === folderUri ? { ...f, trackCount } : f)),
 				});
 			},
 

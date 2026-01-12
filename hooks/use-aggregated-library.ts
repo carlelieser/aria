@@ -1,15 +1,25 @@
 import { useMemo } from 'react';
-import { useLibraryStore, type UniqueArtist, type UniqueAlbum } from '@/src/application/state/library-store';
+import {
+	useLibraryStore,
+	type UniqueArtist,
+	type UniqueAlbum,
+} from '@/src/application/state/library-store';
 import { useLocalLibraryStore } from '@/src/plugins/metadata/local-library/storage/local-library-store';
 import type { Track } from '@/src/domain/entities/track';
-import type { LocalTrack, LocalAlbum, LocalArtist } from '@/src/plugins/metadata/local-library/types';
+import type {
+	LocalTrack,
+	LocalAlbum,
+	LocalArtist,
+} from '@/src/plugins/metadata/local-library/types';
 import { TrackId } from '@/src/domain/value-objects/track-id';
 import { Duration } from '@/src/domain/value-objects/duration';
 import { createLocalSource, type AudioFileType } from '@/src/domain/value-objects/audio-source';
 import { createArtwork } from '@/src/domain/value-objects/artwork';
 
 function mapLocalTrackToTrack(localTrack: LocalTrack): Track {
-	const extension = localTrack.filePath.split('.').pop()?.toLowerCase() as AudioFileType | undefined;
+	const extension = localTrack.filePath.split('.').pop()?.toLowerCase() as
+		| AudioFileType
+		| undefined;
 
 	return {
 		id: TrackId.create('local-file', localTrack.id),
@@ -20,16 +30,15 @@ function mapLocalTrackToTrack(localTrack: LocalTrack): Track {
 				name: localTrack.artistName,
 			},
 		],
-		album: localTrack.albumId && localTrack.albumName
-			? {
-					id: localTrack.albumId,
-					name: localTrack.albumName,
-				}
-			: undefined,
+		album:
+			localTrack.albumId && localTrack.albumName
+				? {
+						id: localTrack.albumId,
+						name: localTrack.albumName,
+					}
+				: undefined,
 		duration: Duration.fromSeconds(localTrack.duration),
-		artwork: localTrack.artworkPath
-			? [createArtwork(localTrack.artworkPath)]
-			: undefined,
+		artwork: localTrack.artworkPath ? [createArtwork(localTrack.artworkPath)] : undefined,
 		source: createLocalSource(localTrack.filePath, extension, localTrack.fileSize),
 		metadata: {
 			genre: localTrack.genre,
@@ -80,9 +89,7 @@ export function useAggregatedTracks(): Track[] {
 		const mappedLocalTracks = localTrackArray.map(mapLocalTrackToTrack);
 
 		const libraryTrackIds = new Set(libraryTracks.map((t) => t.id.value));
-		const uniqueLocalTracks = mappedLocalTracks.filter(
-			(t) => !libraryTrackIds.has(t.id.value)
-		);
+		const uniqueLocalTracks = mappedLocalTracks.filter((t) => !libraryTrackIds.has(t.id.value));
 
 		cachedAggregatedTracks = [...libraryTracks, ...uniqueLocalTracks];
 		cachedLibraryTracks = libraryTracks;

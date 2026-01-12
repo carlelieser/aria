@@ -73,7 +73,9 @@ export class AlbumService {
 		}
 	}
 
-	private async _fetchAlbumDetail(albumIdString: string): Promise<Result<AlbumDetailResult, Error>> {
+	private async _fetchAlbumDetail(
+		albumIdString: string
+	): Promise<Result<AlbumDetailResult, Error>> {
 		const store = useAlbumStore.getState();
 		store.setLoading(albumIdString, true);
 
@@ -97,9 +99,7 @@ export class AlbumService {
 		);
 
 		if (!targetProvider) {
-			const error = new Error(
-				`No provider found for album source: ${albumId.sourceType}`
-			);
+			const error = new Error(`No provider found for album source: ${albumId.sourceType}`);
 			store.setError(albumIdString, error.message);
 			return err(error);
 		}
@@ -151,7 +151,10 @@ export class AlbumService {
 			return ok(result);
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-			logger.warn(`Error fetching album from ${targetProvider.manifest.id}`, error instanceof Error ? error : undefined);
+			logger.warn(
+				`Error fetching album from ${targetProvider.manifest.id}`,
+				error instanceof Error ? error : undefined
+			);
 			store.setError(albumIdString, errorMessage);
 			return err(error instanceof Error ? error : new Error(errorMessage));
 		}

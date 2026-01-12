@@ -130,7 +130,7 @@ export const PluginFolderListField = memo(function PluginFolderListField({
 				</Button>
 			</View>
 
-				{folders.length === 0 ? (
+			{folders.length === 0 ? (
 				<EmptyState icon={FolderIcon} title="No folders added" compact />
 			) : (
 				<View style={[styles.folderList, { backgroundColor: colors.surfaceContainerLow }]}>

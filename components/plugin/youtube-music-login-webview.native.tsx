@@ -67,9 +67,7 @@ export const YouTubeMusicLoginWebView = memo(function YouTubeMusicLoginWebView({
 			const allCookies = { ...googleCookies, ...youtubeCookies };
 
 			// Check if all required cookies are present
-			const hasAllRequired = REQUIRED_COOKIES.every(
-				(name) => allCookies[name]?.value
-			);
+			const hasAllRequired = REQUIRED_COOKIES.every((name) => allCookies[name]?.value);
 
 			if (!hasAllRequired) {
 				return null;
