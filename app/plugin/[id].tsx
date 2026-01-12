@@ -62,7 +62,10 @@ export default function PluginDetailScreen() {
 				rightActions: headerRightActions,
 			}}
 		>
-			<PlayerAwareScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+			<PlayerAwareScrollView
+				style={styles.scrollView}
+				contentContainerStyle={styles.scrollContent}
+			>
 				<View style={styles.detailHeader}>
 					<View
 						style={[

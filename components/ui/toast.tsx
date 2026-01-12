@@ -169,7 +169,12 @@ export function ToastContainer() {
 							{visibleToast.title}
 						</Text>
 						{visibleToast.description && (
-							<Text style={[styles.toastDescription, { color: variantColors.textColor }]}>
+							<Text
+								style={[
+									styles.toastDescription,
+									{ color: variantColors.textColor },
+								]}
+							>
 								{visibleToast.description}
 							</Text>
 						)}

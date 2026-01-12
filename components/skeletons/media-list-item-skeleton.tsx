@@ -24,11 +24,7 @@ export function MediaListItemSkeleton({
 }: MediaListItemSkeletonProps) {
 	return (
 		<View style={styles.container}>
-			<Skeleton
-				width={48}
-				height={48}
-				rounded={shape === 'circular' ? 'full' : 'sm'}
-			/>
+			<Skeleton width={48} height={48} rounded={shape === 'circular' ? 'full' : 'sm'} />
 
 			<View style={styles.textContainer}>
 				<Skeleton width="55%" height={16} rounded="sm" />
@@ -36,9 +32,7 @@ export function MediaListItemSkeleton({
 				{lines >= 3 && <Skeleton width="25%" height={12} rounded="sm" />}
 			</View>
 
-			{showAccessory && (
-				<Skeleton width={32} height={14} rounded="sm" />
-			)}
+			{showAccessory && <Skeleton width={32} height={14} rounded="sm" />}
 		</View>
 	);
 }

@@ -201,7 +201,10 @@ export default function SettingsScreen() {
 
 	return (
 		<PageLayout header={{ icon: SettingsIcon, title: 'Settings' }}>
-			<PlayerAwareScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+			<PlayerAwareScrollView
+				style={styles.scrollView}
+				contentContainerStyle={styles.scrollContent}
+			>
 				<SettingsSection title="Plugins">
 					<SettingsItem
 						icon={PuzzleIcon}
@@ -310,7 +313,11 @@ export default function SettingsScreen() {
 					<SettingsItem
 						icon={CameraIcon}
 						title="Screenshot Mode"
-						subtitle={mockDataLoaded ? 'Loaded (tap to clear)' : 'Load mock data for screenshots'}
+						subtitle={
+							mockDataLoaded
+								? 'Loaded (tap to clear)'
+								: 'Load mock data for screenshots'
+						}
 						onPress={handleToggleMockData}
 					/>
 				</SettingsSection>

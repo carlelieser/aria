@@ -207,7 +207,7 @@ function TrackOptionsContent({
 				</View>
 			</View>
 
-			<Divider style={{ backgroundColor: colors.outlineVariant }} />
+			<Divider style={[styles.separator, { backgroundColor: colors.outlineVariant }]} />
 
 			{groups.map((group, groupIndex) => (
 				<View key={groupIndex}>

@@ -63,13 +63,7 @@ export function PageLayout({
 			edges={edges}
 		>
 			{header && <PageHeader {...header} />}
-			<View
-				style={[
-					styles.content,
-					contentPadding && styles.contentPadding,
-					contentStyle,
-				]}
-			>
+			<View style={[styles.content, contentPadding && styles.contentPadding, contentStyle]}>
 				{children}
 			</View>
 		</SafeAreaView>

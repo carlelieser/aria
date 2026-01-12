@@ -40,7 +40,10 @@ export default function PluginsScreen() {
 
 	return (
 		<PageLayout header={{ title: 'Plugins', showBack: true, compact: true }}>
-			<PlayerAwareScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+			<PlayerAwareScrollView
+				style={styles.scrollView}
+				contentContainerStyle={styles.scrollContent}
+			>
 				{isLoading ? (
 					<View style={styles.loadingContainer}>
 						<PluginListSkeleton count={4} />

@@ -36,7 +36,10 @@ export default function LibrarySettingsScreen() {
 
 	return (
 		<PageLayout header={{ title: 'Library', showBack: true, compact: true }}>
-			<PlayerAwareScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+			<PlayerAwareScrollView
+				style={styles.scrollView}
+				contentContainerStyle={styles.scrollContent}
+			>
 				<SettingsSection title="Display">
 					<SettingsSelect
 						icon={MusicIcon}
