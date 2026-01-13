@@ -152,6 +152,11 @@ jobs:
               working-directory: ios
               run: bundle exec pod install
 
+            - name: Setup SSH for Match
+              uses: webfactory/ssh-agent@v0.9.0
+              with:
+                  ssh-private-key: ${{ secrets.ARIA_CERTIFICATES_DEPLOY_KEY }}
+
             - name: Build iOS with Fastlane
               env:
                   MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
