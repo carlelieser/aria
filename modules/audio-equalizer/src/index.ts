@@ -10,11 +10,7 @@
  */
 
 import { requireNativeModule, Platform } from 'expo-modules-core';
-import type {
-	EqualizerInfo,
-	EqualizerPreset,
-	EqualizerState,
-} from './AudioEqualizer.types';
+import type { EqualizerInfo, EqualizerPreset, EqualizerState } from './AudioEqualizer.types';
 
 export type { EqualizerInfo, EqualizerPreset, EqualizerState } from './AudioEqualizer.types';
 

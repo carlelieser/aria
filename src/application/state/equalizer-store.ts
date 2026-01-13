@@ -144,7 +144,10 @@ export const useEqualizerStore = create<EqualizerState>()(
 					if (get().isNativeAvailable) {
 						const millibels = preset.gains.map(dbToMillibels);
 						AudioEqualizer.setBandLevels(millibels).catch((error: unknown) => {
-							logger.error('Failed to apply preset to native equalizer', toError(error));
+							logger.error(
+								'Failed to apply preset to native equalizer',
+								toError(error)
+							);
 						});
 					}
 				}
@@ -160,9 +163,11 @@ export const useEqualizerStore = create<EqualizerState>()(
 				});
 				// Sync to native module
 				if (state.isNativeAvailable) {
-					AudioEqualizer.setBandLevel(bandIndex, dbToMillibels(gain)).catch((error: unknown) => {
-						logger.error('Failed to set band level', toError(error));
-					});
+					AudioEqualizer.setBandLevel(bandIndex, dbToMillibels(gain)).catch(
+						(error: unknown) => {
+							logger.error('Failed to set band level', toError(error));
+						}
+					);
 				}
 			},
 
