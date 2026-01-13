@@ -6,6 +6,7 @@
  */
 
 import { memo, useCallback, useMemo } from 'react';
+import { router } from 'expo-router';
 import { User } from 'lucide-react-native';
 
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
@@ -73,14 +74,18 @@ export const ArtistListItem = memo(function ArtistListItem(props: ArtistListItem
 
 	const { onPress } = props;
 	const handlePress = useCallback(() => {
-		onPress?.();
-	}, [onPress]);
+		if (onPress) {
+			onPress();
+		} else {
+			router.push(`/artist/${id}`);
+		}
+	}, [onPress, id]);
 
 	return (
 		<MediaListItem
 			title={name}
 			subtitle={subtitle}
-			onPress={props.onPress ? handlePress : undefined}
+			onPress={handlePress}
 			artwork={{
 				url: artworkUrl,
 				shape: 'circular',
