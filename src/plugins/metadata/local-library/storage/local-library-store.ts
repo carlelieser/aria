@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { InteractionManager } from 'react-native';
 import type { LocalTrack, LocalAlbum, LocalArtist, ScanProgress, FolderInfo } from '../types';
 
 interface LocalLibraryState {
@@ -249,7 +250,11 @@ export const useLocalLibraryStore = create<LocalLibraryState>()(
 			}),
 			onRehydrateStorage: () => {
 				return () => {
-					resolveHydration?.();
+					// Defer hydration completion to not block UI during resume
+					// This is critical for large libraries that can have thousands of tracks
+					InteractionManager.runAfterInteractions(() => {
+						resolveHydration?.();
+					});
 				};
 			},
 		}

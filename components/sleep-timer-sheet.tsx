@@ -72,11 +72,15 @@ export function SleepTimerSheet({ isOpen, onClose }: SleepTimerSheetProps) {
 		sheetRef.current?.close();
 	}, [cancel]);
 
+	if (!isOpen) {
+		return null;
+	}
+
 	return (
 		<Portal name="sleep-timer-sheet">
 			<BottomSheet
 				ref={sheetRef}
-				index={isOpen ? 0 : -1}
+				index={0}
 				snapPoints={snapPoints}
 				enablePanDownToClose
 				backdropComponent={renderBackdrop}

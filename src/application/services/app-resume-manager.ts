@@ -3,6 +3,12 @@
  *
  * Coordinates app resume operations to prevent UI unresponsiveness.
  * Queues and batches operations to be executed after UI interactions complete.
+ *
+ * Key optimizations for long background periods:
+ * - Defers heavy operations using InteractionManager
+ * - Batches store rehydration callbacks
+ * - Uses requestAnimationFrame for critical UI paths
+ * - Implements priority-based operation scheduling
  */
 
 import { InteractionManager } from 'react-native';
@@ -13,8 +19,14 @@ const logger = getLogger('AppResumeManager');
 /** Time threshold (ms) after which stores should refresh */
 const STALE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
 
+/** Long background threshold - triggers more aggressive deferral */
+const LONG_BACKGROUND_THRESHOLD_MS = 30_000; // 30 seconds
+
 /** Maximum concurrent resume operations */
 const MAX_CONCURRENT_OPERATIONS = 2;
+
+/** Delay before processing queued operations to allow UI to stabilize */
+const UI_STABILIZATION_DELAY_MS = 100;
 
 type ResumeOperation = {
 	id: string;
@@ -27,12 +39,15 @@ class AppResumeManager {
 	private isProcessing = false;
 	private lastResumeTime = 0;
 	private lastBackgroundTime = 0;
+	private resumeCallbacks: Set<() => void> = new Set();
+	private isLongBackground = false;
 
 	/**
 	 * Records when the app goes to background
 	 */
 	onBackground(): void {
 		this.lastBackgroundTime = Date.now();
+		this.isLongBackground = false;
 		logger.debug('App went to background');
 	}
 
@@ -44,12 +59,75 @@ class AppResumeManager {
 		const backgroundDuration =
 			this.lastBackgroundTime > 0 ? this.lastResumeTime - this.lastBackgroundTime : 0;
 
-		logger.info(`App resumed after ${backgroundDuration}ms in background`);
+		this.isLongBackground = backgroundDuration > LONG_BACKGROUND_THRESHOLD_MS;
+
+		logger.info(
+			`App resumed after ${backgroundDuration}ms in background (long: ${this.isLongBackground})`
+		);
+
+		// For long background periods, add a stabilization delay before processing
+		if (this.isLongBackground && this.pendingOperations.length > 0) {
+			await this.waitForUIStabilization();
+		}
 
 		// Process any pending operations
 		if (this.pendingOperations.length > 0) {
 			await this.processOperationsDeferred();
 		}
+
+		// Notify all resume callbacks
+		this.notifyResumeCallbacks();
+	}
+
+	/**
+	 * Wait for UI to stabilize before heavy operations
+	 */
+	private waitForUIStabilization(): Promise<void> {
+		return new Promise((resolve) => {
+			// Use requestAnimationFrame to wait for next frame, then setTimeout
+			requestAnimationFrame(() => {
+				setTimeout(resolve, UI_STABILIZATION_DELAY_MS);
+			});
+		});
+	}
+
+	/**
+	 * Register a callback to be notified on app resume
+	 * Useful for components that need to refresh after long background
+	 */
+	onResumeCallback(callback: () => void): () => void {
+		this.resumeCallbacks.add(callback);
+		return () => {
+			this.resumeCallbacks.delete(callback);
+		};
+	}
+
+	/**
+	 * Notify all registered resume callbacks
+	 */
+	private notifyResumeCallbacks(): void {
+		if (this.resumeCallbacks.size === 0) return;
+
+		// Defer callback execution to not block UI
+		InteractionManager.runAfterInteractions(() => {
+			for (const callback of this.resumeCallbacks) {
+				try {
+					callback();
+				} catch (error) {
+					logger.error(
+						'Resume callback error:',
+						error instanceof Error ? error : undefined
+					);
+				}
+			}
+		});
+	}
+
+	/**
+	 * Check if the app resumed from a long background period
+	 */
+	wasLongBackground(): boolean {
+		return this.isLongBackground;
 	}
 
 	/**
@@ -152,16 +230,28 @@ class AppResumeManager {
 /**
  * Yield control back to the UI thread briefly
  * This prevents long-running JS from blocking animations
+ *
+ * @param useRAF - If true, uses requestAnimationFrame for smoother yielding
  */
-function yieldToUI(): Promise<void> {
+function yieldToUI(useRAF = false): Promise<void> {
 	return new Promise((resolve) => {
-		// setImmediate or setTimeout(0) allows the UI thread to process pending work
-		if (typeof setImmediate !== 'undefined') {
+		if (useRAF && typeof requestAnimationFrame !== 'undefined') {
+			// Use rAF for smoother yielding during animations
+			requestAnimationFrame(() => resolve());
+		} else if (typeof setImmediate !== 'undefined') {
+			// setImmediate allows the UI thread to process pending work
 			setImmediate(resolve);
 		} else {
 			setTimeout(resolve, 0);
 		}
 	});
+}
+
+/**
+ * Yield using requestAnimationFrame - better for animation-sensitive operations
+ */
+export function yieldToAnimationFrame(): Promise<void> {
+	return yieldToUI(true);
 }
 
 /**

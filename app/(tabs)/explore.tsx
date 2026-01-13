@@ -9,6 +9,7 @@ import {
 	SparklesIcon,
 	CompassIcon,
 	AlertCircleIcon,
+	SearchIcon,
 } from 'lucide-react-native';
 import { TrackCard } from '@/components/track-card';
 import { SelectableTrackListItem } from '@/components/selectable-track-list-item';
@@ -18,6 +19,7 @@ import { BatchActionBar } from '@/components/batch-action-bar';
 import { BatchPlaylistPicker } from '@/components/batch-playlist-picker';
 import { ExploreSortFilterSheet } from '@/components/explore';
 import { SortFilterFAB } from '@/components/library/sort-filter-fab';
+import { Icon } from '@/components/ui/icon';
 import { useSearch } from '@/hooks/use-search';
 import { useExploreFilter } from '@/hooks/use-explore-filter';
 import { useSelection } from '@/hooks/use-selection';
@@ -224,6 +226,12 @@ export default function ExploreScreen() {
 						{ backgroundColor: colors.surfaceContainerHigh },
 					]}
 				>
+					<Icon
+						as={SearchIcon}
+						size={20}
+						color={colors.onSurfaceVariant}
+						style={styles.searchIcon}
+					/>
 					<TextInput
 						value={query}
 						onChangeText={search}
@@ -396,6 +404,9 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 16,
 		paddingVertical: 4,
 		borderRadius: 28,
+	},
+	searchIcon: {
+		marginRight: 8,
 	},
 	searchInput: {
 		flex: 1,
