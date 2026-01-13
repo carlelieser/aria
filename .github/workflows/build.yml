@@ -71,28 +71,24 @@ jobs:
     build-ios:
         name: Build iOS App
         runs-on: [self-hosted, macOS]
+        defaults:
+            run:
+                shell: /bin/zsh --login -eo pipefail {0}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v6
 
-            - name: Setup Homebrew PATH
-              run: echo "/opt/homebrew/bin:/opt/homebrew/sbin" >> $GITHUB_PATH
-
-            - name: Setup Node.js
-              uses: actions/setup-node@v6
-              with:
-                  node-version: 20
-                  cache: 'npm'
-
-            - name: Setup Ruby
+            - name: Setup environment
               run: |
-                  echo "Ruby version: $(ruby --version)"
-                  gem install bundler --conservative
-                  bundle config set --local path 'vendor/bundle'
-                  bundle install --jobs 4 --retry 3
+                  echo "Node: $(node --version)"
+                  echo "Ruby: $(ruby --version)"
+                  echo "Bundler: $(bundle --version)"
 
-            - name: Install dependencies
+            - name: Install npm dependencies
               run: npm ci
+
+            - name: Install Ruby dependencies
+              run: bundle install --jobs 4 --retry 3
 
             - name: Generate native project
               run: npx expo prebuild --platform ios --clean
