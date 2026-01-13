@@ -5,32 +5,58 @@
 <h1 align="center">Aria</h1>
 
 <p align="center">
+  <strong>A free, open-source, and extensible music player</strong>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/github/actions/workflow/status/carlelieser/aria/ci.yml?branch=main&logo=github&label=CI" alt="CI Status" />
-  <img src="https://img.shields.io/badge/Expo-54-000020?logo=expo" alt="Expo 54" />
-  <img src="https://img.shields.io/badge/React_Native-0.81-61DAFB?logo=react" alt="React Native 0.81" />
-  <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white" alt="TypeScript 5.9" />
+  <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS-blue" alt="Android | iOS" />
   <img src="https://img.shields.io/badge/License-MIT-green" alt="MIT License" />
 </p>
 
 ---
 
-A modular, cross-platform music player.
+## Why Aria?
 
-## Installation
+- **Unified library** — Manage music from multiple sources in one place
+- **Plugin architecture** — Extend functionality with community-built plugins
+- **Offline support** — Save tracks for offline listening
+- **Privacy-first** — No ads, no tracking, fully open source
+- **Synced lyrics** — Line-by-line lyrics with timing
+- **10-band equalizer** — Fine-tune your sound with presets or custom settings
+- **Beautiful UI** — Material Design 3 with dynamic theming and custom accent colors
 
-Download the latest release from the [Releases](https://github.com/carlelieser/aria/releases) page.
+## Download
+
+Get the latest release from the [Releases](https://github.com/carlelieser/aria/releases) page.
 
 ## Features
 
-- 🔌 **Plugin architecture** with built-in providers for YouTube Music, Spotify, and local files
-- 📚 **Library management** with songs, albums, artists, and playlist organization
-- 🎨 **Material Design 3** with dynamic theming, accent colors, and light/dark/system modes
-- 🔍 **Search & discovery** across multiple providers with filtering and sorting
-- 📥 **Offline downloads** with queue management and storage tracking
-- 🎤 **Synced lyrics** with line-by-line timing and plain text fallback
-- 🎚️ **10-band equalizer** with presets (Flat, Bass Boost, Treble Boost, etc.)
-- 😴 **Sleep timer** with presets, custom duration, and end-of-track mode
-- 🎵 **Queue management** with reordering, shuffle, and repeat modes
+### Library
+- Play local files or connect sources via plugins
+- Unified library with songs, albums, artists, and playlists
+- Search across multiple sources simultaneously
+- Recently played history and favorites
+
+### Offline
+- Download tracks for offline listening
+- Queue management with progress tracking
+- Automatic retry for failed downloads
+
+### Audio
+- **10-band equalizer** with presets (Bass Boost, Treble Boost, Vocal, Rock, Electronic, and more)
+- Gapless playback for seamless transitions
+- Sleep timer with presets, custom duration, and end-of-track mode
+
+### Lyrics
+- Synced lyrics with line-by-line timing
+- Plain text fallback when timing unavailable
+- Multiple lyrics providers
+
+### Customization
+- Light, dark, and system theme modes
+- Custom accent colors with Material Design 3 dynamic theming
+- Configurable tabs and default views
 
 ## Setup
 
