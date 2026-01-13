@@ -71,8 +71,6 @@ jobs:
     build-ios:
         name: Build iOS App
         runs-on: [self-hosted, macOS]
-        env:
-            RUNNER_TOOL_CACHE: /Users/devplex/actions-runner/_work/_tool
         steps:
             - name: Checkout repository
               uses: actions/checkout@v6
@@ -84,10 +82,11 @@ jobs:
                   cache: 'npm'
 
             - name: Setup Ruby
-              uses: ruby/setup-ruby@v1
-              with:
-                  ruby-version: '3.2'
-                  bundler-cache: true
+              run: |
+                  echo "Ruby version: $(ruby --version)"
+                  gem install bundler --conservative
+                  bundle config set --local path 'vendor/bundle'
+                  bundle install --jobs 4 --retry 3
 
             - name: Install dependencies
               run: npm ci
