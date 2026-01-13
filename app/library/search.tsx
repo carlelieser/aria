@@ -136,34 +136,29 @@ export default function LibrarySearchScreen() {
 		[selectedTracks, addSelectedToPlaylist, exitSelectionMode]
 	);
 
-	const searchInput = (
-		<View style={styles.searchRow}>
-			<TextInput
-				value={searchQuery}
-				onChangeText={setSearchQuery}
-				style={[styles.searchInput, { color: colors.onSurface }]}
-				placeholderTextColor={colors.onSurfaceVariant}
-				placeholder="Search songs, playlists, albums, artists..."
-				autoFocus
-				autoCapitalize="none"
-				autoCorrect={false}
-				returnKeyType="search"
-			/>
-		</View>
-	);
-
 	return (
 		<PageLayout
 			header={{
 				title: 'Search Library',
 				showBack: true,
 				showBorder: false,
-				backgroundColor: colors.secondaryContainer,
-				borderRadius: 24,
-				belowTitle: searchInput,
-				extended: true,
 			}}
 		>
+			<View style={styles.searchContainer}>
+				<View style={[styles.searchInputWrapper, { backgroundColor: colors.secondaryContainer }]}>
+					<TextInput
+						value={searchQuery}
+						onChangeText={setSearchQuery}
+						style={[styles.searchInput, { color: colors.onSurface }]}
+						placeholderTextColor={colors.onSurfaceVariant}
+						placeholder="Search songs, playlists, albums, artists..."
+						autoFocus
+						autoCapitalize="none"
+						autoCorrect={false}
+						returnKeyType="search"
+					/>
+				</View>
+			</View>
 			<ScrollView
 				contentContainerStyle={[
 					styles.scrollContent,
@@ -298,16 +293,22 @@ function ResultSection({ title, icon: IconComponent, children }: ResultSectionPr
 }
 
 const styles = StyleSheet.create({
-	searchRow: {
+	searchContainer: {
+		paddingHorizontal: 16,
+		paddingTop: 16,
+		paddingBottom: 8,
+	},
+	searchInputWrapper: {
 		flexDirection: 'row',
 		alignItems: 'center',
 		paddingHorizontal: 16,
+		paddingVertical: 4,
+		borderRadius: 28,
 	},
 	searchInput: {
 		flex: 1,
 		fontSize: 16,
-		paddingVertical: 8,
-		paddingHorizontal: 16,
+		paddingVertical: 12,
 	},
 	scrollContent: {
 		gap: 24,

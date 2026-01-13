@@ -209,31 +209,26 @@ export default function ExploreScreen() {
 		[filteredTracks, selectedTrackIds, addSelectedToPlaylist, exitSelectionMode]
 	);
 
-	const searchInput = (
-		<View style={styles.searchRow}>
-			<TextInput
-				value={query}
-				onChangeText={search}
-				style={[styles.searchInput, { color: colors.onSurface }]}
-				placeholderTextColor={colors.onSurfaceVariant}
-				placeholder="Search songs, artists, albums..."
-				autoFocus={false}
-			/>
-		</View>
-	);
-
 	return (
 		<PageLayout
 			header={{
 				icon: CompassIcon,
 				title: 'Explore',
 				showBorder: false,
-				backgroundColor: colors.surfaceContainerHigh,
-				borderRadius: 24,
-				belowTitle: searchInput,
-				extended: true,
 			}}
 		>
+			<View style={styles.searchContainer}>
+				<View style={[styles.searchInputWrapper, { backgroundColor: colors.surfaceContainerHigh }]}>
+					<TextInput
+						value={query}
+						onChangeText={search}
+						style={[styles.searchInput, { color: colors.onSurface }]}
+						placeholderTextColor={colors.onSurfaceVariant}
+						placeholder="Search songs, artists, albums..."
+						autoFocus={false}
+					/>
+				</View>
+			</View>
 			{!isExploreMode && isSearching && (
 				<View style={styles.loadingContainer}>
 					<TrackListSkeleton count={10} />
@@ -385,15 +380,22 @@ export default function ExploreScreen() {
 }
 
 const styles = StyleSheet.create({
-	searchRow: {
+	searchContainer: {
+		paddingHorizontal: 16,
+		paddingTop: 16,
+		paddingBottom: 8,
+	},
+	searchInputWrapper: {
 		flexDirection: 'row',
 		alignItems: 'center',
 		paddingHorizontal: 16,
+		paddingVertical: 4,
+		borderRadius: 28,
 	},
 	searchInput: {
 		flex: 1,
 		fontSize: 16,
-		paddingVertical: 8,
+		paddingVertical: 12,
 	},
 	scrollContent: {
 		gap: 24,
