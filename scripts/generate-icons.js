@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const SVG_PATH = path.join(__dirname, '../assets/icon.svg');
-const SVG_CONTENT_PATH = path.join(__dirname, '../assets/icon-content.svg');
+const SVG_MONOCHROME_PATH = path.join(__dirname, '../assets/icon-monochrome.svg');
 const OUTPUT_DIR = path.join(__dirname, '../assets/images');
 
 // Background color from icon.svg (#fafdff)
@@ -47,9 +47,9 @@ async function generateIcons() {
 			});
 		} else if (icon.monochrome) {
 			// Create white silhouette with alpha for Android themed icons
-			// Use icon-content.svg (just the music note without background) for proper alpha extraction
-			const contentSvgBuffer = fs.readFileSync(SVG_CONTENT_PATH);
-			const resized = await sharp(contentSvgBuffer)
+			// Use icon-monochrome.svg (properly sized for monochrome display)
+			const monochromeSvgBuffer = fs.readFileSync(SVG_MONOCHROME_PATH);
+			const resized = await sharp(monochromeSvgBuffer)
 				.resize(icon.size, icon.size, {
 					fit: 'contain',
 					background: { r: 0, g: 0, b: 0, alpha: 0 },
