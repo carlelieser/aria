@@ -43,11 +43,12 @@ platform :ios do
       scheme: "Aria",
       configuration: "Debug",
       sdk: "iphonesimulator",
-      destination: "platform=iOS Simulator,name=iPhone 16",
       derived_data_path: "ios/build",
       skip_codesigning: true,
       skip_archive: true,
-      build_path: "build"
+      skip_profile_detection: true,
+      skip_package_ipa: true,
+      xcargs: "CODE_SIGNING_ALLOWED=NO"
     )
   end
 
