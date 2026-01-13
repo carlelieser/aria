@@ -200,24 +200,26 @@ export const TrackListItem = memo(function TrackListItem({
 			delayLongPress={300}
 			activeOpacity={0.7}
 		>
-			<View
-				style={[
-					styles.artworkContainer,
-					!artworkUrl && { backgroundColor: colors.surfaceContainerHighest },
-				]}
-			>
-				{artworkUrl ? (
-					<Image
-						source={{ uri: artworkUrl }}
-						style={styles.artwork}
-						contentFit="cover"
-						transition={200}
-						cachePolicy="memory-disk"
-						recyclingKey={track.id.value}
-					/>
-				) : (
-					<Icon as={Music} size={24} color={colors.onSurfaceVariant} />
-				)}
+			<View style={styles.artworkWrapper}>
+				<View
+					style={[
+						styles.artworkContainer,
+						!artworkUrl && { backgroundColor: colors.surfaceContainerHighest },
+					]}
+				>
+					{artworkUrl ? (
+						<Image
+							source={{ uri: artworkUrl }}
+							style={styles.artwork}
+							contentFit="cover"
+							transition={200}
+							cachePolicy="memory-disk"
+							recyclingKey={track.id.value}
+						/>
+					) : (
+						<Icon as={Music} size={24} color={colors.onSurfaceVariant} />
+					)}
+				</View>
 				{!downloadInfo && <DownloadIndicator trackId={track.id.value} size="sm" />}
 			</View>
 
@@ -278,8 +280,10 @@ const styles = StyleSheet.create({
 		gap: 16,
 		paddingVertical: 12,
 	},
-	artworkContainer: {
+	artworkWrapper: {
 		position: 'relative',
+	},
+	artworkContainer: {
 		width: 48,
 		height: 48,
 		borderRadius: M3Shapes.small,
