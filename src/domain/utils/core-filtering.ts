@@ -132,7 +132,5 @@ export function countBaseActiveFilters(filters: BaseFilters): number {
  * Checks if any base filters are active.
  */
 export function hasBaseActiveFilters(filters: BaseFilters): boolean {
-	return (
-		filters.favoritesOnly || filters.artistIds.length > 0 || filters.albumIds.length > 0
-	);
+	return filters.favoritesOnly || filters.artistIds.length > 0 || filters.albumIds.length > 0;
 }

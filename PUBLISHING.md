@@ -39,6 +39,7 @@ Use the automated screenshot script:
 ```
 
 **Prerequisites:**
+
 - Android SDK with `adb` in PATH
 - Emulator running or device connected
 - App installed on device
@@ -76,6 +77,7 @@ When releasing a new version:
 **Option 1: Request for Packaging (RFP)**
 
 Open an issue at [gitlab.com/fdroid/rfp](https://gitlab.com/fdroid/rfp) with:
+
 - Application ID: `com.aria.player`
 - Source repository URL
 - Brief description of the app
@@ -87,7 +89,7 @@ Open an issue at [gitlab.com/fdroid/rfp](https://gitlab.com/fdroid/rfp) with:
 
 ```yaml
 Categories:
-  - Multimedia
+    - Multimedia
 
 License: MIT
 
@@ -104,15 +106,15 @@ RepoType: git
 Repo: https://github.com/carlelieser/aria.git
 
 Builds:
-  - versionName: 0.2.1-beta
-    versionCode: 1
-    commit: v0.2.1-beta
-    subdir: android/app
-    gradle:
-      - yes
-    prebuild:
-      - cd ../..
-      - npm install
+    - versionName: 0.2.1-beta
+      versionCode: 1
+      commit: v0.2.1-beta
+      subdir: android/app
+      gradle:
+          - yes
+      prebuild:
+          - cd ../..
+          - npm install
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
