@@ -17,6 +17,7 @@ export class PlayerInitializer {
 		});
 
 		await TrackPlayer.updateOptions({
+			// All capabilities available to the player
 			capabilities: [
 				Capability.Play,
 				Capability.Pause,
@@ -24,7 +25,17 @@ export class PlayerInitializer {
 				Capability.SkipToNext,
 				Capability.SkipToPrevious,
 				Capability.SeekTo,
+				Capability.JumpForward,
+				Capability.JumpBackward,
 			],
+			// Capabilities shown in the notification (Android)
+			notificationCapabilities: [
+				Capability.Play,
+				Capability.Pause,
+				Capability.SkipToNext,
+				Capability.SkipToPrevious,
+			],
+			// Capabilities shown in compact notification view (Android)
 			compactCapabilities: [
 				Capability.Play,
 				Capability.Pause,
