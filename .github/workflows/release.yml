@@ -84,6 +84,10 @@ jobs:
 
             - name: Install Ninja
               run: |
+                  if command -v ninja &> /dev/null; then
+                    echo "Ninja already installed"
+                    exit 0
+                  fi
                   if command -v apt-get &> /dev/null; then
                     sudo apt-get update && sudo apt-get install -y ninja-build
                   elif command -v brew &> /dev/null; then
