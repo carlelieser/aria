@@ -34,6 +34,15 @@ export function getNavigationActions(context: TrackActionContext): TrackAction[]
 		});
 	}
 
+	actions.push({
+		id: CORE_ACTION_IDS.VIEW_LYRICS,
+		label: 'View Lyrics',
+		icon: 'MicVocal',
+		group: 'navigation',
+		priority: 50,
+		enabled: true,
+	});
+
 	return actions;
 }
 
@@ -44,6 +53,8 @@ export async function executeNavigationAction(
 	switch (actionId) {
 		case CORE_ACTION_IDS.VIEW_ARTIST:
 		case CORE_ACTION_IDS.VIEW_ALBUM:
+		case CORE_ACTION_IDS.VIEW_LYRICS:
+			// Navigation is handled in use-track-actions.ts
 			return false;
 
 		default:
