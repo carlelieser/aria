@@ -5,7 +5,7 @@
  * Uses M3 theming.
  */
 
-import React, { useCallback, useMemo, useRef, useEffect } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import BottomSheet, {
 	BottomSheetBackdrop,
@@ -32,12 +32,6 @@ export function SleepTimerSheet({ isOpen, onClose }: SleepTimerSheetProps) {
 
 	const snapPoints = useMemo(() => ['60%'], []);
 
-	useEffect(() => {
-		if (isOpen) {
-			sheetRef.current?.snapToIndex(0);
-		}
-	}, [isOpen]);
-
 	const handleSheetChanges = useCallback(
 		(index: number) => {
 			if (index === -1) {
@@ -54,6 +48,7 @@ export function SleepTimerSheet({ isOpen, onClose }: SleepTimerSheetProps) {
 				disappearsOnIndex={-1}
 				appearsOnIndex={0}
 				opacity={0.5}
+				pressBehavior="close"
 			/>
 		),
 		[]
@@ -77,15 +72,11 @@ export function SleepTimerSheet({ isOpen, onClose }: SleepTimerSheetProps) {
 		sheetRef.current?.close();
 	}, [cancel]);
 
-	if (!isOpen) {
-		return null;
-	}
-
 	return (
 		<Portal name="sleep-timer-sheet">
 			<BottomSheet
 				ref={sheetRef}
-				index={0}
+				index={isOpen ? 0 : -1}
 				snapPoints={snapPoints}
 				enablePanDownToClose
 				backdropComponent={renderBackdrop}
