@@ -75,6 +75,9 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v6
 
+            - name: Setup Homebrew PATH
+              run: echo "/opt/homebrew/bin:/opt/homebrew/sbin" >> $GITHUB_PATH
+
             - name: Setup Node.js
               uses: actions/setup-node@v6
               with:
