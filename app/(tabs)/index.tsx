@@ -1,6 +1,6 @@
 import { View, StyleSheet } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
 import { SegmentedButtons, IconButton } from 'react-native-paper';
+import { PlayerAwareFlashList } from '@/components/ui/player-aware-flash-list';
 import { PageLayout } from '@/components/page-layout';
 import { EmptyState } from '@/components/empty-state';
 import { MusicIcon, ListMusicIcon, UsersIcon, DiscIcon, SearchIcon } from 'lucide-react-native';
@@ -328,7 +328,7 @@ function SongsList({
 	}
 
 	return (
-		<FlashList
+		<PlayerAwareFlashList
 			data={tracks}
 			keyExtractor={(item) => item.id.value}
 			renderItem={({ item, index }) => (
@@ -365,7 +365,7 @@ function PlaylistsList({ playlists, isLoading }: { playlists: Playlist[]; isLoad
 	}
 
 	return (
-		<FlashList
+		<PlayerAwareFlashList
 			data={playlists}
 			keyExtractor={(item) => item.id}
 			renderItem={({ item }) => <PlaylistListItem playlist={item} />}
@@ -390,7 +390,7 @@ function ArtistsList({ artists, isLoading }: { artists: UniqueArtist[]; isLoadin
 	}
 
 	return (
-		<FlashList
+		<PlayerAwareFlashList
 			data={artists}
 			keyExtractor={(item) => item.id}
 			renderItem={({ item }) => (
@@ -422,7 +422,7 @@ function AlbumsList({ albums, isLoading }: { albums: UniqueAlbum[]; isLoading: b
 	}
 
 	return (
-		<FlashList
+		<PlayerAwareFlashList
 			data={albums}
 			keyExtractor={(item) => item.id}
 			renderItem={({ item }) => (
