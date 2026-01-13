@@ -1,5 +1,6 @@
 import { useCallback, useMemo, memo, useState } from 'react';
 import { ScrollView, View, StyleSheet, TextInput } from 'react-native';
+import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { Text, Button } from 'react-native-paper';
 import { PageLayout } from '@/components/page-layout';
 import {
@@ -248,7 +249,7 @@ export default function ExploreScreen() {
 				</View>
 			)}
 
-			<ScrollView
+			<PlayerAwareScrollView
 				contentContainerStyle={[
 					styles.scrollContent,
 					{
@@ -348,7 +349,7 @@ export default function ExploreScreen() {
 						)}
 					</>
 				)}
-			</ScrollView>
+			</PlayerAwareScrollView>
 
 			{!isExploreMode && hasSearchResults && !isSelectionMode && (
 				<SortFilterFAB filterCount={filterCount} onPress={handleOpenFilterSheet} />
