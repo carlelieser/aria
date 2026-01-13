@@ -123,7 +123,8 @@ export function useAppState(options: UseAppStateOptions = {}) {
 			if (previousState.match(/inactive|background/) && nextAppState === 'active') {
 				if (deferForegroundCallbacks && onForeground) {
 					// For very long background periods, add extra delay for GC
-					const isVeryLongBackground = backgroundDuration > VERY_LONG_BACKGROUND_THRESHOLD_MS;
+					const isVeryLongBackground =
+						backgroundDuration > VERY_LONG_BACKGROUND_THRESHOLD_MS;
 
 					const executeCallback = () => {
 						// Defer heavy operations to not block UI thread
