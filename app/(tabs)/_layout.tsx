@@ -40,6 +40,7 @@ export default function TabLayout() {
 	const enabledTabs = useEnabledTabs();
 	const hasNavigatedRef = useRef(false);
 	const [isHydrated, setIsHydrated] = useState(useSettingsStore.persist.hasHydrated());
+	const [isLayoutReady, setIsLayoutReady] = useState(false);
 
 	// Wait for store hydration before attempting navigation
 	useEffect(() => {
@@ -61,6 +62,14 @@ export default function TabLayout() {
 		return unsubscribe;
 	}, []);
 
+	// Mark layout as ready after initial render to prevent blank screens
+	useEffect(() => {
+		const timeoutId = requestAnimationFrame(() => {
+			setIsLayoutReady(true);
+		});
+		return () => cancelAnimationFrame(timeoutId);
+	}, []);
+
 	// Ensure tab order is valid and filter by enabled tabs
 	const validTabOrder = useMemo(() => {
 		// Ensure we have valid arrays to work with
@@ -79,8 +88,8 @@ export default function TabLayout() {
 	}, [tabOrder, enabledTabs]);
 
 	useEffect(() => {
-		// Only navigate after hydration is complete and interactions are done
-		if (!isHydrated || hasNavigatedRef.current) return;
+		// Only navigate after hydration is complete, layout is ready, and we haven't navigated yet
+		if (!isHydrated || !isLayoutReady || hasNavigatedRef.current) return;
 
 		// Check if we need to navigate to a different default tab
 		if (defaultTab !== validTabOrder[0]) {
@@ -92,24 +101,59 @@ export default function TabLayout() {
 				// Defer navigation to next frame to ensure all animations complete
 				const timeoutId = setTimeout(() => {
 					router.replace(config.route as '/' | '/explore' | '/downloads' | '/settings');
-				}, 0);
+				}, 50);
 				return () => clearTimeout(timeoutId);
 			}
 		}
-	}, [isHydrated, defaultTab, validTabOrder, enabledTabs]);
+	}, [isHydrated, isLayoutReady, defaultTab, validTabOrder, enabledTabs]);
+
+	// Memoize screen options to prevent re-renders causing blank screens
+	const screenOptions = useMemo(
+		() => ({
+			headerShown: false,
+			animation: 'shift' as const,
+			// Prevent tabs from unmounting when not focused - fixes blank screen issue
+			lazy: false,
+			freezeOnBlur: false,
+		}),
+		[]
+	);
 
 	return (
-		<Tabs
-			screenOptions={{ headerShown: false, animation: 'shift' }}
-			tabBar={(props) => <CustomTabBar {...props} tabOrder={validTabOrder} />}
-		>
-			{validTabOrder.map((tabId) => (
-				<Tabs.Screen
-					key={tabId}
-					name={tabId}
-					options={{ title: TAB_CONFIG[tabId].label }}
-				/>
-			))}
+		<Tabs screenOptions={screenOptions} tabBar={(props) => <CustomTabBar {...props} tabOrder={validTabOrder} />}>
+			{/*
+			 * Render all tabs statically to prevent re-mounting issues.
+			 * Tab visibility is controlled by the tabOrder in CustomTabBar.
+			 * Static definition ensures screens are always mounted and ready.
+			 */}
+			<Tabs.Screen
+				name="index"
+				options={{
+					title: TAB_CONFIG.index.label,
+					href: validTabOrder.includes('index') ? '/' : null,
+				}}
+			/>
+			<Tabs.Screen
+				name="explore"
+				options={{
+					title: TAB_CONFIG.explore.label,
+					href: validTabOrder.includes('explore') ? '/explore' : null,
+				}}
+			/>
+			<Tabs.Screen
+				name="downloads"
+				options={{
+					title: TAB_CONFIG.downloads.label,
+					href: validTabOrder.includes('downloads') ? '/downloads' : null,
+				}}
+			/>
+			<Tabs.Screen
+				name="settings"
+				options={{
+					title: TAB_CONFIG.settings.label,
+					href: validTabOrder.includes('settings') ? '/settings' : null,
+				}}
+			/>
 		</Tabs>
 	);
 }
