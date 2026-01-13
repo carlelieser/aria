@@ -232,6 +232,7 @@ export const TrackListItem = memo(function TrackListItem({
 				>
 					{artistNames}
 					{albumName && !downloadInfo ? ` · ${albumName}` : ''}
+					{downloadInfo && !track.duration.isZero() ? ` · ${duration}` : ''}
 				</Text>
 				{renderDownloadStatus()}
 				{isDownloading && (

@@ -2,7 +2,7 @@
  * EqualizerSheet Component
  *
  * Bottom sheet for equalizer settings with visual band controls.
- * Note: Currently visual-only as expo-av doesn't support audio processing.
+ * Integrates with native audio equalizer when available.
  * Uses M3 theming.
  */
 
@@ -18,8 +18,8 @@ import { Portal } from '@rn-primitives/portal';
 import { Text, Divider, Switch } from 'react-native-paper';
 import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
 import { Icon } from '@/components/ui/icon';
-import { SlidersHorizontal, Check, Info } from 'lucide-react-native';
-import { useEqualizer } from '@/hooks/use-equalizer';
+import { SlidersHorizontal, Check, Info, CheckCircle } from 'lucide-react-native';
+import { useEqualizer, useEqualizerInit } from '@/hooks/use-equalizer';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 
 interface EqualizerSheetProps {
@@ -38,7 +38,11 @@ export function EqualizerSheet({ isOpen, onClose }: EqualizerSheetProps) {
 		bands,
 		selectPreset,
 		toggleEnabled,
+		isNativeAvailable,
 	} = useEqualizer();
+
+	// Initialize native equalizer when sheet is opened
+	useEqualizerInit();
 
 	const snapPoints = useMemo(() => ['85%'], []);
 
@@ -114,21 +118,37 @@ export function EqualizerSheet({ isOpen, onClose }: EqualizerSheetProps) {
 						/>
 					</View>
 
-					<View
-						style={[
-							styles.infoContainer,
-							{ backgroundColor: colors.surfaceContainerHighest },
-						]}
-					>
-						<Icon as={Info} size={16} color={colors.onSurfaceVariant} />
-						<Text
-							variant="bodySmall"
-							style={{ color: colors.onSurfaceVariant, flex: 1 }}
+					{isNativeAvailable ? (
+						<View
+							style={[
+								styles.infoContainer,
+								{ backgroundColor: colors.primaryContainer },
+							]}
 						>
-							Visual preview only. Audio processing requires native modules not
-							available in expo-av.
-						</Text>
-					</View>
+							<Icon as={CheckCircle} size={16} color={colors.onPrimaryContainer} />
+							<Text
+								variant="bodySmall"
+								style={{ color: colors.onPrimaryContainer, flex: 1 }}
+							>
+								Native equalizer active. Audio adjustments will affect playback.
+							</Text>
+						</View>
+					) : (
+						<View
+							style={[
+								styles.infoContainer,
+								{ backgroundColor: colors.surfaceContainerHighest },
+							]}
+						>
+							<Icon as={Info} size={16} color={colors.onSurfaceVariant} />
+							<Text
+								variant="bodySmall"
+								style={{ color: colors.onSurfaceVariant, flex: 1 }}
+							>
+								Native equalizer unavailable. Visual preview only.
+							</Text>
+						</View>
+					)}
 
 					<Divider style={{ backgroundColor: colors.outlineVariant }} />
 

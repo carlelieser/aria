@@ -1,70 +1,46 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+/**
+ * Hook for executing track actions.
+ *
+ * This hook handles only action execution, not loading.
+ * Actions are pre-loaded by track-options-store before the sheet opens.
+ */
+
+import { useCallback, useRef } from 'react';
 import { router } from 'expo-router';
 import type { Track } from '@/src/domain/entities/track';
-import type { TrackAction, TrackActionSource } from '@/src/domain/actions/track-action';
+import type { TrackActionSource } from '@/src/domain/actions/track-action';
 import { CORE_ACTION_IDS } from '@/src/domain/actions/track-action';
 import { trackActionsService } from '@/src/application/services/track-actions-service';
 import { downloadService } from '@/src/application/services/download-service';
 import { useIsFavorite } from '@/src/application/state/library-store';
-import { useIsDownloaded, useIsDownloading } from '@/src/application/state/download-store';
 import { useToast } from '@/hooks/use-toast';
+import { useRefreshTrackOptionsActions } from '@/src/application/state/track-options-store';
 
-interface UseTrackActionsOptions {
+interface UseTrackActionExecutorOptions {
 	track: Track;
-
 	source: TrackActionSource;
-
 	playlistId?: string;
-
 	trackPosition?: number;
 }
 
-interface UseTrackActionsResult {
-	actions: TrackAction[];
-
-	isLoading: boolean;
-
+interface UseTrackActionExecutorResult {
 	executeAction: (actionId: string) => Promise<void>;
-
-	refresh: () => Promise<void>;
 }
 
-export function useTrackActions({
+export function useTrackActionExecutor({
 	track,
 	source,
 	playlistId,
 	trackPosition,
-}: UseTrackActionsOptions): UseTrackActionsResult {
-	const [actions, setActions] = useState<TrackAction[]>([]);
-	const [isLoading, setIsLoading] = useState(true);
+}: UseTrackActionExecutorOptions): UseTrackActionExecutorResult {
 	const { success, error } = useToast();
+	const refreshActions = useRefreshTrackOptionsActions();
 
 	const trackRef = useRef(track);
 	trackRef.current = track;
 
 	const trackIdValue = track.id.value;
 	const isFavorite = useIsFavorite(trackIdValue);
-	const isDownloaded = useIsDownloaded(trackIdValue);
-	const isDownloading = useIsDownloading(trackIdValue);
-
-	const loadActions = useCallback(async () => {
-		setIsLoading(true);
-		try {
-			const fetchedActions = await trackActionsService.getActionsForTrack({
-				track: trackRef.current,
-				source,
-				playlistId,
-				trackPosition,
-			});
-			setActions(fetchedActions);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [source, playlistId, trackPosition]);
-
-	useEffect(() => {
-		loadActions();
-	}, [loadActions, isFavorite, isDownloaded, isDownloading]);
 
 	const executeAction = useCallback(
 		async (actionId: string) => {
@@ -93,10 +69,6 @@ export function useTrackActions({
 					return;
 				}
 
-				case CORE_ACTION_IDS.VIEW_LYRICS:
-					router.push(`/lyrics?trackId=${encodeURIComponent(currentTrack.id.value)}`);
-					return;
-
 				case CORE_ACTION_IDS.ADD_TO_PLAYLIST:
 					router.push({
 						pathname: '/playlist-picker',
@@ -123,9 +95,13 @@ export function useTrackActions({
 					} else {
 						error('Download failed', result.error.message);
 					}
-					await loadActions();
+					await refreshActions();
 					return;
 				}
+
+				case CORE_ACTION_IDS.VIEW_LYRICS:
+					router.push(`/lyrics?trackId=${encodeURIComponent(currentTrack.id.value)}`);
+					return;
 
 				default: {
 					const wasFavorite = isFavorite;
@@ -158,17 +134,14 @@ export function useTrackActions({
 							break;
 					}
 
-					await loadActions();
+					await refreshActions();
 				}
 			}
 		},
-		[source, loadActions, isFavorite, success, error, playlistId, trackPosition]
+		[source, isFavorite, success, error, playlistId, trackPosition, refreshActions]
 	);
 
 	return {
-		actions,
-		isLoading,
 		executeAction,
-		refresh: loadActions,
 	};
 }

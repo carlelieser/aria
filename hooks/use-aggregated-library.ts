@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
+import { InteractionManager } from 'react-native';
 import {
 	useLibraryStore,
 	type UniqueArtist,
@@ -12,9 +13,18 @@ import type {
 	LocalArtist,
 } from '@/src/plugins/metadata/local-library/types';
 import { TrackId } from '@/src/domain/value-objects/track-id';
+import { AlbumId } from '@/src/domain/value-objects/album-id';
 import { Duration } from '@/src/domain/value-objects/duration';
 import { createLocalSource, type AudioFileType } from '@/src/domain/value-objects/audio-source';
 import { createArtwork } from '@/src/domain/value-objects/artwork';
+
+const LOCAL_LIBRARY_SOURCE = 'local-library';
+
+/**
+ * Threshold for deferring heavy computations.
+ * If combined track count exceeds this, we defer recomputation.
+ */
+const DEFERRED_COMPUTATION_THRESHOLD = 200;
 
 function mapLocalTrackToTrack(localTrack: LocalTrack): Track {
 	const extension = localTrack.filePath.split('.').pop()?.toLowerCase() as
@@ -22,7 +32,7 @@ function mapLocalTrackToTrack(localTrack: LocalTrack): Track {
 		| undefined;
 
 	return {
-		id: TrackId.create('local-file', localTrack.id),
+		id: TrackId.create(LOCAL_LIBRARY_SOURCE, localTrack.id),
 		title: localTrack.title,
 		artists: [
 			{
@@ -33,7 +43,7 @@ function mapLocalTrackToTrack(localTrack: LocalTrack): Track {
 		album:
 			localTrack.albumId && localTrack.albumName
 				? {
-						id: localTrack.albumId,
+						id: AlbumId.create(LOCAL_LIBRARY_SOURCE, localTrack.albumId).value,
 						name: localTrack.albumName,
 					}
 				: undefined,
@@ -52,7 +62,7 @@ function mapLocalTrackToTrack(localTrack: LocalTrack): Track {
 
 function mapLocalAlbumToUniqueAlbum(localAlbum: LocalAlbum): UniqueAlbum {
 	return {
-		id: localAlbum.id,
+		id: AlbumId.create(LOCAL_LIBRARY_SOURCE, localAlbum.id).value,
 		name: localAlbum.name,
 		artistName: localAlbum.artistName,
 		trackCount: localAlbum.trackCount,
@@ -76,27 +86,83 @@ let cachedAggregatedTracks: Track[] = [];
 let cachedLibraryTracks: Track[] | null = null;
 let cachedLocalTracks: Record<string, LocalTrack> | null = null;
 
+/**
+ * Compute aggregated tracks from library and local tracks.
+ * This is extracted to allow both sync and deferred execution.
+ */
+function computeAggregatedTracks(
+	libraryTracks: Track[],
+	localTracks: Record<string, LocalTrack>
+): Track[] {
+	const localTrackArray = Object.values(localTracks);
+	const mappedLocalTracks = localTrackArray.map(mapLocalTrackToTrack);
+
+	const libraryTrackIds = new Set(libraryTracks.map((t) => t.id.value));
+	const uniqueLocalTracks = mappedLocalTracks.filter((t) => !libraryTrackIds.has(t.id.value));
+
+	return [...libraryTracks, ...uniqueLocalTracks];
+}
+
 export function useAggregatedTracks(): Track[] {
 	const libraryTracks = useLibraryStore((state) => state.tracks);
 	const localTracks = useLocalLibraryStore((state) => state.tracks);
+	const [deferredResult, setDeferredResult] = useState<Track[] | null>(null);
+	const isComputingRef = useRef(false);
 
+	// Check if data has changed
+	const hasChanged = libraryTracks !== cachedLibraryTracks || localTracks !== cachedLocalTracks;
+
+	// Determine if we should defer computation
+	const totalCount = libraryTracks.length + Object.keys(localTracks).length;
+	const shouldDefer = hasChanged && totalCount > DEFERRED_COMPUTATION_THRESHOLD;
+
+	// Effect for deferred computation
+	useEffect(() => {
+		if (!shouldDefer || isComputingRef.current) return;
+
+		isComputingRef.current = true;
+
+		// Defer heavy computation until after interactions complete
+		const handle = InteractionManager.runAfterInteractions(() => {
+			const result = computeAggregatedTracks(libraryTracks, localTracks);
+
+			// Update cache
+			cachedAggregatedTracks = result;
+			cachedLibraryTracks = libraryTracks;
+			cachedLocalTracks = localTracks;
+
+			setDeferredResult(result);
+			isComputingRef.current = false;
+		});
+
+		return () => {
+			handle.cancel();
+			isComputingRef.current = false;
+		};
+	}, [shouldDefer, libraryTracks, localTracks]);
+
+	// Use memoized sync computation for small libraries or when cache is valid
 	return useMemo(() => {
-		if (libraryTracks === cachedLibraryTracks && localTracks === cachedLocalTracks) {
+		// Return cached result if nothing changed
+		if (!hasChanged) {
 			return cachedAggregatedTracks;
 		}
 
-		const localTrackArray = Object.values(localTracks);
-		const mappedLocalTracks = localTrackArray.map(mapLocalTrackToTrack);
+		// For large libraries, return cached while computing in background
+		if (shouldDefer) {
+			// Return deferred result if available, otherwise return stale cache
+			return deferredResult ?? cachedAggregatedTracks;
+		}
 
-		const libraryTrackIds = new Set(libraryTracks.map((t) => t.id.value));
-		const uniqueLocalTracks = mappedLocalTracks.filter((t) => !libraryTrackIds.has(t.id.value));
+		// For small libraries, compute synchronously
+		const result = computeAggregatedTracks(libraryTracks, localTracks);
 
-		cachedAggregatedTracks = [...libraryTracks, ...uniqueLocalTracks];
+		cachedAggregatedTracks = result;
 		cachedLibraryTracks = libraryTracks;
 		cachedLocalTracks = localTracks;
 
-		return cachedAggregatedTracks;
-	}, [libraryTracks, localTracks]);
+		return result;
+	}, [libraryTracks, localTracks, hasChanged, shouldDefer, deferredResult]);
 }
 
 let cachedAggregatedArtists: UniqueArtist[] = [];
@@ -104,130 +170,219 @@ let cachedLibraryArtistsRef: Track[] | null = null;
 let cachedLocalArtistsRef: Record<string, LocalArtist> | null = null;
 let cachedLocalTracksForArtists: Record<string, LocalTrack> | null = null;
 
+/**
+ * Compute aggregated artists from library and local data.
+ */
+function computeAggregatedArtists(
+	libraryTracks: Track[],
+	localArtists: Record<string, LocalArtist>,
+	localTracks: Record<string, LocalTrack>
+): UniqueArtist[] {
+	const artistMap = new Map<string, UniqueArtist>();
+
+	for (const track of libraryTracks) {
+		for (const artist of track.artists) {
+			const existing = artistMap.get(artist.id);
+			if (existing) {
+				artistMap.set(artist.id, {
+					...existing,
+					trackCount: existing.trackCount + 1,
+				});
+			} else {
+				artistMap.set(artist.id, {
+					id: artist.id,
+					name: artist.name,
+					trackCount: 1,
+					artworkUrl: track.artwork?.[0]?.url,
+				});
+			}
+		}
+	}
+
+	const localTrackArray = Object.values(localTracks);
+	const artistArtworkMap = new Map<string, string>();
+	for (const track of localTrackArray) {
+		if (track.artworkPath && !artistArtworkMap.has(track.artistId)) {
+			artistArtworkMap.set(track.artistId, track.artworkPath);
+		}
+	}
+
+	for (const localArtist of Object.values(localArtists)) {
+		const existing = artistMap.get(localArtist.id);
+		if (existing) {
+			artistMap.set(localArtist.id, {
+				...existing,
+				trackCount: existing.trackCount + localArtist.trackCount,
+			});
+		} else {
+			artistMap.set(
+				localArtist.id,
+				mapLocalArtistToUniqueArtist(localArtist, artistArtworkMap.get(localArtist.id))
+			);
+		}
+	}
+
+	return Array.from(artistMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+}
+
 export function useAggregatedArtists(): UniqueArtist[] {
 	const libraryTracks = useLibraryStore((state) => state.tracks);
 	const localArtists = useLocalLibraryStore((state) => state.artists);
 	const localTracks = useLocalLibraryStore((state) => state.tracks);
+	const [deferredResult, setDeferredResult] = useState<UniqueArtist[] | null>(null);
+	const isComputingRef = useRef(false);
+
+	const hasChanged =
+		libraryTracks !== cachedLibraryArtistsRef ||
+		localArtists !== cachedLocalArtistsRef ||
+		localTracks !== cachedLocalTracksForArtists;
+
+	const totalCount = libraryTracks.length + Object.keys(localArtists).length;
+	const shouldDefer = hasChanged && totalCount > DEFERRED_COMPUTATION_THRESHOLD;
+
+	useEffect(() => {
+		if (!shouldDefer || isComputingRef.current) return;
+
+		isComputingRef.current = true;
+
+		const handle = InteractionManager.runAfterInteractions(() => {
+			const result = computeAggregatedArtists(libraryTracks, localArtists, localTracks);
+
+			cachedAggregatedArtists = result;
+			cachedLibraryArtistsRef = libraryTracks;
+			cachedLocalArtistsRef = localArtists;
+			cachedLocalTracksForArtists = localTracks;
+
+			setDeferredResult(result);
+			isComputingRef.current = false;
+		});
+
+		return () => {
+			handle.cancel();
+			isComputingRef.current = false;
+		};
+	}, [shouldDefer, libraryTracks, localArtists, localTracks]);
 
 	return useMemo(() => {
-		if (
-			libraryTracks === cachedLibraryArtistsRef &&
-			localArtists === cachedLocalArtistsRef &&
-			localTracks === cachedLocalTracksForArtists
-		) {
+		if (!hasChanged) {
 			return cachedAggregatedArtists;
 		}
 
-		const artistMap = new Map<string, UniqueArtist>();
-
-		for (const track of libraryTracks) {
-			for (const artist of track.artists) {
-				const existing = artistMap.get(artist.id);
-				if (existing) {
-					artistMap.set(artist.id, {
-						...existing,
-						trackCount: existing.trackCount + 1,
-					});
-				} else {
-					artistMap.set(artist.id, {
-						id: artist.id,
-						name: artist.name,
-						trackCount: 1,
-						artworkUrl: track.artwork?.[0]?.url,
-					});
-				}
-			}
+		if (shouldDefer) {
+			return deferredResult ?? cachedAggregatedArtists;
 		}
 
-		const localTrackArray = Object.values(localTracks);
-		const artistArtworkMap = new Map<string, string>();
-		for (const track of localTrackArray) {
-			if (track.artworkPath && !artistArtworkMap.has(track.artistId)) {
-				artistArtworkMap.set(track.artistId, track.artworkPath);
-			}
-		}
+		const result = computeAggregatedArtists(libraryTracks, localArtists, localTracks);
 
-		for (const localArtist of Object.values(localArtists)) {
-			const existing = artistMap.get(localArtist.id);
-			if (existing) {
-				artistMap.set(localArtist.id, {
-					...existing,
-					trackCount: existing.trackCount + localArtist.trackCount,
-				});
-			} else {
-				artistMap.set(
-					localArtist.id,
-					mapLocalArtistToUniqueArtist(localArtist, artistArtworkMap.get(localArtist.id))
-				);
-			}
-		}
-
-		cachedAggregatedArtists = Array.from(artistMap.values()).sort((a, b) =>
-			a.name.localeCompare(b.name)
-		);
+		cachedAggregatedArtists = result;
 		cachedLibraryArtistsRef = libraryTracks;
 		cachedLocalArtistsRef = localArtists;
 		cachedLocalTracksForArtists = localTracks;
 
-		return cachedAggregatedArtists;
-	}, [libraryTracks, localArtists, localTracks]);
+		return result;
+	}, [libraryTracks, localArtists, localTracks, hasChanged, shouldDefer, deferredResult]);
 }
 
 let cachedAggregatedAlbums: UniqueAlbum[] = [];
 let cachedLibraryAlbumsRef: Track[] | null = null;
 let cachedLocalAlbumsRef: Record<string, LocalAlbum> | null = null;
 
+/**
+ * Compute aggregated albums from library and local data.
+ */
+function computeAggregatedAlbums(
+	libraryTracks: Track[],
+	localAlbums: Record<string, LocalAlbum>
+): UniqueAlbum[] {
+	const albumMap = new Map<string, UniqueAlbum>();
+
+	for (const track of libraryTracks) {
+		if (!track.album) continue;
+
+		const existing = albumMap.get(track.album.id);
+		if (existing) {
+			albumMap.set(track.album.id, {
+				...existing,
+				trackCount: existing.trackCount + 1,
+			});
+		} else {
+			albumMap.set(track.album.id, {
+				id: track.album.id,
+				name: track.album.name,
+				artistName: track.artists[0]?.name ?? 'Unknown Artist',
+				trackCount: 1,
+				artworkUrl: track.artwork?.[0]?.url,
+			});
+		}
+	}
+
+	for (const localAlbum of Object.values(localAlbums)) {
+		const formattedId = AlbumId.create(LOCAL_LIBRARY_SOURCE, localAlbum.id).value;
+		const existing = albumMap.get(formattedId);
+		if (existing) {
+			albumMap.set(formattedId, {
+				...existing,
+				trackCount: existing.trackCount + localAlbum.trackCount,
+			});
+		} else {
+			albumMap.set(formattedId, mapLocalAlbumToUniqueAlbum(localAlbum));
+		}
+	}
+
+	return Array.from(albumMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+}
+
 export function useAggregatedAlbums(): UniqueAlbum[] {
 	const libraryTracks = useLibraryStore((state) => state.tracks);
 	const localAlbums = useLocalLibraryStore((state) => state.albums);
+	const [deferredResult, setDeferredResult] = useState<UniqueAlbum[] | null>(null);
+	const isComputingRef = useRef(false);
+
+	const hasChanged =
+		libraryTracks !== cachedLibraryAlbumsRef || localAlbums !== cachedLocalAlbumsRef;
+
+	const totalCount = libraryTracks.length + Object.keys(localAlbums).length;
+	const shouldDefer = hasChanged && totalCount > DEFERRED_COMPUTATION_THRESHOLD;
+
+	useEffect(() => {
+		if (!shouldDefer || isComputingRef.current) return;
+
+		isComputingRef.current = true;
+
+		const handle = InteractionManager.runAfterInteractions(() => {
+			const result = computeAggregatedAlbums(libraryTracks, localAlbums);
+
+			cachedAggregatedAlbums = result;
+			cachedLibraryAlbumsRef = libraryTracks;
+			cachedLocalAlbumsRef = localAlbums;
+
+			setDeferredResult(result);
+			isComputingRef.current = false;
+		});
+
+		return () => {
+			handle.cancel();
+			isComputingRef.current = false;
+		};
+	}, [shouldDefer, libraryTracks, localAlbums]);
 
 	return useMemo(() => {
-		if (libraryTracks === cachedLibraryAlbumsRef && localAlbums === cachedLocalAlbumsRef) {
+		if (!hasChanged) {
 			return cachedAggregatedAlbums;
 		}
 
-		const albumMap = new Map<string, UniqueAlbum>();
-
-		for (const track of libraryTracks) {
-			if (!track.album) continue;
-
-			const existing = albumMap.get(track.album.id);
-			if (existing) {
-				albumMap.set(track.album.id, {
-					...existing,
-					trackCount: existing.trackCount + 1,
-				});
-			} else {
-				albumMap.set(track.album.id, {
-					id: track.album.id,
-					name: track.album.name,
-					artistName: track.artists[0]?.name ?? 'Unknown Artist',
-					trackCount: 1,
-					artworkUrl: track.artwork?.[0]?.url,
-				});
-			}
+		if (shouldDefer) {
+			return deferredResult ?? cachedAggregatedAlbums;
 		}
 
-		for (const localAlbum of Object.values(localAlbums)) {
-			const existing = albumMap.get(localAlbum.id);
-			if (existing) {
-				albumMap.set(localAlbum.id, {
-					...existing,
-					trackCount: existing.trackCount + localAlbum.trackCount,
-				});
-			} else {
-				albumMap.set(localAlbum.id, mapLocalAlbumToUniqueAlbum(localAlbum));
-			}
-		}
+		const result = computeAggregatedAlbums(libraryTracks, localAlbums);
 
-		cachedAggregatedAlbums = Array.from(albumMap.values()).sort((a, b) =>
-			a.name.localeCompare(b.name)
-		);
+		cachedAggregatedAlbums = result;
 		cachedLibraryAlbumsRef = libraryTracks;
 		cachedLocalAlbumsRef = localAlbums;
 
-		return cachedAggregatedAlbums;
-	}, [libraryTracks, localAlbums]);
+		return result;
+	}, [libraryTracks, localAlbums, hasChanged, shouldDefer, deferredResult]);
 }
 
 export function useAggregatedTrackCount(): number {

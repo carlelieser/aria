@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import {
 	useEqualizerStore,
 	DEFAULT_PRESETS,
@@ -41,12 +41,26 @@ export function useEqualizer() {
 		currentGains: store.customGains,
 		presets: DEFAULT_PRESETS,
 		bands: EQUALIZER_BANDS,
+		isNativeAvailable: store.isNativeAvailable,
 
 		selectPreset,
 		setGain,
 		toggleEnabled,
 		resetToFlat,
+		initializeNative: store.initializeNative,
 	};
+}
+
+/**
+ * Hook to initialize the native equalizer on mount.
+ * Call this once at app startup.
+ */
+export function useEqualizerInit() {
+	const initializeNative = useEqualizerStore((state) => state.initializeNative);
+
+	useEffect(() => {
+		initializeNative();
+	}, [initializeNative]);
 }
 
 export { DEFAULT_PRESETS, EQUALIZER_BANDS, type EqualizerPreset };

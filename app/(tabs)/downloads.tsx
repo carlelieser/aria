@@ -6,8 +6,8 @@ import { Icon } from '@/components/ui/icon';
 import { PageLayout } from '@/components/page-layout';
 import { EmptyState } from '@/components/empty-state';
 import { DownloadIcon, TrashIcon, HardDriveIcon } from 'lucide-react-native';
-import { TrackListItem } from '@/components/track-list-item';
-import { SelectableTrackListItem } from '@/components/selectable-track-list-item';
+import { DownloadListItem } from '@/components/download-list-item';
+import { SelectableDownloadListItem } from '@/components/selectable-download-list-item';
 import { BatchActionBar } from '@/components/batch-action-bar';
 import { useDownloadQueue, formatFileSize } from '@/hooks/use-download-queue';
 import { useDownloadActions } from '@/hooks/use-download-actions';
@@ -16,6 +16,7 @@ import { clearAllDownloads } from '@/src/infrastructure/filesystem/download-mana
 import { useToast } from '@/hooks/use-toast';
 import { useSelection } from '@/hooks/use-selection';
 import { useBatchActions } from '@/hooks/use-batch-actions';
+import { useResolvedTracks } from '@/hooks/use-resolved-track';
 import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
 import { createTrackFromDownloadInfo } from '@/src/domain/utils/create-track-from-download';
@@ -72,15 +73,22 @@ export default function DownloadsScreen() {
 		}
 	}, [selectedTab, activeDownloads, completedDownloads, failedDownloads]);
 
-	const completedTracks = useMemo(
-		() => completedDownloads.map(createTrackFromDownloadInfo),
+	// Get track IDs for completed downloads to resolve full track data
+	const completedTrackIds = useMemo(
+		() => completedDownloads.map((d) => d.trackId),
 		[completedDownloads]
 	);
 
-	const currentListTracks = useMemo(
-		() => currentList.map(createTrackFromDownloadInfo),
-		[currentList]
-	);
+	// Resolve full track data from library/history for completed downloads
+	const resolvedTracks = useResolvedTracks(completedTrackIds);
+
+	// Build queue of tracks for playback (using resolved data where available)
+	const completedTracksQueue = useMemo(() => {
+		return completedDownloads.map((downloadInfo) => {
+			const resolved = resolvedTracks.get(downloadInfo.trackId);
+			return resolved ?? createTrackFromDownloadInfo(downloadInfo);
+		});
+	}, [completedDownloads, resolvedTracks]);
 
 	const handleLongPress = useCallback(
 		(track: Track) => {
@@ -106,8 +114,8 @@ export default function DownloadsScreen() {
 	);
 
 	const selectedTracks = useMemo(
-		() => completedTracks.filter((t) => selectedTrackIds.has(t.id.value)),
-		[completedTracks, selectedTrackIds]
+		() => completedTracksQueue.filter((t) => selectedTrackIds.has(t.id.value)),
+		[completedTracksQueue, selectedTrackIds]
 	);
 
 	const handleBatchAddToLibrary = useCallback(() => {
@@ -198,28 +206,23 @@ export default function DownloadsScreen() {
 						data={currentList}
 						keyExtractor={(item) => item.trackId}
 						renderItem={({ item, index }) => {
-							const track = currentListTracks[index];
-
 							if (isCompletedTab) {
 								return (
-									<SelectableTrackListItem
-										track={track}
-										source="library"
+									<SelectableDownloadListItem
+										downloadInfo={item}
 										isSelectionMode={isSelectionMode}
-										isSelected={selectedTrackIds.has(track.id.value)}
+										isSelected={selectedTrackIds.has(item.trackId)}
 										onLongPress={handleLongPress}
 										onSelectionToggle={handleSelectionToggle}
-										queue={completedTracks}
+										queue={completedTracksQueue}
 										queueIndex={index}
 									/>
 								);
 							}
 
 							return (
-								<TrackListItem
-									track={track}
+								<DownloadListItem
 									downloadInfo={item}
-									hideOptionsMenu
 									onRetry={item.status === 'failed' ? handleRetry : undefined}
 								/>
 							);

@@ -3,6 +3,7 @@
  *
  * Shared bottom sheet for track options menu.
  * Rendered once at app level and controlled via track-options-store.
+ * Actions are pre-loaded before opening to prevent visual jumps.
  */
 
 import React, { useRef, useMemo, useCallback, useEffect, useState } from 'react';
@@ -22,7 +23,7 @@ import { Check } from 'lucide-react-native';
 import { Icon } from '@/components/ui/icon';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 import { ACTION_GROUP_ORDER } from '@/src/domain/actions/track-action';
-import { useTrackActions } from '@/hooks/use-track-actions';
+import type { TrackAction } from '@/src/domain/actions/track-action';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import { getArtistNames } from '@/src/domain/entities/track';
 import {
@@ -31,7 +32,9 @@ import {
 	useTrackOptionsSource,
 	useTrackOptionsContext,
 	useIsTrackOptionsOpen,
+	useTrackOptionsActions,
 } from '@/src/application/state/track-options-store';
+import { useTrackActionExecutor } from '@/hooks/use-track-action-executor';
 
 function getIconComponent(iconName: string): LucideIcon {
 	const icons = LucideIcons as unknown as Record<string, LucideIcon>;
@@ -140,7 +143,10 @@ function TrackOptionsContent({
 	onClose,
 }: TrackOptionsContentProps) {
 	const { colors } = useAppTheme();
-	const { actions, executeAction } = useTrackActions({
+
+	// Use pre-loaded actions from store (loaded before sheet opens)
+	const actions = useTrackOptionsActions();
+	const { executeAction } = useTrackActionExecutor({
 		track,
 		source,
 		playlistId,
@@ -148,7 +154,7 @@ function TrackOptionsContent({
 	});
 
 	const groups = useMemo(() => {
-		const groupMap = new Map<string, typeof actions>();
+		const groupMap = new Map<string, TrackAction[]>();
 
 		for (const action of actions) {
 			const group = groupMap.get(action.group) || [];

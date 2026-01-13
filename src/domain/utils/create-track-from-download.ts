@@ -7,6 +7,12 @@ import type {
 	DownloadedTrackMetadata,
 } from '@/src/domain/value-objects/download-state';
 
+/**
+ * Creates a minimal Track from DownloadInfo for display purposes.
+ * Duration is set to ZERO since download metadata doesn't store it.
+ * The actual track data (including duration) should be fetched from the
+ * appropriate source (library, history, or metadata provider).
+ */
 export function createTrackFromDownloadInfo(info: DownloadInfo): Track {
 	const trackId = TrackId.tryFromString(info.trackId) ?? TrackId.create('unknown', info.trackId);
 
@@ -24,6 +30,12 @@ export function createTrackFromDownloadInfo(info: DownloadInfo): Track {
 	});
 }
 
+/**
+ * Creates a minimal Track from DownloadedTrackMetadata for display purposes.
+ * Duration is set to ZERO since download metadata doesn't store it.
+ * The actual track data (including duration) should be fetched from the
+ * appropriate source (library, history, or metadata provider).
+ */
 export function createTrackFromDownloadedMetadata(metadata: DownloadedTrackMetadata): Track {
 	const trackId =
 		TrackId.tryFromString(metadata.trackId) ?? TrackId.create('unknown', metadata.trackId);
