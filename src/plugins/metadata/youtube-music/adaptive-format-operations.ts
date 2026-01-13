@@ -101,7 +101,7 @@ export async function tryAdaptiveFormat(
 		};
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
-		logger.error(`[Adaptive] Error with ${clientType} client: ${message}`);
+		logger.warn(`[Adaptive] ${clientType} client failed, will try next: ${message}`);
 		return null;
 	}
 }

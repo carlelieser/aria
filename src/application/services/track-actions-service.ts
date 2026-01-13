@@ -8,7 +8,9 @@ import { ACTION_GROUP_ORDER } from '@domain/actions/track-action';
 import type {
 	TrackActionsRequestEvent,
 	TrackActionsResponseEvent,
-	TrackActionExecutedEvent,
+	TrackActionResult,
+	TrackActionExecuteRequestEvent,
+	TrackActionExecuteResponseEvent,
 } from '../events/track-action-events';
 import { TRACK_ACTION_EVENTS } from '../events/track-action-events';
 import { getPluginRegistry } from '../../plugins/core/registry/plugin-registry';
@@ -22,8 +24,47 @@ export class TrackActionsService {
 		return this._sortActions(pluginActions);
 	}
 
-	async executeAction(actionId: string, context: TrackActionContext): Promise<void> {
-		this._emitActionExecuted(actionId, context.track, context.source);
+	async executeAction(
+		actionId: string,
+		context: TrackActionContext
+	): Promise<TrackActionResult> {
+		return this._executeViaPlugins(actionId, context);
+	}
+
+	private async _executeViaPlugins(
+		actionId: string,
+		context: TrackActionContext
+	): Promise<TrackActionResult> {
+		const eventBus = getPluginRegistry().getEventBus();
+		const requestId = `exec-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+		let result: TrackActionResult = { handled: false };
+
+		const unsubscribe = eventBus.on<TrackActionExecuteResponseEvent>(
+			TRACK_ACTION_EVENTS.EXECUTE_ACTION_RESPONSE,
+			(event) => {
+				if (event.requestId === requestId && event.result.handled) {
+					result = event.result;
+				}
+			}
+		);
+
+		const request: TrackActionExecuteRequestEvent = {
+			requestId,
+			actionId,
+			track: context.track,
+			source: context.source,
+			playlistId: context.playlistId,
+			trackPosition: context.trackPosition,
+		};
+
+		eventBus.emit(TRACK_ACTION_EVENTS.EXECUTE_ACTION_REQUEST, request);
+
+		await new Promise((resolve) => setTimeout(resolve, PLUGIN_RESPONSE_TIMEOUT_MS));
+
+		unsubscribe();
+
+		return result;
 	}
 
 	private async _getPluginActions(
@@ -63,17 +104,6 @@ export class TrackActionsService {
 			if (groupDiff !== 0) return groupDiff;
 			return b.priority - a.priority;
 		});
-	}
-
-	private _emitActionExecuted(actionId: string, track: Track, source: TrackActionSource): void {
-		const eventBus = getPluginRegistry().getEventBus();
-		const event: TrackActionExecutedEvent = {
-			actionId,
-			track,
-			source,
-			timestamp: Date.now(),
-		};
-		eventBus.emit(TRACK_ACTION_EVENTS.ACTION_EXECUTED, event);
 	}
 }
 

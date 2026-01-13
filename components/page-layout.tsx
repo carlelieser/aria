@@ -9,7 +9,7 @@ import type { ReactNode } from 'react';
 
 interface PageHeaderProps {
 	icon?: LucideIcon;
-	title: string;
+	title?: string;
 	showBack?: boolean;
 	onBack?: () => void;
 	rightActions?: ReactNode;
@@ -112,16 +112,18 @@ function PageHeader({
 							<Icon as={IconComponent} size={24} color={colors.primary} />
 						</View>
 					)}
-					<Text
-						variant={compact ? 'titleLarge' : 'headlineSmall'}
-						style={{
-							color: colors.onSurface,
-							fontWeight: compact ? '600' : '700',
-							flex: showBack ? 1 : undefined,
-						}}
-					>
-						{title}
-					</Text>
+					{title && (
+						<Text
+							variant={compact ? 'titleLarge' : 'headlineSmall'}
+							style={{
+								color: colors.onSurface,
+								fontWeight: compact ? '600' : '700',
+								flex: showBack ? 1 : undefined,
+							}}
+						>
+							{title}
+						</Text>
+					)}
 				</View>
 				{rightActions && <View style={styles.rightActions}>{rightActions}</View>}
 			</View>

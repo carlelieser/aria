@@ -78,14 +78,14 @@ When releasing a new version:
 
 Open an issue at [gitlab.com/fdroid/rfp](https://gitlab.com/fdroid/rfp) with:
 
-- Application ID: `com.aria.player`
+- Application ID: `com.aria.music.app`
 - Source repository URL
 - Brief description of the app
 
 **Option 2: Merge Request (faster)**
 
 1. Fork [gitlab.com/fdroid/fdroiddata](https://gitlab.com/fdroid/fdroiddata)
-2. Create `metadata/com.aria.player.yml`:
+2. Create `metadata/com.aria.music.app.yml`:
 
 ```yaml
 Categories:

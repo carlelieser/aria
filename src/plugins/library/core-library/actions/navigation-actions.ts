@@ -1,9 +1,11 @@
 import type { TrackAction, TrackActionContext } from '../../../../domain/actions/track-action';
+import type { TrackActionResult } from '../../../../application/events/track-action-events';
 import { CORE_ACTION_IDS } from '../../../../domain/actions/track-action';
 
 export function getNavigationActions(context: TrackActionContext): TrackAction[] {
 	const { track, source } = context;
 
+	// Navigation actions excluded from player screen to avoid disrupting playback
 	if (source === 'player') {
 		return [];
 	}
@@ -34,30 +36,46 @@ export function getNavigationActions(context: TrackActionContext): TrackAction[]
 		});
 	}
 
-	actions.push({
-		id: CORE_ACTION_IDS.VIEW_LYRICS,
-		label: 'View Lyrics',
-		icon: 'MicVocal',
-		group: 'navigation',
-		priority: 50,
-		enabled: true,
-	});
-
+	// VIEW_LYRICS is now provided by the lyrics plugin
 	return actions;
 }
 
 export async function executeNavigationAction(
 	actionId: string,
-	_context: TrackActionContext
-): Promise<boolean> {
+	context: TrackActionContext
+): Promise<TrackActionResult> {
+	const { track } = context;
+
 	switch (actionId) {
-		case CORE_ACTION_IDS.VIEW_ARTIST:
-		case CORE_ACTION_IDS.VIEW_ALBUM:
-		case CORE_ACTION_IDS.VIEW_LYRICS:
-			// Navigation is handled in use-track-actions.ts
-			return false;
+		case CORE_ACTION_IDS.VIEW_ARTIST: {
+			const artist = track.artists[0];
+			if (artist) {
+				return {
+					handled: true,
+					navigation: {
+						pathname: '/artist/[id]',
+						params: { id: artist.id, name: artist.name },
+					},
+				};
+			}
+			return { handled: false };
+		}
+
+		case CORE_ACTION_IDS.VIEW_ALBUM: {
+			const album = track.album;
+			if (album) {
+				return {
+					handled: true,
+					navigation: {
+						pathname: '/album/[id]',
+						params: { id: album.id, name: album.name },
+					},
+				};
+			}
+			return { handled: false };
+		}
 
 		default:
-			return false;
+			return { handled: false };
 	}
 }

@@ -11,9 +11,6 @@ import TrackPlayer, {
 	type PlaybackActiveTrackChangedEvent,
 	type PlaybackErrorEvent,
 	type PlaybackProgressUpdatedEvent,
-	type RemoteJumpForwardEvent,
-	type RemoteJumpBackwardEvent,
-	type RemoteSeekEvent,
 } from 'react-native-track-player';
 import type {
 	PlaybackEvent,
@@ -26,7 +23,6 @@ import type { ProgressTracker } from './progress-tracker';
 import { mapRNTPStateToStatus } from './event-mapper';
 
 const logger = getLogger('RNTPEventHandler');
-const MIN_SEEK_POSITION = 0;
 
 export class EventHandler {
 	private readonly listeners: Set<PlaybackEventListener> = new Set();
@@ -87,62 +83,12 @@ export class EventHandler {
 			this.onProgressUpdate.bind(this)
 		);
 
-		// Remote control event listeners (fallback for when app is in foreground)
-		const remotePlaySubscription = TrackPlayer.addEventListener(Event.RemotePlay, () =>
-			TrackPlayer.play()
-		);
-
-		const remotePauseSubscription = TrackPlayer.addEventListener(Event.RemotePause, () =>
-			TrackPlayer.pause()
-		);
-
-		const remoteStopSubscription = TrackPlayer.addEventListener(Event.RemoteStop, () =>
-			TrackPlayer.stop()
-		);
-
-		const remoteNextSubscription = TrackPlayer.addEventListener(Event.RemoteNext, () =>
-			TrackPlayer.skipToNext()
-		);
-
-		const remotePreviousSubscription = TrackPlayer.addEventListener(Event.RemotePrevious, () =>
-			TrackPlayer.skipToPrevious()
-		);
-
-		const remoteSeekSubscription = TrackPlayer.addEventListener(
-			Event.RemoteSeek,
-			(event: RemoteSeekEvent) => TrackPlayer.seekTo(event.position)
-		);
-
-		const remoteJumpForwardSubscription = TrackPlayer.addEventListener(
-			Event.RemoteJumpForward,
-			async (event: RemoteJumpForwardEvent) => {
-				const position = await TrackPlayer.getPosition();
-				await TrackPlayer.seekTo(position + event.interval);
-			}
-		);
-
-		const remoteJumpBackwardSubscription = TrackPlayer.addEventListener(
-			Event.RemoteJumpBackward,
-			async (event: RemoteJumpBackwardEvent) => {
-				const position = await TrackPlayer.getPosition();
-				await TrackPlayer.seekTo(Math.max(MIN_SEEK_POSITION, position - event.interval));
-			}
-		);
-
 		this.eventSubscriptions = [
 			playbackStateSubscription.remove.bind(playbackStateSubscription),
 			trackChangedSubscription.remove.bind(trackChangedSubscription),
 			errorSubscription.remove.bind(errorSubscription),
 			endSubscription.remove.bind(endSubscription),
 			progressSubscription.remove.bind(progressSubscription),
-			remotePlaySubscription.remove.bind(remotePlaySubscription),
-			remotePauseSubscription.remove.bind(remotePauseSubscription),
-			remoteStopSubscription.remove.bind(remoteStopSubscription),
-			remoteNextSubscription.remove.bind(remoteNextSubscription),
-			remotePreviousSubscription.remove.bind(remotePreviousSubscription),
-			remoteSeekSubscription.remove.bind(remoteSeekSubscription),
-			remoteJumpForwardSubscription.remove.bind(remoteJumpForwardSubscription),
-			remoteJumpBackwardSubscription.remove.bind(remoteJumpBackwardSubscription),
 		];
 	}
 

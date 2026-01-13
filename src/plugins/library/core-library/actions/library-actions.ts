@@ -1,4 +1,5 @@
 import type { TrackAction, TrackActionContext } from '../../../../domain/actions/track-action';
+import type { TrackActionResult } from '../../../../application/events/track-action-events';
 import { CORE_ACTION_IDS } from '../../../../domain/actions/track-action';
 import { libraryService } from '../../../../application/services/library-service';
 
@@ -26,19 +27,27 @@ export function getLibraryActions(context: TrackActionContext): TrackAction[] {
 export async function executeLibraryAction(
 	actionId: string,
 	context: TrackActionContext
-): Promise<boolean> {
+): Promise<TrackActionResult> {
 	const { track } = context;
 
 	switch (actionId) {
 		case CORE_ACTION_IDS.ADD_TO_LIBRARY:
 			libraryService.addTrack(track);
-			return true;
+			return {
+				handled: true,
+				success: true,
+				feedback: { message: 'Added to library', description: track.title },
+			};
 
 		case CORE_ACTION_IDS.REMOVE_FROM_LIBRARY:
 			libraryService.removeTrack(track.id.value);
-			return true;
+			return {
+				handled: true,
+				success: true,
+				feedback: { message: 'Removed from library', description: track.title },
+			};
 
 		default:
-			return false;
+			return { handled: false };
 	}
 }

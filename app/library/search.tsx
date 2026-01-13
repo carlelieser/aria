@@ -139,7 +139,6 @@ export default function LibrarySearchScreen() {
 	return (
 		<PageLayout
 			header={{
-				title: 'Search Library',
 				showBack: true,
 				showBorder: false,
 			}}

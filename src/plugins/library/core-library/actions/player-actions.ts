@@ -1,4 +1,5 @@
 import type { TrackAction, TrackActionContext } from '../../../../domain/actions/track-action';
+import type { TrackActionResult } from '../../../../application/events/track-action-events';
 import { CORE_ACTION_IDS } from '../../../../domain/actions/track-action';
 import { sleepTimerService } from '../../../../application/services/sleep-timer-service';
 import { usePlayerUIStore } from '../../../../application/state/player-ui-store';
@@ -44,18 +45,18 @@ export function getPlayerActions(context: TrackActionContext): TrackAction[] {
 export async function executePlayerAction(
 	actionId: string,
 	_context: TrackActionContext
-): Promise<boolean> {
+): Promise<TrackActionResult> {
 	switch (actionId) {
 		case CORE_ACTION_IDS.SLEEP_TIMER:
 			usePlayerUIStore.getState().openSleepTimerSheet();
-			return true;
+			return { handled: true };
 
 		case CORE_ACTION_IDS.TOGGLE_LYRICS:
 			usePlayerUIStore.getState().toggleShowLyrics();
-			return true;
+			return { handled: true };
 
 		default:
-			return false;
+			return { handled: false };
 	}
 }
 

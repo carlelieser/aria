@@ -1,0 +1,7 @@
+app_identifier("com.aria.music.app")
+apple_id(ENV["APPLE_ID"])
+team_id(ENV["APPLE_TEAM_ID"])
+
+for_platform :ios do
+  app_identifier("com.aria.music.app")
+end

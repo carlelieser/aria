@@ -19,6 +19,7 @@ import { TrackOptionsMenu } from '@/components/track-options-menu';
 import { LyricsDisplay } from '@/components/lyrics-display';
 import { SleepTimerSheet } from '@/components/sleep-timer-sheet';
 import { usePlayer } from '@/hooks/use-player';
+import { useLyrics } from '@/hooks/use-lyrics';
 import { getLargestArtwork } from '@/src/domain/value-objects/artwork';
 import { getArtistNames } from '@/src/domain/entities/track';
 import { useAppTheme } from '@/lib/theme';
@@ -35,6 +36,9 @@ export default function PlayerScreen() {
 	const showLyrics = useShowLyrics();
 	const sleepTimerSheetOpen = useSleepTimerSheetOpen();
 	const closeSleepTimerSheet = usePlayerUIStore((state) => state.closeSleepTimerSheet);
+
+	// Fetch lyrics for current track (triggers fetch regardless of display state)
+	useLyrics();
 
 	useEffect(() => {
 		if (!currentTrack && pathname === '/player') {

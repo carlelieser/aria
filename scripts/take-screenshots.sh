@@ -26,7 +26,7 @@
 set -e
 
 # Configuration
-PACKAGE_NAME="com.aria.player"
+PACKAGE_NAME="com.aria.music.app"
 SCHEME="aria"
 OUTPUT_DIR="fastlane/metadata/android/en-US/images/phoneScreenshots"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

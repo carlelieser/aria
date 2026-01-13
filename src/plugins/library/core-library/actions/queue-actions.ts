@@ -1,4 +1,5 @@
 import type { TrackAction, TrackActionContext } from '../../../../domain/actions/track-action';
+import type { TrackActionResult } from '../../../../application/events/track-action-events';
 import { CORE_ACTION_IDS } from '../../../../domain/actions/track-action';
 import { usePlayerStore } from '../../../../application/state/player-store';
 
@@ -18,7 +19,7 @@ export function getQueueActions(_context: TrackActionContext): TrackAction[] {
 export async function executeQueueAction(
 	actionId: string,
 	context: TrackActionContext
-): Promise<boolean> {
+): Promise<TrackActionResult> {
 	const { track } = context;
 
 	switch (actionId) {
@@ -26,10 +27,14 @@ export async function executeQueueAction(
 			const store = usePlayerStore.getState();
 			const currentQueue = store.queue;
 			store.setQueue([...currentQueue, track], store.queueIndex);
-			return true;
+			return {
+				handled: true,
+				success: true,
+				feedback: { message: 'Added to queue', description: track.title },
+			};
 		}
 
 		default:
-			return false;
+			return { handled: false };
 	}
 }
