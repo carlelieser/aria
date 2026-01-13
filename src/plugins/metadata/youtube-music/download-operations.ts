@@ -38,7 +38,9 @@ async function downloadWithTimeout(
 			})
 			.catch((error) => {
 				clearTimeout(timeoutId);
-				logger.warn(`Download error: ${error instanceof Error ? error.message : String(error)}`);
+				logger.warn(
+					`Download error: ${error instanceof Error ? error.message : String(error)}`
+				);
 				resolve(null);
 			});
 	});

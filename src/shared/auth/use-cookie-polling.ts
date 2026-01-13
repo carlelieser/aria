@@ -69,10 +69,7 @@ export function useCookiePolling({
 
 		const pollForCookies = async () => {
 			// Check for timeout
-			if (
-				pollStartTimeRef.current &&
-				Date.now() - pollStartTimeRef.current > pollTimeoutMs
-			) {
+			if (pollStartTimeRef.current && Date.now() - pollStartTimeRef.current > pollTimeoutMs) {
 				stopPolling();
 				setPollingTimedOut(true);
 				return;

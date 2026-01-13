@@ -88,29 +88,24 @@ export class EventHandler {
 		);
 
 		// Remote control event listeners (fallback for when app is in foreground)
-		const remotePlaySubscription = TrackPlayer.addEventListener(
-			Event.RemotePlay,
-			() => TrackPlayer.play()
+		const remotePlaySubscription = TrackPlayer.addEventListener(Event.RemotePlay, () =>
+			TrackPlayer.play()
 		);
 
-		const remotePauseSubscription = TrackPlayer.addEventListener(
-			Event.RemotePause,
-			() => TrackPlayer.pause()
+		const remotePauseSubscription = TrackPlayer.addEventListener(Event.RemotePause, () =>
+			TrackPlayer.pause()
 		);
 
-		const remoteStopSubscription = TrackPlayer.addEventListener(
-			Event.RemoteStop,
-			() => TrackPlayer.stop()
+		const remoteStopSubscription = TrackPlayer.addEventListener(Event.RemoteStop, () =>
+			TrackPlayer.stop()
 		);
 
-		const remoteNextSubscription = TrackPlayer.addEventListener(
-			Event.RemoteNext,
-			() => TrackPlayer.skipToNext()
+		const remoteNextSubscription = TrackPlayer.addEventListener(Event.RemoteNext, () =>
+			TrackPlayer.skipToNext()
 		);
 
-		const remotePreviousSubscription = TrackPlayer.addEventListener(
-			Event.RemotePrevious,
-			() => TrackPlayer.skipToPrevious()
+		const remotePreviousSubscription = TrackPlayer.addEventListener(Event.RemotePrevious, () =>
+			TrackPlayer.skipToPrevious()
 		);
 
 		const remoteSeekSubscription = TrackPlayer.addEventListener(
@@ -156,7 +151,10 @@ export class EventHandler {
 			try {
 				unsubscribe();
 			} catch (error) {
-				logger.debug('Event listener cleanup failed', error instanceof Error ? error : undefined);
+				logger.debug(
+					'Event listener cleanup failed',
+					error instanceof Error ? error : undefined
+				);
 			}
 		});
 		this.eventSubscriptions = [];
