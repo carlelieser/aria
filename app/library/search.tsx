@@ -145,7 +145,12 @@ export default function LibrarySearchScreen() {
 			}}
 		>
 			<View style={styles.searchContainer}>
-				<View style={[styles.searchInputWrapper, { backgroundColor: colors.secondaryContainer }]}>
+				<View
+					style={[
+						styles.searchInputWrapper,
+						{ backgroundColor: colors.secondaryContainer },
+					]}
+				>
 					<TextInput
 						value={searchQuery}
 						onChangeText={setSearchQuery}

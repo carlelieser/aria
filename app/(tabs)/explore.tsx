@@ -218,7 +218,12 @@ export default function ExploreScreen() {
 			}}
 		>
 			<View style={styles.searchContainer}>
-				<View style={[styles.searchInputWrapper, { backgroundColor: colors.surfaceContainerHigh }]}>
+				<View
+					style={[
+						styles.searchInputWrapper,
+						{ backgroundColor: colors.surfaceContainerHigh },
+					]}
+				>
 					<TextInput
 						value={query}
 						onChangeText={search}
