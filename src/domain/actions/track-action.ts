@@ -50,6 +50,7 @@ export const CORE_ACTION_IDS = {
 	TOGGLE_FAVORITE: 'toggle-favorite',
 	VIEW_ARTIST: 'view-artist',
 	VIEW_ALBUM: 'view-album',
+	VIEW_LYRICS: 'view-lyrics',
 	DOWNLOAD: 'download',
 	REMOVE_DOWNLOAD: 'remove-download',
 	SLEEP_TIMER: 'sleep-timer',
