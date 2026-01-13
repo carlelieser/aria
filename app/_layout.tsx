@@ -1,6 +1,6 @@
 // Crypto polyfill must be imported first, before youtubei.js
 import '@/src/lib/crypto-polyfill';
-// Note: Track player service is registered in lib/entry.ts (before expo-router/entry)
+// Note: Track player service is registered in lib/entry.ts (after expo-router/entry per RNTP docs)
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Stack } from 'expo-router';
@@ -13,6 +13,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { PortalHost } from '@rn-primitives/portal';
 import { lazyBootstrap, ensureBootstrapped } from '@/src/application/bootstrap';
 import { preloadInnertubeClient } from '@/src/plugins/metadata/youtube-music/client';
+import { appResumeManager } from '@/src/application/services/app-resume-manager';
+import { useAppState } from '@/hooks/use-app-state';
 import { FloatingPlayer } from '@/components/floating-player';
 import { TrackOptionsSheet } from '@/components/track-options-menu';
 import { ToastContainer } from '@/components/ui/toast';
@@ -40,6 +42,18 @@ function AppContent() {
 
 	// Install global error handlers
 	useGlobalErrorHandlers();
+
+	// Handle app state transitions (foreground/background)
+	// This defers heavy operations until after UI interactions complete
+	useAppState({
+		onForeground: () => {
+			appResumeManager.onResume();
+		},
+		onBackground: () => {
+			appResumeManager.onBackground();
+		},
+		deferForegroundCallbacks: true,
+	});
 
 	useEffect(() => {
 		const startTime = Date.now();
@@ -77,6 +91,8 @@ function AppContent() {
 				<Stack.Screen name="album/[id]" />
 				<Stack.Screen name="playlist/[id]" />
 				<Stack.Screen name="playlist-picker" options={{ presentation: 'modal' }} />
+				<Stack.Screen name="lyrics" options={{ presentation: 'modal' }} />
+				<Stack.Screen name="notification.click" options={{ animation: 'none' }} />
 			</Stack>
 			<FloatingPlayer />
 			<TrackOptionsSheet />
