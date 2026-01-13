@@ -1,6 +1,15 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as AudioEqualizer from 'audio-equalizer';
+import { getLogger } from '@shared/services/logger';
+
+const logger = getLogger('EqualizerStore');
+
+/** Safely cast error for logging */
+function toError(error: unknown): Error | undefined {
+	return error instanceof Error ? error : undefined;
+}
 
 export interface EqualizerPreset {
 	readonly id: string;
@@ -78,6 +87,7 @@ interface EqualizerState {
 	isEnabled: boolean;
 	selectedPresetId: string;
 	customGains: number[];
+	isNativeAvailable: boolean;
 
 	setEnabled: (enabled: boolean) => void;
 	toggleEnabled: () => void;
@@ -85,6 +95,13 @@ interface EqualizerState {
 	setCustomGain: (bandIndex: number, gain: number) => void;
 	resetToFlat: () => void;
 	resetEqualizer: () => void;
+	initializeNative: () => Promise<void>;
+	syncToNative: () => Promise<void>;
+}
+
+/** Convert dB gain to millibels for native module */
+function dbToMillibels(db: number): number {
+	return Math.round(db * 100);
 }
 
 export const useEqualizerStore = create<EqualizerState>()(
@@ -93,13 +110,27 @@ export const useEqualizerStore = create<EqualizerState>()(
 			isEnabled: false,
 			selectedPresetId: 'flat',
 			customGains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+			isNativeAvailable: false,
 
 			setEnabled: (enabled: boolean) => {
 				set({ isEnabled: enabled });
+				// Sync to native module
+				if (get().isNativeAvailable) {
+					AudioEqualizer.setEnabled(enabled).catch((error: unknown) => {
+						logger.error('Failed to set equalizer enabled state', toError(error));
+					});
+				}
 			},
 
 			toggleEnabled: () => {
-				set((state) => ({ isEnabled: !state.isEnabled }));
+				const newEnabled = !get().isEnabled;
+				set({ isEnabled: newEnabled });
+				// Sync to native module
+				if (get().isNativeAvailable) {
+					AudioEqualizer.setEnabled(newEnabled).catch((error: unknown) => {
+						logger.error('Failed to toggle equalizer', toError(error));
+					});
+				}
 			},
 
 			selectPreset: (presetId: string) => {
@@ -109,6 +140,16 @@ export const useEqualizerStore = create<EqualizerState>()(
 						selectedPresetId: presetId,
 						customGains: [...preset.gains],
 					});
+					// Sync to native module
+					if (get().isNativeAvailable) {
+						const millibels = preset.gains.map(dbToMillibels);
+						AudioEqualizer.setBandLevels(millibels).catch((error: unknown) => {
+							logger.error(
+								'Failed to apply preset to native equalizer',
+								toError(error)
+							);
+						});
+					}
 				}
 			},
 
@@ -120,6 +161,14 @@ export const useEqualizerStore = create<EqualizerState>()(
 					customGains: newGains,
 					selectedPresetId: 'custom',
 				});
+				// Sync to native module
+				if (state.isNativeAvailable) {
+					AudioEqualizer.setBandLevel(bandIndex, dbToMillibels(gain)).catch(
+						(error: unknown) => {
+							logger.error('Failed to set band level', toError(error));
+						}
+					);
+				}
 			},
 
 			resetToFlat: () => {
@@ -127,13 +176,83 @@ export const useEqualizerStore = create<EqualizerState>()(
 					selectedPresetId: 'flat',
 					customGains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 				});
+				// Sync to native module
+				if (get().isNativeAvailable) {
+					const flatLevels = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+					AudioEqualizer.setBandLevels(flatLevels).catch((error: unknown) => {
+						logger.error('Failed to reset equalizer to flat', toError(error));
+					});
+				}
 			},
+
 			resetEqualizer: () => {
 				set({
 					isEnabled: false,
 					selectedPresetId: 'flat',
 					customGains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 				});
+				// Sync to native module
+				if (get().isNativeAvailable) {
+					AudioEqualizer.setEnabled(false).catch((error: unknown) => {
+						logger.error('Failed to disable equalizer', toError(error));
+					});
+					const flatLevels = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+					AudioEqualizer.setBandLevels(flatLevels).catch((error: unknown) => {
+						logger.error('Failed to reset equalizer levels', toError(error));
+					});
+				}
+			},
+
+			initializeNative: async () => {
+				try {
+					if (!AudioEqualizer.isNativeModuleAvailable()) {
+						logger.warn('Native equalizer module not available');
+						set({ isNativeAvailable: false });
+						return;
+					}
+
+					const info = await AudioEqualizer.getEqualizerInfo();
+					if (!info.isAvailable) {
+						logger.warn('Native equalizer not available on this device');
+						set({ isNativeAvailable: false });
+						return;
+					}
+
+					logger.info('Native equalizer initialized', {
+						bands: info.numberOfBands,
+						minLevel: info.minBandLevel,
+						maxLevel: info.maxBandLevel,
+					});
+
+					set({ isNativeAvailable: true });
+
+					// Sync current state to native
+					await get().syncToNative();
+				} catch (error: unknown) {
+					logger.error('Failed to initialize native equalizer', toError(error));
+					set({ isNativeAvailable: false });
+				}
+			},
+
+			syncToNative: async () => {
+				const state = get();
+				if (!state.isNativeAvailable) return;
+
+				try {
+					// Set enabled state
+					await AudioEqualizer.setEnabled(state.isEnabled);
+
+					// Set band levels (convert dB to millibels)
+					const millibels = state.customGains.map(dbToMillibels);
+					await AudioEqualizer.setBandLevels(millibels);
+
+					logger.info('Equalizer state synced to native', {
+						enabled: state.isEnabled,
+						preset: state.selectedPresetId,
+					});
+				} catch (error: unknown) {
+					logger.error('Failed to sync equalizer state to native', toError(error));
+				}
 			},
 		}),
 		{
