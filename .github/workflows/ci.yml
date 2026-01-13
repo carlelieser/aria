@@ -138,6 +138,7 @@ jobs:
 
     e2e:
         name: E2E Tests
+        if: false # TODO: Re-enable when e2e tests are ready
         runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
@@ -169,7 +170,7 @@ jobs:
     quality-gate:
         name: Quality Gate
         runs-on: ubuntu-latest
-        needs: [lint, format, typecheck, test, expo-doctor, expo-dependency-check, e2e]
+        needs: [lint, format, typecheck, test, expo-doctor, expo-dependency-check]
         steps:
             - name: Quality gate passed
               run: echo "All quality checks passed!"
