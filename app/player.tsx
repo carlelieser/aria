@@ -75,15 +75,25 @@ export default function PlayerScreen() {
 					{showLyrics ? (
 						<LyricsDisplay />
 					) : (
-						<View style={styles.artworkShadow}>
-							<Image
-								source={{ uri: artworkUrl }}
-								style={styles.artwork}
-								contentFit="cover"
-								transition={300}
-								cachePolicy="memory-disk"
-								recyclingKey={currentTrack.id.value}
-							/>
+						<View style={[styles.artworkWrapper, artworkUrl && styles.artworkShadow]}>
+							{artworkUrl ? (
+								<Image
+									source={{ uri: artworkUrl }}
+									style={styles.artwork}
+									contentFit="cover"
+									transition={300}
+									cachePolicy="memory-disk"
+									recyclingKey={currentTrack.id.value}
+								/>
+							) : (
+								<View
+									style={[
+										styles.artwork,
+										styles.artworkPlaceholder,
+										{ backgroundColor: colors.surfaceContainerHighest },
+									]}
+								/>
+							)}
 						</View>
 					)}
 				</View>
@@ -101,17 +111,8 @@ export default function PlayerScreen() {
 						numberOfLines={1}
 						style={{ color: colors.onSurfaceVariant }}
 					>
-						{artistNames}
+						{albumName ? `${artistNames} \u2022 ${albumName}` : artistNames}
 					</Text>
-					{albumName && (
-						<Text
-							variant="bodySmall"
-							numberOfLines={1}
-							style={{ color: colors.onSurfaceVariant }}
-						>
-							{albumName}
-						</Text>
-					)}
 				</View>
 
 				{error && (
@@ -155,8 +156,10 @@ const styles = StyleSheet.create({
 		width: '100%',
 		justifyContent: 'center',
 	},
-	artworkShadow: {
+	artworkWrapper: {
 		borderRadius: 16,
+	},
+	artworkShadow: {
 		shadowColor: '#000',
 		shadowOffset: { width: 0, height: 16 },
 		shadowOpacity: 0.35,
@@ -168,8 +171,12 @@ const styles = StyleSheet.create({
 		aspectRatio: 1,
 		borderRadius: 16,
 	},
+	artworkPlaceholder: {
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
 	trackInfo: {
-		gap: 8,
+		gap: 4,
 		marginTop: 32,
 		marginBottom: 24,
 	},
