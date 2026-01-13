@@ -110,8 +110,7 @@ export function useAggregatedTracks(): Track[] {
 	const isComputingRef = useRef(false);
 
 	// Check if data has changed
-	const hasChanged =
-		libraryTracks !== cachedLibraryTracks || localTracks !== cachedLocalTracks;
+	const hasChanged = libraryTracks !== cachedLibraryTracks || localTracks !== cachedLocalTracks;
 
 	// Determine if we should defer computation
 	const totalCount = libraryTracks.length + Object.keys(localTracks).length;

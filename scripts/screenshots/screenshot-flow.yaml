@@ -14,23 +14,22 @@
 appId: com.aria.player
 
 ---
-
 # Stop and relaunch the app (don't clear state to preserve any setup)
 - stopApp
 - launchApp
 
 # Wait for app to fully initialize - look for bottom tab bar
 - extendedWaitUntil:
-    visible:
-      text: "Library"
-    timeout: 15000
+      visible:
+          text: 'Library'
+      timeout: 15000
 
 # -----------------------------------------------------------------------------
 # Step 1: Enable Screenshot Mode (load mock data)
 # -----------------------------------------------------------------------------
 
-- tapOn: "Settings"
-- assertVisible: "Settings"
+- tapOn: 'Settings'
+- assertVisible: 'Settings'
 
 # Scroll to find Developer section
 - scroll
@@ -38,8 +37,8 @@ appId: com.aria.player
 
 # Tap Screenshot Mode to load mock data
 - tapOn:
-    text: "Screenshot Mode"
-    optional: true
+      text: 'Screenshot Mode'
+      optional: true
 
 # Wait a moment for data to load
 - waitForAnimationToEnd
@@ -48,90 +47,90 @@ appId: com.aria.player
 # Step 2: Library - Songs Tab
 # -----------------------------------------------------------------------------
 
-- tapOn: "Library"
+- tapOn: 'Library'
 - waitForAnimationToEnd
 
 # Take screenshot of Songs tab (default view)
-- takeScreenshot: "01_library_songs"
+- takeScreenshot: '01_library_songs'
 
 # -----------------------------------------------------------------------------
 # Step 3: Library - Albums Tab
 # -----------------------------------------------------------------------------
 
 - tapOn:
-    text: "Albums"
+      text: 'Albums'
 - waitForAnimationToEnd
-- takeScreenshot: "02_library_albums"
+- takeScreenshot: '02_library_albums'
 
 # -----------------------------------------------------------------------------
 # Step 4: Library - Artists Tab
 # -----------------------------------------------------------------------------
 
 - tapOn:
-    text: "Artists"
+      text: 'Artists'
 - waitForAnimationToEnd
-- takeScreenshot: "03_library_artists"
+- takeScreenshot: '03_library_artists'
 
 # -----------------------------------------------------------------------------
 # Step 5: Library - Playlists Tab
 # -----------------------------------------------------------------------------
 
 - tapOn:
-    text: "Playlists"
+      text: 'Playlists'
 - waitForAnimationToEnd
-- takeScreenshot: "04_library_playlists"
+- takeScreenshot: '04_library_playlists'
 
 # -----------------------------------------------------------------------------
 # Step 6: Playlist Detail Screen
 # -----------------------------------------------------------------------------
 
 - tapOn:
-    text: "Chill Vibes"
-    optional: true
+      text: 'Chill Vibes'
+      optional: true
 - waitForAnimationToEnd
-- takeScreenshot: "05_playlist_detail"
+- takeScreenshot: '05_playlist_detail'
 - back
 
 # -----------------------------------------------------------------------------
 # Step 7: Explore Screen
 # -----------------------------------------------------------------------------
 
-- tapOn: "Explore"
+- tapOn: 'Explore'
 - waitForAnimationToEnd
-- takeScreenshot: "06_explore"
+- takeScreenshot: '06_explore'
 
 # -----------------------------------------------------------------------------
 # Step 8: Downloads Screen
 # -----------------------------------------------------------------------------
 
-- tapOn: "Downloads"
+- tapOn: 'Downloads'
 - waitForAnimationToEnd
-- takeScreenshot: "07_downloads"
+- takeScreenshot: '07_downloads'
 
 # -----------------------------------------------------------------------------
 # Step 9: Settings Screen
 # -----------------------------------------------------------------------------
 
-- tapOn: "Settings"
+- tapOn: 'Settings'
 - waitForAnimationToEnd
-- takeScreenshot: "08_settings"
+- takeScreenshot: '08_settings'
 
 # -----------------------------------------------------------------------------
 # Step 10: Player Screen - Play a track first
 # -----------------------------------------------------------------------------
 
-- tapOn: "Library"
+- tapOn: 'Library'
 - waitForAnimationToEnd
 - tapOn:
-    text: "Songs"
+      text: 'Songs'
 
 # Tap on a track to start playing
 - tapOn:
-    text: "City Lights"
-    optional: true
+      text: 'City Lights'
+      optional: true
 - waitForAnimationToEnd
 
-- takeScreenshot: "09_player"
+- takeScreenshot: '09_player'
 
 # Close player
 - back
@@ -142,13 +141,13 @@ appId: com.aria.player
 # -----------------------------------------------------------------------------
 
 - tapOn:
-    text: "Albums"
+      text: 'Albums'
 - waitForAnimationToEnd
 - tapOn:
-    text: "Neon Nights"
-    optional: true
+      text: 'Neon Nights'
+      optional: true
 - waitForAnimationToEnd
-- takeScreenshot: "10_album_detail"
+- takeScreenshot: '10_album_detail'
 - back
 
 # -----------------------------------------------------------------------------
@@ -156,10 +155,10 @@ appId: com.aria.player
 # -----------------------------------------------------------------------------
 
 - tapOn:
-    text: "Artists"
+      text: 'Artists'
 - waitForAnimationToEnd
 - tapOn:
-    text: "The Midnight Echo"
-    optional: true
+      text: 'The Midnight Echo'
+      optional: true
 - waitForAnimationToEnd
-- takeScreenshot: "11_artist_detail"
+- takeScreenshot: '11_artist_detail'

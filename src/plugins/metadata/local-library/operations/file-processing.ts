@@ -37,7 +37,10 @@ export async function processAudioFiles(
 				phase: 'scanning',
 			};
 
-			if (options.updateStoreProgress && now - lastStoreUpdate >= (options.throttleMs ?? 100)) {
+			if (
+				options.updateStoreProgress &&
+				now - lastStoreUpdate >= (options.throttleMs ?? 100)
+			) {
 				options.updateStoreProgress(progress);
 				lastStoreUpdate = now;
 			}
@@ -48,7 +51,9 @@ export async function processAudioFiles(
 			const metadata = metadataResult.success ? metadataResult.data : { duration: 0 };
 
 			if (!metadataResult.success) {
-				logger.debug(`Failed to parse metadata for ${file.name}: ${metadataResult.error.message}`);
+				logger.debug(
+					`Failed to parse metadata for ${file.name}: ${metadataResult.error.message}`
+				);
 			}
 
 			let artworkPath: string | undefined;

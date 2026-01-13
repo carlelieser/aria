@@ -9,12 +9,7 @@ import { memo, useCallback, useRef, useState } from 'react';
 import { View, StyleSheet, Platform, Modal, Pressable } from 'react-native';
 import { Text, ActivityIndicator, IconButton } from 'react-native-paper';
 import { WebView, type WebViewNavigation } from 'react-native-webview';
-import {
-	XIcon,
-	RefreshCwIcon,
-	MoreVerticalIcon,
-	CheckCircleIcon,
-} from 'lucide-react-native';
+import { XIcon, RefreshCwIcon, MoreVerticalIcon, CheckCircleIcon } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/lib/theme';
 import { Button } from '@/components/ui/button';

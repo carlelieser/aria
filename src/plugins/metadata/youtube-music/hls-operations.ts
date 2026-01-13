@@ -54,11 +54,7 @@ async function downloadFullHls(
 
 	logger.debug('All segments downloaded, concatenating...');
 
-	const success = await concatenateSegmentsToFile(
-		initSegmentPath,
-		segmentPaths,
-		cachedFilePath
-	);
+	const success = await concatenateSegmentsToFile(initSegmentPath, segmentPaths, cachedFilePath);
 
 	if (!success) {
 		logger.warn('Failed to create cached file');
@@ -82,7 +78,9 @@ async function startBackgroundDownload(
 ): Promise<void> {
 	const backgroundTask = (async () => {
 		try {
-			logger.debug(`Background: downloading remaining ${segmentUrls.length - initialSegmentCount} segments`);
+			logger.debug(
+				`Background: downloading remaining ${segmentUrls.length - initialSegmentCount} segments`
+			);
 
 			const { segmentPaths: remainingPaths } = await downloadSegments(
 				segmentUrls,
@@ -109,7 +107,9 @@ async function startBackgroundDownload(
 			// Clean up temp segments
 			await cleanupTempFiles([tempDir]);
 		} catch (error) {
-			logger.warn(`Background download error: ${error instanceof Error ? error.message : String(error)}`);
+			logger.warn(
+				`Background download error: ${error instanceof Error ? error.message : String(error)}`
+			);
 		} finally {
 			backgroundDownloads.delete(videoId);
 		}
@@ -128,7 +128,9 @@ async function downloadStreamingHls(
 	headers: Record<string, string>
 ): Promise<string | null> {
 	const initialSegmentCount = Math.min(MIN_SEGMENTS_FOR_PLAYBACK, segmentUrls.length);
-	logger.debug(`Streaming mode: downloading ${initialSegmentCount} segments for immediate playback`);
+	logger.debug(
+		`Streaming mode: downloading ${initialSegmentCount} segments for immediate playback`
+	);
 
 	const { segmentPaths: initialSegmentPaths } = await downloadSegments(
 		segmentUrls,
