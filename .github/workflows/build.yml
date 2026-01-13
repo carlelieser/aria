@@ -70,7 +70,7 @@ jobs:
 
     build-ios:
         name: Build iOS App
-        runs-on: macos-latest
+        runs-on: [self-hosted, macOS]
         steps:
             - name: Checkout repository
               uses: actions/checkout@v6

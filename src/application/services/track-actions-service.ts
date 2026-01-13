@@ -24,10 +24,7 @@ export class TrackActionsService {
 		return this._sortActions(pluginActions);
 	}
 
-	async executeAction(
-		actionId: string,
-		context: TrackActionContext
-	): Promise<TrackActionResult> {
+	async executeAction(actionId: string, context: TrackActionContext): Promise<TrackActionResult> {
 		return this._executeViaPlugins(actionId, context);
 	}
 

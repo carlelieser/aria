@@ -29,7 +29,9 @@ export class LrcLibClient {
 		this._baseUrl = baseUrl;
 	}
 
-	async searchLyrics(params: LrcLibSearchParams): Promise<Result<LrcLibLyricsResponse | null, Error>> {
+	async searchLyrics(
+		params: LrcLibSearchParams
+	): Promise<Result<LrcLibLyricsResponse | null, Error>> {
 		return tryCatchAsync(async () => {
 			const queryParams = new URLSearchParams();
 			queryParams.set('track_name', params.trackName);
@@ -67,9 +69,7 @@ export class LrcLibClient {
 		});
 	}
 
-	async searchLyricsByQuery(
-		query: string
-	): Promise<Result<LrcLibLyricsResponse[], Error>> {
+	async searchLyricsByQuery(query: string): Promise<Result<LrcLibLyricsResponse[], Error>> {
 		return tryCatchAsync(async () => {
 			const url = `${this._baseUrl}/search?q=${encodeURIComponent(query)}`;
 

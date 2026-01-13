@@ -8,11 +8,7 @@
 import { useEffect, useRef, useCallback, memo } from 'react';
 import { View, StyleSheet, Pressable, type ScrollView } from 'react-native';
 import { Text } from 'react-native-paper';
-import Animated, {
-	useAnimatedStyle,
-	withTiming,
-	interpolateColor,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, withTiming, interpolateColor } from 'react-native-reanimated';
 import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { useCurrentLineIndex } from '@/src/application/state/lyrics-store';
 import { usePlayer } from '@/hooks/use-player';
@@ -69,7 +65,11 @@ const LyricsLineItem = memo(function LyricsLineItem({
 		<Pressable onPress={handlePress}>
 			<Animated.View style={[styles.lineContainer, animatedStyle]}>
 				<Animated.Text
-					style={[styles.lineText, isCurrent && styles.currentLineText, textAnimatedStyle]}
+					style={[
+						styles.lineText,
+						isCurrent && styles.currentLineText,
+						textAnimatedStyle,
+					]}
 				>
 					{line.text}
 				</Animated.Text>

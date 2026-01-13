@@ -29,7 +29,9 @@ export type PlaybackEvent =
 	| { type: 'shuffle-change'; enabled: boolean; timestamp: number }
 	| { type: 'buffer-progress'; percent: number; timestamp: number }
 	| { type: 'error'; error: Error; timestamp: number }
-	| { type: 'ended'; timestamp: number };
+	| { type: 'ended'; timestamp: number }
+	| { type: 'remote-skip-next'; timestamp: number }
+	| { type: 'remote-skip-previous'; timestamp: number };
 
 export type PlaybackEventListener = (event: PlaybackEvent) => void;
 

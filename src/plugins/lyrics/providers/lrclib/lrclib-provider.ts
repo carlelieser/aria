@@ -65,8 +65,9 @@ export class LrcLibProvider implements LyricsProvider {
 	}
 }
 
-export function createLrcLibProvider(
-	options?: { priority?: number; enabled?: boolean }
-): LrcLibProvider {
+export function createLrcLibProvider(options?: {
+	priority?: number;
+	enabled?: boolean;
+}): LrcLibProvider {
 	return new LrcLibProvider(options);
 }

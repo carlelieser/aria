@@ -19,7 +19,7 @@ export function mapToRNTPTrack(
 		title: track.title,
 		artist: getArtistNames(track),
 		album: track.album?.name,
-		artwork: getArtworkUrl(track, 300),
+		artwork: getArtworkUrl(track),
 		duration: track.duration.totalSeconds,
 		headers: headers,
 	};

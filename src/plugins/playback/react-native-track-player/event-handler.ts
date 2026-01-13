@@ -83,12 +83,24 @@ export class EventHandler {
 			this.onProgressUpdate.bind(this)
 		);
 
+		const remoteNextSubscription = TrackPlayer.addEventListener(
+			Event.RemoteNext,
+			this.onRemoteNext.bind(this)
+		);
+
+		const remotePreviousSubscription = TrackPlayer.addEventListener(
+			Event.RemotePrevious,
+			this.onRemotePrevious.bind(this)
+		);
+
 		this.eventSubscriptions = [
 			playbackStateSubscription.remove.bind(playbackStateSubscription),
 			trackChangedSubscription.remove.bind(trackChangedSubscription),
 			errorSubscription.remove.bind(errorSubscription),
 			endSubscription.remove.bind(endSubscription),
 			progressSubscription.remove.bind(progressSubscription),
+			remoteNextSubscription.remove.bind(remoteNextSubscription),
+			remotePreviousSubscription.remove.bind(remotePreviousSubscription),
 		];
 	}
 
@@ -139,5 +151,15 @@ export class EventHandler {
 
 	private onProgressUpdate(event: PlaybackProgressUpdatedEvent): void {
 		this.progressTracker.handleProgressUpdate(event.position, event.duration);
+	}
+
+	private onRemoteNext(): void {
+		logger.debug('RemoteNext received - emitting remote-skip-next event');
+		this.emitEvent({ type: 'remote-skip-next', timestamp: Date.now() });
+	}
+
+	private onRemotePrevious(): void {
+		logger.debug('RemotePrevious received - emitting remote-skip-previous event');
+		this.emitEvent({ type: 'remote-skip-previous', timestamp: Date.now() });
 	}
 }

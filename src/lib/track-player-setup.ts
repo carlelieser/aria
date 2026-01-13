@@ -7,7 +7,7 @@
  */
 
 import TrackPlayer from 'react-native-track-player';
-import { PlaybackService } from '@/src/plugins/playback/react-native-track-player/service';
+import { PlaybackService } from '@plugins/playback/react-native-track-player/service';
 
 TrackPlayer.registerPlaybackService(() => PlaybackService);
 

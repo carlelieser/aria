@@ -7,7 +7,6 @@ export const RNTPPluginModule: PluginModule<PlaybackProvider> = {
 	manifest: PLUGIN_MANIFEST,
 
 	async create() {
-		// Return singleton - TrackPlayer.setupPlayer() can only be called once
 		return rntpPlaybackProvider;
 	},
 

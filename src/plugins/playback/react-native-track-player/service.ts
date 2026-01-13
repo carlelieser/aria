@@ -31,12 +31,12 @@ export async function PlaybackService(): Promise<void> {
 
 	TrackPlayer.addEventListener(Event.RemoteNext, () => {
 		logger.debug('RemoteNext received (service)');
-		TrackPlayer.skipToNext();
+		// Skip handled by main app event handler - uses app queue instead of native queue
 	});
 
 	TrackPlayer.addEventListener(Event.RemotePrevious, () => {
 		logger.debug('RemotePrevious received (service)');
-		TrackPlayer.skipToPrevious();
+		// Skip handled by main app event handler - uses app queue instead of native queue
 	});
 
 	TrackPlayer.addEventListener(Event.RemoteSeek, (event) => {

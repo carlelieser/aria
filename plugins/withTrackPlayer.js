@@ -10,38 +10,28 @@ const { withAndroidManifest } = require('@expo/config-plugins');
 function addForegroundServicePermissions(androidManifest) {
 	const manifest = androidManifest.manifest;
 
-	// Ensure uses-permission array exists
 	if (!manifest['uses-permission']) {
 		manifest['uses-permission'] = [];
 	}
 
 	const permissions = manifest['uses-permission'];
 
-	// Add FOREGROUND_SERVICE permission if not present
-	const hasForegroundService = permissions.some(
-		(perm) => perm.$?.['android:name'] === 'android.permission.FOREGROUND_SERVICE'
-	);
-	if (!hasForegroundService) {
-		permissions.push({
-			$: { 'android:name': 'android.permission.FOREGROUND_SERVICE' },
-		});
-	}
+	const requiredPermissions = [
+		'android.permission.FOREGROUND_SERVICE',
+		'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
+	];
 
-	// Add FOREGROUND_SERVICE_MEDIA_PLAYBACK permission if not present
-	const hasMediaPlayback = permissions.some(
-		(perm) =>
-			perm.$?.['android:name'] === 'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK'
-	);
-	if (!hasMediaPlayback) {
-		permissions.push({
-			$: { 'android:name': 'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK' },
-		});
+	for (const perm of requiredPermissions) {
+		const hasPermission = permissions.some((p) => p.$?.['android:name'] === perm);
+		if (!hasPermission) {
+			permissions.push({ $: { 'android:name': perm } });
+		}
 	}
 
 	return androidManifest;
 }
 
-function addPlaybackService(androidManifest) {
+function addMusicService(androidManifest) {
 	const manifest = androidManifest.manifest;
 	const application = manifest.application?.[0];
 
@@ -49,23 +39,19 @@ function addPlaybackService(androidManifest) {
 		return androidManifest;
 	}
 
-	// Ensure service array exists
 	if (!application.service) {
 		application.service = [];
 	}
 
 	const services = application.service;
+	const serviceName = 'com.doublesymmetry.trackplayer.service.MusicService';
 
-	// Check if TrackPlayer service already exists
-	const hasTrackPlayerService = services.some(
-		(service) =>
-			service.$?.['android:name'] === 'com.doublesymmetry.trackplayer.service.MusicService'
-	);
+	const hasService = services.some((s) => s.$?.['android:name'] === serviceName);
 
-	if (!hasTrackPlayerService) {
+	if (!hasService) {
 		services.push({
 			$: {
-				'android:name': 'com.doublesymmetry.trackplayer.service.MusicService',
+				'android:name': serviceName,
 				'android:exported': 'true',
 				'android:foregroundServiceType': 'mediaPlayback',
 			},
@@ -83,7 +69,7 @@ function addPlaybackService(androidManifest) {
 const withTrackPlayer = (config) => {
 	return withAndroidManifest(config, (config) => {
 		config.modResults = addForegroundServicePermissions(config.modResults);
-		config.modResults = addPlaybackService(config.modResults);
+		config.modResults = addMusicService(config.modResults);
 		return config;
 	});
 };
