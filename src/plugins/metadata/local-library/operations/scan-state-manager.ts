@@ -20,9 +20,7 @@ export class ScanStateManager {
 		this._scanProgress = progress;
 	}
 
-	async executeWithScanLock<T>(
-		operation: () => AsyncResult<T, Error>
-	): AsyncResult<T, Error> {
+	async executeWithScanLock<T>(operation: () => AsyncResult<T, Error>): AsyncResult<T, Error> {
 		if (this._isScanning) {
 			return Promise.resolve(err(new Error('Scan already in progress')));
 		}

@@ -7,11 +7,7 @@
 
 import { memo, useCallback, useMemo } from 'react';
 import CookieManager from '@react-native-cookies/cookies';
-import {
-	OAuthLoginWebView,
-	type OAuthLoginConfig,
-	type WebViewNavigation,
-} from '@shared/auth';
+import { OAuthLoginWebView, type OAuthLoginConfig, type WebViewNavigation } from '@shared/auth';
 
 export type { WebViewNavigation };
 

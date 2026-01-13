@@ -40,7 +40,9 @@ export function createLifecycleHandlers(): PluginLifecycle {
 			} catch (error) {
 				status = 'error';
 				return err(
-					error instanceof Error ? error : new Error(`Failed to initialize: ${String(error)}`)
+					error instanceof Error
+						? error
+						: new Error(`Failed to initialize: ${String(error)}`)
 				);
 			}
 		},

@@ -32,10 +32,7 @@ function buildStreamHeaders(): Record<string, string> {
 	};
 }
 
-async function extractFormatUrl(
-	format: any,
-	client: InnertubeClient
-): Promise<string | undefined> {
+async function extractFormatUrl(format: any, client: InnertubeClient): Promise<string | undefined> {
 	if (format.url) {
 		logger.debug('[Adaptive] Format has direct URL');
 		return format.url;

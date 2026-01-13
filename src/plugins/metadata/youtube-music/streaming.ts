@@ -77,8 +77,7 @@ async function handleDownloadableStream(
 	// Last resort: try downloading from HLS stream
 	logger.debug('Adaptive formats failed, trying HLS download...');
 	const hlsUrl =
-		(await tryHlsStream(client, videoId, 'IOS')) ||
-		(await tryHlsStream(client, videoId, 'TV'));
+		(await tryHlsStream(client, videoId, 'IOS')) || (await tryHlsStream(client, videoId, 'TV'));
 
 	if (hlsUrl) {
 		logger.debug('Found HLS manifest, downloading segments...');
@@ -157,8 +156,7 @@ async function handleStreamingPlayback(
 
 	// Try HLS streaming
 	const hlsUrl =
-		(await tryHlsStream(client, videoId, 'IOS')) ||
-		(await tryHlsStream(client, videoId, 'TV'));
+		(await tryHlsStream(client, videoId, 'IOS')) || (await tryHlsStream(client, videoId, 'TV'));
 
 	if (hlsUrl) {
 		// When authenticated, HLS segments require cookies but RNTP can't forward
