@@ -57,24 +57,26 @@ export const TrackCard = memo(function TrackCard({
 
 	return (
 		<TouchableOpacity style={styles.container} onPress={handlePress} activeOpacity={0.7}>
-			<View
-				style={[
-					styles.artworkContainer,
-					!artworkUrl && { backgroundColor: colors.surfaceContainerHighest },
-				]}
-			>
-				{artworkUrl ? (
-					<Image
-						source={{ uri: artworkUrl }}
-						style={styles.artwork}
-						contentFit="cover"
-						transition={200}
-						cachePolicy="memory-disk"
-						recyclingKey={track.id.value}
-					/>
-				) : (
-					<Icon as={Music} size={48} color={colors.onSurfaceVariant} />
-				)}
+			<View style={styles.artworkWrapper}>
+				<View
+					style={[
+						styles.artworkContainer,
+						!artworkUrl && { backgroundColor: colors.surfaceContainerHighest },
+					]}
+				>
+					{artworkUrl ? (
+						<Image
+							source={{ uri: artworkUrl }}
+							style={styles.artwork}
+							contentFit="cover"
+							transition={200}
+							cachePolicy="memory-disk"
+							recyclingKey={track.id.value}
+						/>
+					) : (
+						<Icon as={Music} size={48} color={colors.onSurfaceVariant} />
+					)}
+				</View>
 				<DownloadIndicator trackId={track.id.value} size="lg" />
 			</View>
 			<View style={styles.infoContainer}>
@@ -97,13 +99,16 @@ const styles = StyleSheet.create({
 	container: {
 		width: 128,
 	},
-	artworkContainer: {
+	artworkWrapper: {
 		position: 'relative',
+	},
+	artworkContainer: {
 		width: 128,
 		height: 128,
 		borderRadius: M3Shapes.medium,
 		justifyContent: 'center',
 		alignItems: 'center',
+		overflow: 'hidden',
 	},
 	artwork: {
 		width: 128,
