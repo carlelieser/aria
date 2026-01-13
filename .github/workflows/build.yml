@@ -100,11 +100,18 @@ jobs:
             - name: Build iOS (Simulator)
               run: bundle exec fastlane ios build_simulator
 
+            - name: Find simulator build
+              id: find-app
+              run: |
+                  APP_PATH=$(find ios/build -name "Aria.app" -type d | head -1)
+                  echo "app_path=$APP_PATH" >> $GITHUB_OUTPUT
+                  echo "Found app at: $APP_PATH"
+
             - name: Upload iOS Simulator Build
               uses: actions/upload-artifact@v4
               with:
                   name: aria-ios-simulator
-                  path: ios/build/Build/Products/Debug-iphonesimulator/Aria.app
+                  path: ${{ steps.find-app.outputs.app_path }}
                   retention-days: 30
 
     build-summary:
