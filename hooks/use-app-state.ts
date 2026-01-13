@@ -57,12 +57,7 @@ interface UseAppStateOptions {
  * ```
  */
 export function useAppState(options: UseAppStateOptions = {}) {
-	const {
-		onForeground,
-		onBackground,
-		onChange,
-		deferForegroundCallbacks = true,
-	} = options;
+	const { onForeground, onBackground, onChange, deferForegroundCallbacks = true } = options;
 
 	const previousStateRef = useRef<AppStateStatus>(AppState.currentState);
 	const backgroundStartTimeRef = useRef<number | null>(null);
@@ -114,10 +109,7 @@ export function useAppState(options: UseAppStateOptions = {}) {
 			onChange?.(event);
 
 			// Handle foreground transition
-			if (
-				previousState.match(/inactive|background/) &&
-				nextAppState === 'active'
-			) {
+			if (previousState.match(/inactive|background/) && nextAppState === 'active') {
 				if (deferForegroundCallbacks && onForeground) {
 					// Defer heavy operations to not block UI thread
 					const handle = InteractionManager.runAfterInteractions(() => {
@@ -136,10 +128,7 @@ export function useAppState(options: UseAppStateOptions = {}) {
 			}
 
 			// Handle background transition
-			if (
-				previousState === 'active' &&
-				nextAppState.match(/inactive|background/)
-			) {
+			if (previousState === 'active' && nextAppState.match(/inactive|background/)) {
 				onBackground?.(event);
 			}
 		},

@@ -78,6 +78,7 @@ npm run build:android    # Outputs to out/aria.apk
 </details>
 
 ## Project Structure
+
 ```
 app/                   # Screens & navigation (Expo Router)
 components/            # UI components

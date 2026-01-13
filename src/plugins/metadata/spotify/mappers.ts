@@ -267,7 +267,10 @@ export function mapSpotifyPlaylist(playlist: SpotifyPlaylist): Playlist | null {
 	}
 
 	const artwork = mapSpotifyImages(playlist.images);
-	const tracks: PlaylistTrack[] = mapAndFilterWithIndex(playlist.tracks.items, mapSpotifyPlaylistTrack);
+	const tracks: PlaylistTrack[] = mapAndFilterWithIndex(
+		playlist.tracks.items,
+		mapSpotifyPlaylistTrack
+	);
 
 	return {
 		id: playlist.id,

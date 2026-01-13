@@ -41,9 +41,8 @@ class AppResumeManager {
 	 */
 	async onResume(): Promise<void> {
 		this.lastResumeTime = Date.now();
-		const backgroundDuration = this.lastBackgroundTime > 0
-			? this.lastResumeTime - this.lastBackgroundTime
-			: 0;
+		const backgroundDuration =
+			this.lastBackgroundTime > 0 ? this.lastResumeTime - this.lastBackgroundTime : 0;
 
 		logger.info(`App resumed after ${backgroundDuration}ms in background`);
 
@@ -57,11 +56,7 @@ class AppResumeManager {
 	 * Queue an operation to run on resume
 	 * Operations are sorted by priority (higher = run first)
 	 */
-	queueOperation(
-		id: string,
-		operation: () => Promise<void> | void,
-		priority = 0
-	): void {
+	queueOperation(id: string, operation: () => Promise<void> | void, priority = 0): void {
 		// Remove existing operation with same id
 		this.pendingOperations = this.pendingOperations.filter((op) => op.id !== id);
 
