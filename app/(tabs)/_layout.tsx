@@ -120,7 +120,10 @@ export default function TabLayout() {
 	);
 
 	return (
-		<Tabs screenOptions={screenOptions} tabBar={(props) => <CustomTabBar {...props} tabOrder={validTabOrder} />}>
+		<Tabs
+			screenOptions={screenOptions}
+			tabBar={(props) => <CustomTabBar {...props} tabOrder={validTabOrder} />}
+		>
 			{/*
 			 * Render all tabs statically to prevent re-mounting issues.
 			 * Tab visibility is controlled by the tabOrder in CustomTabBar.
