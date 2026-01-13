@@ -71,6 +71,8 @@ jobs:
     build-ios:
         name: Build iOS App
         runs-on: [self-hosted, macOS]
+        env:
+            RUNNER_TOOL_CACHE: /Users/devplex/actions-runner/_work/_tool
         steps:
             - name: Checkout repository
               uses: actions/checkout@v6
