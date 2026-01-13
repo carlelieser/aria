@@ -1,4 +1,5 @@
 import type { TrackAction, TrackActionContext } from '../../../../domain/actions/track-action';
+import type { TrackActionResult } from '../../../../application/events/track-action-events';
 import { CORE_ACTION_IDS } from '../../../../domain/actions/track-action';
 import { libraryService } from '../../../../application/services/library-service';
 
@@ -33,22 +34,31 @@ export function getPlaylistActions(context: TrackActionContext): TrackAction[] {
 export async function executePlaylistAction(
 	actionId: string,
 	context: TrackActionContext
-): Promise<boolean> {
-	const { playlistId, trackPosition } = context;
+): Promise<TrackActionResult> {
+	const { track, playlistId, trackPosition } = context;
 
 	switch (actionId) {
 		case CORE_ACTION_IDS.ADD_TO_PLAYLIST:
-			// Handled by navigation to playlist-picker screen
-			return true;
+			return {
+				handled: true,
+				navigation: {
+					pathname: '/playlist-picker',
+					params: { trackId: track.id.value },
+				},
+			};
 
 		case CORE_ACTION_IDS.REMOVE_FROM_PLAYLIST:
 			if (playlistId && trackPosition !== undefined) {
 				libraryService.removeTrackFromPlaylist(playlistId, trackPosition);
-				return true;
+				return {
+					handled: true,
+					success: true,
+					feedback: { message: 'Removed from playlist', description: track.title },
+				};
 			}
-			return false;
+			return { handled: false };
 
 		default:
-			return false;
+			return { handled: false };
 	}
 }

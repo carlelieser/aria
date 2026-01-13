@@ -1,4 +1,5 @@
 import type { TrackAction, TrackActionContext } from '../../../../domain/actions/track-action';
+import type { TrackActionResult } from '../../../../application/events/track-action-events';
 import { CORE_ACTION_IDS } from '../../../../domain/actions/track-action';
 import { useLibraryStore } from '../../../../application/state/library-store';
 
@@ -22,23 +23,31 @@ export function getFavoriteActions(context: TrackActionContext): TrackAction[] {
 export async function executeFavoriteAction(
 	actionId: string,
 	context: TrackActionContext
-): Promise<boolean> {
+): Promise<TrackActionResult> {
 	const { track } = context;
 
 	switch (actionId) {
 		case CORE_ACTION_IDS.TOGGLE_FAVORITE: {
 			const store = useLibraryStore.getState();
-			const isCurrentlyFavorite = store.isFavorite(track.id.value);
+			const wasCurrentlyFavorite = store.isFavorite(track.id.value);
 
-			if (!isCurrentlyFavorite) {
+			if (!wasCurrentlyFavorite) {
 				store.addTrack(track);
 			}
 
 			store.toggleFavorite(track.id.value);
-			return true;
+
+			return {
+				handled: true,
+				success: true,
+				feedback: {
+					message: wasCurrentlyFavorite ? 'Removed from favorites' : 'Added to favorites',
+					description: track.title,
+				},
+			};
 		}
 
 		default:
-			return false;
+			return { handled: false };
 	}
 }

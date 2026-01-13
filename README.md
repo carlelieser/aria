@@ -16,6 +16,10 @@
 
 A modular, cross-platform music player.
 
+## Installation
+
+Download the latest release from the [Releases](https://github.com/carlelieser/aria/releases) page.
+
 ## Features
 
 - 🔌 **Plugin architecture** with built-in providers for YouTube Music, Spotify, and local files

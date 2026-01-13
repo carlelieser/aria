@@ -11,7 +11,7 @@
 #   maestro test scripts/screenshots/screenshot-flow.yaml
 # =============================================================================
 
-appId: com.aria.player
+appId: com.aria.music.app
 
 ---
 # Stop and relaunch the app (don't clear state to preserve any setup)

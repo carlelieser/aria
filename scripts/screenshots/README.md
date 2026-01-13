@@ -115,7 +115,7 @@ emulator -list-avds
 ### Screenshots look wrong
 
 1. Ensure the app is freshly installed
-2. Clear app data: `adb shell pm clear com.aria.player`
+2. Clear app data: `adb shell pm clear com.aria.music.app`
 3. Re-run the screenshot script
 
 ### Maestro flow fails

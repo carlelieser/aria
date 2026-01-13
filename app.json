@@ -10,13 +10,13 @@
 		"newArchEnabled": true,
 		"ios": {
 			"supportsTablet": true,
-			"bundleIdentifier": "com.aria.player",
+			"bundleIdentifier": "com.aria.music.app",
 			"infoPlist": {
 				"UIBackgroundModes": ["audio"]
 			}
 		},
 		"android": {
-			"package": "com.aria.player",
+			"package": "com.aria.music.app",
 			"adaptiveIcon": {
 				"backgroundColor": "#E6F4FE",
 				"foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -36,8 +36,8 @@
 				"expo-splash-screen",
 				{
 					"image": "./assets/images/splash-icon.png",
-					"imageWidth": 200,
-					"resizeMode": "contain",
+					"imageWidth": 100,
+					"resizeMode": "cover",
 					"backgroundColor": "#F5E6DC",
 					"dark": {
 						"backgroundColor": "#151718"

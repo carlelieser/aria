@@ -6,7 +6,8 @@
  */
 
 import { useEffect, useMemo } from 'react';
-import { View, ScrollView, Image, StyleSheet } from 'react-native';
+import { View, Image, StyleSheet } from 'react-native';
+import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { useLocalSearchParams, router } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeftIcon, DiscIcon, SearchIcon } from 'lucide-react-native';
@@ -184,7 +185,7 @@ export default function AlbumScreen() {
 				</SafeAreaView>
 			</View>
 
-			<ScrollView
+			<PlayerAwareScrollView
 				contentContainerStyle={[
 					styles.scrollContent,
 					{ paddingBottom: insets.bottom + 80 },
@@ -224,7 +225,7 @@ export default function AlbumScreen() {
 						/>
 					))
 				)}
-			</ScrollView>
+			</PlayerAwareScrollView>
 		</View>
 	);
 }

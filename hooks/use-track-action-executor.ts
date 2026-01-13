@@ -13,6 +13,7 @@ import { CORE_ACTION_IDS } from '@/src/domain/actions/track-action';
 import { trackActionsService } from '@/src/application/services/track-actions-service';
 import { downloadService } from '@/src/application/services/download-service';
 import { useIsFavorite } from '@/src/application/state/library-store';
+import { setNavigationTrack } from '@/src/application/state/navigation-context-store';
 import { useToast } from '@/hooks/use-toast';
 import { useRefreshTrackOptionsActions } from '@/src/application/state/track-options-store';
 
@@ -100,6 +101,7 @@ export function useTrackActionExecutor({
 				}
 
 				case CORE_ACTION_IDS.VIEW_LYRICS:
+					setNavigationTrack(currentTrack);
 					router.push(`/lyrics?trackId=${encodeURIComponent(currentTrack.id.value)}`);
 					return;
 

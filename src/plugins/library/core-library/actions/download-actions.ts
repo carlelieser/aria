@@ -1,4 +1,5 @@
 import type { TrackAction, TrackActionContext } from '../../../../domain/actions/track-action';
+import type { TrackActionResult } from '../../../../application/events/track-action-events';
 import { CORE_ACTION_IDS } from '../../../../domain/actions/track-action';
 import { downloadService } from '../../../../application/services/download-service';
 
@@ -49,19 +50,39 @@ export function getDownloadActions(context: TrackActionContext): TrackAction[] {
 export async function executeDownloadAction(
 	actionId: string,
 	context: TrackActionContext
-): Promise<boolean> {
+): Promise<TrackActionResult> {
 	const { track } = context;
 
 	switch (actionId) {
-		case CORE_ACTION_IDS.DOWNLOAD:
-			await downloadService.downloadTrack(track);
-			return true;
+		case CORE_ACTION_IDS.DOWNLOAD: {
+			const result = await downloadService.downloadTrack(track);
+			if (result.success) {
+				return {
+					handled: true,
+					success: true,
+					feedback: { message: 'Download complete', description: track.title },
+				};
+			}
+			return {
+				handled: true,
+				success: false,
+				feedback: {
+					message: 'Download failed',
+					description: result.error.message,
+					type: 'error',
+				},
+			};
+		}
 
 		case CORE_ACTION_IDS.REMOVE_DOWNLOAD:
 			await downloadService.removeDownload(track.id.value);
-			return true;
+			return {
+				handled: true,
+				success: true,
+				feedback: { message: 'Download removed', description: track.title },
+			};
 
 		default:
-			return false;
+			return { handled: false };
 	}
 }

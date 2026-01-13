@@ -18,6 +18,13 @@ export const PLUGIN_MANIFEST: PluginManifest = {
 	},
 };
 
-export const HANDLED_ACTION_IDS = new Set(Object.values(CORE_ACTION_IDS));
+// Actions handled by this plugin (excludes lyrics actions which are handled by lyrics plugin)
+const LYRICS_ACTION_IDS: Set<string> = new Set([
+	CORE_ACTION_IDS.VIEW_LYRICS,
+	CORE_ACTION_IDS.TOGGLE_LYRICS,
+]);
+export const HANDLED_ACTION_IDS = new Set(
+	Object.values(CORE_ACTION_IDS).filter((id) => !LYRICS_ACTION_IDS.has(id))
+);
 
 export { CORE_ACTION_IDS };

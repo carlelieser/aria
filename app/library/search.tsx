@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
-import { ScrollView, View, StyleSheet, TextInput } from 'react-native';
+import { View, StyleSheet, TextInput } from 'react-native';
+import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { Text } from 'react-native-paper';
 import { PageLayout } from '@/components/page-layout';
 import { Icon } from '@/components/ui/icon';
@@ -139,7 +140,6 @@ export default function LibrarySearchScreen() {
 	return (
 		<PageLayout
 			header={{
-				title: 'Search Library',
 				showBack: true,
 				showBorder: false,
 			}}
@@ -170,7 +170,7 @@ export default function LibrarySearchScreen() {
 					/>
 				</View>
 			</View>
-			<ScrollView
+			<PlayerAwareScrollView
 				contentContainerStyle={[
 					styles.scrollContent,
 					{
@@ -258,7 +258,7 @@ export default function LibrarySearchScreen() {
 						)}
 					</View>
 				)}
-			</ScrollView>
+			</PlayerAwareScrollView>
 
 			<BatchActionBar
 				context="library"

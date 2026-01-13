@@ -30,24 +30,6 @@ interface AnimatedPolygonProps {
 	style?: ViewStyle;
 }
 
-function generatePolygonPoints(segments: number, size: number, rotation: number): string {
-	const validSegments = Math.max(MIN_SEGMENTS, Math.round(segments));
-	const center = size / 2;
-	const radius = (size - DEFAULT_STROKE_WIDTH * 2) / 2;
-	const rotationRad = (rotation * Math.PI) / 180;
-
-	const points: string[] = [];
-
-	for (let i = 0; i < validSegments; i++) {
-		const angle = (2 * Math.PI * i) / validSegments - Math.PI / 2 + rotationRad;
-		const x = center + radius * Math.cos(angle);
-		const y = center + radius * Math.sin(angle);
-		points.push(`${x.toFixed(2)},${y.toFixed(2)}`);
-	}
-
-	return points.join(' ');
-}
-
 export function AnimatedPolygonView({
 	segments,
 	size = DEFAULT_SIZE,
@@ -60,7 +42,7 @@ export function AnimatedPolygonView({
 }: AnimatedPolygonProps) {
 	const animatedSegments = useSharedValue(segments);
 	const [currentPoints, setCurrentPoints] = React.useState(() =>
-		generatePolygonPoints(segments, size, rotation)
+		generateInterpolatedPointsWorklet(segments, size, rotation, strokeWidth)
 	);
 
 	React.useEffect(() => {
@@ -232,8 +214,8 @@ export function StaticPolygon({
 	style,
 }: Omit<AnimatedPolygonProps, 'springConfig'>) {
 	const points = useMemo(
-		() => generatePolygonPoints(segments, size, rotation),
-		[segments, size, rotation]
+		() => generateInterpolatedPointsWorklet(segments, size, rotation, strokeWidth),
+		[segments, size, rotation, strokeWidth]
 	);
 
 	return (

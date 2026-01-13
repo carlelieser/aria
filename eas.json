@@ -13,10 +13,19 @@
 				"env": {
 					"NODE_ENV": "development"
 				}
+			},
+			"ios": {
+				"simulator": true,
+				"env": {
+					"NODE_ENV": "development"
+				}
 			}
 		},
 		"preview": {
-			"distribution": "internal"
+			"distribution": "internal",
+			"ios": {
+				"simulator": false
+			}
 		},
 		"production": {
 			"autoIncrement": true,
@@ -26,10 +35,19 @@
 			"android": {
 				"buildType": "apk",
 				"gradleCommand": ":app:assembleRelease"
+			},
+			"ios": {
+				"buildConfiguration": "Release"
 			}
 		}
 	},
 	"submit": {
-		"production": {}
+		"production": {
+			"ios": {
+				"appleId": "$APPLE_ID",
+				"ascAppId": "$ASC_APP_ID",
+				"appleTeamId": "$APPLE_TEAM_ID"
+			}
+		}
 	}
 }

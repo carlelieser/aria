@@ -1,5 +1,6 @@
 import type { BasePlugin, PluginManifest } from './base-plugin';
 import type { TrackAction, TrackActionContext } from '../../../domain/actions/track-action';
+import type { TrackActionResult } from '../../../application/events/track-action-events';
 
 export type ActionsCapability = 'provide-track-actions' | 'execute-track-actions';
 
@@ -16,9 +17,9 @@ export interface ActionsProvider extends BasePlugin {
 
 	/**
 	 * Execute an action this provider owns.
-	 * @returns true if the action was handled, false otherwise.
+	 * @returns Result with feedback and navigation intents.
 	 */
-	executeAction(actionId: string, context: TrackActionContext): Promise<boolean>;
+	executeAction(actionId: string, context: TrackActionContext): Promise<TrackActionResult>;
 
 	/**
 	 * Check if this provider can handle a given action ID.

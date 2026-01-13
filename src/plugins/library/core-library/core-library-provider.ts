@@ -6,7 +6,9 @@ import type { TrackAction, TrackActionContext } from '../../../domain/actions/tr
 import type {
 	TrackActionsRequestEvent,
 	TrackActionsResponseEvent,
-	TrackActionExecutedEvent,
+	TrackActionResult,
+	TrackActionExecuteRequestEvent,
+	TrackActionExecuteResponseEvent,
 } from '../../../application/events/track-action-events';
 import { TRACK_ACTION_EVENTS } from '../../../application/events/track-action-events';
 import { getPluginRegistry } from '../../core/registry/plugin-registry';
@@ -25,7 +27,7 @@ export class CoreLibraryProvider
 	implements Omit<ActionsProvider, 'manifest'>
 {
 	private _unsubscribeRequest?: () => void;
-	private _unsubscribeExecuted?: () => void;
+	private _unsubscribeExecute?: () => void;
 
 	constructor() {
 		super(PLUGIN_MANIFEST, []);
@@ -76,9 +78,9 @@ export class CoreLibraryProvider
 		return actions;
 	}
 
-	async executeAction(actionId: string, context: TrackActionContext): Promise<boolean> {
+	async executeAction(actionId: string, context: TrackActionContext): Promise<TrackActionResult> {
 		if (!this.canHandleAction(actionId)) {
-			return false;
+			return { handled: false };
 		}
 
 		const handlers = [
@@ -92,15 +94,14 @@ export class CoreLibraryProvider
 		];
 
 		for (const handler of handlers) {
-			const handled = await handler(actionId, context);
-			if (handled) return true;
+			const result = await handler(actionId, context);
+			if (result.handled) return result;
 		}
 
-		return false;
+		return { handled: false };
 	}
 
 	private _subscribeToEvents(): void {
-		// Use global event bus for cross-plugin communication
 		const globalEventBus = getPluginRegistry().getEventBus();
 
 		this._unsubscribeRequest = globalEventBus.on<TrackActionsRequestEvent>(
@@ -123,22 +124,35 @@ export class CoreLibraryProvider
 			}
 		);
 
-		this._unsubscribeExecuted = globalEventBus.on<TrackActionExecutedEvent>(
-			TRACK_ACTION_EVENTS.ACTION_EXECUTED,
+		this._unsubscribeExecute = globalEventBus.on<TrackActionExecuteRequestEvent>(
+			TRACK_ACTION_EVENTS.EXECUTE_ACTION_REQUEST,
 			async (event) => {
-				await this.executeAction(event.actionId, {
+				if (!this.canHandleAction(event.actionId)) {
+					return;
+				}
+
+				const result = await this.executeAction(event.actionId, {
 					track: event.track,
 					source: event.source,
+					playlistId: event.playlistId,
+					trackPosition: event.trackPosition,
 				});
+
+				const response: TrackActionExecuteResponseEvent = {
+					requestId: event.requestId,
+					result,
+				};
+
+				globalEventBus.emit(TRACK_ACTION_EVENTS.EXECUTE_ACTION_RESPONSE, response);
 			}
 		);
 	}
 
 	private _unsubscribeFromEvents(): void {
 		this._unsubscribeRequest?.();
-		this._unsubscribeExecuted?.();
+		this._unsubscribeExecute?.();
 		this._unsubscribeRequest = undefined;
-		this._unsubscribeExecuted = undefined;
+		this._unsubscribeExecute = undefined;
 	}
 }
 

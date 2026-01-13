@@ -13,6 +13,7 @@ import type { PluginManifestEntry } from './core/interfaces/plugin-module';
 
 // Import manifests statically for discovery (no code execution)
 import { PLUGIN_MANIFEST as CORE_LIBRARY_MANIFEST } from './library/core-library/config';
+import { PLUGIN_MANIFEST as LYRICS_MANIFEST } from './lyrics/core/config';
 import { PLUGIN_MANIFEST as YOUTUBE_MUSIC_MANIFEST } from './metadata/youtube-music/config';
 import { PLUGIN_MANIFEST as SPOTIFY_MANIFEST } from './metadata/spotify/config';
 import { PLUGIN_MANIFEST as LOCAL_LIBRARY_MANIFEST } from './metadata/local-library/config';
@@ -35,6 +36,16 @@ export const PLUGIN_ENTRIES: PluginManifestEntry[] = [
 			const { CoreLibraryPluginModule } =
 				await import('./library/core-library/plugin-module');
 			return CoreLibraryPluginModule;
+		},
+		isBuiltIn: true,
+	},
+
+	// Lyrics Provider
+	{
+		manifest: LYRICS_MANIFEST,
+		load: async () => {
+			const { LyricsPluginModule } = await import('./lyrics/core/plugin-module');
+			return LyricsPluginModule;
 		},
 		isBuiltIn: true,
 	},

@@ -1,0 +1,90 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Sync certificates and provisioning profiles"
+  lane :sync_certificates do
+    match(type: "appstore", readonly: is_ci)
+  end
+
+  desc "Build iOS app for release"
+  lane :build_release do
+    sync_certificates
+
+    build_app(
+      workspace: "ios/Aria.xcworkspace",
+      scheme: "Aria",
+      configuration: "Release",
+      export_method: "app-store",
+      output_directory: "build",
+      output_name: "Aria.ipa",
+      clean: true
+    )
+  end
+
+  desc "Build iOS app for ad-hoc distribution"
+  lane :build_adhoc do
+    match(type: "adhoc", readonly: is_ci)
+
+    build_app(
+      workspace: "ios/Aria.xcworkspace",
+      scheme: "Aria",
+      configuration: "Release",
+      export_method: "ad-hoc",
+      output_directory: "build",
+      output_name: "Aria.ipa",
+      clean: true
+    )
+  end
+
+  desc "Build iOS simulator app (no signing)"
+  lane :build_simulator do
+    build_app(
+      workspace: "ios/Aria.xcworkspace",
+      scheme: "Aria",
+      configuration: "Debug",
+      sdk: "iphonesimulator",
+      derived_data_path: "ios/build",
+      skip_codesigning: true,
+      skip_archive: true,
+      skip_profile_detection: true,
+      skip_package_ipa: true,
+      xcargs: "CODE_SIGNING_ALLOWED=NO"
+    )
+  end
+
+  desc "Upload to TestFlight"
+  lane :beta do
+    build_release
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Upload to App Store"
+  lane :release do
+    build_release
+    upload_to_app_store(
+      skip_screenshots: true,
+      skip_metadata: true,
+      precheck_include_in_app_purchases: false
+    )
+  end
+end
+
+platform :android do
+  desc "Build Android release APK"
+  lane :build_release do
+    gradle(
+      project_dir: "android",
+      task: "assembleRelease"
+    )
+  end
+
+  desc "Build Android debug APK"
+  lane :build_debug do
+    gradle(
+      project_dir: "android",
+      task: "assembleDebug"
+    )
+  end
+end

@@ -1,5 +1,5 @@
 import type { Track } from '../../domain/entities/track';
-import type { Duration } from '../../domain/value-objects/duration';
+import { Duration } from '../../domain/value-objects/duration';
 import type { AudioStream, AudioFormat } from '../../domain/value-objects/audio-stream';
 import { createAudioStream } from '../../domain/value-objects/audio-stream';
 import { isLocallyAvailable, getPlaybackUri } from '../../domain/value-objects/audio-source';
@@ -223,6 +223,12 @@ export class PlaybackService {
 
 	async skipToPrevious(): Promise<Result<void, Error>> {
 		const state = usePlayerStore.getState();
+
+		// If only one track in queue or position > 3s, just seek to start
+		if (state.queue.length <= 1 || state.position.totalSeconds > 3) {
+			return this.seekTo(Duration.ZERO);
+		}
+
 		state.skipToPrevious();
 		const currentTrack = usePlayerStore.getState().currentTrack;
 		if (currentTrack) {
@@ -336,6 +342,14 @@ export class PlaybackService {
 					// The callback may fire on a background thread, and ExoPlayer
 					// requires all operations to happen on the main thread
 					setTimeout(() => this.skipToNext(), 0);
+					break;
+				case 'remote-skip-next':
+					logger.debug('Remote skip next received - calling skipToNext');
+					setTimeout(() => this.skipToNext(), 0);
+					break;
+				case 'remote-skip-previous':
+					logger.debug('Remote skip previous received - calling skipToPrevious');
+					setTimeout(() => this.skipToPrevious(), 0);
 					break;
 				case 'error':
 					logger.debug(`Error event: ${event.error.message}`);

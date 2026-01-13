@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useLyricsStore } from '@/src/application/state/lyrics-store';
 import { usePlayerStore } from '@/src/application/state/player-store';
-import { lyricsService } from '@/src/application/services/lyrics-service';
+import { getLyricsPlugin } from '@/src/plugins/lyrics';
+import { findCurrentLineIndex } from '@/src/plugins/lyrics/services/lyrics-utils';
 import type { Track } from '@/src/domain/entities/track';
 
 export function useLyrics() {
@@ -37,12 +38,17 @@ export function useLyrics() {
 		const fetchLyrics = async () => {
 			setLoading(true);
 
-			const result = await lyricsService.getLyrics(currentTrack.id);
+			const lyricsPlugin = getLyricsPlugin();
+			if (!lyricsPlugin) {
+				setError('Lyrics plugin not initialized');
+				return;
+			}
 
-			if (result.success) {
-				setLyrics(result.data, currentTrack.id);
-			} else {
-				setError(result.error.message);
+			try {
+				const result = await lyricsPlugin.getLyrics(currentTrack);
+				setLyrics(result, currentTrack.id);
+			} catch (err) {
+				setError(err instanceof Error ? err.message : 'Failed to fetch lyrics');
 			}
 		};
 
@@ -56,7 +62,7 @@ export function useLyrics() {
 		}
 
 		const positionMs = position.totalMilliseconds;
-		const newIndex = lyricsService.findCurrentLineIndex(lyrics, positionMs);
+		const newIndex = findCurrentLineIndex(lyrics, positionMs);
 
 		if (newIndex !== currentLineIndex) {
 			useLyricsStore.getState().setCurrentLineIndex(newIndex);
@@ -101,12 +107,18 @@ export function useLyricsForTrack(track: Track | null) {
 
 		const fetchLyrics = async () => {
 			setLoading(true);
-			const result = await lyricsService.getLyrics(track.id);
 
-			if (result.success) {
-				setLyrics(result.data, track.id);
-			} else {
-				setError(result.error.message);
+			const lyricsPlugin = getLyricsPlugin();
+			if (!lyricsPlugin) {
+				setError('Lyrics plugin not initialized');
+				return;
+			}
+
+			try {
+				const result = await lyricsPlugin.getLyrics(track);
+				setLyrics(result, track.id);
+			} catch (err) {
+				setError(err instanceof Error ? err.message : 'Failed to fetch lyrics');
 			}
 		};
 

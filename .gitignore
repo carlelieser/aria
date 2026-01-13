@@ -39,6 +39,7 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
 
 # typescript
@@ -58,3 +59,11 @@ modules/*/ios/build/
 
 # Claude Code
 .ai/
+
+# Ruby/Fastlane
+Gemfile.lock
+vendor/bundle/
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
