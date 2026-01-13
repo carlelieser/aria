@@ -42,6 +42,12 @@ export default function PlayerScreen() {
 		}
 	}, [currentTrack, pathname]);
 
+	useEffect(() => {
+		return () => {
+			closeSleepTimerSheet();
+		};
+	}, [closeSleepTimerSheet]);
+
 	if (!currentTrack) {
 		return null;
 	}

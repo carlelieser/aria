@@ -3,6 +3,11 @@
  *
  * Handles app foreground/background transitions with optimized resume logic.
  * Uses InteractionManager to defer heavy operations until after UI interactions complete.
+ *
+ * Performance optimizations for long background periods:
+ * - Uses requestAnimationFrame for smoother foreground transitions
+ * - Implements staged deferral (immediate UI -> deferred heavy ops)
+ * - Tracks background duration for adaptive behavior
  */
 
 import { useEffect, useRef, useCallback } from 'react';
@@ -16,6 +21,12 @@ const LONG_BACKGROUND_THRESHOLD_MS = 30_000;
 
 /** Maximum time to wait for deferred operations */
 const DEFERRED_TIMEOUT_MS = 5_000;
+
+/** Additional delay for very long background periods (> 5 minutes) */
+const VERY_LONG_BACKGROUND_THRESHOLD_MS = 5 * 60 * 1000;
+
+/** Extra delay for very long background periods to allow garbage collection */
+const VERY_LONG_BACKGROUND_DELAY_MS = 50;
 
 type AppStateListener = (event: {
 	previousState: AppStateStatus;
@@ -111,17 +122,32 @@ export function useAppState(options: UseAppStateOptions = {}) {
 			// Handle foreground transition
 			if (previousState.match(/inactive|background/) && nextAppState === 'active') {
 				if (deferForegroundCallbacks && onForeground) {
-					// Defer heavy operations to not block UI thread
-					const handle = InteractionManager.runAfterInteractions(() => {
-						onForeground(event);
-					});
+					// For very long background periods, add extra delay for GC
+					const isVeryLongBackground = backgroundDuration > VERY_LONG_BACKGROUND_THRESHOLD_MS;
 
-					// Safety timeout in case interactions never complete
-					setTimeout(() => {
-						handle.cancel();
-						// If the deferred callback hasn't run yet, run it now
-						// This prevents callbacks from being lost
-					}, DEFERRED_TIMEOUT_MS);
+					const executeCallback = () => {
+						// Defer heavy operations to not block UI thread
+						const handle = InteractionManager.runAfterInteractions(() => {
+							onForeground(event);
+						});
+
+						// Safety timeout in case interactions never complete
+						setTimeout(() => {
+							handle.cancel();
+							// If the deferred callback hasn't run yet, run it now
+							// This prevents callbacks from being lost
+						}, DEFERRED_TIMEOUT_MS);
+					};
+
+					if (isVeryLongBackground) {
+						// For very long background, use requestAnimationFrame + delay
+						// This allows the UI to render first frame smoothly
+						requestAnimationFrame(() => {
+							setTimeout(executeCallback, VERY_LONG_BACKGROUND_DELAY_MS);
+						});
+					} else {
+						executeCallback();
+					}
 				} else {
 					onForeground?.(event);
 				}

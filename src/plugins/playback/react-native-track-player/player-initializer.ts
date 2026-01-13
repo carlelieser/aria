@@ -4,7 +4,7 @@
  * Handles initialization and setup of the React Native Track Player.
  */
 
-import TrackPlayer, { Capability } from 'react-native-track-player';
+import TrackPlayer, { AppKilledPlaybackBehavior, Capability } from 'react-native-track-player';
 import { getLogger } from '@shared/services/logger';
 import { PROGRESS_UPDATE_INTERVAL_SECONDS } from './constants';
 
@@ -43,6 +43,10 @@ export class PlayerInitializer {
 				Capability.SkipToPrevious,
 			],
 			progressUpdateEventInterval: PROGRESS_UPDATE_INTERVAL_SECONDS,
+			// Android-specific: Continue playback when app is swiped from recents
+			android: {
+				appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback,
+			},
 		});
 
 		await TrackPlayer.setVolume(initialVolume);

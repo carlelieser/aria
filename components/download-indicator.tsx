@@ -122,7 +122,7 @@ export const DownloadIndicator = memo(function DownloadIndicator({
 					height: config.container,
 					borderRadius: config.container / 2,
 					backgroundColor: getBackgroundColor(),
-					borderColor: colors.background,
+					borderColor: colors.surface,
 				},
 			]}
 		>
@@ -147,7 +147,14 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		alignItems: 'center',
 		justifyContent: 'center',
-		borderWidth: 1,
+		borderWidth: 2,
+		// Shadow for iOS
+		shadowColor: '#000',
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.25,
+		shadowRadius: 3,
+		// Elevation for Android
+		elevation: 4,
 	},
 	progressOverlay: {
 		position: 'absolute',

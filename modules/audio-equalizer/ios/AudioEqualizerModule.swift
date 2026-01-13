@@ -4,13 +4,17 @@ import AVFoundation
 /**
  * Native Audio Equalizer Module for iOS
  *
- * Uses AVAudioUnitEQ to provide audio equalization through the AVAudioEngine.
- * Note: This implementation is more complex on iOS because the audio engine
- * needs to be integrated with the existing audio playback system.
+ * Note: iOS does not support system-wide audio equalization when using AVPlayer
+ * (which react-native-track-player uses). The AVAudioUnitEQ requires an AVAudioEngine
+ * pipeline, but AVPlayer manages its own audio pipeline internally.
+ *
+ * This module stores equalizer settings and reports itself as unavailable.
+ * A future implementation could use MTAudioProcessingTap or modify the player
+ * to use AVAudioEngine instead of AVPlayer.
+ *
+ * For now, the equalizer UI will work but won't affect audio playback on iOS.
  */
 public class AudioEqualizerModule: Module {
-    private var audioEngine: AVAudioEngine?
-    private var equalizer: AVAudioUnitEQ?
     private var isInitialized = false
     private var isEnabled = false
     private var bandLevels: [Float] = []
@@ -118,24 +122,8 @@ public class AudioEqualizerModule: Module {
         // Initialize band levels to flat (0 gain)
         bandLevels = Array(repeating: 0, count: numberOfBands)
 
-        // Note: Full AVAudioEngine integration would require modifying
-        // the audio playback chain. For now, we store settings that can
-        // be applied when integrated with the player.
-
-        // Create the EQ unit for when we can integrate it
-        let eq = AVAudioUnitEQ(numberOfBands: numberOfBands)
-        equalizer = eq
-
-        // Configure each band as a parametric EQ
-        for i in 0..<numberOfBands {
-            let band = eq.bands[i]
-            band.filterType = .parametric
-            band.frequency = standardFrequencies[i]
-            band.bandwidth = 1.0 // Octave bandwidth
-            band.gain = 0 // Start flat
-            band.bypass = false
-        }
-
+        // Note: iOS equalizer cannot affect AVPlayer audio playback.
+        // We store settings for UI consistency but they won't affect audio.
         isInitialized = true
     }
 
@@ -151,8 +139,9 @@ public class AudioEqualizerModule: Module {
             ]
         }
 
+        // Report as unavailable since iOS equalizer cannot affect AVPlayer audio
         return [
-            "isAvailable": true,
+            "isAvailable": false,
             "numberOfBands": numberOfBands,
             "minBandLevel": Int(minBandLevel),
             "maxBandLevel": Int(maxBandLevel),
@@ -169,14 +158,8 @@ public class AudioEqualizerModule: Module {
     }
 
     private func setEnabledInternal(enabled: Bool) throws {
+        // Store setting for UI consistency, but cannot affect audio on iOS
         isEnabled = enabled
-
-        guard let eq = equalizer else { return }
-
-        // Bypass all bands when disabled
-        for band in eq.bands {
-            band.bypass = !enabled
-        }
     }
 
     private func setBandLevelInternal(bandIndex: Int, level: Float) throws {
@@ -186,15 +169,9 @@ public class AudioEqualizerModule: Module {
             ])
         }
 
+        // Store setting for UI consistency, but cannot affect audio on iOS
         let clampedLevel = min(max(level, minBandLevel), maxBandLevel)
         bandLevels[bandIndex] = clampedLevel
-
-        // Convert millibels to decibels for AVAudioUnitEQ
-        let gainDb = clampedLevel / 100.0
-
-        if let eq = equalizer {
-            eq.bands[bandIndex].gain = gainDb
-        }
     }
 
     private func setBandLevelsInternal(levels: [Float]) throws {
@@ -204,11 +181,6 @@ public class AudioEqualizerModule: Module {
     }
 
     private func releaseInternal() {
-        if let engine = audioEngine, engine.isRunning {
-            engine.stop()
-        }
-        audioEngine = nil
-        equalizer = nil
         isInitialized = false
         isEnabled = false
         bandLevels = []

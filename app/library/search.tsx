@@ -151,6 +151,12 @@ export default function LibrarySearchScreen() {
 						{ backgroundColor: colors.secondaryContainer },
 					]}
 				>
+					<Icon
+						as={SearchIcon}
+						size={20}
+						color={colors.onSurfaceVariant}
+						style={styles.searchIcon}
+					/>
 					<TextInput
 						value={searchQuery}
 						onChangeText={setSearchQuery}
@@ -309,6 +315,9 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 16,
 		paddingVertical: 4,
 		borderRadius: 28,
+	},
+	searchIcon: {
+		marginRight: 8,
 	},
 	searchInput: {
 		flex: 1,

@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { InteractionManager } from 'react-native';
 import {
 	useLibraryStore,
@@ -6,6 +6,7 @@ import {
 	type UniqueAlbum,
 } from '@/src/application/state/library-store';
 import { useLocalLibraryStore } from '@/src/plugins/metadata/local-library/storage/local-library-store';
+import { appResumeManager } from '@/src/application/services/app-resume-manager';
 import type { Track } from '@/src/domain/entities/track';
 import type {
 	LocalTrack,
@@ -25,6 +26,17 @@ const LOCAL_LIBRARY_SOURCE = 'local-library';
  * If combined track count exceeds this, we defer recomputation.
  */
 const DEFERRED_COMPUTATION_THRESHOLD = 200;
+
+/**
+ * Higher threshold for deferral when resuming from long background
+ * to avoid UI jank during critical resume period.
+ */
+const RESUME_DEFERRED_THRESHOLD = 100;
+
+/**
+ * Debounce time for recomputation during rapid state changes
+ */
+const DEBOUNCE_MS = 16; // ~1 frame at 60fps
 
 function mapLocalTrackToTrack(localTrack: LocalTrack): Track {
 	const extension = localTrack.filePath.split('.').pop()?.toLowerCase() as
@@ -108,35 +120,59 @@ export function useAggregatedTracks(): Track[] {
 	const localTracks = useLocalLibraryStore((state) => state.tracks);
 	const [deferredResult, setDeferredResult] = useState<Track[] | null>(null);
 	const isComputingRef = useRef(false);
+	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	// Check if data has changed
 	const hasChanged = libraryTracks !== cachedLibraryTracks || localTracks !== cachedLocalTracks;
 
 	// Determine if we should defer computation
+	// Use lower threshold when resuming from long background
 	const totalCount = libraryTracks.length + Object.keys(localTracks).length;
-	const shouldDefer = hasChanged && totalCount > DEFERRED_COMPUTATION_THRESHOLD;
+	const threshold = appResumeManager.wasLongBackground()
+		? RESUME_DEFERRED_THRESHOLD
+		: DEFERRED_COMPUTATION_THRESHOLD;
+	const shouldDefer = hasChanged && totalCount > threshold;
 
-	// Effect for deferred computation
+	// Effect for deferred computation with debouncing
 	useEffect(() => {
 		if (!shouldDefer || isComputingRef.current) return;
 
-		isComputingRef.current = true;
+		// Clear any pending debounce
+		if (debounceTimerRef.current) {
+			clearTimeout(debounceTimerRef.current);
+		}
 
-		// Defer heavy computation until after interactions complete
-		const handle = InteractionManager.runAfterInteractions(() => {
-			const result = computeAggregatedTracks(libraryTracks, localTracks);
+		// Debounce rapid state changes to avoid multiple recomputations
+		debounceTimerRef.current = setTimeout(() => {
+			isComputingRef.current = true;
 
-			// Update cache
-			cachedAggregatedTracks = result;
-			cachedLibraryTracks = libraryTracks;
-			cachedLocalTracks = localTracks;
+			// Defer heavy computation until after interactions complete
+			const handle = InteractionManager.runAfterInteractions(() => {
+				const result = computeAggregatedTracks(libraryTracks, localTracks);
 
-			setDeferredResult(result);
-			isComputingRef.current = false;
-		});
+				// Update cache
+				cachedAggregatedTracks = result;
+				cachedLibraryTracks = libraryTracks;
+				cachedLocalTracks = localTracks;
+
+				setDeferredResult(result);
+				isComputingRef.current = false;
+			});
+
+			// Cleanup handler reference for cancellation
+			debounceTimerRef.current = null;
+
+			return () => {
+				handle.cancel();
+				isComputingRef.current = false;
+			};
+		}, DEBOUNCE_MS);
 
 		return () => {
-			handle.cancel();
+			if (debounceTimerRef.current) {
+				clearTimeout(debounceTimerRef.current);
+				debounceTimerRef.current = null;
+			}
 			isComputingRef.current = false;
 		};
 	}, [shouldDefer, libraryTracks, localTracks]);
@@ -231,6 +267,7 @@ export function useAggregatedArtists(): UniqueArtist[] {
 	const localTracks = useLocalLibraryStore((state) => state.tracks);
 	const [deferredResult, setDeferredResult] = useState<UniqueArtist[] | null>(null);
 	const isComputingRef = useRef(false);
+	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const hasChanged =
 		libraryTracks !== cachedLibraryArtistsRef ||
@@ -238,27 +275,46 @@ export function useAggregatedArtists(): UniqueArtist[] {
 		localTracks !== cachedLocalTracksForArtists;
 
 	const totalCount = libraryTracks.length + Object.keys(localArtists).length;
-	const shouldDefer = hasChanged && totalCount > DEFERRED_COMPUTATION_THRESHOLD;
+	const threshold = appResumeManager.wasLongBackground()
+		? RESUME_DEFERRED_THRESHOLD
+		: DEFERRED_COMPUTATION_THRESHOLD;
+	const shouldDefer = hasChanged && totalCount > threshold;
 
 	useEffect(() => {
 		if (!shouldDefer || isComputingRef.current) return;
 
-		isComputingRef.current = true;
+		if (debounceTimerRef.current) {
+			clearTimeout(debounceTimerRef.current);
+		}
 
-		const handle = InteractionManager.runAfterInteractions(() => {
-			const result = computeAggregatedArtists(libraryTracks, localArtists, localTracks);
+		debounceTimerRef.current = setTimeout(() => {
+			isComputingRef.current = true;
 
-			cachedAggregatedArtists = result;
-			cachedLibraryArtistsRef = libraryTracks;
-			cachedLocalArtistsRef = localArtists;
-			cachedLocalTracksForArtists = localTracks;
+			const handle = InteractionManager.runAfterInteractions(() => {
+				const result = computeAggregatedArtists(libraryTracks, localArtists, localTracks);
 
-			setDeferredResult(result);
-			isComputingRef.current = false;
-		});
+				cachedAggregatedArtists = result;
+				cachedLibraryArtistsRef = libraryTracks;
+				cachedLocalArtistsRef = localArtists;
+				cachedLocalTracksForArtists = localTracks;
+
+				setDeferredResult(result);
+				isComputingRef.current = false;
+			});
+
+			debounceTimerRef.current = null;
+
+			return () => {
+				handle.cancel();
+				isComputingRef.current = false;
+			};
+		}, DEBOUNCE_MS);
 
 		return () => {
-			handle.cancel();
+			if (debounceTimerRef.current) {
+				clearTimeout(debounceTimerRef.current);
+				debounceTimerRef.current = null;
+			}
 			isComputingRef.current = false;
 		};
 	}, [shouldDefer, libraryTracks, localArtists, localTracks]);
@@ -337,31 +393,51 @@ export function useAggregatedAlbums(): UniqueAlbum[] {
 	const localAlbums = useLocalLibraryStore((state) => state.albums);
 	const [deferredResult, setDeferredResult] = useState<UniqueAlbum[] | null>(null);
 	const isComputingRef = useRef(false);
+	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const hasChanged =
 		libraryTracks !== cachedLibraryAlbumsRef || localAlbums !== cachedLocalAlbumsRef;
 
 	const totalCount = libraryTracks.length + Object.keys(localAlbums).length;
-	const shouldDefer = hasChanged && totalCount > DEFERRED_COMPUTATION_THRESHOLD;
+	const threshold = appResumeManager.wasLongBackground()
+		? RESUME_DEFERRED_THRESHOLD
+		: DEFERRED_COMPUTATION_THRESHOLD;
+	const shouldDefer = hasChanged && totalCount > threshold;
 
 	useEffect(() => {
 		if (!shouldDefer || isComputingRef.current) return;
 
-		isComputingRef.current = true;
+		if (debounceTimerRef.current) {
+			clearTimeout(debounceTimerRef.current);
+		}
 
-		const handle = InteractionManager.runAfterInteractions(() => {
-			const result = computeAggregatedAlbums(libraryTracks, localAlbums);
+		debounceTimerRef.current = setTimeout(() => {
+			isComputingRef.current = true;
 
-			cachedAggregatedAlbums = result;
-			cachedLibraryAlbumsRef = libraryTracks;
-			cachedLocalAlbumsRef = localAlbums;
+			const handle = InteractionManager.runAfterInteractions(() => {
+				const result = computeAggregatedAlbums(libraryTracks, localAlbums);
 
-			setDeferredResult(result);
-			isComputingRef.current = false;
-		});
+				cachedAggregatedAlbums = result;
+				cachedLibraryAlbumsRef = libraryTracks;
+				cachedLocalAlbumsRef = localAlbums;
+
+				setDeferredResult(result);
+				isComputingRef.current = false;
+			});
+
+			debounceTimerRef.current = null;
+
+			return () => {
+				handle.cancel();
+				isComputingRef.current = false;
+			};
+		}, DEBOUNCE_MS);
 
 		return () => {
-			handle.cancel();
+			if (debounceTimerRef.current) {
+				clearTimeout(debounceTimerRef.current);
+				debounceTimerRef.current = null;
+			}
 			isComputingRef.current = false;
 		};
 	}, [shouldDefer, libraryTracks, localAlbums]);
