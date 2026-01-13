@@ -39,10 +39,15 @@ export default function LyricsScreen() {
 			<View style={[styles.container, { backgroundColor: colors.background }]}>
 				<View style={[styles.header, { paddingTop: insets.top + 16 }]}>
 					<IconButton
-						icon={() => <Icon as={ChevronLeftIcon} size={22} color={colors.onSurface} />}
+						icon={() => (
+							<Icon as={ChevronLeftIcon} size={22} color={colors.onSurface} />
+						)}
 						onPress={() => router.back()}
 					/>
-					<Text variant="titleLarge" style={{ color: colors.onSurface, fontWeight: '700' }}>
+					<Text
+						variant="titleLarge"
+						style={{ color: colors.onSurface, fontWeight: '700' }}
+					>
 						Lyrics
 					</Text>
 					<View style={styles.headerSpacer} />
@@ -59,7 +64,8 @@ export default function LyricsScreen() {
 	const artwork = getBestArtwork(track.artwork, 80);
 	const artistNames = getArtistNames(track);
 	const hasLyrics = !!lyrics?.syncedLyrics?.length || !!lyrics?.plainLyrics;
-	const lyricsText = lyrics?.syncedLyrics?.map((line) => line.text).join('\n') || lyrics?.plainLyrics;
+	const lyricsText =
+		lyrics?.syncedLyrics?.map((line) => line.text).join('\n') || lyrics?.plainLyrics;
 
 	return (
 		<View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -71,17 +77,26 @@ export default function LyricsScreen() {
 			>
 				<View style={styles.headerRow}>
 					<IconButton
-						icon={() => <Icon as={ChevronLeftIcon} size={22} color={colors.onSurface} />}
+						icon={() => (
+							<Icon as={ChevronLeftIcon} size={22} color={colors.onSurface} />
+						)}
 						onPress={() => router.back()}
 					/>
-					<Text variant="titleLarge" style={{ color: colors.onSurface, fontWeight: '700' }}>
+					<Text
+						variant="titleLarge"
+						style={{ color: colors.onSurface, fontWeight: '700' }}
+					>
 						Lyrics
 					</Text>
 					<View style={styles.headerSpacer} />
 				</View>
 
 				<View style={styles.trackInfo}>
-					<Image source={{ uri: artwork?.url }} style={styles.artwork} contentFit="cover" />
+					<Image
+						source={{ uri: artwork?.url }}
+						style={styles.artwork}
+						contentFit="cover"
+					/>
 					<View style={styles.trackText}>
 						<Text
 							variant="bodyLarge"
@@ -102,7 +117,10 @@ export default function LyricsScreen() {
 			</View>
 
 			<ScrollView
-				contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
+				contentContainerStyle={[
+					styles.scrollContent,
+					{ paddingBottom: insets.bottom + 24 },
+				]}
 				showsVerticalScrollIndicator={false}
 			>
 				{isLoading ? (
@@ -118,13 +136,21 @@ export default function LyricsScreen() {
 						<Icon as={MicVocalIcon} size={48} color={colors.onSurfaceVariant} />
 						<Text
 							variant="bodyMedium"
-							style={{ color: colors.onSurfaceVariant, marginTop: 16, textAlign: 'center' }}
+							style={{
+								color: colors.onSurfaceVariant,
+								marginTop: 16,
+								textAlign: 'center',
+							}}
 						>
 							Failed to load lyrics
 						</Text>
 						<Text
 							variant="bodySmall"
-							style={{ color: colors.onSurfaceVariant, marginTop: 4, textAlign: 'center' }}
+							style={{
+								color: colors.onSurfaceVariant,
+								marginTop: 4,
+								textAlign: 'center',
+							}}
 						>
 							{error}
 						</Text>
@@ -134,13 +160,21 @@ export default function LyricsScreen() {
 						<Icon as={MicVocalIcon} size={48} color={colors.onSurfaceVariant} />
 						<Text
 							variant="bodyMedium"
-							style={{ color: colors.onSurfaceVariant, marginTop: 16, textAlign: 'center' }}
+							style={{
+								color: colors.onSurfaceVariant,
+								marginTop: 16,
+								textAlign: 'center',
+							}}
 						>
 							No lyrics available
 						</Text>
 						<Text
 							variant="bodySmall"
-							style={{ color: colors.onSurfaceVariant, marginTop: 4, textAlign: 'center' }}
+							style={{
+								color: colors.onSurfaceVariant,
+								marginTop: 4,
+								textAlign: 'center',
+							}}
 						>
 							We could not find lyrics for this track
 						</Text>

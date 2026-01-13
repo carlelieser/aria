@@ -30,7 +30,9 @@ export class PlaybackOperations {
 	constructor(
 		private readonly state: PlaybackState,
 		private readonly emitEvent: (event: PlaybackEvent) => void,
-		private readonly updateStatus: (status: 'idle' | 'loading' | 'playing' | 'paused' | 'error') => void
+		private readonly updateStatus: (
+			status: 'idle' | 'loading' | 'playing' | 'paused' | 'error'
+		) => void
 	) {}
 
 	async play(
@@ -119,7 +121,10 @@ export class PlaybackOperations {
 			try {
 				await TrackPlayer.reset();
 			} catch (error) {
-				logger.debug('Reset failed during stop', error instanceof Error ? error : undefined);
+				logger.debug(
+					'Reset failed during stop',
+					error instanceof Error ? error : undefined
+				);
 			}
 			this.state.reset();
 			this.updateStatus('idle');

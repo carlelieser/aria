@@ -52,7 +52,8 @@ export class ArtistService {
 		return this._cachedService.getOrFetch(
 			artistId,
 			() => this._fetchArtistDetail(artistId),
-			(result) => store.setArtistDetail(artistId, result.artist, result.topTracks, result.albums)
+			(result) =>
+				store.setArtistDetail(artistId, result.artist, result.topTracks, result.albums)
 		);
 	}
 

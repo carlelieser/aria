@@ -46,10 +46,7 @@ export async function cleanupTempFiles(paths: string[]): Promise<void> {
 	}
 }
 
-export async function verifyFileSize(
-	filePath: string,
-	expectedSize?: number
-): Promise<boolean> {
+export async function verifyFileSize(filePath: string, expectedSize?: number): Promise<boolean> {
 	const fileInfo = await FileSystem.getInfoAsync(filePath);
 
 	if (!fileInfo.exists || !('size' in fileInfo)) {

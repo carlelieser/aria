@@ -99,6 +99,10 @@ export function useTrackActionExecutor({
 					return;
 				}
 
+				case CORE_ACTION_IDS.VIEW_LYRICS:
+					router.push(`/lyrics?trackId=${encodeURIComponent(currentTrack.id.value)}`);
+					return;
+
 				default: {
 					const wasFavorite = isFavorite;
 
