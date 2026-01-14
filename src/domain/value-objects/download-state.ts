@@ -11,6 +11,8 @@ export interface DownloadInfo {
 	readonly title: string;
 	readonly artistName: string;
 	readonly artworkUrl?: string;
+	readonly albumId?: string;
+	readonly albumName?: string;
 }
 
 export interface DownloadedTrackMetadata {
@@ -23,12 +25,16 @@ export interface DownloadedTrackMetadata {
 	readonly title: string;
 	readonly artistName: string;
 	readonly artworkUrl?: string;
+	readonly albumId?: string;
+	readonly albumName?: string;
 }
 
 interface TrackMetadataParams {
 	title: string;
 	artistName: string;
 	artworkUrl?: string;
+	albumId?: string;
+	albumName?: string;
 }
 
 export function createPendingDownload(
@@ -42,6 +48,8 @@ export function createPendingDownload(
 		title: metadata.title,
 		artistName: metadata.artistName,
 		artworkUrl: metadata.artworkUrl,
+		albumId: metadata.albumId,
+		albumName: metadata.albumName,
 	});
 }
 
@@ -86,6 +94,8 @@ interface CreateDownloadedTrackMetadataParams {
 	title: string;
 	artistName: string;
 	artworkUrl?: string;
+	albumId?: string;
+	albumName?: string;
 }
 
 export function createDownloadedTrackMetadata(
@@ -101,5 +111,7 @@ export function createDownloadedTrackMetadata(
 		title: params.title,
 		artistName: params.artistName,
 		artworkUrl: params.artworkUrl,
+		albumId: params.albumId,
+		albumName: params.albumName,
 	});
 }

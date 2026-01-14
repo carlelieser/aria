@@ -99,6 +99,8 @@ export class DownloadService {
 			title: track.title,
 			artistName: getArtistNames(track),
 			artworkUrl: artwork?.url,
+			albumId: track.album?.id,
+			albumName: track.album?.name,
 		});
 
 		try {
@@ -201,6 +203,8 @@ export class DownloadService {
 				title: track.title,
 				artistName: getArtistNames(track),
 				artworkUrl: artwork?.url,
+				albumId: track.album?.id,
+				albumName: track.album?.name,
 			});
 
 			store.completeDownload(trackId, metadata);

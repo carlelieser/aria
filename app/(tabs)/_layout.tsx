@@ -33,6 +33,7 @@ import { TAB_CONFIG, TAB_BAR_HEIGHT } from '@/lib/tab-config';
 const TAB_WIDTH = 84;
 const INDICATOR_WIDTH = 64;
 const INDICATOR_HEIGHT = 32;
+const INDICATOR_TOP = 11;
 
 export default function TabLayout() {
 	const defaultTab = useDefaultTab();
@@ -215,7 +216,7 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 				<Animated.View
 					style={[
 						styles.indicator,
-						{ backgroundColor: colors.secondaryContainer },
+						{ backgroundColor: colors.secondaryContainer, top: INDICATOR_TOP },
 						animatedIndicatorStyle,
 					]}
 				/>
@@ -348,7 +349,6 @@ const styles = StyleSheet.create({
 	},
 	indicator: {
 		position: 'absolute',
-		top: 13,
 		left: 0,
 		width: INDICATOR_WIDTH,
 		height: INDICATOR_HEIGHT,

@@ -6,6 +6,7 @@ import type {
 	DownloadInfo,
 	DownloadedTrackMetadata,
 } from '@/src/domain/value-objects/download-state';
+import type { AlbumReference } from '@/src/domain/entities/album';
 
 /**
  * Creates a minimal Track from DownloadInfo for display purposes.
@@ -13,6 +14,11 @@ import type {
  * The actual track data (including duration) should be fetched from the
  * appropriate source (library, history, or metadata provider).
  */
+function buildAlbumReference(albumId?: string, albumName?: string): AlbumReference | undefined {
+	if (!albumId || !albumName) return undefined;
+	return { id: albumId, name: albumName };
+}
+
 export function createTrackFromDownloadInfo(info: DownloadInfo): Track {
 	const trackId = TrackId.tryFromString(info.trackId) ?? TrackId.create('unknown', info.trackId);
 
@@ -20,6 +26,7 @@ export function createTrackFromDownloadInfo(info: DownloadInfo): Track {
 		id: trackId,
 		title: info.title,
 		artists: [{ id: 'unknown', name: info.artistName }],
+		album: buildAlbumReference(info.albumId, info.albumName),
 		duration: Duration.ZERO,
 		artwork: info.artworkUrl ? [{ url: info.artworkUrl, width: 48, height: 48 }] : undefined,
 		source: {
@@ -44,6 +51,7 @@ export function createTrackFromDownloadedMetadata(metadata: DownloadedTrackMetad
 		id: trackId,
 		title: metadata.title,
 		artists: [{ id: 'unknown', name: metadata.artistName }],
+		album: buildAlbumReference(metadata.albumId, metadata.albumName),
 		duration: Duration.ZERO,
 		artwork: metadata.artworkUrl
 			? [{ url: metadata.artworkUrl, width: 48, height: 48 }]

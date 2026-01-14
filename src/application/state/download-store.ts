@@ -16,6 +16,8 @@ interface TrackMetadataParams {
 	title: string;
 	artistName: string;
 	artworkUrl?: string;
+	albumId?: string;
+	albumName?: string;
 }
 
 interface DownloadState {

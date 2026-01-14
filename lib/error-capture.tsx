@@ -8,7 +8,8 @@
  */
 
 import React, { Component, type ReactNode, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 
 const ERROR_TAG = '[ErrorCapture]';
 
@@ -74,7 +75,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 							<Text style={styles.resetButtonText}>Try Again</Text>
 						</Pressable>
 					</View>
-					<ScrollView style={styles.scrollView}>
+					<PlayerAwareScrollView style={styles.scrollView}>
 						<Text style={styles.errorName}>{this.state.error?.name}</Text>
 						<Text style={styles.errorMessage}>{this.state.error?.message}</Text>
 						{this.state.error?.stack && (
@@ -91,7 +92,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 								</Text>
 							</>
 						)}
-					</ScrollView>
+					</PlayerAwareScrollView>
 				</View>
 			);
 		}
@@ -178,6 +179,8 @@ const styles = StyleSheet.create({
 	},
 	scrollView: {
 		flex: 1,
+		borderRadius: 12,
+		overflow: 'hidden',
 	},
 	errorName: {
 		fontSize: 16,

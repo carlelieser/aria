@@ -6,7 +6,8 @@
  */
 
 import { useRef, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, StyleSheet, Pressable, type ScrollView } from 'react-native';
+import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { Text } from 'react-native-paper';
 import Animated, {
 	useSharedValue,
@@ -119,7 +120,7 @@ export function LyricsDisplay({ maxHeight, onLineTap }: LyricsDisplayProps) {
 				exiting={FadeOut.duration(200)}
 				style={styles.container}
 			>
-				<ScrollView
+				<PlayerAwareScrollView
 					ref={scrollViewRef}
 					style={[styles.scrollView, { maxHeight: effectiveMaxHeight }]}
 					contentContainerStyle={styles.scrollContent}
@@ -137,7 +138,7 @@ export function LyricsDisplay({ maxHeight, onLineTap }: LyricsDisplayProps) {
 							onPress={() => handleLineTap(line.startTime)}
 						/>
 					))}
-				</ScrollView>
+				</PlayerAwareScrollView>
 
 				{lyrics.attribution && (
 					<Text
@@ -158,7 +159,7 @@ export function LyricsDisplay({ maxHeight, onLineTap }: LyricsDisplayProps) {
 			exiting={FadeOut.duration(200)}
 			style={styles.container}
 		>
-			<ScrollView
+			<PlayerAwareScrollView
 				style={[styles.scrollView, { maxHeight: maxHeight ?? 200 }]}
 				contentContainerStyle={styles.plainLyricsContent}
 				showsVerticalScrollIndicator={false}
@@ -166,7 +167,7 @@ export function LyricsDisplay({ maxHeight, onLineTap }: LyricsDisplayProps) {
 				<Text variant="bodyMedium" style={{ color: colors.onSurface, lineHeight: 24 }}>
 					{lyrics?.plainLyrics}
 				</Text>
-			</ScrollView>
+			</PlayerAwareScrollView>
 
 			{lyrics?.attribution && (
 				<Text
@@ -244,6 +245,8 @@ const styles = StyleSheet.create({
 	},
 	scrollView: {
 		width: '100%',
+		borderRadius: 12,
+		overflow: 'hidden',
 	},
 	scrollContent: {
 		paddingVertical: LINE_HEIGHT,

@@ -6,7 +6,8 @@
  */
 
 import { useState } from 'react';
-import { View, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeftIcon, PlusIcon, ListMusicIcon, CheckIcon, XIcon } from 'lucide-react-native';
@@ -205,7 +206,8 @@ export default function PlaylistPickerScreen() {
 				)}
 			</View>
 
-			<ScrollView
+			<PlayerAwareScrollView
+				style={styles.scrollView}
 				contentContainerStyle={[
 					styles.scrollContent,
 					{ paddingBottom: insets.bottom + 80 },
@@ -234,7 +236,7 @@ export default function PlaylistPickerScreen() {
 						/>
 					))
 				)}
-			</ScrollView>
+			</PlayerAwareScrollView>
 		</View>
 	);
 }
@@ -242,6 +244,10 @@ export default function PlaylistPickerScreen() {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
+	},
+	scrollView: {
+		borderRadius: 12,
+		overflow: 'hidden',
 	},
 	header: {
 		paddingHorizontal: 16,

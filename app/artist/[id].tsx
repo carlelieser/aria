@@ -6,7 +6,7 @@
  */
 
 import { useEffect } from 'react';
-import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, router } from 'expo-router';
@@ -225,9 +225,10 @@ export default function ArtistScreen() {
 								>
 									Albums
 								</Text>
-								<ScrollView
+								<PlayerAwareScrollView
 									horizontal
 									showsHorizontalScrollIndicator={false}
+									style={styles.albumsScrollView}
 									contentContainerStyle={styles.albumsRow}
 								>
 									{albums.map((album) => (
@@ -237,7 +238,7 @@ export default function ArtistScreen() {
 											onPress={() => handleAlbumPress(album)}
 										/>
 									))}
-								</ScrollView>
+								</PlayerAwareScrollView>
 							</View>
 						)}
 
@@ -308,6 +309,10 @@ const styles = StyleSheet.create({
 	sectionTitle: {
 		fontWeight: '600',
 		marginBottom: 12,
+	},
+	albumsScrollView: {
+		borderRadius: 12,
+		overflow: 'hidden',
 	},
 	albumsRow: {
 		paddingHorizontal: 16,

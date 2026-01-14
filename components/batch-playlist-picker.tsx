@@ -6,7 +6,8 @@
  */
 
 import { useCallback, useMemo, useRef, useEffect, useState } from 'react';
-import { View, Pressable, StyleSheet, ScrollView } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
+import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { Text, TextInput, Button } from 'react-native-paper';
 import BottomSheet, {
 	BottomSheetBackdrop,
@@ -196,7 +197,10 @@ export function BatchPlaylistPicker({
 						</View>
 					)}
 
-					<ScrollView style={styles.playlistList} showsVerticalScrollIndicator={false}>
+					<PlayerAwareScrollView
+						style={styles.playlistList}
+						showsVerticalScrollIndicator={false}
+					>
 						{playlists.length === 0 && !isCreating ? (
 							<View style={styles.emptyState}>
 								<Icon
@@ -223,7 +227,7 @@ export function BatchPlaylistPicker({
 								/>
 							))
 						)}
-					</ScrollView>
+					</PlayerAwareScrollView>
 				</BottomSheetView>
 			</BottomSheet>
 		</Portal>
@@ -266,6 +270,8 @@ const styles = StyleSheet.create({
 	},
 	playlistList: {
 		flex: 1,
+		borderRadius: 12,
+		overflow: 'hidden',
 	},
 	playlistItem: {
 		flexDirection: 'row',

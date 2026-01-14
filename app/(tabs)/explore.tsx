@@ -1,5 +1,5 @@
 import { useCallback, useMemo, memo, useState } from 'react';
-import { ScrollView, View, StyleSheet, TextInput } from 'react-native';
+import { View, StyleSheet, TextInput, Pressable } from 'react-native';
 import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { Text, Button } from 'react-native-paper';
 import { PageLayout } from '@/components/page-layout';
@@ -11,6 +11,7 @@ import {
 	CompassIcon,
 	AlertCircleIcon,
 	SearchIcon,
+	XIcon,
 } from 'lucide-react-native';
 import { TrackCard } from '@/components/track-card';
 import { SelectableTrackListItem } from '@/components/selectable-track-list-item';
@@ -82,9 +83,10 @@ const ExploreSection = memo(function ExploreSection({
 					</Button>
 				)}
 			</View>
-			<ScrollView
+			<PlayerAwareScrollView
 				horizontal
 				showsHorizontalScrollIndicator={false}
+				style={styles.horizontalScrollView}
 				contentContainerStyle={styles.horizontalScroll}
 			>
 				{tracks.map((track, index) => (
@@ -95,7 +97,7 @@ const ExploreSection = memo(function ExploreSection({
 						queueIndex={index}
 					/>
 				))}
-			</ScrollView>
+			</PlayerAwareScrollView>
 		</View>
 	);
 });
@@ -241,6 +243,15 @@ export default function ExploreScreen() {
 						placeholder="Search songs, artists, albums..."
 						autoFocus={false}
 					/>
+					{query.length > 0 && (
+						<Pressable
+							onPress={() => search('')}
+							hitSlop={8}
+							style={styles.clearButton}
+						>
+							<Icon as={XIcon} size={18} color={colors.onSurfaceVariant} />
+						</Pressable>
+					)}
 				</View>
 			</View>
 			{!isExploreMode && isSearching && (
@@ -414,6 +425,10 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		paddingVertical: 12,
 	},
+	clearButton: {
+		padding: 4,
+		marginLeft: 4,
+	},
 	scrollContent: {
 		gap: 24,
 		paddingVertical: 24,
@@ -431,6 +446,10 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		gap: 8,
+	},
+	horizontalScrollView: {
+		borderRadius: 12,
+		overflow: 'hidden',
 	},
 	horizontalScroll: {
 		gap: 16,

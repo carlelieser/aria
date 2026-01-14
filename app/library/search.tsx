@@ -1,10 +1,17 @@
 import { useCallback, useMemo, useState } from 'react';
-import { View, StyleSheet, TextInput } from 'react-native';
+import { View, StyleSheet, TextInput, Pressable } from 'react-native';
 import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { Text } from 'react-native-paper';
 import { PageLayout } from '@/components/page-layout';
 import { Icon } from '@/components/ui/icon';
-import { SearchIcon, MusicIcon, ListMusicIcon, UsersIcon, DiscIcon } from 'lucide-react-native';
+import {
+	SearchIcon,
+	MusicIcon,
+	ListMusicIcon,
+	UsersIcon,
+	DiscIcon,
+	XIcon,
+} from 'lucide-react-native';
 import { usePlaylists } from '@/src/application/state/library-store';
 import {
 	useAggregatedTracks,
@@ -168,6 +175,15 @@ export default function LibrarySearchScreen() {
 						autoCorrect={false}
 						returnKeyType="search"
 					/>
+					{searchQuery.length > 0 && (
+						<Pressable
+							onPress={() => setSearchQuery('')}
+							hitSlop={8}
+							style={styles.clearButton}
+						>
+							<Icon as={XIcon} size={18} color={colors.onSurfaceVariant} />
+						</Pressable>
+					)}
 				</View>
 			</View>
 			<PlayerAwareScrollView
@@ -323,6 +339,10 @@ const styles = StyleSheet.create({
 		flex: 1,
 		fontSize: 16,
 		paddingVertical: 12,
+	},
+	clearButton: {
+		padding: 4,
+		marginLeft: 4,
 	},
 	scrollContent: {
 		gap: 24,

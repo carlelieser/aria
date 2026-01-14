@@ -5,15 +5,16 @@
  * Uses M3 theming.
  */
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
 import { View, Image, StyleSheet } from 'react-native';
 import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { DiscIcon, SearchIcon } from 'lucide-react-native';
-import { Text, Button } from 'react-native-paper';
+import { DiscIcon, SearchIcon, DownloadIcon } from 'lucide-react-native';
+import { Text, Button, IconButton } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
 import { PageLayout } from '@/components/page-layout';
+import { useBatchActions } from '@/hooks/use-batch-actions';
 import { TrackListItem } from '@/components/track-list-item';
 import {
 	AlbumHeaderSkeleton,
@@ -68,6 +69,7 @@ export default function AlbumScreen() {
 	const insets = useSafeAreaInsets();
 	const { id, name } = useLocalSearchParams<{ id: string; name?: string }>();
 	const { colors } = useAppTheme();
+	const { downloadSelected, isDownloading } = useBatchActions();
 
 	const libraryTracks = useLibraryAlbumTracks(id);
 
@@ -105,6 +107,26 @@ export default function AlbumScreen() {
 		});
 	};
 
+	const handleDownloadAll = useCallback(async () => {
+		if (enrichedTracks.length > 0) {
+			await downloadSelected(enrichedTracks);
+		}
+	}, [enrichedTracks, downloadSelected]);
+
+	const headerRightActions = enrichedTracks.length > 0 && (
+		<IconButton
+			icon={() => (
+				<Icon
+					as={DownloadIcon}
+					size={22}
+					color={isDownloading ? colors.outline : colors.onSurface}
+				/>
+			)}
+			onPress={handleDownloadAll}
+			disabled={isDownloading}
+		/>
+	);
+
 	const headerContent = showHeaderSkeleton ? (
 		<AlbumHeaderSkeleton />
 	) : (
@@ -132,12 +154,17 @@ export default function AlbumScreen() {
 				>
 					{albumInfo.name}
 				</Text>
-				<Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant }}>
-					{albumInfo.artists}
-				</Text>
-				<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
-					{displayTracks.length} {displayTracks.length === 1 ? 'track' : 'tracks'}
-				</Text>
+				<View style={styles.albumMeta}>
+					<Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant }}>
+						{albumInfo.artists}
+					</Text>
+					<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
+						•
+					</Text>
+					<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
+						{displayTracks.length} {displayTracks.length === 1 ? 'track' : 'tracks'}
+					</Text>
+				</View>
 			</View>
 			<Button
 				mode="outlined"
@@ -157,8 +184,11 @@ export default function AlbumScreen() {
 				backgroundColor: colors.surfaceContainerHigh,
 				borderRadius: 24,
 				belowTitle: headerContent,
+				rightActions: headerRightActions,
 				extended: true,
-				compact: true,
+			}}
+			style={{
+				gap: 12,
 			}}
 		>
 			<PlayerAwareScrollView
@@ -222,6 +252,11 @@ const styles = StyleSheet.create({
 	albumText: {
 		alignItems: 'center',
 		gap: 4,
+	},
+	albumMeta: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: 8,
 	},
 	scrollContent: {
 		paddingHorizontal: 16,

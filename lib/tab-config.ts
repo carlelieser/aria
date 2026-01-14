@@ -27,4 +27,4 @@ export const TAB_CONFIG: Record<TabId, TabConfig> = {
 	settings: { icon: SettingsIcon, label: 'Settings', route: '/settings' },
 };
 
-export const TAB_BAR_HEIGHT = 80;
+export const TAB_BAR_HEIGHT = 75;

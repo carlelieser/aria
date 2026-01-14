@@ -22,6 +22,7 @@ import {
 	GripVerticalIcon,
 	MoreVerticalIcon,
 	CheckIcon,
+	DownloadIcon,
 } from 'lucide-react-native';
 import { Text, IconButton, Button, Menu } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
@@ -78,7 +79,8 @@ export default function PlaylistScreen() {
 		toggleTrackSelection,
 	} = useSelection();
 
-	const { addSelectedToQueue, removeSelectedFromPlaylist } = useBatchActions();
+	const { addSelectedToQueue, removeSelectedFromPlaylist, downloadSelected, isDownloading } =
+		useBatchActions();
 
 	const tracks = useMemo(() => playlist?.tracks.map((pt) => pt.track) ?? [], [playlist?.tracks]);
 	const totalDuration = playlist ? getPlaylistDuration(playlist) : 0;
@@ -162,6 +164,12 @@ export default function PlaylistScreen() {
 		removeSelectedFromPlaylist(playlist.id, positions);
 		exitSelectionMode();
 	}, [playlist, selectedTrackIds, removeSelectedFromPlaylist, exitSelectionMode]);
+
+	const handleDownloadAll = useCallback(async () => {
+		if (tracks.length > 0) {
+			await downloadSelected(tracks);
+		}
+	}, [tracks, downloadSelected]);
 
 	// Memoized render function for FlatList virtualization
 	const renderTrackItem = useCallback(
@@ -271,45 +279,62 @@ export default function PlaylistScreen() {
 			onPress={toggleEditMode}
 		/>
 	) : (
-		<Menu
-			visible={menuVisible}
-			onDismiss={() => setMenuVisible(false)}
-			anchor={
+		<View style={styles.headerActions}>
+			{tracks.length > 0 && (
 				<IconButton
-					icon={() => <Icon as={MoreVerticalIcon} size={22} color={colors.onSurface} />}
-					onPress={() => setMenuVisible(true)}
+					icon={() => (
+						<Icon
+							as={DownloadIcon}
+							size={22}
+							color={isDownloading ? colors.outline : colors.onSurface}
+						/>
+					)}
+					onPress={handleDownloadAll}
+					disabled={isDownloading}
 				/>
-			}
-			contentStyle={{ backgroundColor: colors.surfaceContainerHigh }}
-		>
-			<Menu.Item
-				leadingIcon={() => (
-					<Icon as={GripVerticalIcon} size={20} color={colors.onSurface} />
-				)}
-				onPress={toggleEditMode}
-				title="Reorder Tracks"
-				titleStyle={{ color: colors.onSurface }}
-				disabled={tracks.length < 2}
-			/>
-			<Menu.Item
-				leadingIcon={() => <Icon as={PencilIcon} size={20} color={colors.onSurface} />}
-				onPress={() => {
-					setMenuVisible(false);
-					setRenameDialogVisible(true);
-				}}
-				title="Rename Playlist"
-				titleStyle={{ color: colors.onSurface }}
-			/>
-			<Menu.Item
-				leadingIcon={() => <Icon as={Trash2Icon} size={20} color={colors.error} />}
-				onPress={() => {
-					setMenuVisible(false);
-					setDeleteDialogVisible(true);
-				}}
-				title="Delete Playlist"
-				titleStyle={{ color: colors.error }}
-			/>
-		</Menu>
+			)}
+			<Menu
+				visible={menuVisible}
+				onDismiss={() => setMenuVisible(false)}
+				anchor={
+					<IconButton
+						icon={() => (
+							<Icon as={MoreVerticalIcon} size={22} color={colors.onSurface} />
+						)}
+						onPress={() => setMenuVisible(true)}
+					/>
+				}
+				contentStyle={{ backgroundColor: colors.surfaceContainerHigh }}
+			>
+				<Menu.Item
+					leadingIcon={() => (
+						<Icon as={GripVerticalIcon} size={20} color={colors.onSurface} />
+					)}
+					onPress={toggleEditMode}
+					title="Reorder Tracks"
+					titleStyle={{ color: colors.onSurface }}
+					disabled={tracks.length < 2}
+				/>
+				<Menu.Item
+					leadingIcon={() => <Icon as={PencilIcon} size={20} color={colors.onSurface} />}
+					onPress={() => {
+						setMenuVisible(false);
+						setRenameDialogVisible(true);
+					}}
+					title="Rename Playlist"
+					titleStyle={{ color: colors.onSurface }}
+				/>
+				<Menu.Item
+					leadingIcon={() => <Icon as={Trash2Icon} size={20} color={colors.error} />}
+					onPress={() => {
+						setMenuVisible(false);
+						setDeleteDialogVisible(true);
+					}}
+					title="Delete Playlist"
+					titleStyle={{ color: colors.error }}
+				/>
+			</Menu>
+		</View>
 	);
 
 	const headerContent = (
@@ -460,6 +485,10 @@ export default function PlaylistScreen() {
 }
 
 const styles = StyleSheet.create({
+	headerActions: {
+		flexDirection: 'row',
+		alignItems: 'center',
+	},
 	playlistInfo: {
 		alignItems: 'center',
 		gap: 16,

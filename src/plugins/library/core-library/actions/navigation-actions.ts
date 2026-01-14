@@ -3,12 +3,7 @@ import type { TrackActionResult } from '../../../../application/events/track-act
 import { CORE_ACTION_IDS } from '../../../../domain/actions/track-action';
 
 export function getNavigationActions(context: TrackActionContext): TrackAction[] {
-	const { track, source } = context;
-
-	// Navigation actions excluded from player screen to avoid disrupting playback
-	if (source === 'player') {
-		return [];
-	}
+	const { track } = context;
 
 	const actions: TrackAction[] = [];
 	const hasArtist = track.artists.length > 0;

@@ -5,7 +5,8 @@
  * Uses M3 theming.
  */
 
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { Text, Switch } from 'react-native-paper';
 import { FilterChip } from './filter-chip';
 import { useAppTheme } from '@/lib/theme';
@@ -58,9 +59,10 @@ export function FilterSection({
 					>
 						ARTISTS
 					</Text>
-					<ScrollView
+					<PlayerAwareScrollView
 						horizontal
 						showsHorizontalScrollIndicator={false}
+						style={styles.scrollView}
 						contentContainerStyle={styles.chipContainer}
 					>
 						{artists.map((artist) => (
@@ -71,7 +73,7 @@ export function FilterSection({
 								onPress={() => onToggleArtist(artist.id)}
 							/>
 						))}
-					</ScrollView>
+					</PlayerAwareScrollView>
 				</View>
 			)}
 
@@ -83,9 +85,10 @@ export function FilterSection({
 					>
 						ALBUMS
 					</Text>
-					<ScrollView
+					<PlayerAwareScrollView
 						horizontal
 						showsHorizontalScrollIndicator={false}
+						style={styles.scrollView}
 						contentContainerStyle={styles.chipContainer}
 					>
 						{albums.map((album) => (
@@ -96,7 +99,7 @@ export function FilterSection({
 								onPress={() => onToggleAlbum(album.id)}
 							/>
 						))}
-					</ScrollView>
+					</PlayerAwareScrollView>
 				</View>
 			)}
 		</View>
@@ -106,6 +109,10 @@ export function FilterSection({
 const styles = StyleSheet.create({
 	container: {
 		gap: 16,
+	},
+	scrollView: {
+		borderRadius: 12,
+		overflow: 'hidden',
 	},
 	favoritesRow: {
 		flexDirection: 'row',

@@ -6,7 +6,8 @@
  */
 
 import { memo, useMemo } from 'react';
-import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
+import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
@@ -166,9 +167,10 @@ export const BatchActionBar = memo(function BatchActionBar(props: BatchActionBar
 				</Text>
 			</View>
 
-			<ScrollView
+			<PlayerAwareScrollView
 				horizontal
 				showsHorizontalScrollIndicator={false}
+				style={styles.scrollView}
 				contentContainerStyle={styles.actions}
 			>
 				{actions.map(
@@ -184,7 +186,7 @@ export const BatchActionBar = memo(function BatchActionBar(props: BatchActionBar
 							/>
 						)
 				)}
-			</ScrollView>
+			</PlayerAwareScrollView>
 		</Animated.View>
 	);
 });
@@ -204,6 +206,10 @@ const styles = StyleSheet.create({
 		shadowOpacity: 0.1,
 		shadowRadius: 8,
 		elevation: 8,
+	},
+	scrollView: {
+		borderRadius: 12,
+		overflow: 'hidden',
 	},
 	header: {
 		flexDirection: 'row',

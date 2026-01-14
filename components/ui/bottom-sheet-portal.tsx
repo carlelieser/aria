@@ -29,7 +29,7 @@ export const BottomSheetPortal = forwardRef<BottomSheetMethods, BottomSheetPorta
 			[onChange]
 		);
 
-		const pointerEvents = sheetIndex === -1 ? 'none' : 'auto';
+		const pointerEvents = sheetIndex === -1 ? 'none' : 'box-none';
 
 		return (
 			<Portal name={name}>

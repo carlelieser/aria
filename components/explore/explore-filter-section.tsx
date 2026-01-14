@@ -5,7 +5,8 @@
  * Uses M3 theming.
  */
 
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { Text, Switch } from 'react-native-paper';
 import { ContentTypeChips } from './content-type-chips';
 import { FilterChip } from '@/components/library/filter-chip';
@@ -65,9 +66,10 @@ export function ExploreFilterSection({
 					>
 						ARTISTS
 					</Text>
-					<ScrollView
+					<PlayerAwareScrollView
 						horizontal
 						showsHorizontalScrollIndicator={false}
+						style={styles.scrollView}
 						contentContainerStyle={styles.chipContainer}
 					>
 						{artists.map((artist) => (
@@ -78,7 +80,7 @@ export function ExploreFilterSection({
 								onPress={() => onToggleArtist(artist.id)}
 							/>
 						))}
-					</ScrollView>
+					</PlayerAwareScrollView>
 				</View>
 			)}
 
@@ -90,9 +92,10 @@ export function ExploreFilterSection({
 					>
 						ALBUMS
 					</Text>
-					<ScrollView
+					<PlayerAwareScrollView
 						horizontal
 						showsHorizontalScrollIndicator={false}
+						style={styles.scrollView}
 						contentContainerStyle={styles.chipContainer}
 					>
 						{albums.map((album) => (
@@ -103,7 +106,7 @@ export function ExploreFilterSection({
 								onPress={() => onToggleAlbum(album.id)}
 							/>
 						))}
-					</ScrollView>
+					</PlayerAwareScrollView>
 				</View>
 			)}
 		</View>
@@ -113,6 +116,10 @@ export function ExploreFilterSection({
 const styles = StyleSheet.create({
 	container: {
 		gap: 16,
+	},
+	scrollView: {
+		borderRadius: 12,
+		overflow: 'hidden',
 	},
 	favoritesRow: {
 		flexDirection: 'row',
