@@ -235,8 +235,9 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 							key={tabId}
 							onPress={() => handleTabPress(visualIdx, routeIndex, tabId)}
 							style={styles.tabButton}
-							accessibilityRole="button"
-							accessibilityState={isFocused ? { selected: true } : {}}
+							accessibilityRole="tab"
+							accessibilityLabel={config.label}
+							accessibilityState={{ selected: isFocused }}
 						>
 							<TabIcon
 								icon={IconComponent}
