@@ -246,7 +246,11 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 								inactiveColor={colors.onSurfaceVariant}
 								showNotificationDot={showNotificationDot}
 							/>
-							<TabLabel label={config.label} isFocused={isFocused} color={colors.primary} />
+							<TabLabel
+								label={config.label}
+								isFocused={isFocused}
+								color={colors.primary}
+							/>
 						</Pressable>
 					);
 				})}
@@ -265,7 +269,13 @@ interface TabIconProps {
 
 const LABEL_HEIGHT = 18;
 
-function TabIcon({ icon: Icon, isFocused, focusedColor, inactiveColor, showNotificationDot }: TabIconProps) {
+function TabIcon({
+	icon: Icon,
+	isFocused,
+	focusedColor,
+	inactiveColor,
+	showNotificationDot,
+}: TabIconProps) {
 	const translateY = useSharedValue(isFocused ? 0 : LABEL_HEIGHT / 2);
 
 	useEffect(() => {

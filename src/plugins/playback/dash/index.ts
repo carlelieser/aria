@@ -106,7 +106,10 @@ export class DashPlaybackProvider implements PlaybackProvider {
 	): AsyncResult<void, Error> {
 		try {
 			logger.debug('play called for track:', track.title);
-			logger.debug('Stream URL type:', isDashUrl(streamUrl) ? 'DASH' : isHlsUrl(streamUrl) ? 'HLS' : 'unknown');
+			logger.debug(
+				'Stream URL type:',
+				isDashUrl(streamUrl) ? 'DASH' : isHlsUrl(streamUrl) ? 'HLS' : 'unknown'
+			);
 
 			if (this.player) {
 				logger.debug('Stopping and releasing previous player...');

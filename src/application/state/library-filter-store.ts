@@ -74,7 +74,10 @@ export const useLibraryFilterStore = create<LibraryFilterState>()((set) => ({
 
 	toggleFavoritesOnly: () =>
 		set((state) => ({
-			activeFilters: { ...state.activeFilters, favoritesOnly: !state.activeFilters.favoritesOnly },
+			activeFilters: {
+				...state.activeFilters,
+				favoritesOnly: !state.activeFilters.favoritesOnly,
+			},
 		})),
 
 	setDownloadedOnly: (enabled) =>

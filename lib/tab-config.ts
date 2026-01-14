@@ -5,7 +5,13 @@
  * Separated to avoid circular dependencies and heavy imports.
  */
 
-import { MusicIcon, CompassIcon, DownloadIcon, SettingsIcon, type LucideIcon } from 'lucide-react-native';
+import {
+	MusicIcon,
+	CompassIcon,
+	DownloadIcon,
+	SettingsIcon,
+	type LucideIcon,
+} from 'lucide-react-native';
 import type { TabId } from '@/src/application/state/settings-store';
 
 export interface TabConfig {

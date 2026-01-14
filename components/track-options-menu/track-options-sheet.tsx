@@ -89,10 +89,7 @@ export function TrackOptionsSheet() {
 			snapPoints={['50%', '75%']}
 			backdropComponent={renderBackdrop}
 			onChange={handleSheetChanges}
-			backgroundStyle={[
-				styles.background,
-				{ backgroundColor: colors.surfaceContainerHigh },
-			]}
+			backgroundStyle={[styles.background, { backgroundColor: colors.surfaceContainerHigh }]}
 			handleIndicatorStyle={[
 				styles.handleIndicator,
 				{ backgroundColor: colors.outlineVariant },

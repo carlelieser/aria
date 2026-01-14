@@ -19,10 +19,7 @@ import { ScanProgressToast } from '@/components/ui/scan-progress-toast';
 import { AnimatedSplash } from '@/components/ui/animated-splash';
 import { AppThemeProvider, useAppTheme } from '@/lib/theme';
 import { ErrorBoundary, useGlobalErrorHandlers } from '@/lib/error-capture';
-import {
-	useSleepTimerSheetOpen,
-	usePlayerUIStore,
-} from '@/src/application/state/player-ui-store';
+import { useSleepTimerSheetOpen, usePlayerUIStore } from '@/src/application/state/player-ui-store';
 
 const PORTAL_Z_INDEX = 9999;
 

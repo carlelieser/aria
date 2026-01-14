@@ -64,7 +64,10 @@ export const useExploreFilterStore = create<ExploreFilterState>()((set) => ({
 
 	toggleFavoritesOnly: () =>
 		set((state) => ({
-			activeFilters: { ...state.activeFilters, favoritesOnly: !state.activeFilters.favoritesOnly },
+			activeFilters: {
+				...state.activeFilters,
+				favoritesOnly: !state.activeFilters.favoritesOnly,
+			},
 		})),
 
 	clearFilters: () => set({ activeFilters: DEFAULT_SEARCH_FILTERS }),

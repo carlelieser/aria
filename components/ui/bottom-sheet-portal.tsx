@@ -34,12 +34,7 @@ export const BottomSheetPortal = forwardRef<BottomSheetMethods, BottomSheetPorta
 		return (
 			<Portal name={name}>
 				<View style={StyleSheet.absoluteFill} pointerEvents={pointerEvents}>
-					<BottomSheet
-						ref={ref}
-						index={-1}
-						onChange={handleSheetChanges}
-						{...props}
-					>
+					<BottomSheet ref={ref} index={-1} onChange={handleSheetChanges} {...props}>
 						{children}
 					</BottomSheet>
 				</View>

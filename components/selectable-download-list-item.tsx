@@ -72,7 +72,9 @@ export const SelectableDownloadListItem = memo(function SelectableDownloadListIt
 
 	return (
 		<View style={styles.container}>
-			{isSelectionMode && <SelectableCheckbox isSelected={isSelected} onToggle={handleToggle} />}
+			{isSelectionMode && (
+				<SelectableCheckbox isSelected={isSelected} onToggle={handleToggle} />
+			)}
 
 			<View style={styles.trackItem}>
 				<TrackListItem
