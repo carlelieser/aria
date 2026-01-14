@@ -124,32 +124,21 @@ export default function TabLayout() {
 			screenOptions={screenOptions}
 			tabBar={(props) => <CustomTabBar {...props} tabOrder={validTabOrder} />}
 		>
-			{/*
-			 * Render all tabs statically to prevent re-mounting issues.
-			 * Tab visibility is controlled by the tabOrder in CustomTabBar.
-			 * Static definition ensures screens are always mounted and ready.
-			 */}
-			<Tabs.Screen
-				name="index"
-				options={{
-					title: TAB_CONFIG.index.label,
-					href: validTabOrder.includes('index') ? '/' : null,
-				}}
-			/>
-			<Tabs.Screen
-				name="explore"
-				options={{
-					title: TAB_CONFIG.explore.label,
-					href: validTabOrder.includes('explore') ? '/explore' : null,
-				}}
-			/>
-			<Tabs.Screen
-				name="downloads"
-				options={{
-					title: TAB_CONFIG.downloads.label,
-					href: validTabOrder.includes('downloads') ? '/downloads' : null,
-				}}
-			/>
+			{validTabOrder.map((tabId) => {
+				const config = TAB_CONFIG[tabId];
+				if (!config) return null;
+
+				return (
+					<Tabs.Screen
+						key={tabId}
+						name={tabId}
+						options={{
+							title: config.label,
+							href: config.route as '/' | '/explore' | '/downloads' | '/settings',
+						}}
+					/>
+				);
+			})}
 		</Tabs>
 	);
 }
@@ -164,16 +153,24 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 	const { hasActiveDownloads } = useDownloadQueue();
 	const tabBarHeight = TAB_BAR_HEIGHT + insets.bottom;
 
-	const indicatorX = useSharedValue(state.index * TAB_WIDTH + (TAB_WIDTH - INDICATOR_WIDTH) / 2);
+	// Calculate visual index based on tab order, not route index
+	const currentRouteName = state.routes[state.index]?.name as TabId;
+	const visualIndex = tabOrder.indexOf(currentRouteName);
+	const initialX = Math.max(0, visualIndex) * TAB_WIDTH + (TAB_WIDTH - INDICATOR_WIDTH) / 2;
+
+	const indicatorX = useSharedValue(initialX);
 
 	useEffect(() => {
-		const newX = state.index * TAB_WIDTH + (TAB_WIDTH - INDICATOR_WIDTH) / 2;
-		indicatorX.value = withSpring(newX, {
-			damping: 25,
-			stiffness: 180,
-			mass: 0.5,
-		});
-	}, [state.index, indicatorX]);
+		const newVisualIndex = tabOrder.indexOf(currentRouteName);
+		if (newVisualIndex >= 0) {
+			const newX = newVisualIndex * TAB_WIDTH + (TAB_WIDTH - INDICATOR_WIDTH) / 2;
+			indicatorX.value = withSpring(newX, {
+				damping: 25,
+				stiffness: 180,
+				mass: 0.5,
+			});
+		}
+	}, [currentRouteName, tabOrder, indicatorX]);
 
 	const animatedIndicatorStyle = useAnimatedStyle(() => {
 		return {
@@ -182,8 +179,8 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 	});
 
 	const handleTabPress = useCallback(
-		(index: number, routeName: string) => {
-			const newX = index * TAB_WIDTH + (TAB_WIDTH - INDICATOR_WIDTH) / 2;
+		(visualIdx: number, routeIndex: number, routeName: string) => {
+			const newX = visualIdx * TAB_WIDTH + (TAB_WIDTH - INDICATOR_WIDTH) / 2;
 			indicatorX.value = withSpring(newX, {
 				damping: 25,
 				stiffness: 180,
@@ -192,7 +189,7 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 
 			const event = navigation.emit({
 				type: 'tabPress',
-				target: state.routes[index].key,
+				target: state.routes[routeIndex].key,
 				canPreventDefault: true,
 			});
 
@@ -223,7 +220,7 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 					]}
 				/>
 
-				{tabOrder.map((tabId) => {
+				{tabOrder.map((tabId, visualIdx) => {
 					const config = TAB_CONFIG[tabId];
 					if (!config?.icon) return null;
 					const route = state.routes.find((r) => r.name === tabId);
@@ -236,7 +233,7 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 					return (
 						<Pressable
 							key={tabId}
-							onPress={() => handleTabPress(routeIndex, tabId)}
+							onPress={() => handleTabPress(visualIdx, routeIndex, tabId)}
 							style={styles.tabButton}
 							accessibilityRole="button"
 							accessibilityState={isFocused ? { selected: true } : {}}

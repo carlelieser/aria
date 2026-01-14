@@ -6,20 +6,20 @@
  * Actions are pre-loaded before opening to prevent visual jumps.
  */
 
-import React, { useRef, useMemo, useCallback, useEffect, useState } from 'react';
+import React, { useRef, useMemo, useCallback, useEffect } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
-import BottomSheet, {
+import {
 	BottomSheetBackdrop,
 	BottomSheetView,
 	type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet';
 import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
-import { Portal } from '@rn-primitives/portal';
 import { Text, Divider } from 'react-native-paper';
 import * as LucideIcons from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import { Check } from 'lucide-react-native';
+import { BottomSheetPortal } from '@/components/ui/bottom-sheet-portal';
 import { Icon } from '@/components/ui/icon';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 import { ACTION_GROUP_ORDER } from '@/src/domain/actions/track-action';
@@ -44,7 +44,6 @@ function getIconComponent(iconName: string): LucideIcon {
 export function TrackOptionsSheet() {
 	const bottomSheetRef = useRef<BottomSheetMethods>(null);
 	const { colors } = useAppTheme();
-	const [isMounted, setIsMounted] = useState(false);
 
 	const track = useTrackOptionsTrack();
 	const source = useTrackOptionsSource();
@@ -52,23 +51,13 @@ export function TrackOptionsSheet() {
 	const isOpen = useIsTrackOptionsOpen();
 	const close = useTrackOptionsStore((state) => state.close);
 
-	// Delay mounting to ensure Portal is ready (fixes production freeze)
 	useEffect(() => {
-		const timeoutId = setTimeout(() => {
-			setIsMounted(true);
-		}, 0);
-		return () => clearTimeout(timeoutId);
-	}, []);
-
-	useEffect(() => {
-		if (isOpen && track && isMounted) {
-			// Defer bottom sheet snap to avoid navigation conflicts
-			const timeoutId = setTimeout(() => {
-				bottomSheetRef.current?.snapToIndex(0);
-			}, 0);
-			return () => clearTimeout(timeoutId);
+		if (isOpen && track) {
+			bottomSheetRef.current?.snapToIndex(0);
+		} else {
+			bottomSheetRef.current?.close();
 		}
-	}, [isOpen, track, isMounted]);
+	}, [isOpen, track]);
 
 	const handleSheetChanges = useCallback(
 		(index: number) => {
@@ -92,29 +81,24 @@ export function TrackOptionsSheet() {
 		[]
 	);
 
-	// Don't render until mounted and we have data
-	if (!isMounted || !isOpen || !track) {
-		return null;
-	}
-
 	return (
-		<Portal name="track-options-sheet">
-			<BottomSheet
-				ref={bottomSheetRef}
-				index={0}
-				enableDynamicSizing
-				enablePanDownToClose
-				backdropComponent={renderBackdrop}
-				onChange={handleSheetChanges}
-				backgroundStyle={[
-					styles.background,
-					{ backgroundColor: colors.surfaceContainerHigh },
-				]}
-				handleIndicatorStyle={[
-					styles.handleIndicator,
-					{ backgroundColor: colors.outlineVariant },
-				]}
-			>
+		<BottomSheetPortal
+			name="track-options-sheet"
+			ref={bottomSheetRef}
+			enableDynamicSizing
+			enablePanDownToClose
+			backdropComponent={renderBackdrop}
+			onChange={handleSheetChanges}
+			backgroundStyle={[
+				styles.background,
+				{ backgroundColor: colors.surfaceContainerHigh },
+			]}
+			handleIndicatorStyle={[
+				styles.handleIndicator,
+				{ backgroundColor: colors.outlineVariant },
+			]}
+		>
+			{track ? (
 				<TrackOptionsContent
 					track={track}
 					source={source}
@@ -122,8 +106,10 @@ export function TrackOptionsSheet() {
 					trackPosition={context.trackPosition}
 					onClose={() => bottomSheetRef.current?.close()}
 				/>
-			</BottomSheet>
-		</Portal>
+			) : (
+				<BottomSheetView style={styles.contentContainer}>{null}</BottomSheetView>
+			)}
+		</BottomSheetPortal>
 	);
 }
 
