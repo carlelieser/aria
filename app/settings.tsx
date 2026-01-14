@@ -60,7 +60,6 @@ const DEFAULT_TAB_OPTIONS: { value: DefaultTab; label: string; icon: LucideIcon 
 	{ value: 'index', label: 'Library', icon: MusicIcon },
 	{ value: 'explore', label: 'Explore', icon: CompassIcon },
 	{ value: 'downloads', label: 'Downloads', icon: DownloadIcon },
-	{ value: 'settings', label: 'Settings', icon: SettingsIcon },
 ];
 
 export default function SettingsScreen() {
@@ -193,7 +192,13 @@ export default function SettingsScreen() {
 	const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
 	return (
-		<PageLayout header={{ icon: SettingsIcon, title: 'Settings' }}>
+		<PageLayout
+			header={{
+				icon: SettingsIcon,
+				title: 'Settings',
+				showBack: true,
+			}}
+		>
 			<PlayerAwareScrollView
 				style={styles.scrollView}
 				contentContainerStyle={styles.scrollContent}

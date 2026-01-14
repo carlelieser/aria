@@ -8,14 +8,13 @@
 import { useCallback, useMemo, useState } from 'react';
 import { View, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import DraggableFlatList, {
 	ScaleDecorator,
 	type RenderItemParams,
 } from 'react-native-draggable-flatlist';
 import {
-	ChevronLeftIcon,
 	ListMusicIcon,
 	PlayIcon,
 	Trash2Icon,
@@ -26,6 +25,7 @@ import {
 } from 'lucide-react-native';
 import { Text, IconButton, Button, Menu } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
+import { PageLayout } from '@/components/page-layout';
 import { SelectableTrackListItem } from '@/components/selectable-track-list-item';
 import { BatchActionBar } from '@/components/batch-action-bar';
 import { EmptyState } from '@/components/empty-state';
@@ -246,172 +246,139 @@ export default function PlaylistScreen() {
 
 	if (!playlist) {
 		return (
-			<View style={[styles.container, { backgroundColor: colors.background }]}>
-				<View style={[styles.header, { backgroundColor: colors.surfaceContainerHigh }]}>
-					<SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-						<View style={styles.headerRow}>
-							<IconButton
-								icon={() => (
-									<Icon as={ChevronLeftIcon} size={22} color={colors.onSurface} />
-								)}
-								onPress={() => router.back()}
-								style={styles.backButton}
-							/>
-							<Text variant="titleMedium" style={{ color: colors.onSurfaceVariant }}>
-								Playlist
-							</Text>
-						</View>
-					</SafeAreaView>
-				</View>
+			<PageLayout
+				header={{
+					title: 'Playlist',
+					showBack: true,
+					backgroundColor: colors.surfaceContainerHigh,
+					borderRadius: 24,
+					extended: true,
+					compact: true,
+				}}
+			>
 				<EmptyState
 					icon={ListMusicIcon}
 					title="Playlist not found"
 					description="This playlist may have been deleted"
 				/>
-			</View>
+			</PageLayout>
 		);
 	}
 
-	return (
-		<View style={[styles.container, { backgroundColor: colors.background }]}>
-			<View style={[styles.header, { backgroundColor: colors.surfaceContainerHigh }]}>
-				<SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-					<View style={styles.headerRow}>
-						<IconButton
-							icon={() => (
-								<Icon as={ChevronLeftIcon} size={22} color={colors.onSurface} />
-							)}
-							onPress={() => router.back()}
-							style={styles.backButton}
-						/>
-						<Text variant="titleMedium" style={{ color: colors.onSurfaceVariant }}>
-							Playlist
-						</Text>
-						<View style={styles.headerSpacer} />
-						{isEditMode ? (
-							<IconButton
-								icon={() => (
-									<Icon as={CheckIcon} size={22} color={colors.primary} />
-								)}
-								onPress={toggleEditMode}
-							/>
-						) : (
-							<Menu
-								visible={menuVisible}
-								onDismiss={() => setMenuVisible(false)}
-								anchor={
-									<IconButton
-										icon={() => (
-											<Icon
-												as={MoreVerticalIcon}
-												size={22}
-												color={colors.onSurface}
-											/>
-										)}
-										onPress={() => setMenuVisible(true)}
-									/>
-								}
-								contentStyle={{ backgroundColor: colors.surfaceContainerHigh }}
-							>
-								<Menu.Item
-									leadingIcon={() => (
-										<Icon
-											as={GripVerticalIcon}
-											size={20}
-											color={colors.onSurface}
-										/>
-									)}
-									onPress={toggleEditMode}
-									title="Reorder Tracks"
-									titleStyle={{ color: colors.onSurface }}
-									disabled={tracks.length < 2}
-								/>
-								<Menu.Item
-									leadingIcon={() => (
-										<Icon as={PencilIcon} size={20} color={colors.onSurface} />
-									)}
-									onPress={() => {
-										setMenuVisible(false);
-										setRenameDialogVisible(true);
-									}}
-									title="Rename Playlist"
-									titleStyle={{ color: colors.onSurface }}
-								/>
-								<Menu.Item
-									leadingIcon={() => (
-										<Icon as={Trash2Icon} size={20} color={colors.error} />
-									)}
-									onPress={() => {
-										setMenuVisible(false);
-										setDeleteDialogVisible(true);
-									}}
-									title="Delete Playlist"
-									titleStyle={{ color: colors.error }}
-								/>
-							</Menu>
-						)}
-					</View>
+	const headerRightActions = isEditMode ? (
+		<IconButton
+			icon={() => <Icon as={CheckIcon} size={22} color={colors.primary} />}
+			onPress={toggleEditMode}
+		/>
+	) : (
+		<Menu
+			visible={menuVisible}
+			onDismiss={() => setMenuVisible(false)}
+			anchor={
+				<IconButton
+					icon={() => <Icon as={MoreVerticalIcon} size={22} color={colors.onSurface} />}
+					onPress={() => setMenuVisible(true)}
+				/>
+			}
+			contentStyle={{ backgroundColor: colors.surfaceContainerHigh }}
+		>
+			<Menu.Item
+				leadingIcon={() => (
+					<Icon as={GripVerticalIcon} size={20} color={colors.onSurface} />
+				)}
+				onPress={toggleEditMode}
+				title="Reorder Tracks"
+				titleStyle={{ color: colors.onSurface }}
+				disabled={tracks.length < 2}
+			/>
+			<Menu.Item
+				leadingIcon={() => <Icon as={PencilIcon} size={20} color={colors.onSurface} />}
+				onPress={() => {
+					setMenuVisible(false);
+					setRenameDialogVisible(true);
+				}}
+				title="Rename Playlist"
+				titleStyle={{ color: colors.onSurface }}
+			/>
+			<Menu.Item
+				leadingIcon={() => <Icon as={Trash2Icon} size={20} color={colors.error} />}
+				onPress={() => {
+					setMenuVisible(false);
+					setDeleteDialogVisible(true);
+				}}
+				title="Delete Playlist"
+				titleStyle={{ color: colors.error }}
+			/>
+		</Menu>
+	);
 
-					<View style={styles.playlistInfo}>
-						{artworkUrl ? (
-							<Image
-								source={{ uri: artworkUrl }}
-								style={styles.playlistArtwork}
-								contentFit="cover"
-							/>
-						) : (
-							<View
-								style={[
-									styles.playlistArtwork,
-									{ backgroundColor: colors.surfaceContainerHighest },
-								]}
-							>
-								<Icon
-									as={ListMusicIcon}
-									size={64}
-									color={colors.onSurfaceVariant}
-								/>
-							</View>
-						)}
-						<View style={styles.playlistText}>
-							<Text
-								variant="headlineSmall"
-								style={{
-									color: colors.onSurface,
-									fontWeight: '700',
-									textAlign: 'center',
-								}}
-							>
-								{playlist.name}
-							</Text>
-							{playlist.description && (
-								<Text
-									variant="bodyMedium"
-									style={{ color: colors.onSurfaceVariant, textAlign: 'center' }}
-								>
-									{playlist.description}
-								</Text>
-							)}
-							<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
-								{tracks.length} {tracks.length === 1 ? 'track' : 'tracks'}
-								{totalDuration > 0 && ` · ${formatDuration(totalDuration)}`}
-							</Text>
-						</View>
-						{tracks.length > 0 && (
-							<Button
-								mode="contained"
-								icon={() => (
-									<Icon as={PlayIcon} size={18} color={colors.onPrimary} />
-								)}
-								onPress={handlePlayAll}
-							>
-								Play All
-							</Button>
-						)}
-					</View>
-				</SafeAreaView>
+	const headerContent = (
+		<View style={styles.playlistInfo}>
+			{artworkUrl ? (
+				<Image
+					source={{ uri: artworkUrl }}
+					style={styles.playlistArtwork}
+					contentFit="cover"
+				/>
+			) : (
+				<View
+					style={[
+						styles.playlistArtwork,
+						{ backgroundColor: colors.surfaceContainerHighest },
+					]}
+				>
+					<Icon as={ListMusicIcon} size={64} color={colors.onSurfaceVariant} />
+				</View>
+			)}
+			<View style={styles.playlistText}>
+				<Text
+					variant="headlineSmall"
+					style={{
+						color: colors.onSurface,
+						fontWeight: '700',
+						textAlign: 'center',
+					}}
+				>
+					{playlist.name}
+				</Text>
+				{playlist.description && (
+					<Text
+						variant="bodyMedium"
+						style={{ color: colors.onSurfaceVariant, textAlign: 'center' }}
+					>
+						{playlist.description}
+					</Text>
+				)}
+				<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
+					{tracks.length} {tracks.length === 1 ? 'track' : 'tracks'}
+					{totalDuration > 0 && ` · ${formatDuration(totalDuration)}`}
+				</Text>
 			</View>
+			{tracks.length > 0 && (
+				<Button
+					mode="contained"
+					icon={() => <Icon as={PlayIcon} size={18} color={colors.onPrimary} />}
+					onPress={handlePlayAll}
+				>
+					Play All
+				</Button>
+			)}
+		</View>
+	);
 
+	return (
+		<PageLayout
+			header={{
+				title: 'Playlist',
+				showBack: true,
+				backgroundColor: colors.surfaceContainerHigh,
+				borderRadius: 24,
+				belowTitle: headerContent,
+				rightActions: headerRightActions,
+				extended: true,
+				compact: true,
+			}}
+		>
 			{isEditMode ? (
 				<View style={styles.editModeContainer}>
 					<View
@@ -488,38 +455,15 @@ export default function PlaylistScreen() {
 				onConfirm={handleRenamePlaylist}
 				onCancel={() => setRenameDialogVisible(false)}
 			/>
-		</View>
+		</PageLayout>
 	);
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-	},
-	header: {
-		paddingHorizontal: 16,
-		paddingBottom: 24,
-		borderBottomLeftRadius: 24,
-		borderBottomRightRadius: 24,
-	},
-	headerSafeArea: {
-		paddingTop: 16,
-	},
-	headerRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 12,
-		marginBottom: 24,
-	},
-	headerSpacer: {
-		flex: 1,
-	},
-	backButton: {
-		opacity: 0.7,
-	},
 	playlistInfo: {
 		alignItems: 'center',
 		gap: 16,
+		paddingHorizontal: 16,
 	},
 	playlistArtwork: {
 		width: 160,

@@ -150,13 +150,6 @@ export default function TabLayout() {
 					href: validTabOrder.includes('downloads') ? '/downloads' : null,
 				}}
 			/>
-			<Tabs.Screen
-				name="settings"
-				options={{
-					title: TAB_CONFIG.settings.label,
-					href: validTabOrder.includes('settings') ? '/settings' : null,
-				}}
-			/>
 		</Tabs>
 	);
 }

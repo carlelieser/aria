@@ -10,7 +10,7 @@ import { forwardRef } from 'react';
 import { useCurrentTrack } from '@/src/application/state/player-store';
 import { FLOATING_PLAYER_HEIGHT } from '@/components/floating-player';
 
-const FLOATING_PLAYER_PADDING = FLOATING_PLAYER_HEIGHT + 16;
+const FLOATING_PLAYER_PADDING = FLOATING_PLAYER_HEIGHT + 48;
 
 export const PlayerAwareScrollView = forwardRef<ScrollView, ScrollViewProps>(
 	({ contentContainerStyle, ...props }, ref) => {

@@ -34,27 +34,32 @@ Get the latest release from the [Releases](https://github.com/carlelieser/aria/r
 ## Features
 
 ### Library
+
 - Play local files or connect sources via plugins
 - Unified library with songs, albums, artists, and playlists
 - Search across multiple sources simultaneously
 - Recently played history and favorites
 
 ### Offline
+
 - Download tracks for offline listening
 - Queue management with progress tracking
 - Automatic retry for failed downloads
 
 ### Audio
+
 - **10-band equalizer** with presets (Bass Boost, Treble Boost, Vocal, Rock, Electronic, and more)
 - Gapless playback for seamless transitions
 - Sleep timer with presets, custom duration, and end-of-track mode
 
 ### Lyrics
+
 - Synced lyrics with line-by-line timing
 - Plain text fallback when timing unavailable
 - Multiple lyrics providers
 
 ### Customization
+
 - Light, dark, and system theme modes
 - Custom accent colors with Material Design 3 dynamic theming
 - Configurable tabs and default views

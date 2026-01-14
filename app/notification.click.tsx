@@ -6,25 +6,27 @@
  * an "aria://notification.click" deep link which maps to this route.
  *
  * The handler redirects to the player screen if there's an active track,
- * otherwise redirects to the home screen. Uses withAnchor to prevent
- * duplicate player screens in the navigation stack.
+ * otherwise redirects to the home screen. Checks the navigation stack
+ * to prevent duplicate player screens when resuming from background.
  */
 
-import { Redirect, usePathname } from 'expo-router';
+import { Redirect, useRootNavigationState } from 'expo-router';
 import { usePlayer } from '@/hooks/use-player';
 
 export default function NotificationClickHandler() {
-	const pathname = usePathname();
 	const { currentTrack } = usePlayer();
+	const navState = useRootNavigationState();
 
-	// If there's a track playing, go to the player screen (if not already on the player screen)
-	// Otherwise, go to the home screen
-	if (currentTrack) {
-		if (pathname === '/player') {
-			return null;
-		}
-		return <Redirect href="/player" withAnchor={true} />;
+	if (!currentTrack) {
+		return <Redirect href="/" />;
 	}
 
-	return <Redirect href="/" />;
+	const routes = navState?.routes ?? [];
+	const playerInStack = routes.some((r) => r.name === 'player');
+
+	if (playerInStack) {
+		return null;
+	}
+
+	return <Redirect href="/player" />;
 }
