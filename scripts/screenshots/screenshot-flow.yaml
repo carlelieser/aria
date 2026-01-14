@@ -18,7 +18,12 @@ appId: com.aria.music.app
 - stopApp
 - launchApp
 
-# Wait for app to fully initialize - look for bottom tab bar
+# Dismiss Expo developer menu if it appears (first launch shows Continue button)
+- tapOn:
+      text: 'Continue'
+      optional: true
+
+# Wait for app to fully initialize - look for Library header
 - extendedWaitUntil:
       visible:
           text: 'Library'
