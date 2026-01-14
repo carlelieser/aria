@@ -14,6 +14,7 @@ import { trackActionsService } from '@/src/application/services/track-actions-se
 import { downloadService } from '@/src/application/services/download-service';
 import { useIsFavorite } from '@/src/application/state/library-store';
 import { setNavigationTrack } from '@/src/application/state/navigation-context-store';
+import { usePlayerUIStore } from '@/src/application/state/player-ui-store';
 import { useToast } from '@/hooks/use-toast';
 import { useRefreshTrackOptionsActions } from '@/src/application/state/track-options-store';
 
@@ -103,6 +104,14 @@ export function useTrackActionExecutor({
 				case CORE_ACTION_IDS.VIEW_LYRICS:
 					setNavigationTrack(currentTrack);
 					router.push(`/lyrics?trackId=${encodeURIComponent(currentTrack.id.value)}`);
+					return;
+
+				case CORE_ACTION_IDS.SLEEP_TIMER:
+					usePlayerUIStore.getState().openSleepTimerSheet();
+					return;
+
+				case CORE_ACTION_IDS.TOGGLE_LYRICS:
+					usePlayerUIStore.getState().toggleShowLyrics();
 					return;
 
 				default: {
