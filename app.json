@@ -12,7 +12,10 @@
 			"supportsTablet": true,
 			"bundleIdentifier": "com.aria.music.app",
 			"infoPlist": {
-				"UIBackgroundModes": ["audio", "audio"],
+				"UIBackgroundModes": [
+					"audio",
+					"audio"
+				],
 				"ITSAppUsesNonExemptEncryption": false
 			}
 		},
