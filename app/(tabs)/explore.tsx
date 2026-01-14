@@ -1,5 +1,5 @@
 import { useCallback, useMemo, memo, useState } from 'react';
-import { View, StyleSheet, TextInput, Pressable } from 'react-native';
+import { View, StyleSheet, TextInput, Pressable, ScrollView } from 'react-native';
 import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { Text, Button } from 'react-native-paper';
 import { PageLayout } from '@/components/page-layout';
@@ -83,7 +83,7 @@ const ExploreSection = memo(function ExploreSection({
 					</Button>
 				)}
 			</View>
-			<PlayerAwareScrollView
+			<ScrollView
 				horizontal
 				showsHorizontalScrollIndicator={false}
 				style={styles.horizontalScrollView}
@@ -97,7 +97,7 @@ const ExploreSection = memo(function ExploreSection({
 						queueIndex={index}
 					/>
 				))}
-			</PlayerAwareScrollView>
+			</ScrollView>
 		</View>
 	);
 });

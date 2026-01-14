@@ -5,7 +5,7 @@
  * Uses M3 theming.
  */
 
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { Text, Switch } from 'react-native-paper';
 import { FilterChip } from './filter-chip';
@@ -59,7 +59,7 @@ export function FilterSection({
 					>
 						ARTISTS
 					</Text>
-					<PlayerAwareScrollView
+					<ScrollView
 						horizontal
 						showsHorizontalScrollIndicator={false}
 						style={styles.scrollView}
@@ -73,7 +73,7 @@ export function FilterSection({
 								onPress={() => onToggleArtist(artist.id)}
 							/>
 						))}
-					</PlayerAwareScrollView>
+					</ScrollView>
 				</View>
 			)}
 
@@ -85,7 +85,7 @@ export function FilterSection({
 					>
 						ALBUMS
 					</Text>
-					<PlayerAwareScrollView
+					<ScrollView
 						horizontal
 						showsHorizontalScrollIndicator={false}
 						style={styles.scrollView}
@@ -99,7 +99,7 @@ export function FilterSection({
 								onPress={() => onToggleAlbum(album.id)}
 							/>
 						))}
-					</PlayerAwareScrollView>
+					</ScrollView>
 				</View>
 			)}
 		</View>
