@@ -157,13 +157,6 @@ jobs:
               with:
                   ssh-private-key: ${{ secrets.ARIA_CERTIFICATES_DEPLOY_KEY }}
 
-            - name: Create Keychain
-              run: |
-                  security create-keychain -p "${{ secrets.MATCH_PASSWORD }}" fastlane_keychain
-                  security default-keychain -s fastlane_keychain
-                  security unlock-keychain -p "${{ secrets.MATCH_PASSWORD }}" fastlane_keychain
-                  security set-keychain-settings -t 3600 -u fastlane_keychain
-
             - name: Build iOS with Fastlane
               env:
                   MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
@@ -172,8 +165,6 @@ jobs:
                   APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
                   FASTLANE_USER: ${{ secrets.APPLE_ID }}
                   FASTLANE_PASSWORD: ${{ secrets.FASTLANE_PASSWORD }}
-                  MATCH_KEYCHAIN_NAME: "fastlane_keychain"
-                  MATCH_KEYCHAIN_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
               run: bundle exec fastlane ios build_adhoc
 
             - name: Upload IPA

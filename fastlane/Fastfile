@@ -8,6 +8,7 @@ platform :ios do
 
   desc "Build iOS app for release"
   lane :build_release do
+    setup_ci if is_ci
     sync_certificates
 
     update_code_signing_settings(
@@ -31,6 +32,7 @@ platform :ios do
 
   desc "Build iOS app for ad-hoc distribution"
   lane :build_adhoc do
+    setup_ci if is_ci
     match(type: "adhoc", readonly: is_ci)
 
     update_code_signing_settings(
