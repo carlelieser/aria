@@ -10,6 +10,14 @@ platform :ios do
   lane :build_release do
     sync_certificates
 
+    update_code_signing_settings(
+      path: "ios/Aria.xcodeproj",
+      use_automatic_signing: false,
+      team_id: ENV["APPLE_TEAM_ID"],
+      profile_name: "match AppStore com.aria.music.app",
+      code_sign_identity: "Apple Distribution"
+    )
+
     build_app(
       workspace: "ios/Aria.xcworkspace",
       scheme: "Aria",
@@ -17,14 +25,21 @@ platform :ios do
       export_method: "app-store",
       output_directory: "build",
       output_name: "Aria.ipa",
-      clean: true,
-      xcargs: "DEVELOPMENT_TEAM='#{ENV['APPLE_TEAM_ID']}'"
+      clean: true
     )
   end
 
   desc "Build iOS app for ad-hoc distribution"
   lane :build_adhoc do
     match(type: "adhoc", readonly: is_ci)
+
+    update_code_signing_settings(
+      path: "ios/Aria.xcodeproj",
+      use_automatic_signing: false,
+      team_id: ENV["APPLE_TEAM_ID"],
+      profile_name: "match AdHoc com.aria.music.app",
+      code_sign_identity: "Apple Distribution"
+    )
 
     build_app(
       workspace: "ios/Aria.xcworkspace",
@@ -33,8 +48,7 @@ platform :ios do
       export_method: "ad-hoc",
       output_directory: "build",
       output_name: "Aria.ipa",
-      clean: true,
-      xcargs: "DEVELOPMENT_TEAM='#{ENV['APPLE_TEAM_ID']}'"
+      clean: true
     )
   end
 
