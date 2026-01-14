@@ -77,7 +77,6 @@ export class RNTPPlaybackProvider implements PlaybackProvider {
 
 			await this.initializer.setup(this.state.volume);
 			this.eventHandler.setupEventListeners();
-			this.progressTracker.start();
 
 			this.isSetup = true;
 			this.status = 'ready';
@@ -100,7 +99,6 @@ export class RNTPPlaybackProvider implements PlaybackProvider {
 	};
 
 	async onDestroy(): AsyncResult<void, Error> {
-		this.progressTracker.stop();
 		this.eventHandler.removeEventListeners();
 		await this.playbackOps.stop();
 		this.eventHandler.clearListeners();

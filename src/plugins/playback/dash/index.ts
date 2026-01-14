@@ -24,6 +24,14 @@ function isDashUrl(url: string): boolean {
 	return url.startsWith('data:application/dash+xml');
 }
 
+function isHlsUrl(url: string): boolean {
+	return url.includes('/manifest/hls') || url.endsWith('.m3u8');
+}
+
+function canHandleUrl(url: string): boolean {
+	return isDashUrl(url) || isHlsUrl(url);
+}
+
 export class DashPlaybackProvider implements PlaybackProvider {
 	readonly manifest: PluginManifest = PLUGIN_MANIFEST;
 
@@ -48,7 +56,7 @@ export class DashPlaybackProvider implements PlaybackProvider {
 	private statusSubscription: { remove: () => void } | null = null;
 
 	canHandle(url: string): boolean {
-		return isDashUrl(url);
+		return canHandleUrl(url);
 	}
 
 	async onInit(context?: PluginInitContext): AsyncResult<void, Error> {
@@ -98,7 +106,7 @@ export class DashPlaybackProvider implements PlaybackProvider {
 	): AsyncResult<void, Error> {
 		try {
 			logger.debug('play called for track:', track.title);
-			logger.debug('Stream URL is DASH:', isDashUrl(streamUrl));
+			logger.debug('Stream URL type:', isDashUrl(streamUrl) ? 'DASH' : isHlsUrl(streamUrl) ? 'HLS' : 'unknown');
 
 			if (this.player) {
 				logger.debug('Stopping and releasing previous player...');
@@ -115,10 +123,11 @@ export class DashPlaybackProvider implements PlaybackProvider {
 			this.duration = Duration.ZERO;
 			this.updateStatus('loading');
 
-			logger.debug('Creating video player with DASH source...');
+			const contentType = isHlsUrl(streamUrl) ? 'hls' : 'dash';
+			logger.debug(`Creating video player with ${contentType.toUpperCase()} source...`);
 			this.player = createVideoPlayer({
 				uri: streamUrl,
-				contentType: 'dash',
+				contentType,
 			});
 			this.player.volume = this.volume;
 

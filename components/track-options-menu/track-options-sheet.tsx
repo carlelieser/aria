@@ -85,8 +85,8 @@ export function TrackOptionsSheet() {
 		<BottomSheetPortal
 			name="track-options-sheet"
 			ref={bottomSheetRef}
-			enableDynamicSizing
 			enablePanDownToClose
+			snapPoints={['50%', '75%']}
 			backdropComponent={renderBackdrop}
 			onChange={handleSheetChanges}
 			backgroundStyle={[

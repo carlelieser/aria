@@ -59,7 +59,7 @@ function AppContent() {
 	}, []);
 
 	return (
-		<View style={[styles.container, { backgroundColor: colors.background }]}>
+		<View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]}>
 			<Stack
 				screenOptions={{
 					headerShown: false,

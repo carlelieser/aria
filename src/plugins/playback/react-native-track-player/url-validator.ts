@@ -13,7 +13,7 @@ export class UrlValidator {
 		}
 
 		if (this.isHlsStream(url)) {
-			return true;
+			return false;
 		}
 
 		if (this.hasSupportedExtension(url)) {

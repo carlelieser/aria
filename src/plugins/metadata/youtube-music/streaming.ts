@@ -114,42 +114,30 @@ async function handleStreamingPlayback(
 	if (adaptiveResult) {
 		const { stream: adaptiveStream, contentLength } = adaptiveResult;
 
-		// When authenticated, cache to avoid header forwarding issues
-		if (cookies) {
-			logger.debug(
-				`Got adaptive stream, caching (expected: ${contentLength ?? 'unknown'} bytes)...`
-			);
+		logger.debug(
+			`Got adaptive stream, caching (expected: ${contentLength ?? 'unknown'} bytes)...`
+		);
 
-			const cachedFile = await downloadToCache({
-				url: adaptiveStream.url,
-				videoId,
-				headers: adaptiveStream.headers,
-				cookies,
-				expectedSize: contentLength,
-			});
+		const cachedFile = await downloadToCache({
+			url: adaptiveStream.url,
+			videoId,
+			headers: adaptiveStream.headers,
+			cookies,
+			expectedSize: contentLength,
+		});
 
-			if (cachedFile) {
-				logger.debug('Audio cached successfully for playback');
-				return ok(
-					createAudioStream({
-						url: cachedFile,
-						format: adaptiveStream.format,
-						quality,
-					})
-				);
-			}
-		} else {
-			// Unauthenticated: try direct URL (may work for some content)
-			logger.debug('Got adaptive stream, trying direct playback...');
+		if (cachedFile) {
+			logger.debug('Audio cached successfully for playback');
 			return ok(
 				createAudioStream({
-					url: adaptiveStream.url,
+					url: cachedFile,
 					format: adaptiveStream.format,
 					quality,
-					headers: adaptiveStream.headers,
 				})
 			);
 		}
+
+		logger.debug('Caching failed, will try HLS fallback...');
 	}
 
 	logger.debug('Adaptive formats failed, trying HLS...');

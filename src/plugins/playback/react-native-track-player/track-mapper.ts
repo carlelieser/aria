@@ -22,6 +22,7 @@ export function mapToRNTPTrack(
 		artwork: getArtworkUrl(track),
 		duration: track.duration.totalSeconds,
 		headers: headers,
+		artworkHeaders: headers,
 	};
 }
 
