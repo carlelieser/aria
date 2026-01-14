@@ -3,7 +3,14 @@ import { SegmentedButtons, IconButton } from 'react-native-paper';
 import { PlayerAwareFlashList } from '@/components/ui/player-aware-flash-list';
 import { PageLayout } from '@/components/page-layout';
 import { EmptyState } from '@/components/empty-state';
-import { MusicIcon, ListMusicIcon, UsersIcon, DiscIcon, SearchIcon } from 'lucide-react-native';
+import {
+	MusicIcon,
+	ListMusicIcon,
+	UsersIcon,
+	DiscIcon,
+	SearchIcon,
+	SettingsIcon,
+} from 'lucide-react-native';
 import { router } from 'expo-router';
 import { Icon } from '@/components/ui/icon';
 import { useAppTheme } from '@/lib/theme';
@@ -97,6 +104,10 @@ export default function HomeScreen() {
 		router.push('/library/search');
 	}, []);
 
+	const handleNavigateToSettings = useCallback(() => {
+		router.push('/settings');
+	}, []);
+
 	const {
 		isSelectionMode,
 		selectedTrackIds,
@@ -185,11 +196,17 @@ export default function HomeScreen() {
 		{ value: 'songs', label: 'Songs', icon: 'music-note' },
 	];
 
-	const searchButton = (
-		<IconButton
-			icon={() => <Icon as={SearchIcon} size={24} color={colors.onSurface} />}
-			onPress={handleNavigateToSearch}
-		/>
+	const headerActions = (
+		<View style={styles.headerActions}>
+			<IconButton
+				icon={() => <Icon as={SearchIcon} size={24} color={colors.onSurface} />}
+				onPress={handleNavigateToSearch}
+			/>
+			<IconButton
+				icon={() => <Icon as={SettingsIcon} size={24} color={colors.onSurface} />}
+				onPress={handleNavigateToSettings}
+			/>
+		</View>
 	);
 
 	return (
@@ -198,7 +215,7 @@ export default function HomeScreen() {
 				icon: MusicIcon,
 				title: 'Library',
 				showBorder: false,
-				rightActions: searchButton,
+				rightActions: headerActions,
 			}}
 		>
 			<View style={styles.tabsRow}>
@@ -440,6 +457,10 @@ function AlbumsList({ albums, isLoading }: { albums: UniqueAlbum[]; isLoading: b
 }
 
 const styles = StyleSheet.create({
+	headerActions: {
+		flexDirection: 'row',
+		alignItems: 'center',
+	},
 	tabsRow: {
 		paddingHorizontal: 16,
 		marginBottom: 8,

@@ -10,10 +10,10 @@ import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeftIcon, DiscIcon, SearchIcon, UserIcon } from 'lucide-react-native';
-import { Text, IconButton, Button, ActivityIndicator } from 'react-native-paper';
+import { DiscIcon, SearchIcon, UserIcon } from 'lucide-react-native';
+import { Text, Button, ActivityIndicator } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
+import { PageLayout } from '@/components/page-layout';
 import { TrackListItem } from '@/components/track-list-item';
 import { useTracks } from '@/src/application/state/library-store';
 import {
@@ -139,79 +139,65 @@ export default function ArtistScreen() {
 		return `${count} monthly listeners`;
 	};
 
-	return (
-		<View style={[styles.container, { backgroundColor: colors.background }]}>
-			<View style={[styles.header, { backgroundColor: colors.surfaceContainerHigh }]}>
-				<SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-					<View style={styles.headerRow}>
-						<IconButton
-							icon={() => (
-								<Icon as={ChevronLeftIcon} size={22} color={colors.onSurface} />
-							)}
-							onPress={() => router.back()}
-							style={styles.backButton}
-						/>
-						<Text variant="titleMedium" style={{ color: colors.onSurfaceVariant }}>
-							Artist
-						</Text>
-					</View>
-
-					<View style={styles.artistInfo}>
-						{artistInfo.artwork ? (
-							<Image
-								source={{ uri: artistInfo.artwork }}
-								style={styles.artistAvatar}
-							/>
-						) : (
-							<View
-								style={[
-									styles.artistAvatar,
-									{ backgroundColor: colors.surfaceContainerHighest },
-								]}
-							>
-								<Icon as={UserIcon} size={48} color={colors.onSurfaceVariant} />
-							</View>
-						)}
-						<View style={styles.artistText}>
-							<Text
-								variant="headlineSmall"
-								style={{
-									color: colors.onSurface,
-									fontWeight: '700',
-									textAlign: 'center',
-								}}
-							>
-								{artistInfo.name}
-							</Text>
-							{artistInfo.monthlyListeners && (
-								<Text
-									variant="bodyMedium"
-									style={{ color: colors.onSurfaceVariant }}
-								>
-									{formatListeners(artistInfo.monthlyListeners)}
-								</Text>
-							)}
-							{libraryTracks.length > 0 && (
-								<Text
-									variant="bodySmall"
-									style={{ color: colors.onSurfaceVariant }}
-								>
-									{libraryTracks.length}{' '}
-									{libraryTracks.length === 1 ? 'track' : 'tracks'} in library
-								</Text>
-							)}
-						</View>
-						<Button
-							mode="outlined"
-							icon={() => <Icon as={SearchIcon} size={16} color={colors.primary} />}
-							onPress={handleSearchArtist}
-						>
-							Search for more
-						</Button>
-					</View>
-				</SafeAreaView>
+	const headerContent = (
+		<View style={styles.artistInfo}>
+			{artistInfo.artwork ? (
+				<Image source={{ uri: artistInfo.artwork }} style={styles.artistAvatar} />
+			) : (
+				<View
+					style={[
+						styles.artistAvatar,
+						{ backgroundColor: colors.surfaceContainerHighest },
+					]}
+				>
+					<Icon as={UserIcon} size={48} color={colors.onSurfaceVariant} />
+				</View>
+			)}
+			<View style={styles.artistText}>
+				<Text
+					variant="headlineSmall"
+					style={{
+						color: colors.onSurface,
+						fontWeight: '700',
+						textAlign: 'center',
+					}}
+				>
+					{artistInfo.name}
+				</Text>
+				{artistInfo.monthlyListeners && (
+					<Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant }}>
+						{formatListeners(artistInfo.monthlyListeners)}
+					</Text>
+				)}
+				{libraryTracks.length > 0 && (
+					<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
+						{libraryTracks.length} {libraryTracks.length === 1 ? 'track' : 'tracks'} in
+						library
+					</Text>
+				)}
 			</View>
+			<Button
+				mode="outlined"
+				icon={() => <Icon as={SearchIcon} size={16} color={colors.primary} />}
+				onPress={handleSearchArtist}
+			>
+				Search for more
+			</Button>
+		</View>
+	);
 
+	return (
+		<PageLayout
+			header={{
+				title: 'Artist',
+				showBack: true,
+				backgroundColor: colors.surfaceContainerHigh,
+				borderRadius: 24,
+				belowTitle: headerContent,
+				extended: true,
+				compact: true,
+			}}
+		>
 			<PlayerAwareScrollView contentContainerStyle={styles.scrollContent}>
 				{isLoading && !hasData ? (
 					<View style={styles.loadingState}>
@@ -291,35 +277,15 @@ export default function ArtistScreen() {
 					</>
 				)}
 			</PlayerAwareScrollView>
-		</View>
+		</PageLayout>
 	);
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-	},
-	header: {
-		paddingHorizontal: 16,
-		paddingBottom: 24,
-		borderBottomLeftRadius: 24,
-		borderBottomRightRadius: 24,
-	},
-	headerSafeArea: {
-		paddingTop: 16,
-	},
-	headerRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 12,
-		marginBottom: 24,
-	},
-	backButton: {
-		opacity: 0.7,
-	},
 	artistInfo: {
 		alignItems: 'center',
 		gap: 16,
+		paddingHorizontal: 16,
 	},
 	artistAvatar: {
 		width: 120,

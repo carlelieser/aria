@@ -9,10 +9,11 @@ import { useEffect, useMemo } from 'react';
 import { View, Image, StyleSheet } from 'react-native';
 import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { useLocalSearchParams, router } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeftIcon, DiscIcon, SearchIcon } from 'lucide-react-native';
-import { Text, IconButton, Button } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DiscIcon, SearchIcon } from 'lucide-react-native';
+import { Text, Button } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
+import { PageLayout } from '@/components/page-layout';
 import { TrackListItem } from '@/components/track-list-item';
 import {
 	AlbumHeaderSkeleton,
@@ -104,87 +105,62 @@ export default function AlbumScreen() {
 		});
 	};
 
-	return (
-		<View style={[styles.container, { backgroundColor: colors.background }]}>
-			<View style={[styles.header, { backgroundColor: colors.surfaceContainerHigh }]}>
-				<SafeAreaView edges={['top']} style={styles.headerSafeArea}>
-					<View style={styles.headerRow}>
-						<IconButton
-							icon={() => (
-								<Icon as={ChevronLeftIcon} size={22} color={colors.onSurface} />
-							)}
-							onPress={() => router.back()}
-							style={styles.backButton}
-						/>
-						<Text variant="titleMedium" style={{ color: colors.onSurfaceVariant }}>
-							Album
-						</Text>
-					</View>
-
-					<View style={styles.albumInfo}>
-						{showHeaderSkeleton ? (
-							<AlbumHeaderSkeleton />
-						) : (
-							<>
-								{albumInfo.artwork ? (
-									<Image
-										source={{ uri: albumInfo.artwork }}
-										style={styles.albumArtwork}
-									/>
-								) : (
-									<View
-										style={[
-											styles.albumArtwork,
-											{ backgroundColor: colors.surfaceContainerHighest },
-										]}
-									>
-										<Icon
-											as={DiscIcon}
-											size={64}
-											color={colors.onSurfaceVariant}
-										/>
-									</View>
-								)}
-								<View style={styles.albumText}>
-									<Text
-										variant="headlineSmall"
-										style={{
-											color: colors.onSurface,
-											fontWeight: '700',
-											textAlign: 'center',
-										}}
-									>
-										{albumInfo.name}
-									</Text>
-									<Text
-										variant="bodyMedium"
-										style={{ color: colors.onSurfaceVariant }}
-									>
-										{albumInfo.artists}
-									</Text>
-									<Text
-										variant="bodySmall"
-										style={{ color: colors.onSurfaceVariant }}
-									>
-										{displayTracks.length}{' '}
-										{displayTracks.length === 1 ? 'track' : 'tracks'}
-									</Text>
-								</View>
-								<Button
-									mode="outlined"
-									icon={() => (
-										<Icon as={SearchIcon} size={16} color={colors.primary} />
-									)}
-									onPress={handleSearchAlbum}
-								>
-									Search for more
-								</Button>
-							</>
-						)}
-					</View>
-				</SafeAreaView>
+	const headerContent = showHeaderSkeleton ? (
+		<AlbumHeaderSkeleton />
+	) : (
+		<View style={styles.albumInfo}>
+			{albumInfo.artwork ? (
+				<Image source={{ uri: albumInfo.artwork }} style={styles.albumArtwork} />
+			) : (
+				<View
+					style={[
+						styles.albumArtwork,
+						{ backgroundColor: colors.surfaceContainerHighest },
+					]}
+				>
+					<Icon as={DiscIcon} size={64} color={colors.onSurfaceVariant} />
+				</View>
+			)}
+			<View style={styles.albumText}>
+				<Text
+					variant="headlineSmall"
+					style={{
+						color: colors.onSurface,
+						fontWeight: '700',
+						textAlign: 'center',
+					}}
+				>
+					{albumInfo.name}
+				</Text>
+				<Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant }}>
+					{albumInfo.artists}
+				</Text>
+				<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
+					{displayTracks.length} {displayTracks.length === 1 ? 'track' : 'tracks'}
+				</Text>
 			</View>
+			<Button
+				mode="outlined"
+				icon={() => <Icon as={SearchIcon} size={16} color={colors.primary} />}
+				onPress={handleSearchAlbum}
+			>
+				Search for more
+			</Button>
+		</View>
+	);
 
+	return (
+		<PageLayout
+			header={{
+				title: 'Album',
+				showBack: true,
+				backgroundColor: colors.surfaceContainerHigh,
+				borderRadius: 24,
+				belowTitle: headerContent,
+				extended: true,
+				compact: true,
+			}}
+		>
 			<PlayerAwareScrollView
 				contentContainerStyle={[
 					styles.scrollContent,
@@ -226,35 +202,15 @@ export default function AlbumScreen() {
 					))
 				)}
 			</PlayerAwareScrollView>
-		</View>
+		</PageLayout>
 	);
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-	},
-	header: {
-		paddingHorizontal: 16,
-		paddingBottom: 24,
-		borderBottomLeftRadius: 24,
-		borderBottomRightRadius: 24,
-	},
-	headerSafeArea: {
-		paddingTop: 16,
-	},
-	headerRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 12,
-		marginBottom: 24,
-	},
-	backButton: {
-		opacity: 0.7,
-	},
 	albumInfo: {
 		alignItems: 'center',
 		gap: 16,
+		paddingHorizontal: 16,
 	},
 	albumArtwork: {
 		width: 160,

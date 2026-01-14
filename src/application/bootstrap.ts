@@ -6,29 +6,29 @@
  * depends on abstractions (PluginModule), not concrete plugins.
  */
 
-import type { PlaybackProvider } from '../plugins/core/interfaces/playback-provider';
-import type { MetadataProvider } from '../plugins/core/interfaces/metadata-provider';
 import {
+	type PlaybackProvider,
+	type MetadataProvider,
 	type AudioSourceProvider,
 	hasAudioSourceCapability,
-} from '../plugins/core/interfaces/audio-source-provider';
-import { PluginRegistry } from '../plugins/core/registry/plugin-registry';
-import { PluginManifestRegistry } from '../plugins/core/registry/plugin-manifest-registry';
-import { PluginLoader } from '../plugins/core/registry/plugin-loader';
-import { PLUGIN_ENTRIES } from '../plugins/plugin-index';
+	PluginRegistry,
+} from '@plugins/core';
+import { PluginManifestRegistry } from '@plugins/core/registry/plugin-manifest-registry';
+import { PluginLoader } from '@plugins/core/registry/plugin-loader';
+import { PLUGIN_ENTRIES } from '@plugins/plugin-index';
 import {
 	getEnabledPluginsSet,
 	getPluginConfigs,
 	waitForPluginSettingsHydration,
 } from './state/plugin-settings-store';
-import { playbackService } from './services/playback-service';
-import { searchService } from './services/search-service';
+import { setBootstrapStage, completeBootstrapStage } from './state/bootstrap-progress-store';
+import { playbackService, searchService } from '@application/services';
 import { downloadService } from './services/download-service';
 import { albumService } from './services/album-service';
 import { artistService } from './services/artist-service';
 import { lyricsService } from './services/lyrics-service';
 import { pluginLifecycleService } from './services/plugin-lifecycle-service';
-import { getLogger } from '../shared/services/logger';
+import { getLogger } from '@shared/services/logger';
 
 const logger = getLogger('Bootstrap');
 
@@ -92,58 +92,81 @@ export interface BootstrapResult {
 	manifestRegistry: PluginManifestRegistry;
 }
 
-/**
- * Main async bootstrap function using the new plugin system
- */
-async function bootstrapAsync(): Promise<BootstrapResult> {
-	logger.info('Initializing Aria application with plugin system...');
+const CORE_PLUGINS = ['core-library'];
 
-	// Get registries
+async function bootstrapAsync(): Promise<BootstrapResult> {
+	logger.info('Initializing Aria...');
+
 	const pluginRegistry = PluginRegistry.getInstance();
 	const manifestRegistry = PluginManifestRegistry.getInstance();
 
-	// Clear existing registrations (hot reload support)
-	const existingPlugins = pluginRegistry.getAllPlugins();
-	if (existingPlugins.length > 0) {
-		logger.info('Clearing existing plugin registrations (hot reload detected)');
-		await pluginRegistry.dispose();
-		manifestRegistry.clear();
-	}
+	await hydrateSettings(pluginRegistry, manifestRegistry);
+	const loader = await loadPlugins(pluginRegistry, manifestRegistry);
+	await wireAllServices(pluginRegistry, loader, manifestRegistry);
 
-	// Register all available plugin manifests
-	logger.info(`Registering ${PLUGIN_ENTRIES.length} plugin manifest(s)...`);
+	setBootstrapStage('ready');
+	completeBootstrapStage('ready');
+	logger.info('Application initialized successfully');
+
+	return { playbackService, searchService, pluginRegistry, manifestRegistry };
+}
+
+async function hydrateSettings(
+	pluginRegistry: PluginRegistry,
+	manifestRegistry: PluginManifestRegistry
+): Promise<void> {
+	setBootstrapStage('settings');
+
+	await _clearExistingPlugins(pluginRegistry, manifestRegistry);
 	manifestRegistry.registerAll(PLUGIN_ENTRIES);
-
-	// Wait for plugin settings to be hydrated from AsyncStorage
 	await waitForPluginSettingsHydration();
 
-	// Get enabled plugins from settings
-	const userEnabledPlugins = getEnabledPluginsSet();
-	const pluginConfigs = getPluginConfigs();
+	completeBootstrapStage('settings');
+}
 
-	// Force-enable core plugins regardless of user settings
-	const CORE_PLUGINS = ['core-library'];
-	const enabledPlugins = new Set([...CORE_PLUGINS, ...userEnabledPlugins]);
+async function _clearExistingPlugins(
+	pluginRegistry: PluginRegistry,
+	manifestRegistry: PluginManifestRegistry
+): Promise<void> {
+	const existingPlugins = pluginRegistry.getAllPlugins();
+	if (existingPlugins.length === 0) return;
 
+	logger.info('Clearing existing plugin registrations (hot reload detected)');
+	await pluginRegistry.dispose();
+	manifestRegistry.clear();
+}
+
+async function loadPlugins(
+	pluginRegistry: PluginRegistry,
+	manifestRegistry: PluginManifestRegistry
+): Promise<PluginLoader> {
+	setBootstrapStage('plugins');
+
+	const enabledPlugins = new Set([...CORE_PLUGINS, ...getEnabledPluginsSet()]);
 	logger.info(`Enabled plugins: ${Array.from(enabledPlugins).join(', ')}`);
 
-	// Create loader and load enabled plugins
 	const loader = new PluginLoader(pluginRegistry, manifestRegistry);
 	const loadResult = await loader.loadEnabledPlugins(enabledPlugins, {
-		configs: pluginConfigs,
+		configs: getPluginConfigs(),
 		autoActivate: true,
 	});
 
-	if (loadResult.failed.length > 0) {
-		for (const failure of loadResult.failed) {
-			logger.error(`Failed to load plugin "${failure.pluginId}":`, failure.error);
-		}
+	for (const failure of loadResult.failed) {
+		logger.error(`Failed to load plugin "${failure.pluginId}":`, failure.error);
 	}
 
-	// Wire up services with loaded providers
-	await wireServices(pluginRegistry);
+	completeBootstrapStage('plugins');
+	return loader;
+}
 
-	// Initialize plugin lifecycle service for runtime plugin management
+async function wireAllServices(
+	pluginRegistry: PluginRegistry,
+	loader: PluginLoader,
+	manifestRegistry: PluginManifestRegistry
+): Promise<void> {
+	setBootstrapStage('services');
+
+	await wireServices(pluginRegistry);
 	pluginLifecycleService.initialize(pluginRegistry, loader, manifestRegistry, {
 		searchService,
 		albumService,
@@ -153,137 +176,129 @@ async function bootstrapAsync(): Promise<BootstrapResult> {
 		downloadService,
 	});
 
-	logger.info('Application initialized successfully');
-
-	return {
-		playbackService,
-		searchService,
-		pluginRegistry,
-		manifestRegistry,
-	};
+	completeBootstrapStage('services');
 }
 
-/**
- * Wire services with loaded providers from the registry
- */
 async function wireServices(registry: PluginRegistry): Promise<void> {
-	// Get playback providers
-	const playbackProviders = registry.getAllPlaybackProviders();
-	if (playbackProviders.length > 0) {
-		logger.info(`Wiring ${playbackProviders.length} playback provider(s) to services...`);
+	await wirePlaybackProviders(registry);
+	wireMetadataProviders(registry);
+}
 
-		// Initialize playback providers
-		for (const provider of playbackProviders) {
-			if (provider.status === 'uninitialized') {
-				await provider.onInit({
-					manifest: provider.manifest,
-					eventBus: registry.getEventBus().scope(`plugin:${provider.manifest.id}`),
-					config: {},
-					logger: getLogger(provider.manifest.id),
-				});
-			}
+async function wirePlaybackProviders(registry: PluginRegistry): Promise<void> {
+	const providers = registry.getAllPlaybackProviders();
+	if (providers.length === 0) return;
+
+	logger.info(`Wiring ${providers.length} playback provider(s)...`);
+
+	for (const provider of providers) {
+		if (provider.status === 'uninitialized') {
+			await provider.onInit({
+				manifest: provider.manifest,
+				eventBus: registry.getEventBus().scope(`plugin:${provider.manifest.id}`),
+				config: {},
+				logger: getLogger(provider.manifest.id),
+			});
 		}
-
-		playbackService.setPlaybackProviders(playbackProviders);
 	}
 
-	// Get metadata providers
-	const metadataProviders = registry.getAllMetadataProviders();
-	if (metadataProviders.length > 0) {
-		logger.info(`Wiring ${metadataProviders.length} metadata provider(s) to services...`);
+	playbackService.setPlaybackProviders(providers);
+}
 
-		searchService.setMetadataProviders(metadataProviders);
-		albumService.setMetadataProviders(metadataProviders);
-		artistService.setMetadataProviders(metadataProviders);
-		lyricsService.setMetadataProviders(metadataProviders);
-
-		// Discover audio source providers from metadata providers
-		const audioSources = metadataProviders.filter(
-			hasAudioSourceCapability
-		) as unknown as AudioSourceProvider[];
-
-		if (audioSources.length > 0) {
-			logger.info(`Discovered ${audioSources.length} audio source provider(s)`);
-			playbackService.setAudioSourceProviders(audioSources);
-			downloadService.setAudioSourceProviders(audioSources);
-		}
-	} else {
+function wireMetadataProviders(registry: PluginRegistry): void {
+	const providers = registry.getAllMetadataProviders();
+	if (providers.length === 0) {
 		logger.warn('No metadata providers loaded - search may not work');
+		return;
+	}
+
+	logger.info(`Wiring ${providers.length} metadata provider(s)...`);
+
+	searchService.setMetadataProviders(providers);
+	albumService.setMetadataProviders(providers);
+	artistService.setMetadataProviders(providers);
+	lyricsService.setMetadataProviders(providers);
+
+	const audioSources = providers.filter(
+		hasAudioSourceCapability
+	) as unknown as AudioSourceProvider[];
+
+	if (audioSources.length > 0) {
+		logger.info(`Discovered ${audioSources.length} audio source provider(s)`);
+		playbackService.setAudioSourceProviders(audioSources);
+		downloadService.setAudioSourceProviders(audioSources);
 	}
 }
 
-/**
- * Legacy bootstrap interface for backwards compatibility
- * @deprecated Use lazyBootstrap() instead
- */
+/** @deprecated Use lazyBootstrap() instead */
 export interface BootstrapOptions {
 	playbackProviders?: PlaybackProvider[];
 	metadataProviders?: MetadataProvider[];
 	audioSourceProviders?: AudioSourceProvider[];
 }
 
-/**
- * Legacy bootstrap function for backwards compatibility
- * @deprecated Use lazyBootstrap() instead
- */
+/** @deprecated Use lazyBootstrap() instead */
 export async function bootstrap(options: BootstrapOptions = {}): Promise<BootstrapResult> {
-	logger.warn('Using deprecated bootstrap() - consider migrating to lazyBootstrap()');
+	logger.warn('Using deprecated bootstrap() - migrate to lazyBootstrap()');
 
 	const registry = PluginRegistry.getInstance();
 	const manifestRegistry = PluginManifestRegistry.getInstance();
 
-	// Handle legacy options
-	if (options.playbackProviders && options.playbackProviders.length > 0) {
-		for (let i = 0; i < options.playbackProviders.length; i++) {
-			const provider = options.playbackProviders[i];
-			await registry.registerPlaybackProvider(provider, {
-				priority: 10 - i,
-				autoActivate: true,
-			});
-		}
-		playbackService.setPlaybackProviders(options.playbackProviders);
+	if (options.playbackProviders?.length) {
+		await _registerLegacyPlaybackProviders(registry, options.playbackProviders);
 	}
 
-	if (options.metadataProviders && options.metadataProviders.length > 0) {
-		const initializedProviders: MetadataProvider[] = [];
+	if (options.metadataProviders?.length) {
+		await _registerLegacyMetadataProviders(registry, options);
+	}
 
-		for (let i = 0; i < options.metadataProviders.length; i++) {
-			const provider = options.metadataProviders[i];
-			const result = await registry.registerMetadataProvider(provider, {
-				priority: 10 - i,
-				autoActivate: i === 0,
-			});
+	return { playbackService, searchService, pluginRegistry: registry, manifestRegistry };
+}
 
-			if (result.success) {
-				initializedProviders.push(provider);
-			}
-		}
+async function _registerLegacyPlaybackProviders(
+	registry: PluginRegistry,
+	providers: PlaybackProvider[]
+): Promise<void> {
+	for (let i = 0; i < providers.length; i++) {
+		await registry.registerPlaybackProvider(providers[i], {
+			priority: 10 - i,
+			autoActivate: true,
+		});
+	}
+	playbackService.setPlaybackProviders(providers);
+}
 
-		if (initializedProviders.length > 0) {
-			searchService.setMetadataProviders(initializedProviders);
-			albumService.setMetadataProviders(initializedProviders);
-			artistService.setMetadataProviders(initializedProviders);
-			lyricsService.setMetadataProviders(initializedProviders);
+async function _registerLegacyMetadataProviders(
+	registry: PluginRegistry,
+	options: BootstrapOptions
+): Promise<void> {
+	const providers = options.metadataProviders!;
+	const initializedProviders: MetadataProvider[] = [];
 
-			const audioSources =
-				options.audioSourceProviders ??
-				(initializedProviders.filter(
-					hasAudioSourceCapability
-				) as unknown as AudioSourceProvider[]);
-
-			if (audioSources.length > 0) {
-				playbackService.setAudioSourceProviders(audioSources);
-				downloadService.setAudioSourceProviders(audioSources);
-			}
+	for (let i = 0; i < providers.length; i++) {
+		const result = await registry.registerMetadataProvider(providers[i], {
+			priority: 10 - i,
+			autoActivate: i === 0,
+		});
+		if (result.success) {
+			initializedProviders.push(providers[i]);
 		}
 	}
 
-	return {
-		playbackService,
-		searchService,
-		pluginRegistry: registry,
-		manifestRegistry,
-	};
+	if (initializedProviders.length === 0) return;
+
+	searchService.setMetadataProviders(initializedProviders);
+	albumService.setMetadataProviders(initializedProviders);
+	artistService.setMetadataProviders(initializedProviders);
+	lyricsService.setMetadataProviders(initializedProviders);
+
+	const audioSources =
+		options.audioSourceProviders ??
+		(initializedProviders.filter(hasAudioSourceCapability) as unknown as AudioSourceProvider[]);
+
+	if (audioSources.length > 0) {
+		playbackService.setAudioSourceProviders(audioSources);
+		downloadService.setAudioSourceProviders(audioSources);
+	}
 }
 
 export async function cleanup(): Promise<void> {
