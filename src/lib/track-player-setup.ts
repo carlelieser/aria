@@ -8,7 +8,11 @@
 
 import TrackPlayer from 'react-native-track-player';
 import { PlaybackService } from '@plugins/playback/react-native-track-player/service';
+import { setupTrackPlayer } from '@plugins/playback/react-native-track-player/setup';
 
 TrackPlayer.registerPlaybackService(() => PlaybackService);
+
+// Initialize TrackPlayer as early as possible
+setupTrackPlayer();
 
 export {};

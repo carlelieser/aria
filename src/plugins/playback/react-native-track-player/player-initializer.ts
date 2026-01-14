@@ -4,53 +4,20 @@
  * Handles initialization and setup of the React Native Track Player.
  */
 
-import TrackPlayer, { AppKilledPlaybackBehavior, Capability } from 'react-native-track-player';
+import TrackPlayer from 'react-native-track-player';
 import { getLogger } from '@shared/services/logger';
-import { PROGRESS_UPDATE_INTERVAL_SECONDS } from './constants';
+import { ensureTrackPlayerReady } from './setup';
 
 const logger = getLogger('PlayerInitializer');
 
 export class PlayerInitializer {
 	async setup(initialVolume: number): Promise<void> {
-		await TrackPlayer.setupPlayer({
-			autoHandleInterruptions: true,
-		});
-
-		await TrackPlayer.updateOptions({
-			// All capabilities available to the player
-			capabilities: [
-				Capability.Play,
-				Capability.Pause,
-				Capability.Stop,
-				Capability.SkipToNext,
-				Capability.SkipToPrevious,
-				Capability.SeekTo,
-				Capability.JumpForward,
-				Capability.JumpBackward,
-			],
-			// Capabilities shown in the notification (Android)
-			notificationCapabilities: [
-				Capability.Play,
-				Capability.Pause,
-				Capability.SkipToNext,
-				Capability.SkipToPrevious,
-			],
-			// Capabilities shown in compact notification view (Android)
-			compactCapabilities: [
-				Capability.Play,
-				Capability.Pause,
-				Capability.SkipToNext,
-				Capability.SkipToPrevious,
-			],
-			progressUpdateEventInterval: PROGRESS_UPDATE_INTERVAL_SECONDS,
-			// Android-specific: Continue playback when app is swiped from recents
-			android: {
-				appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback,
-			},
-		});
+		const ready = await ensureTrackPlayerReady();
+		if (!ready) {
+			throw new Error('TrackPlayer setup failed');
+		}
 
 		await TrackPlayer.setVolume(initialVolume);
-
-		logger.debug('RNTP setup complete');
+		logger.debug('RNTP initialized with volume:', initialVolume);
 	}
 }
