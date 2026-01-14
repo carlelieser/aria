@@ -105,23 +105,11 @@ eas build --profile production --platform ios
 </details>
 
 <details>
-<summary>Local (Android)</summary>
-
-Requires Android SDK and Java 17+.
+<summary>Local</summary>
 
 ```bash
-npm run build:android    # Outputs to out/aria.apk
-```
-
-</details>
-
-<details>
-<summary>Local (iOS)</summary>
-
-Requires Xcode and CocoaPods.
-
-```bash
-npx expo run:ios --configuration Release
+npm run build:android
+npm run build:ios
 ```
 
 </details>
