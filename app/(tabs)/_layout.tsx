@@ -238,29 +238,59 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 							accessibilityRole="button"
 							accessibilityState={isFocused ? { selected: true } : {}}
 						>
-							<View style={styles.iconContainer}>
-								<IconComponent
-									size={24}
-									color={isFocused ? colors.primary : colors.onSurfaceVariant}
-									strokeWidth={isFocused ? 2.5 : 2}
-								/>
-								{showNotificationDot && (
-									<Animated.View
-										entering={FadeIn.duration(200)}
-										exiting={FadeOut.duration(200)}
-										style={[
-											styles.notificationDot,
-											{ backgroundColor: colors.primary },
-										]}
-									/>
-								)}
-							</View>
+							<TabIcon
+								icon={IconComponent}
+								isFocused={isFocused}
+								focusedColor={colors.primary}
+								inactiveColor={colors.onSurfaceVariant}
+								showNotificationDot={showNotificationDot}
+							/>
 							<TabLabel label={config.label} isFocused={isFocused} color={colors.primary} />
 						</Pressable>
 					);
 				})}
 			</View>
 		</View>
+	);
+}
+
+interface TabIconProps {
+	icon: React.ComponentType<{ size: number; color: string; strokeWidth: number }>;
+	isFocused: boolean;
+	focusedColor: string;
+	inactiveColor: string;
+	showNotificationDot: boolean;
+}
+
+const LABEL_HEIGHT = 18;
+
+function TabIcon({ icon: Icon, isFocused, focusedColor, inactiveColor, showNotificationDot }: TabIconProps) {
+	const translateY = useSharedValue(isFocused ? 0 : LABEL_HEIGHT / 2);
+
+	useEffect(() => {
+		const springConfig = { damping: 20, stiffness: 200, mass: 0.5 };
+		translateY.value = withSpring(isFocused ? 0 : LABEL_HEIGHT / 2, springConfig);
+	}, [isFocused, translateY]);
+
+	const animatedStyle = useAnimatedStyle(() => ({
+		transform: [{ translateY: translateY.value }],
+	}));
+
+	return (
+		<Animated.View style={[styles.iconContainer, animatedStyle]}>
+			<Icon
+				size={24}
+				color={isFocused ? focusedColor : inactiveColor}
+				strokeWidth={isFocused ? 2.5 : 2}
+			/>
+			{showNotificationDot && (
+				<Animated.View
+					entering={FadeIn.duration(200)}
+					exiting={FadeOut.duration(200)}
+					style={[styles.notificationDot, { backgroundColor: focusedColor }]}
+				/>
+			)}
+		</Animated.View>
 	);
 }
 
