@@ -67,3 +67,9 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/
 fastlane/test_output/
+# Build artifacts
+build/
+out/
+
+# Fastlane auto-generated
+fastlane/README.md
