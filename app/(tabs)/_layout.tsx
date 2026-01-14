@@ -8,7 +8,7 @@
 
 import { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import { Tabs, router } from 'expo-router';
-import { View, Pressable, StyleSheet, Text } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
 	useAnimatedStyle,
@@ -255,22 +255,38 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 									/>
 								)}
 							</View>
-							<Text
-								style={[
-									styles.tabLabel,
-									{
-										color: isFocused ? colors.primary : colors.onSurfaceVariant,
-										opacity: isFocused ? 1 : 0.7,
-									},
-								]}
-							>
-								{config.label}
-							</Text>
+							<TabLabel label={config.label} isFocused={isFocused} color={colors.primary} />
 						</Pressable>
 					);
 				})}
 			</View>
 		</View>
+	);
+}
+
+interface TabLabelProps {
+	label: string;
+	isFocused: boolean;
+	color: string;
+}
+
+function TabLabel({ label, isFocused, color }: TabLabelProps) {
+	const opacity = useSharedValue(isFocused ? 1 : 0);
+	const translateY = useSharedValue(isFocused ? 0 : 4);
+
+	useEffect(() => {
+		const springConfig = { damping: 20, stiffness: 200, mass: 0.5 };
+		opacity.value = withSpring(isFocused ? 1 : 0, springConfig);
+		translateY.value = withSpring(isFocused ? 0 : 4, springConfig);
+	}, [isFocused, opacity, translateY]);
+
+	const animatedStyle = useAnimatedStyle(() => ({
+		opacity: opacity.value,
+		transform: [{ translateY: translateY.value }],
+	}));
+
+	return (
+		<Animated.Text style={[styles.tabLabel, { color }, animatedStyle]}>{label}</Animated.Text>
 	);
 }
 
