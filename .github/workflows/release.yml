@@ -57,8 +57,10 @@ jobs:
                     const fs = require('fs');
                     const app = JSON.parse(fs.readFileSync('app.json', 'utf8'));
                     app.expo.version = '$VERSION';
-                    fs.writeFileSync('app.json', JSON.stringify(app, null, '\t') + '\n');
+                    fs.writeFileSync('app.json', JSON.stringify(app, null, 2) + '\n');
                   "
+                  # Format modified files with Prettier
+                  npx prettier --write app.json package.json
                   echo "Updated versions to $VERSION"
 
             - name: Commit version bump
