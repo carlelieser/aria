@@ -9,6 +9,7 @@
 </p>
 
 <p align="center">
+  <img src="https://github.com/carlelieser/aria/actions/workflows/release.yml/badge.svg" alt="Release Status"  />
   <img src="https://img.shields.io/github/actions/workflow/status/carlelieser/aria/ci.yml?branch=main&logo=github&label=CI" alt="CI Status" />
   <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS-blue" alt="Android | iOS" />
   <img src="https://img.shields.io/badge/License-MIT-green" alt="MIT License" />
@@ -89,20 +90,33 @@ eas login
 ```bash
 # Development build (with dev client)
 eas build --profile development --platform android
+eas build --profile development --platform ios
 
 # Production build
 eas build --profile production --platform android
+eas build --profile production --platform ios
 ```
 
 </details>
 
 <details>
-<summary>Local</summary>
+<summary>Local (Android)</summary>
 
 Requires Android SDK and Java 17+.
 
 ```bash
 npm run build:android    # Outputs to out/aria.apk
+```
+
+</details>
+
+<details>
+<summary>Local (iOS)</summary>
+
+Requires Xcode and CocoaPods.
+
+```bash
+npx expo run:ios --configuration Release
 ```
 
 </details>
