@@ -17,7 +17,8 @@ platform :ios do
       export_method: "app-store",
       output_directory: "build",
       output_name: "Aria.ipa",
-      clean: true
+      clean: true,
+      xcargs: "DEVELOPMENT_TEAM='#{ENV['APPLE_TEAM_ID']}'"
     )
   end
 
@@ -32,7 +33,8 @@ platform :ios do
       export_method: "ad-hoc",
       output_directory: "build",
       output_name: "Aria.ipa",
-      clean: true
+      clean: true,
+      xcargs: "DEVELOPMENT_TEAM='#{ENV['APPLE_TEAM_ID']}'"
     )
   end
 
