@@ -202,10 +202,6 @@ export default function HomeScreen() {
 				icon={() => <Icon as={SearchIcon} size={24} color={colors.onSurface} />}
 				onPress={handleNavigateToSearch}
 			/>
-			<IconButton
-				icon={() => <Icon as={SettingsIcon} size={24} color={colors.onSurface} />}
-				onPress={handleNavigateToSettings}
-			/>
 		</View>
 	);
 

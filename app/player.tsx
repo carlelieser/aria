@@ -17,25 +17,18 @@ import { PlayerControls } from '@/components/player-controls';
 import { ProgressBar } from '@/components/progress-bar';
 import { TrackOptionsMenu } from '@/components/track-options-menu';
 import { LyricsDisplay } from '@/components/lyrics-display';
-import { SleepTimerSheet } from '@/components/sleep-timer-sheet';
 import { usePlayer } from '@/hooks/use-player';
 import { useLyrics } from '@/hooks/use-lyrics';
 import { getLargestArtwork } from '@/src/domain/value-objects/artwork';
 import { getArtistNames } from '@/src/domain/entities/track';
 import { useAppTheme } from '@/lib/theme';
-import {
-	useShowLyrics,
-	useSleepTimerSheetOpen,
-	usePlayerUIStore,
-} from '@/src/application/state/player-ui-store';
+import { useShowLyrics } from '@/src/application/state/player-ui-store';
 
 export default function PlayerScreen() {
 	const pathname = usePathname();
 	const { currentTrack, error } = usePlayer();
 	const { colors } = useAppTheme();
 	const showLyrics = useShowLyrics();
-	const sleepTimerSheetOpen = useSleepTimerSheetOpen();
-	const closeSleepTimerSheet = usePlayerUIStore((state) => state.closeSleepTimerSheet);
 
 	// Fetch lyrics for current track (triggers fetch regardless of display state)
 	useLyrics();
@@ -45,12 +38,6 @@ export default function PlayerScreen() {
 			router.back();
 		}
 	}, [currentTrack, pathname]);
-
-	useEffect(() => {
-		return () => {
-			closeSleepTimerSheet();
-		};
-	}, [closeSleepTimerSheet]);
 
 	if (!currentTrack) {
 		return null;
@@ -139,8 +126,6 @@ export default function PlayerScreen() {
 
 				<PlayerControls size="lg" />
 			</View>
-
-			<SleepTimerSheet isOpen={sleepTimerSheetOpen} onClose={closeSleepTimerSheet} />
 		</SafeAreaView>
 	);
 }

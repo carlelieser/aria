@@ -3,13 +3,13 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
-export type TabId = 'index' | 'explore' | 'downloads';
+export type TabId = 'index' | 'explore' | 'downloads' | 'settings';
 export type DefaultTab = TabId;
 export type LibraryTabId = 'songs' | 'playlists' | 'artists' | 'albums';
 
-export const DEFAULT_TAB_ORDER: TabId[] = ['index', 'explore', 'downloads'];
-export const DEFAULT_ENABLED_TABS: TabId[] = ['index', 'explore', 'downloads'];
-export const REQUIRED_TABS: TabId[] = ['index']; // Library tab cannot be disabled
+export const DEFAULT_TAB_ORDER: TabId[] = ['index', 'explore', 'downloads', 'settings'];
+export const DEFAULT_ENABLED_TABS: TabId[] = ['index', 'explore', 'downloads', 'settings'];
+export const REQUIRED_TABS: TabId[] = ['settings'];
 
 interface SettingsState {
 	themePreference: ThemePreference;

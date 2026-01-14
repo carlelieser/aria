@@ -32,20 +32,20 @@ import {
 	CameraIcon,
 	type LucideIcon,
 } from 'lucide-react-native';
-import { useLibraryStore } from '@/src/application/state/library-store';
-import { useDownloadStore } from '@/src/application/state/download-store';
-import { useEqualizerStore } from '@/src/application/state/equalizer-store';
-import { useHistoryStore } from '@/src/application/state/history-store';
-import { useSearchStore } from '@/src/application/state/search-store';
-import { useExploreFilterStore } from '@/src/application/state/explore-filter-store';
+import { useLibraryStore } from '@application/state/library-store';
+import { useDownloadStore } from '@application/state/download-store';
+import { useEqualizerStore } from '@application/state/equalizer-store';
+import { useHistoryStore } from '@application/state/history-store';
+import { useSearchStore } from '@application/state/search-store';
+import { useExploreFilterStore } from '@application/state/explore-filter-store';
 import {
 	useSettingsStore,
 	type ThemePreference,
 	type DefaultTab,
-} from '@/src/application/state/settings-store';
+} from '@application/state/settings-store';
 import { useDownloadQueue, formatFileSize } from '@/hooks/use-download-queue';
 import { useEqualizer } from '@/hooks/use-equalizer';
-import { clearAllDownloads } from '@/src/infrastructure/filesystem/download-manager';
+import { clearAllDownloads } from '@infrastructure/filesystem/download-manager';
 import { useToast } from '@/hooks/use-toast';
 import { loadMockData, clearMockData, isMockDataLoaded } from '@/src/dev/load-mock-data';
 import Constants from 'expo-constants';

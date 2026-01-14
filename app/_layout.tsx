@@ -13,11 +13,16 @@ import { appResumeManager } from '@/src/application/services/app-resume-manager'
 import { useAppState } from '@/hooks/use-app-state';
 import { FloatingPlayer } from '@/components/floating-player';
 import { TrackOptionsSheet } from '@/components/track-options-menu';
+import { SleepTimerSheet } from '@/components/sleep-timer-sheet';
 import { ToastContainer } from '@/components/ui/toast';
 import { ScanProgressToast } from '@/components/ui/scan-progress-toast';
 import { AnimatedSplash } from '@/components/ui/animated-splash';
 import { AppThemeProvider, useAppTheme } from '@/lib/theme';
 import { ErrorBoundary, useGlobalErrorHandlers } from '@/lib/error-capture';
+import {
+	useSleepTimerSheetOpen,
+	usePlayerUIStore,
+} from '@/src/application/state/player-ui-store';
 
 const PORTAL_Z_INDEX = 9999;
 
@@ -28,6 +33,8 @@ function AppContent() {
 	const { colors, isDark } = useAppTheme();
 	const [isReady, setIsReady] = useState(false);
 	const [showSplash, setShowSplash] = useState(true);
+	const sleepTimerSheetOpen = useSleepTimerSheetOpen();
+	const closeSleepTimerSheet = usePlayerUIStore((state) => state.closeSleepTimerSheet);
 
 	useGlobalErrorHandlers();
 
@@ -70,9 +77,9 @@ function AppContent() {
 				<Stack.Screen name="album/[id]" />
 				<Stack.Screen name="playlist/[id]" />
 				<Stack.Screen name="playlist-picker" options={{ presentation: 'modal' }} />
-				<Stack.Screen name="settings" options={{ presentation: 'modal' }} />
 			</Stack>
 			<FloatingPlayer />
+			<SleepTimerSheet isOpen={sleepTimerSheetOpen} onClose={closeSleepTimerSheet} />
 			<TrackOptionsSheet />
 			<ToastContainer />
 			<ScanProgressToast />
