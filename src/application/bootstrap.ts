@@ -21,7 +21,6 @@ import {
 	getPluginConfigs,
 	waitForPluginSettingsHydration,
 } from './state/plugin-settings-store';
-import { setBootstrapStage, completeBootstrapStage } from './state/bootstrap-progress-store';
 import { playbackService, searchService } from '@application/services';
 import { downloadService } from './services/download-service';
 import { albumService } from './services/album-service';
@@ -104,8 +103,6 @@ async function bootstrapAsync(): Promise<BootstrapResult> {
 	const loader = await loadPlugins(pluginRegistry, manifestRegistry);
 	await wireAllServices(pluginRegistry, loader, manifestRegistry);
 
-	setBootstrapStage('ready');
-	completeBootstrapStage('ready');
 	logger.info('Application initialized successfully');
 
 	return { playbackService, searchService, pluginRegistry, manifestRegistry };
@@ -115,13 +112,9 @@ async function hydrateSettings(
 	pluginRegistry: PluginRegistry,
 	manifestRegistry: PluginManifestRegistry
 ): Promise<void> {
-	setBootstrapStage('settings');
-
 	await _clearExistingPlugins(pluginRegistry, manifestRegistry);
 	manifestRegistry.registerAll(PLUGIN_ENTRIES);
 	await waitForPluginSettingsHydration();
-
-	completeBootstrapStage('settings');
 }
 
 async function _clearExistingPlugins(
@@ -140,8 +133,6 @@ async function loadPlugins(
 	pluginRegistry: PluginRegistry,
 	manifestRegistry: PluginManifestRegistry
 ): Promise<PluginLoader> {
-	setBootstrapStage('plugins');
-
 	const enabledPlugins = new Set([...CORE_PLUGINS, ...getEnabledPluginsSet()]);
 	logger.info(`Enabled plugins: ${Array.from(enabledPlugins).join(', ')}`);
 
@@ -155,7 +146,6 @@ async function loadPlugins(
 		logger.error(`Failed to load plugin "${failure.pluginId}":`, failure.error);
 	}
 
-	completeBootstrapStage('plugins');
 	return loader;
 }
 
@@ -164,8 +154,6 @@ async function wireAllServices(
 	loader: PluginLoader,
 	manifestRegistry: PluginManifestRegistry
 ): Promise<void> {
-	setBootstrapStage('services');
-
 	await wireServices(pluginRegistry);
 	pluginLifecycleService.initialize(pluginRegistry, loader, manifestRegistry, {
 		searchService,
@@ -175,8 +163,6 @@ async function wireAllServices(
 		playbackService,
 		downloadService,
 	});
-
-	completeBootstrapStage('services');
 }
 
 async function wireServices(registry: PluginRegistry): Promise<void> {

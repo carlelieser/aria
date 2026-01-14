@@ -14,7 +14,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { AnimatedPolygonView } from './animated-polygon';
 import { M3Colors } from '@/lib/theme/colors';
-import { BootstrapProgress } from './bootstrap-progress';
 
 const IS_WEB = Platform.OS === 'web';
 
@@ -54,8 +53,6 @@ export function AnimatedSplash({
 	const polygonScale = useSharedValue(1);
 	const morphCycle = useSharedValue(0);
 	const isFirstRender = useRef(true);
-	const [progressAnimationsComplete, setProgressAnimationsComplete] = useState(false);
-	const shouldExit = isReady && progressAnimationsComplete;
 
 	const colors = isDark ? M3Colors.dark : M3Colors.light;
 
@@ -110,12 +107,8 @@ export function AnimatedSplash({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-	const handleProgressAnimationsComplete = useCallback(() => {
-		setProgressAnimationsComplete(true);
-	}, []);
-
 	useEffect(() => {
-		if (shouldExit) {
+		if (isReady) {
 			// Slide up and fade out
 			translateY.value = withTiming(-SCREEN_HEIGHT, {
 				duration: ANIMATION_DURATION,
@@ -137,7 +130,7 @@ export function AnimatedSplash({
 				}, ANIMATION_DURATION + 50);
 			}
 		}
-	}, [shouldExit, translateY, opacity, handleAnimationComplete]);
+	}, [isReady, translateY, opacity, handleAnimationComplete]);
 
 	// Native: watch animation completion via useAnimatedReaction
 	useAnimatedReaction(
@@ -213,15 +206,6 @@ export function AnimatedSplash({
 							springConfig={{ damping: 20, stiffness: 100, mass: 0.5 }}
 						/>
 					</View>
-					<View style={styles.progressWrapper}>
-						<BootstrapProgress
-							showLabel={false}
-							colors={colors}
-							translateY={translateY}
-							screenHeight={SCREEN_HEIGHT}
-							onAllAnimationsComplete={handleProgressAnimationsComplete}
-						/>
-					</View>
 				</View>
 			</View>
 		);
@@ -250,15 +234,6 @@ export function AnimatedSplash({
 						springConfig={{ damping: 20, stiffness: 100, mass: 0.5 }}
 					/>
 				</Animated.View>
-				<View style={styles.progressWrapper}>
-					<BootstrapProgress
-						showLabel={false}
-						colors={colors}
-						translateY={translateY}
-						screenHeight={SCREEN_HEIGHT}
-						onAllAnimationsComplete={handleProgressAnimationsComplete}
-					/>
-				</View>
 			</View>
 		</Animated.View>
 	);
@@ -279,10 +254,6 @@ const styles = StyleSheet.create({
 	},
 	polygonWrapper: {
 		position: 'absolute',
-	},
-	progressWrapper: {
-		position: 'absolute',
-		bottom: '20%',
 	},
 	iconWrapper: {
 		width: 148,
