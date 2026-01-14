@@ -6,13 +6,10 @@
  */
 
 import { memo, useCallback } from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
-import { Check } from 'lucide-react-native';
-import Animated, { useAnimatedStyle, withTiming, FadeIn, FadeOut } from 'react-native-reanimated';
+import { View, StyleSheet } from 'react-native';
 
 import { TrackListItem } from '@/components/track-list-item';
-import { Icon } from '@/components/ui/icon';
-import { useAppTheme } from '@/lib/theme';
+import { SelectableCheckbox } from '@/components/ui/selectable-checkbox';
 import type { Track } from '@/src/domain/entities/track';
 import type { TrackActionSource } from '@/src/domain/actions/track-action';
 
@@ -39,8 +36,6 @@ export const SelectableTrackListItem = memo(function SelectableTrackListItem({
 	queue,
 	queueIndex,
 }: SelectableTrackListItemProps) {
-	const { colors } = useAppTheme();
-
 	const handlePress = useCallback(
 		(pressedTrack: Track) => {
 			if (isSelectionMode) {
@@ -57,35 +52,13 @@ export const SelectableTrackListItem = memo(function SelectableTrackListItem({
 		[onLongPress]
 	);
 
-	const primaryColor = colors.primary;
-	const outlineColor = colors.outline;
-
-	const checkboxAnimatedStyle = useAnimatedStyle(() => {
-		return {
-			backgroundColor: withTiming(isSelected ? primaryColor : 'transparent', {
-				duration: 150,
-			}),
-			borderColor: withTiming(isSelected ? primaryColor : outlineColor, {
-				duration: 150,
-			}),
-		};
-	}, [isSelected, primaryColor, outlineColor]);
+	const handleToggle = useCallback(() => {
+		onSelectionToggle(track);
+	}, [onSelectionToggle, track]);
 
 	return (
 		<View style={styles.container}>
-			{isSelectionMode && (
-				<Animated.View entering={FadeIn.duration(150)} exiting={FadeOut.duration(150)}>
-					<Pressable
-						style={styles.checkboxContainer}
-						onPress={() => onSelectionToggle(track)}
-						hitSlop={8}
-					>
-						<Animated.View style={[styles.checkbox, checkboxAnimatedStyle]}>
-							{isSelected && <Icon as={Check} size={14} color={colors.onPrimary} />}
-						</Animated.View>
-					</Pressable>
-				</Animated.View>
-			)}
+			{isSelectionMode && <SelectableCheckbox isSelected={isSelected} onToggle={handleToggle} />}
 
 			<View style={styles.trackItem}>
 				<TrackListItem
@@ -105,18 +78,6 @@ export const SelectableTrackListItem = memo(function SelectableTrackListItem({
 const styles = StyleSheet.create({
 	container: {
 		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	checkboxContainer: {
-		paddingRight: 8,
-		paddingLeft: 4,
-	},
-	checkbox: {
-		width: 22,
-		height: 22,
-		borderRadius: 4,
-		borderWidth: 2,
-		justifyContent: 'center',
 		alignItems: 'center',
 	},
 	trackItem: {

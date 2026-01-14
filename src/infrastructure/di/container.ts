@@ -3,6 +3,7 @@ import { asyncStorageRepository } from '@/src/infrastructure';
 import { rntpPlaybackProvider } from '@plugins/playback/react-native-track-player';
 import { localFilesProvider } from '@plugins/metadata/local-files';
 import { getLogger } from '@shared/services/logger';
+import { noOpEventBus } from '@plugins/core/noop-event-bus';
 
 const playbackLogger = getLogger('PlaybackProvider');
 const metadataLogger = getLogger('MetadataProvider');
@@ -12,12 +13,7 @@ export async function initializeContainer(): Promise<void> {
 
 	const playbackInitResult = await rntpPlaybackProvider.onInit({
 		manifest: rntpPlaybackProvider.manifest,
-		eventBus: {
-			emit: () => {},
-			on: () => () => {},
-			once: () => () => {},
-			off: () => {},
-		},
+		eventBus: noOpEventBus,
 		config: {},
 		logger: playbackLogger,
 	});
@@ -32,12 +28,7 @@ export async function initializeContainer(): Promise<void> {
 
 	const localFilesInitResult = await localFilesProvider.onInit({
 		manifest: localFilesProvider.manifest,
-		eventBus: {
-			emit: () => {},
-			on: () => () => {},
-			once: () => () => {},
-			off: () => {},
-		},
+		eventBus: noOpEventBus,
 		config: {},
 		logger: metadataLogger,
 	});

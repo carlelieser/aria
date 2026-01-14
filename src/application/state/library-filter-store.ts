@@ -5,6 +5,7 @@ import {
 	type LibraryFilters,
 	DEFAULT_FILTERS,
 } from '../../domain/utils/track-filtering';
+import { toggleIdInArray } from './create-filter-store';
 
 interface LibraryFilterState {
 	searchQuery: string;
@@ -47,50 +48,37 @@ export const useLibraryFilterStore = create<LibraryFilterState>()((set) => ({
 		})),
 
 	setArtistFilter: (artistIds) =>
-		set((state) => ({
-			activeFilters: { ...state.activeFilters, artistIds },
-		})),
+		set((state) => ({ activeFilters: { ...state.activeFilters, artistIds } })),
 
 	toggleArtistFilter: (artistId) =>
-		set((state) => {
-			const current = state.activeFilters.artistIds;
-			const artistIds = current.includes(artistId)
-				? current.filter((id) => id !== artistId)
-				: [...current, artistId];
-			return { activeFilters: { ...state.activeFilters, artistIds } };
-		}),
-
-	setAlbumFilter: (albumIds) =>
-		set((state) => ({
-			activeFilters: { ...state.activeFilters, albumIds },
-		})),
-
-	toggleAlbumFilter: (albumId) =>
-		set((state) => {
-			const current = state.activeFilters.albumIds;
-			const albumIds = current.includes(albumId)
-				? current.filter((id) => id !== albumId)
-				: [...current, albumId];
-			return { activeFilters: { ...state.activeFilters, albumIds } };
-		}),
-
-	setFavoritesOnly: (enabled) =>
-		set((state) => ({
-			activeFilters: { ...state.activeFilters, favoritesOnly: enabled },
-		})),
-
-	toggleFavoritesOnly: () =>
 		set((state) => ({
 			activeFilters: {
 				...state.activeFilters,
-				favoritesOnly: !state.activeFilters.favoritesOnly,
+				artistIds: toggleIdInArray(state.activeFilters.artistIds, artistId),
 			},
 		})),
 
-	setDownloadedOnly: (enabled) =>
+	setAlbumFilter: (albumIds) =>
+		set((state) => ({ activeFilters: { ...state.activeFilters, albumIds } })),
+
+	toggleAlbumFilter: (albumId) =>
 		set((state) => ({
-			activeFilters: { ...state.activeFilters, downloadedOnly: enabled },
+			activeFilters: {
+				...state.activeFilters,
+				albumIds: toggleIdInArray(state.activeFilters.albumIds, albumId),
+			},
 		})),
+
+	setFavoritesOnly: (enabled) =>
+		set((state) => ({ activeFilters: { ...state.activeFilters, favoritesOnly: enabled } })),
+
+	toggleFavoritesOnly: () =>
+		set((state) => ({
+			activeFilters: { ...state.activeFilters, favoritesOnly: !state.activeFilters.favoritesOnly },
+		})),
+
+	setDownloadedOnly: (enabled) =>
+		set((state) => ({ activeFilters: { ...state.activeFilters, downloadedOnly: enabled } })),
 
 	toggleDownloadedOnly: () =>
 		set((state) => ({

@@ -4,16 +4,24 @@ import type { Artist, ArtistReference } from '@domain/entities/artist';
 import { TrackId } from '@domain/value-objects/track-id';
 import { AlbumId } from '@domain/value-objects/album-id';
 import { Duration } from '@domain/value-objects/duration';
-import { createArtwork, type Artwork } from '@domain/value-objects/artwork';
+import type { Artwork } from '@domain/value-objects/artwork';
 import { createStreamingSource } from '@domain/value-objects/audio-source';
 import { createTrack } from '@domain/entities/track';
-import { UNKNOWN_ARTIST, mapAndFilter } from '@shared/mappers';
+import {
+	UNKNOWN_ARTIST,
+	mapAndFilter,
+	mapImagesToArtwork,
+	extractYearFromSubtitle,
+} from '@shared/mappers';
 import type { YouTubeMusicItem, YouTubeThumbnail, YouTubeDuration, YouTubeArtist } from './types';
 
-function upgradeThumbailUrl(url: string, targetSize: number = 544): string {
+/**
+ * Upgrades YouTube thumbnail URLs to higher resolution versions.
+ */
+function upgradeYouTubeThumbnailUrl(url: string): string {
 	if (url.includes('lh3.googleusercontent.com') || url.includes('yt3.googleusercontent.com')) {
 		const baseUrl = url.replace(/=w\d+-h\d+.*$/, '').replace(/=s\d+.*$/, '');
-		return `${baseUrl}=w${targetSize}-h${targetSize}-l90-rj`;
+		return `${baseUrl}=w544-h544-l90-rj`;
 	}
 
 	if (url.includes('i.ytimg.com') || url.includes('img.youtube.com')) {
@@ -28,28 +36,11 @@ function upgradeThumbailUrl(url: string, targetSize: number = 544): string {
 }
 
 export function mapThumbnailsToArtwork(thumbnails?: YouTubeThumbnail[]): Artwork[] {
-	if (!thumbnails || thumbnails.length === 0) {
-		return [];
-	}
-
-	const sortedThumbnails = [...thumbnails]
-		.filter((t) => t.url && t.width && t.height)
-		.sort((a, b) => b.width * b.height - a.width * a.height);
-
-	if (sortedThumbnails.length === 0) {
-		return [];
-	}
-
-	const result: Artwork[] = [];
-	const largestThumb = sortedThumbnails[0];
-	const highResUrl = upgradeThumbailUrl(largestThumb.url, 544);
-	result.push(createArtwork(highResUrl, 544, 544));
-
-	for (const t of sortedThumbnails) {
-		result.push(createArtwork(t.url, t.width, t.height));
-	}
-
-	return result;
+	return mapImagesToArtwork(thumbnails, {
+		urlTransformer: upgradeYouTubeThumbnailUrl,
+		primarySize: 544,
+		sortByResolution: true,
+	});
 }
 
 export function mapYouTubeDuration(
@@ -288,16 +279,10 @@ export function mapYouTubeAlbum(item: YouTubeMusicItem): Album | null {
 
 	const artwork = mapThumbnailsToArtwork(item.thumbnails);
 
-	// Try to extract year from subtitle if not in album
-	let releaseDate = item.album?.year;
-	if (!releaseDate && item.subtitle) {
-		const subtitleText =
-			typeof item.subtitle === 'string' ? item.subtitle : item.subtitle.text || '';
-		const yearMatch = subtitleText.match(/\b(19|20)\d{2}\b/);
-		if (yearMatch) {
-			releaseDate = yearMatch[0];
-		}
-	}
+	// Try to extract year from album info or subtitle
+	const subtitleText =
+		typeof item.subtitle === 'string' ? item.subtitle : item.subtitle?.text || '';
+	const releaseDate = item.album?.year ?? extractYearFromSubtitle(subtitleText);
 
 	return {
 		id: AlbumId.create('youtube-music', browseId),

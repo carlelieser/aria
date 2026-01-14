@@ -12,6 +12,7 @@ import {
 	type SearchContentType,
 	DEFAULT_SEARCH_FILTERS,
 } from '../../domain/utils/search-filtering';
+import { toggleIdInArray } from './create-filter-store';
 
 interface ExploreFilterState {
 	sortField: SearchSortField;
@@ -38,47 +39,35 @@ export const useExploreFilterStore = create<ExploreFilterState>()((set) => ({
 	isFilterSheetOpen: false,
 
 	setSortField: (field) => set({ sortField: field }),
-
 	setSortDirection: (direction) => set({ sortDirection: direction }),
-
 	toggleSortDirection: () =>
-		set((state) => ({
-			sortDirection: state.sortDirection === 'asc' ? 'desc' : 'asc',
-		})),
+		set((state) => ({ sortDirection: state.sortDirection === 'asc' ? 'desc' : 'asc' })),
 
 	setContentType: (type) =>
-		set((state) => ({
-			activeFilters: { ...state.activeFilters, contentType: type },
-		})),
+		set((state) => ({ activeFilters: { ...state.activeFilters, contentType: type } })),
 
 	toggleArtistFilter: (artistId) =>
-		set((state) => {
-			const current = state.activeFilters.artistIds;
-			const artistIds = current.includes(artistId)
-				? current.filter((id) => id !== artistId)
-				: [...current, artistId];
-			return { activeFilters: { ...state.activeFilters, artistIds } };
-		}),
-
-	toggleAlbumFilter: (albumId) =>
-		set((state) => {
-			const current = state.activeFilters.albumIds;
-			const albumIds = current.includes(albumId)
-				? current.filter((id) => id !== albumId)
-				: [...current, albumId];
-			return { activeFilters: { ...state.activeFilters, albumIds } };
-		}),
-
-	toggleFavoritesOnly: () =>
 		set((state) => ({
 			activeFilters: {
 				...state.activeFilters,
-				favoritesOnly: !state.activeFilters.favoritesOnly,
+				artistIds: toggleIdInArray(state.activeFilters.artistIds, artistId),
 			},
 		})),
 
-	clearFilters: () => set({ activeFilters: DEFAULT_SEARCH_FILTERS }),
+	toggleAlbumFilter: (albumId) =>
+		set((state) => ({
+			activeFilters: {
+				...state.activeFilters,
+				albumIds: toggleIdInArray(state.activeFilters.albumIds, albumId),
+			},
+		})),
 
+	toggleFavoritesOnly: () =>
+		set((state) => ({
+			activeFilters: { ...state.activeFilters, favoritesOnly: !state.activeFilters.favoritesOnly },
+		})),
+
+	clearFilters: () => set({ activeFilters: DEFAULT_SEARCH_FILTERS }),
 	clearAll: () =>
 		set({
 			sortField: 'relevance',

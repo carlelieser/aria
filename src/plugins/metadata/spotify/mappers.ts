@@ -5,10 +5,16 @@ import type { Playlist, PlaylistTrack } from '@domain/entities/playlist';
 import { TrackId } from '@domain/value-objects/track-id';
 import { AlbumId } from '@domain/value-objects/album-id';
 import { Duration } from '@domain/value-objects/duration';
-import { createArtwork, type Artwork } from '@domain/value-objects/artwork';
+import type { Artwork } from '@domain/value-objects/artwork';
 import { createStreamingSource } from '@domain/value-objects/audio-source';
 import { createTrack } from '@domain/entities/track';
-import { UNKNOWN_ARTIST, mapAndFilter, mapAndFilterWithIndex } from '@shared/mappers';
+import {
+	mapAndFilter,
+	mapAndFilterWithIndex,
+	mapArtistReferences,
+	mapSimpleImagesToArtwork,
+	extractYearFromDateString,
+} from '@shared/mappers';
 import type {
 	SpotifyTrack,
 	SpotifySimplifiedTrack,
@@ -24,13 +30,7 @@ import type {
 } from './types';
 
 export function mapSpotifyImages(images?: SpotifyImage[]): Artwork[] {
-	if (!images || images.length === 0) {
-		return [];
-	}
-
-	return images
-		.filter((img) => img.url)
-		.map((img) => createArtwork(img.url, img.width ?? undefined, img.height ?? undefined));
+	return mapSimpleImagesToArtwork(images);
 }
 
 export function mapSpotifyArtistReference(artist: SpotifySimplifiedArtist): ArtistReference {
@@ -41,11 +41,7 @@ export function mapSpotifyArtistReference(artist: SpotifySimplifiedArtist): Arti
 }
 
 export function mapSpotifyArtistReferences(artists?: SpotifySimplifiedArtist[]): ArtistReference[] {
-	if (!artists || artists.length === 0) {
-		return [UNKNOWN_ARTIST];
-	}
-
-	return artists.map(mapSpotifyArtistReference);
+	return mapArtistReferences(artists, (a) => a.id);
 }
 
 function mapAlbumType(albumType: string): AlbumType {
@@ -92,12 +88,9 @@ export function mapSpotifySimplifiedTrack(
 			name: album.name,
 		};
 
-		const year = parseInt(album.release_date?.substring(0, 4), 10);
-		if (!isNaN(year)) {
-			params.metadata = {
-				...params.metadata,
-				year,
-			};
+		const year = extractYearFromDateString(album.release_date);
+		if (year) {
+			params.metadata = { ...params.metadata, year };
 		}
 	}
 
@@ -136,12 +129,9 @@ export function mapSpotifyTrack(track: SpotifyTrack): Track | null {
 			name: track.album.name,
 		};
 
-		const year = parseInt(track.album.release_date?.substring(0, 4), 10);
-		if (!isNaN(year)) {
-			params.metadata = {
-				...params.metadata,
-				year,
-			};
+		const year = extractYearFromDateString(track.album.release_date);
+		if (year) {
+			params.metadata = { ...params.metadata, year };
 		}
 	}
 
