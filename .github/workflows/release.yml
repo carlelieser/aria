@@ -213,10 +213,12 @@ jobs:
             - name: Generate changelog
               id: changelog
               run: |
-                  PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+                  CURRENT_TAG="v${{ needs.validate.outputs.version }}"
+                  # Get all tags sorted by version, find the one before current
+                  PREVIOUS_TAG=$(git tag --sort=-v:refname | grep -v "^${CURRENT_TAG}$" | head -1)
                   if [ -n "$PREVIOUS_TAG" ]; then
                     echo "Generating changelog from $PREVIOUS_TAG to HEAD"
-                    CHANGELOG=$(git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s (%h)" --no-merges)
+                    CHANGELOG=$(git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
                   else
                     echo "No previous tag found, generating full changelog"
                     CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges -20)
