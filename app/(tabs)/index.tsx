@@ -3,14 +3,7 @@ import { SegmentedButtons, IconButton } from 'react-native-paper';
 import { PlayerAwareFlashList } from '@/components/ui/player-aware-flash-list';
 import { PageLayout } from '@/components/page-layout';
 import { EmptyState } from '@/components/empty-state';
-import {
-	MusicIcon,
-	ListMusicIcon,
-	UsersIcon,
-	DiscIcon,
-	SearchIcon,
-	SettingsIcon,
-} from 'lucide-react-native';
+import { MusicIcon, ListMusicIcon, UsersIcon, DiscIcon, SearchIcon } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { Icon } from '@/components/ui/icon';
 import { useAppTheme } from '@/lib/theme';
@@ -102,10 +95,6 @@ export default function HomeScreen() {
 
 	const handleNavigateToSearch = useCallback(() => {
 		router.push('/library/search');
-	}, []);
-
-	const handleNavigateToSettings = useCallback(() => {
-		router.push('/settings');
 	}, []);
 
 	const {
