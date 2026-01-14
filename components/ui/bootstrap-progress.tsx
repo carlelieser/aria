@@ -147,11 +147,17 @@ export const BootstrapProgress = memo(function BootstrapProgress({
 						/>
 					))}
 				</View>
-				{showLabel && currentStageInfo && currentStage !== 'ready' && currentStage !== 'idle' && (
-					<Text variant="bodySmall" style={[styles.label, { color: colors.onSurface }]}>
-						{currentStageInfo.label}
-					</Text>
-				)}
+				{showLabel &&
+					currentStageInfo &&
+					currentStage !== 'ready' &&
+					currentStage !== 'idle' && (
+						<Text
+							variant="bodySmall"
+							style={[styles.label, { color: colors.onSurface }]}
+						>
+							{currentStageInfo.label}
+						</Text>
+					)}
 			</View>
 		);
 	}
