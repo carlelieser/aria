@@ -12,6 +12,7 @@ import { Disc } from 'lucide-react-native';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import { formatArtistNames } from '@/src/domain/entities/artist';
 import type { Album } from '@/src/domain/entities/album';
+import { useAlbumStore } from '@/src/application/state/album-store';
 import { MediaListItem } from './media-list/media-list-item';
 
 interface AlbumListItemBaseProps {
@@ -44,11 +45,11 @@ export const AlbumListItem = memo(function AlbumListItem(props: AlbumListItemPro
 	const id = isAlbumObject ? props.album.id.value : props.id;
 	const name = isAlbumObject ? props.album.name : props.name;
 
-	const artistNames = useMemo(() => {
-		if (isAlbumObject) {
-			return formatArtistNames(props.album.artists);
-		}
-		return props.artistName;
+	const subtitle = useMemo(() => {
+		const artistText = isAlbumObject
+			? formatArtistNames(props.album.artists)
+			: props.artistName;
+		return `Album · ${artistText}`;
 	}, [isAlbumObject, props]);
 
 	const artworkUrl = useMemo(() => {
@@ -58,19 +59,11 @@ export const AlbumListItem = memo(function AlbumListItem(props: AlbumListItemPro
 		return props.artworkUrl;
 	}, [isAlbumObject, props]);
 
-	const albumInfo = useMemo(() => {
-		if (isAlbumObject) {
-			const album = props.album;
-			return [
-				album.albumType
-					? album.albumType.charAt(0).toUpperCase() + album.albumType.slice(1)
-					: null,
-				album.trackCount ? `${album.trackCount} tracks` : null,
-			]
-				.filter(Boolean)
-				.join(' · ');
+	const tertiaryText = useMemo(() => {
+		if (isAlbumObject && props.album.trackCount) {
+			return `${props.album.trackCount} tracks`;
 		}
-		if (props.trackCount !== undefined) {
+		if (!isAlbumObject && props.trackCount !== undefined) {
 			return `${props.trackCount} ${props.trackCount === 1 ? 'track' : 'tracks'}`;
 		}
 		return undefined;
@@ -81,15 +74,19 @@ export const AlbumListItem = memo(function AlbumListItem(props: AlbumListItemPro
 		if (onPress) {
 			onPress();
 		} else {
+			// Cache album data before navigation so detail page has it immediately
+			if (isAlbumObject) {
+				useAlbumStore.getState().setAlbumPreview(props.album);
+			}
 			router.push(`/album/${id}`);
 		}
-	}, [onPress, id]);
+	}, [onPress, id, isAlbumObject, props]);
 
 	return (
 		<MediaListItem
 			title={name}
-			subtitle={artistNames}
-			tertiaryText={albumInfo}
+			subtitle={subtitle}
+			tertiaryText={tertiaryText}
 			onPress={handlePress}
 			artwork={{
 				url: artworkUrl,

@@ -3,13 +3,25 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
-export type TabId = 'index' | 'explore' | 'downloads' | 'settings';
+export type TabId = 'index' | 'search' | 'downloads' | 'settings';
 export type DefaultTab = TabId;
 export type LibraryTabId = 'songs' | 'playlists' | 'artists' | 'albums';
 
-export const DEFAULT_TAB_ORDER: TabId[] = ['index', 'explore', 'downloads', 'settings'];
-export const DEFAULT_ENABLED_TABS: TabId[] = ['index', 'explore', 'downloads', 'settings'];
+export const DEFAULT_TAB_ORDER: TabId[] = ['index', 'search', 'downloads', 'settings'];
+export const DEFAULT_ENABLED_TABS: TabId[] = ['index', 'search', 'downloads', 'settings'];
 export const REQUIRED_TABS: TabId[] = ['settings'];
+
+/**
+ * Migrates legacy 'explore' tab ID to 'search' for existing users.
+ */
+function migrateTabId(tabId: string): TabId {
+	if (tabId === 'explore') return 'search';
+	return tabId as TabId;
+}
+
+function migrateTabIds(tabIds: string[]): TabId[] {
+	return tabIds.map(migrateTabId);
+}
 
 interface SettingsState {
 	themePreference: ThemePreference;
@@ -107,6 +119,24 @@ export const useSettingsStore = create<SettingsState>()(
 		{
 			name: 'aria-settings-storage',
 			storage: createJSONStorage(() => customStorage),
+			version: 1,
+			migrate: (persistedState, version) => {
+				const state = persistedState as Partial<SettingsState>;
+				// Version 0 -> 1: Migrate 'explore' to 'search'
+				if (version === 0) {
+					return {
+						...state,
+						defaultTab: state.defaultTab ? migrateTabId(state.defaultTab) : 'index',
+						tabOrder: state.tabOrder
+							? migrateTabIds(state.tabOrder)
+							: DEFAULT_TAB_ORDER,
+						enabledTabs: state.enabledTabs
+							? migrateTabIds(state.enabledTabs)
+							: DEFAULT_ENABLED_TABS,
+					};
+				}
+				return state as SettingsState;
+			},
 		}
 	)
 );

@@ -89,6 +89,9 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 				}
 
 				// The YouTube Music API returns album data in various nested structures
+				// Endpoint can have browseId at root or nested in payload
+				type RunEndpoint = { browseId?: string; payload?: { browseId?: string } };
+
 				const info = albumInfo as {
 					title?: { text?: string };
 					name?: string;
@@ -98,10 +101,10 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 					header?: {
 						title?: { text?: string };
 						subtitle?: {
-							runs?: { text?: string; endpoint?: { browseId?: string } }[];
+							runs?: { text?: string; endpoint?: RunEndpoint }[];
 						};
 						strapline_text_one?: {
-							runs?: { text?: string; endpoint?: { browseId?: string } }[];
+							runs?: { text?: string; endpoint?: RunEndpoint }[];
 						};
 						thumbnail?: {
 							contents?: { url?: string; width?: number; height?: number }[];
@@ -117,38 +120,28 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 					| import('./types').YouTubeArtist[]
 					| undefined;
 
-				// Try header.subtitle.runs (common structure for album artist info)
-				if ((!artists || artists.length === 0) && info.header?.subtitle?.runs) {
-					artists = info.header.subtitle.runs
-						.filter((run) => run.endpoint?.browseId || run.text)
-						.map((run) => ({
-							id: run.endpoint?.browseId,
-							name: run.text || '',
-						}))
-						.filter(
-							(a) =>
-								a.name &&
-								!a.name.match(/^\d{4}$/) &&
-								a.name !== '•' &&
-								a.name !== ' • '
-						);
-				}
+				// Helper to extract browseId from various endpoint structures
+				const getBrowseId = (endpoint?: { browseId?: string; payload?: { browseId?: string } }) =>
+					endpoint?.browseId || endpoint?.payload?.browseId;
 
-				// Try header.strapline_text_one.runs
+				// Try header.strapline_text_one.runs first (this is where artist info typically lives)
 				if ((!artists || artists.length === 0) && info.header?.strapline_text_one?.runs) {
 					artists = info.header.strapline_text_one.runs
-						.filter((run) => run.endpoint?.browseId || run.text)
+						.filter((run) => getBrowseId(run.endpoint) && run.text)
 						.map((run) => ({
-							id: run.endpoint?.browseId,
-							name: run.text || '',
-						}))
-						.filter(
-							(a) =>
-								a.name &&
-								!a.name.match(/^\d{4}$/) &&
-								a.name !== '•' &&
-								a.name !== ' • '
-						);
+							id: getBrowseId(run.endpoint)!,
+							name: run.text!,
+						}));
+				}
+
+				// Fallback: Try header.subtitle.runs (less common for artist info)
+				if ((!artists || artists.length === 0) && info.header?.subtitle?.runs) {
+					artists = info.header.subtitle.runs
+						.filter((run) => getBrowseId(run.endpoint) && run.text)
+						.map((run) => ({
+							id: getBrowseId(run.endpoint)!,
+							name: run.text!,
+						}));
 				}
 
 				// Extract title from header if not available at top level
@@ -200,13 +193,25 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 				const info = artistInfo as {
 					name?: string;
 					title?: { text?: string };
-					thumbnails?: unknown[];
+					thumbnails?: import('./types').YouTubeThumbnail[];
+					header?: {
+						title?: { text?: string };
+						thumbnail?: {
+							contents?: import('./types').YouTubeThumbnail[];
+						};
+						description?: { text?: string };
+					};
 				};
+
+				// Extract from header (primary) or top-level (fallback)
+				const name = info.header?.title?.text || info.name || info.title?.text;
+				const thumbnails = info.header?.thumbnail?.contents || info.thumbnails;
+
 				const artist = mapYouTubeArtist({
 					id: artistId,
 					browseId: artistId,
-					title: info.name || info.title?.text,
-					thumbnails: info.thumbnails as import('./types').YouTubeThumbnail[] | undefined,
+					title: name,
+					thumbnails,
 				});
 
 				if (!artist) {
@@ -236,10 +241,10 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 					thumbnails?: import('./types').YouTubeThumbnail[];
 					header?: {
 						subtitle?: {
-							runs?: { text?: string; endpoint?: { browseId?: string } }[];
+							runs?: { text?: string; endpoint?: { browseId?: string; payload?: { browseId?: string } } }[];
 						};
 						strapline_text_one?: {
-							runs?: { text?: string; endpoint?: { browseId?: string } }[];
+							runs?: { text?: string; endpoint?: { browseId?: string; payload?: { browseId?: string } } }[];
 						};
 						thumbnails?: import('./types').YouTubeThumbnail[];
 					};
@@ -249,44 +254,34 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 					return ok(emptySearchResults());
 				}
 
+				// Helper to extract browseId from various endpoint structures
+				const getBrowseId = (endpoint?: { browseId?: string; payload?: { browseId?: string } }) =>
+					endpoint?.browseId || endpoint?.payload?.browseId;
+
 				// Extract album-level artists to use as fallback for tracks
 				let albumArtists: import('./types').YouTubeArtist[] | undefined = info.artists;
 
-				// Try header.subtitle.runs if direct artists not available
-				if ((!albumArtists || albumArtists.length === 0) && info.header?.subtitle?.runs) {
-					albumArtists = info.header.subtitle.runs
-						.filter((run) => run.endpoint?.browseId || run.text)
-						.map((run) => ({
-							id: run.endpoint?.browseId,
-							name: run.text || '',
-						}))
-						.filter(
-							(a) =>
-								a.name &&
-								!a.name.match(/^\d{4}$/) &&
-								a.name !== '•' &&
-								a.name !== ' • '
-						);
-				}
-
-				// Try header.strapline_text_one.runs
+				// Try header.strapline_text_one.runs first (this is where artist info typically lives)
 				if (
 					(!albumArtists || albumArtists.length === 0) &&
 					info.header?.strapline_text_one?.runs
 				) {
 					albumArtists = info.header.strapline_text_one.runs
-						.filter((run) => run.endpoint?.browseId || run.text)
+						.filter((run) => getBrowseId(run.endpoint) && run.text)
 						.map((run) => ({
-							id: run.endpoint?.browseId,
-							name: run.text || '',
-						}))
-						.filter(
-							(a) =>
-								a.name &&
-								!a.name.match(/^\d{4}$/) &&
-								a.name !== '•' &&
-								a.name !== ' • '
-						);
+							id: getBrowseId(run.endpoint)!,
+							name: run.text!,
+						}));
+				}
+
+				// Fallback: Try header.subtitle.runs (less common for artist info)
+				if ((!albumArtists || albumArtists.length === 0) && info.header?.subtitle?.runs) {
+					albumArtists = info.header.subtitle.runs
+						.filter((run) => getBrowseId(run.endpoint) && run.text)
+						.map((run) => ({
+							id: getBrowseId(run.endpoint)!,
+							name: run.text!,
+						}));
 				}
 
 				// Extract album-level thumbnails to use as fallback for tracks
@@ -316,10 +311,22 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 			try {
 				const client = await clientManager.getClient();
 				const artistInfo = await client.music.getArtist(artistId);
-				const info = artistInfo as { sections?: { contents?: unknown[] }[] };
+				const info = artistInfo as { sections?: { contents?: unknown[]; title?: { text?: string } }[] };
 
 				if (!artistInfo || !info.sections) {
 					return ok(emptySearchResults());
+				}
+
+				// DEBUG: Log each section's type and first item type
+				for (let i = 0; i < Math.min(info.sections.length, 5); i++) {
+					const s = info.sections[i] as Record<string, unknown>;
+					const title = (s.title as Record<string, unknown>)?.text;
+					const firstItem = (s.contents as unknown[])?.[0] as Record<string, unknown> | undefined;
+					console.log(`[getArtistAlbums] Section ${i}: title="${title || '(none)'}", type="${s.type}", itemCount=${(s.contents as unknown[])?.length || 0}, firstItemType="${firstItem?.type}"`);
+					if (firstItem && i > 0) {
+						console.log(`[getArtistAlbums] Section ${i} first item:`, JSON.stringify(firstItem, null, 2).slice(0, 1500));
+						break; // Only log one non-song section
+					}
 				}
 
 				const albums: Album[] = [];

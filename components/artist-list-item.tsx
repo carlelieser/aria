@@ -64,12 +64,13 @@ export const ArtistListItem = memo(function ArtistListItem(props: ArtistListItem
 			const artist = props.artist;
 			const listeners = formatListeners(artist.monthlyListeners);
 			const genres = artist.genres?.slice(0, 2).join(', ');
-			return [genres, listeners].filter(Boolean).join(' · ') || undefined;
+			const details = [genres, listeners].filter(Boolean).join(' · ');
+			return details ? `Artist · ${details}` : 'Artist';
 		}
 		if (props.trackCount !== undefined) {
-			return `${props.trackCount} ${props.trackCount === 1 ? 'track' : 'tracks'}`;
+			return `Artist · ${props.trackCount} ${props.trackCount === 1 ? 'track' : 'tracks'}`;
 		}
-		return undefined;
+		return 'Artist';
 	}, [isArtistObject, props]);
 
 	const { onPress } = props;

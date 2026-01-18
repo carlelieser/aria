@@ -2,7 +2,7 @@
  * PlaylistScreen
  *
  * Display playlist details and tracks with CRUD operations.
- * Uses M3 theming.
+ * Uses the unified DetailsPage component with scrollable header.
  */
 
 import { useCallback, useMemo, useState } from 'react';
@@ -22,11 +22,11 @@ import {
 	GripVerticalIcon,
 	MoreVerticalIcon,
 	CheckIcon,
-	DownloadIcon,
 } from 'lucide-react-native';
 import { Text, IconButton, Button, Menu } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
-import { PageLayout } from '@/components/page-layout';
+import { DetailsPage } from '@/components/details-page';
+import { CollectionDownloadButton } from '@/components/collection-download-button';
 import { SelectableTrackListItem } from '@/components/selectable-track-list-item';
 import { BatchActionBar } from '@/components/batch-action-bar';
 import { EmptyState } from '@/components/empty-state';
@@ -41,6 +41,8 @@ import { useAppTheme, M3Shapes } from '@/lib/theme';
 import { getPlaylistDuration, type PlaylistTrack } from '@/src/domain/entities/playlist';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import { getArtistNames, type Track } from '@/src/domain/entities/track';
+import type { DetailsHeaderInfo, MetadataLine } from '@/components/details-page';
+import type { ReactNode } from 'react';
 
 function formatDuration(ms: number): string {
 	const totalMinutes = Math.floor(ms / 60000);
@@ -79,8 +81,13 @@ export default function PlaylistScreen() {
 		toggleTrackSelection,
 	} = useSelection();
 
-	const { addSelectedToQueue, removeSelectedFromPlaylist, downloadSelected, isDownloading } =
-		useBatchActions();
+	const {
+		addSelectedToQueue,
+		removeSelectedFromPlaylist,
+		downloadSelected,
+		isDownloading,
+		downloadProgress,
+	} = useBatchActions();
 
 	const tracks = useMemo(() => playlist?.tracks.map((pt) => pt.track) ?? [], [playlist?.tracks]);
 	const totalDuration = playlist ? getPlaylistDuration(playlist) : 0;
@@ -156,7 +163,6 @@ export default function PlaylistScreen() {
 	const handleBatchRemoveFromPlaylist = useCallback(() => {
 		if (!playlist) return;
 
-		// Map selected track IDs to their positions in the playlist
 		const positions = playlist.tracks
 			.filter((pt) => selectedTrackIds.has(pt.track.id.value))
 			.map((pt) => pt.position);
@@ -171,7 +177,6 @@ export default function PlaylistScreen() {
 		}
 	}, [tracks, downloadSelected]);
 
-	// Memoized render function for FlatList virtualization
 	const renderTrackItem = useCallback(
 		({ item, index }: { item: PlaylistTrack; index: number }) => (
 			<SelectableTrackListItem
@@ -253,23 +258,20 @@ export default function PlaylistScreen() {
 	);
 
 	if (!playlist) {
+		const emptyHeaderInfo: DetailsHeaderInfo = {
+			title: 'Playlist',
+			placeholderIcon: ListMusicIcon,
+			artworkShape: 'square',
+		};
+
 		return (
-			<PageLayout
-				header={{
-					title: 'Playlist',
-					showBack: true,
-					backgroundColor: colors.surfaceContainerHigh,
-					borderRadius: 24,
-					extended: true,
-					compact: true,
-				}}
-			>
+			<DetailsPage pageTitle="Playlist" headerInfo={emptyHeaderInfo} compact>
 				<EmptyState
 					icon={ListMusicIcon}
 					title="Playlist not found"
 					description="This playlist may have been deleted"
 				/>
-			</PageLayout>
+			</DetailsPage>
 		);
 	}
 
@@ -281,16 +283,11 @@ export default function PlaylistScreen() {
 	) : (
 		<View style={styles.headerActions}>
 			{tracks.length > 0 && (
-				<IconButton
-					icon={() => (
-						<Icon
-							as={DownloadIcon}
-							size={22}
-							color={isDownloading ? colors.outline : colors.onSurface}
-						/>
-					)}
-					onPress={handleDownloadAll}
-					disabled={isDownloading}
+				<CollectionDownloadButton
+					tracks={tracks}
+					isDownloading={isDownloading}
+					progress={downloadProgress}
+					onDownload={handleDownloadAll}
 				/>
 			)}
 			<Menu
@@ -337,122 +334,36 @@ export default function PlaylistScreen() {
 		</View>
 	);
 
-	const headerContent = (
-		<View style={styles.playlistInfo}>
-			{artworkUrl ? (
-				<Image
-					source={{ uri: artworkUrl }}
-					style={styles.playlistArtwork}
-					contentFit="cover"
-				/>
-			) : (
-				<View
-					style={[
-						styles.playlistArtwork,
-						{ backgroundColor: colors.surfaceContainerHighest },
-					]}
-				>
-					<Icon as={ListMusicIcon} size={64} color={colors.onSurfaceVariant} />
-				</View>
-			)}
-			<View style={styles.playlistText}>
-				<Text
-					variant="headlineSmall"
-					style={{
-						color: colors.onSurface,
-						fontWeight: '700',
-						textAlign: 'center',
-					}}
-				>
-					{playlist.name}
-				</Text>
-				{playlist.description && (
-					<Text
-						variant="bodyMedium"
-						style={{ color: colors.onSurfaceVariant, textAlign: 'center' }}
-					>
-						{playlist.description}
-					</Text>
-				)}
-				<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
-					{tracks.length} {tracks.length === 1 ? 'track' : 'tracks'}
-					{totalDuration > 0 && ` · ${formatDuration(totalDuration)}`}
-				</Text>
-			</View>
-			{tracks.length > 0 && (
-				<Button
-					mode="contained"
-					icon={() => <Icon as={PlayIcon} size={18} color={colors.onPrimary} />}
-					onPress={handlePlayAll}
-				>
-					Play All
-				</Button>
-			)}
-		</View>
-	);
+	const metadata: MetadataLine[] = [
+		{
+			text: `${tracks.length} ${tracks.length === 1 ? 'track' : 'tracks'}${totalDuration > 0 ? ` · ${formatDuration(totalDuration)}` : ''}`,
+		},
+	];
 
-	return (
-		<PageLayout
-			header={{
-				title: 'Playlist',
-				showBack: true,
-				backgroundColor: colors.surfaceContainerHigh,
-				borderRadius: 24,
-				belowTitle: headerContent,
-				rightActions: headerRightActions,
-				extended: true,
-				compact: true,
-			}}
-		>
-			{isEditMode ? (
-				<View style={styles.editModeContainer}>
-					<View
-						style={[
-							styles.editModeHeader,
-							{ backgroundColor: colors.primaryContainer },
-						]}
-					>
-						<Text variant="bodyMedium" style={{ color: colors.onPrimaryContainer }}>
-							Drag tracks to reorder
-						</Text>
-					</View>
-					<DraggableFlatList
-						data={playlist.tracks}
-						keyExtractor={(item) => `${item.track.id.value}-${item.position}`}
-						renderItem={renderDraggableItem}
-						onDragEnd={handleDragEnd}
-						contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
-					/>
-				</View>
-			) : (
-				<FlatList
-					data={playlist.tracks}
-					renderItem={renderTrackItem}
-					keyExtractor={keyExtractor}
-					contentContainerStyle={[
-						styles.scrollContent,
-						{
-							paddingBottom: isSelectionMode
-								? insets.bottom + 140
-								: insets.bottom + 80,
-						},
-					]}
-					ListEmptyComponent={
-						<EmptyState
-							icon={ListMusicIcon}
-							title="No tracks yet"
-							description="Add tracks to this playlist from the track options menu"
-						/>
-					}
-					// Performance optimizations
-					removeClippedSubviews
-					maxToRenderPerBatch={10}
-					windowSize={5}
-					initialNumToRender={15}
-					extraData={isSelectionMode ? selectedTrackIds : undefined}
-				/>
-			)}
+	const actionButton =
+		tracks.length > 0 ? (
+			<Button
+				mode="contained"
+				icon={() => <Icon as={PlayIcon} size={18} color={colors.onPrimary} />}
+				onPress={handlePlayAll}
+			>
+				Play All
+			</Button>
+		) : undefined;
 
+	const headerInfo: DetailsHeaderInfo = {
+		title: playlist.name,
+		artworkUrl,
+		artworkShape: 'square',
+		placeholderIcon: ListMusicIcon,
+		metadata: playlist.description
+			? [{ text: playlist.description, variant: 'primary' }, ...metadata]
+			: metadata,
+		actionButton,
+	};
+
+	const bottomContent = (
+		<>
 			<BatchActionBar
 				context="playlist"
 				selectedCount={selectedCount}
@@ -480,7 +391,73 @@ export default function PlaylistScreen() {
 				onConfirm={handleRenamePlaylist}
 				onCancel={() => setRenameDialogVisible(false)}
 			/>
-		</PageLayout>
+		</>
+	);
+
+	const renderContent = ({ ListHeaderComponent }: { ListHeaderComponent: ReactNode }) => {
+		if (isEditMode) {
+			return (
+				<View style={styles.editModeContainer}>
+					{ListHeaderComponent}
+					<View
+						style={[
+							styles.editModeHeader,
+							{ backgroundColor: colors.primaryContainer },
+						]}
+					>
+						<Text variant="bodyMedium" style={{ color: colors.onPrimaryContainer }}>
+							Drag tracks to reorder
+						</Text>
+					</View>
+					<DraggableFlatList
+						data={playlist.tracks}
+						keyExtractor={(item) => `${item.track.id.value}-${item.position}`}
+						renderItem={renderDraggableItem}
+						onDragEnd={handleDragEnd}
+						contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
+					/>
+				</View>
+			);
+		}
+
+		return (
+			<FlatList
+				data={playlist.tracks}
+				renderItem={renderTrackItem}
+				keyExtractor={keyExtractor}
+				ListHeaderComponent={<>{ListHeaderComponent}</>}
+				contentContainerStyle={[
+					styles.scrollContent,
+					{
+						paddingBottom: isSelectionMode ? insets.bottom + 140 : insets.bottom + 80,
+					},
+				]}
+				ListEmptyComponent={
+					<EmptyState
+						icon={ListMusicIcon}
+						title="No tracks yet"
+						description="Add tracks to this playlist from the track options menu"
+					/>
+				}
+				removeClippedSubviews
+				maxToRenderPerBatch={10}
+				windowSize={5}
+				initialNumToRender={15}
+				extraData={isSelectionMode ? selectedTrackIds : undefined}
+			/>
+		);
+	};
+
+	return (
+		<DetailsPage
+			pageTitle="Playlist"
+			headerInfo={headerInfo}
+			headerRightActions={headerRightActions}
+			bottomContent={bottomContent}
+			compact
+			disableScroll
+			renderContent={renderContent}
+		/>
 	);
 }
 
@@ -489,25 +466,8 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 	},
-	playlistInfo: {
-		alignItems: 'center',
-		gap: 16,
-		paddingHorizontal: 16,
-	},
-	playlistArtwork: {
-		width: 160,
-		height: 160,
-		borderRadius: 12,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	playlistText: {
-		alignItems: 'center',
-		gap: 4,
-	},
 	scrollContent: {
 		paddingHorizontal: 16,
-		paddingVertical: 16,
 		gap: 8,
 	},
 	editModeContainer: {

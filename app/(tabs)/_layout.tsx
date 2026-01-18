@@ -101,7 +101,7 @@ export default function TabLayout() {
 			if (config) {
 				// Defer navigation to next frame to ensure all animations complete
 				const timeoutId = setTimeout(() => {
-					router.replace(config.route as '/' | '/explore' | '/downloads' | '/settings');
+					router.replace(config.route as '/' | '/search' | '/downloads' | '/settings');
 				}, 50);
 				return () => clearTimeout(timeoutId);
 			}
@@ -135,7 +135,7 @@ export default function TabLayout() {
 						name={tabId}
 						options={{
 							title: config.label,
-							href: config.route as '/' | '/explore' | '/downloads' | '/settings',
+							href: config.route as '/' | '/search' | '/downloads' | '/settings',
 						}}
 					/>
 				);

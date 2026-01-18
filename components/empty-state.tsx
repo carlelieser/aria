@@ -36,9 +36,19 @@ export function EmptyState({
 				style={[styles.compactContainer, { backgroundColor: colors.surfaceContainerLow }]}
 			>
 				<Icon as={IconComponent} size={24} color={colors.onSurfaceVariant} />
-				<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
-					{title}
-				</Text>
+				<View style={styles.compactTextContainer}>
+					<Text
+						variant="bodyMedium"
+						style={{ color: colors.onSurfaceVariant, fontWeight: '500' }}
+					>
+						{title}
+					</Text>
+					{description && (
+						<Text variant="bodySmall" style={{ color: colors.outline }}>
+							{description}
+						</Text>
+					)}
+				</View>
 			</View>
 		);
 	}
@@ -85,10 +95,15 @@ const styles = StyleSheet.create({
 		marginBottom: 16,
 	},
 	compactContainer: {
+		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'center',
-		paddingVertical: 24,
+		paddingVertical: 16,
+		paddingHorizontal: 16,
 		borderRadius: 12,
-		gap: 8,
+		gap: 12,
+	},
+	compactTextContainer: {
+		flex: 1,
+		gap: 2,
 	},
 });

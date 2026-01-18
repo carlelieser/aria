@@ -7,7 +7,7 @@
 
 import {
 	MusicIcon,
-	CompassIcon,
+	SearchIcon,
 	DownloadIcon,
 	SettingsIcon,
 	type LucideIcon,
@@ -22,7 +22,7 @@ export interface TabConfig {
 
 export const TAB_CONFIG: Record<TabId, TabConfig> = {
 	index: { icon: MusicIcon, label: 'Library', route: '/' },
-	explore: { icon: CompassIcon, label: 'Explore', route: '/explore' },
+	search: { icon: SearchIcon, label: 'Search', route: '/search' },
 	downloads: { icon: DownloadIcon, label: 'Downloads', route: '/downloads' },
 	settings: { icon: SettingsIcon, label: 'Settings', route: '/settings' },
 };

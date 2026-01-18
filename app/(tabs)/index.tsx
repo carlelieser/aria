@@ -1,12 +1,9 @@
 import { View, StyleSheet } from 'react-native';
-import { SegmentedButtons, IconButton } from 'react-native-paper';
+import { SegmentedButtons } from 'react-native-paper';
 import { PlayerAwareFlashList } from '@/components/ui/player-aware-flash-list';
 import { PageLayout } from '@/components/page-layout';
 import { EmptyState } from '@/components/empty-state';
-import { MusicIcon, ListMusicIcon, UsersIcon, DiscIcon, SearchIcon } from 'lucide-react-native';
-import { router } from 'expo-router';
-import { Icon } from '@/components/ui/icon';
-import { useAppTheme } from '@/lib/theme';
+import { MusicIcon, ListMusicIcon, UsersIcon, DiscIcon } from 'lucide-react-native';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
 	usePlaylists,
@@ -67,7 +64,6 @@ export default function HomeScreen() {
 		return unsubscribe;
 	}, [defaultLibraryTab]);
 
-	const { colors } = useAppTheme();
 	const allTracks = useAggregatedTracks();
 	const playlists = usePlaylists();
 	const artists = useAggregatedArtists();
@@ -92,10 +88,6 @@ export default function HomeScreen() {
 	} = useLibraryFilter();
 
 	const { artists: filterArtists, albums: filterAlbums } = useUniqueFilterOptions(allTracks);
-
-	const handleNavigateToSearch = useCallback(() => {
-		router.push('/library/search');
-	}, []);
 
 	const {
 		isSelectionMode,
@@ -185,22 +177,12 @@ export default function HomeScreen() {
 		{ value: 'songs', label: 'Songs', icon: 'music-note' },
 	];
 
-	const headerActions = (
-		<View style={styles.headerActions}>
-			<IconButton
-				icon={() => <Icon as={SearchIcon} size={24} color={colors.onSurface} />}
-				onPress={handleNavigateToSearch}
-			/>
-		</View>
-	);
-
 	return (
 		<PageLayout
 			header={{
 				icon: MusicIcon,
 				title: 'Library',
 				showBorder: false,
-				rightActions: headerActions,
 			}}
 		>
 			<View style={styles.tabsRow}>
@@ -442,10 +424,6 @@ function AlbumsList({ albums, isLoading }: { albums: UniqueAlbum[]; isLoading: b
 }
 
 const styles = StyleSheet.create({
-	headerActions: {
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
 	tabsRow: {
 		paddingHorizontal: 16,
 		marginBottom: 8,

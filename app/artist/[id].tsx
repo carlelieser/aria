@@ -2,18 +2,17 @@
  * ArtistScreen
  *
  * Display artist details and albums.
- * Uses M3 theming.
+ * Uses the unified DetailsPage component.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
-import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, router } from 'expo-router';
 import { DiscIcon, SearchIcon, UserIcon } from 'lucide-react-native';
 import { Text, Button, ActivityIndicator, IconButton } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
-import { PageLayout } from '@/components/page-layout';
+import { DetailsPage } from '@/components/details-page';
 import { TrackListItem } from '@/components/track-list-item';
 import { useTracks } from '@/src/application/state/library-store';
 import {
@@ -21,11 +20,17 @@ import {
 	useArtistLoading,
 	useArtistError,
 } from '@/src/application/state/artist-store';
+import { useAlbumStore } from '@/src/application/state/album-store';
 import { artistService } from '@/src/application/services/artist-service';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
 import type { Album } from '@/src/domain/entities/album';
+import type {
+	DetailsHeaderInfo,
+	MetadataLine,
+	DetailsPageSection,
+} from '@/components/details-page';
 
 function useLibraryArtistTracks(artistId: string): Track[] {
 	const tracks = useTracks();
@@ -40,9 +45,19 @@ function getArtistName(tracks: Track[], artistId: string, fallbackName?: string)
 	return fallbackName ?? 'Unknown Artist';
 }
 
+function formatListeners(count: number): string {
+	if (count >= 1000000) {
+		return `${(count / 1000000).toFixed(1)}M monthly listeners`;
+	}
+	if (count >= 1000) {
+		return `${(count / 1000).toFixed(0)}K monthly listeners`;
+	}
+	return `${count} monthly listeners`;
+}
+
 interface AlbumCardProps {
-	album: Album;
-	onPress: () => void;
+	readonly album: Album;
+	readonly onPress: () => void;
 }
 
 function AlbumCard({ album, onPress }: AlbumCardProps) {
@@ -117,67 +132,18 @@ export default function ArtistScreen() {
 
 	const handleSearchArtist = () => {
 		router.push({
-			pathname: '/explore',
+			pathname: '/search',
 			params: { query: artistInfo.name },
 		});
 	};
 
 	const handleAlbumPress = (album: Album) => {
+		useAlbumStore.getState().setAlbumPreview(album);
 		router.push({
 			pathname: '/album/[id]',
 			params: { id: album.id.value, name: album.name },
 		});
 	};
-
-	const formatListeners = (count: number): string => {
-		if (count >= 1000000) {
-			return `${(count / 1000000).toFixed(1)}M monthly listeners`;
-		}
-		if (count >= 1000) {
-			return `${(count / 1000).toFixed(0)}K monthly listeners`;
-		}
-		return `${count} monthly listeners`;
-	};
-
-	const headerContent = (
-		<View style={styles.artistInfo}>
-			{artistInfo.artwork ? (
-				<Image source={{ uri: artistInfo.artwork }} style={styles.artistAvatar} />
-			) : (
-				<View
-					style={[
-						styles.artistAvatar,
-						{ backgroundColor: colors.surfaceContainerHighest },
-					]}
-				>
-					<Icon as={UserIcon} size={48} color={colors.onSurfaceVariant} />
-				</View>
-			)}
-			<View style={styles.artistText}>
-				<Text
-					variant="headlineSmall"
-					style={{
-						color: colors.onSurface,
-						fontWeight: '700',
-						textAlign: 'center',
-					}}
-				>
-					{artistInfo.name}
-				</Text>
-				{artistInfo.monthlyListeners && (
-					<Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant }}>
-						{formatListeners(artistInfo.monthlyListeners)}
-					</Text>
-				)}
-				{libraryTracks.length > 0 && (
-					<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
-						{libraryTracks.length} {libraryTracks.length === 1 ? 'track' : 'tracks'} in
-						library
-					</Text>
-				)}
-			</View>
-		</View>
-	);
 
 	const headerRightActions = (
 		<IconButton
@@ -186,139 +152,127 @@ export default function ArtistScreen() {
 		/>
 	);
 
-	return (
-		<PageLayout
-			header={{
-				title: 'Artist',
-				showBack: true,
-				backgroundColor: colors.surfaceContainerHigh,
-				borderRadius: 24,
-				belowTitle: headerContent,
-				rightActions: headerRightActions,
-				extended: true,
-				compact: true,
-			}}
-		>
-			<PlayerAwareScrollView contentContainerStyle={styles.scrollContent}>
-				{isLoading && !hasData ? (
-					<View style={styles.loadingState}>
-						<ActivityIndicator size="large" color={colors.primary} />
-					</View>
-				) : error && !hasData ? (
-					<View style={styles.emptyState}>
-						<Text
-							variant="bodyMedium"
-							style={{ color: colors.onSurfaceVariant, textAlign: 'center' }}
-						>
-							{error}
-						</Text>
-						<Button mode="text" onPress={handleSearchArtist}>
-							Search instead
-						</Button>
-					</View>
-				) : (
+	const metadata: MetadataLine[] = useMemo(() => {
+		const lines: MetadataLine[] = [];
+		if (artistInfo.monthlyListeners) {
+			lines.push({ text: formatListeners(artistInfo.monthlyListeners), variant: 'primary' });
+		}
+		if (libraryTracks.length > 0) {
+			lines.push({
+				text: `${libraryTracks.length} ${libraryTracks.length === 1 ? 'track' : 'tracks'} in library`,
+			});
+		}
+		return lines;
+	}, [artistInfo.monthlyListeners, libraryTracks.length]);
+
+	const headerInfo: DetailsHeaderInfo = {
+		title: artistInfo.name,
+		artworkUrl: artistInfo.artwork,
+		artworkShape: 'circular',
+		placeholderIcon: UserIcon,
+		metadata,
+	};
+
+	const sections: DetailsPageSection[] = useMemo(() => {
+		const result: DetailsPageSection[] = [];
+
+		if (albums.length > 0) {
+			result.push({
+				key: 'albums',
+				title: 'Albums',
+				horizontal: true,
+				content: (
 					<>
-						{albums.length > 0 && (
-							<View style={styles.section}>
-								<Text
-									variant="titleMedium"
-									style={[styles.sectionTitle, { color: colors.onSurface }]}
-								>
-									Albums
-								</Text>
-								<PlayerAwareScrollView
-									horizontal
-									showsHorizontalScrollIndicator={false}
-									style={styles.albumsScrollView}
-									contentContainerStyle={styles.albumsRow}
-								>
-									{albums.map((album) => (
-										<AlbumCard
-											key={album.id.value}
-											album={album}
-											onPress={() => handleAlbumPress(album)}
-										/>
-									))}
-								</PlayerAwareScrollView>
-							</View>
-						)}
-
-						{libraryTracks.length > 0 && (
-							<View style={styles.section}>
-								<Text
-									variant="titleMedium"
-									style={[styles.sectionTitle, { color: colors.onSurface }]}
-								>
-									In Your Library
-								</Text>
-								{libraryTracks.map((track, index) => (
-									<TrackListItem
-										key={track.id.value}
-										track={track}
-										source="library"
-										queue={libraryTracks}
-										queueIndex={index}
-									/>
-								))}
-							</View>
-						)}
-
-						{albums.length === 0 && libraryTracks.length === 0 && (
-							<View style={styles.emptyState}>
-								<Text
-									variant="bodyMedium"
-									style={{ color: colors.onSurfaceVariant }}
-								>
-									No content found for this artist
-								</Text>
-								<Button mode="text" onPress={handleSearchArtist}>
-									Search for tracks
-								</Button>
-							</View>
-						)}
+						{albums.map((album) => (
+							<AlbumCard
+								key={album.id.value}
+								album={album}
+								onPress={() => handleAlbumPress(album)}
+							/>
+						))}
 					</>
-				)}
-			</PlayerAwareScrollView>
-		</PageLayout>
+				),
+			});
+		}
+
+		if (libraryTracks.length > 0) {
+			result.push({
+				key: 'library',
+				title: 'In Your Library',
+				content: (
+					<View style={styles.trackList}>
+						{libraryTracks.map((track, index) => (
+							<TrackListItem
+								key={track.id.value}
+								track={track}
+								source="library"
+								queue={libraryTracks}
+								queueIndex={index}
+							/>
+						))}
+					</View>
+				),
+			});
+		}
+
+		return result;
+	}, [albums, libraryTracks]);
+
+	const renderLoadingOrError = () => {
+		if (isLoading && !hasData) {
+			return (
+				<View style={styles.loadingState}>
+					<ActivityIndicator size="large" color={colors.primary} />
+				</View>
+			);
+		}
+
+		if (error && !hasData) {
+			return (
+				<View style={styles.emptyState}>
+					<Text
+						variant="bodyMedium"
+						style={{ color: colors.onSurfaceVariant, textAlign: 'center' }}
+					>
+						{error}
+					</Text>
+					<Button mode="text" onPress={handleSearchArtist}>
+						Search instead
+					</Button>
+				</View>
+			);
+		}
+
+		if (albums.length === 0 && libraryTracks.length === 0) {
+			return (
+				<View style={styles.emptyState}>
+					<Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant }}>
+						No content found for this artist
+					</Text>
+					<Button mode="text" onPress={handleSearchArtist}>
+						Search for tracks
+					</Button>
+				</View>
+			);
+		}
+
+		return null;
+	};
+
+	const loadingOrError = renderLoadingOrError();
+
+	return (
+		<DetailsPage
+			pageTitle="Artist"
+			headerInfo={headerInfo}
+			headerRightActions={headerRightActions}
+			sections={loadingOrError ? [] : sections}
+			emptyContent={loadingOrError}
+		/>
 	);
 }
 
 const styles = StyleSheet.create({
-	artistInfo: {
-		alignItems: 'center',
-		gap: 16,
-		paddingHorizontal: 16,
-	},
-	artistAvatar: {
-		width: 120,
-		height: 120,
-		borderRadius: 60,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	artistText: {
-		alignItems: 'center',
-		gap: 4,
-	},
-	scrollContent: {
-		paddingVertical: 16,
-	},
-	section: {
-		marginBottom: 24,
-		paddingHorizontal: 16,
-	},
-	sectionTitle: {
-		fontWeight: '600',
-		marginBottom: 12,
-	},
-	albumsScrollView: {
-		borderRadius: 12,
-		overflow: 'hidden',
-	},
-	albumsRow: {
-		paddingHorizontal: 16,
-		gap: 12,
-	},
 	albumCard: {
 		width: 140,
 	},
@@ -335,6 +289,9 @@ const styles = StyleSheet.create({
 	},
 	albumTitle: {
 		fontWeight: '500',
+	},
+	trackList: {
+		gap: 8,
 	},
 	loadingState: {
 		paddingVertical: 48,

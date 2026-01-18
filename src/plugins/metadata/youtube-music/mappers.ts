@@ -207,54 +207,53 @@ export function mapYouTubeTrack(
 	return createTrack(params);
 }
 
-function extractArtistFromSubtitle(item: YouTubeMusicItem): ArtistReference[] {
-	// Try subtitle field (common in album search results)
-	if (item.subtitle) {
-		if (typeof item.subtitle === 'string' && item.subtitle.trim()) {
-			// Subtitle often contains "Artist • Year" or just "Artist"
-			const parts = item.subtitle.split('•').map((p) => p.trim());
-			const artistName = parts[0];
-			if (artistName && !artistName.match(/^\d{4}$/)) {
-				return [{ id: artistName, name: artistName }];
-			}
-		}
-		if (typeof item.subtitle === 'object') {
-			if (item.subtitle.text) {
-				const parts = item.subtitle.text.split('•').map((p) => p.trim());
-				const artistName = parts[0];
-				if (artistName && !artistName.match(/^\d{4}$/)) {
-					return [{ id: artistName, name: artistName }];
-				}
-			}
-			if (item.subtitle.runs && item.subtitle.runs.length > 0) {
-				const artistName = item.subtitle.runs[0].text;
-				if (artistName && !artistName.match(/^\d{4}$/)) {
-					return [{ id: artistName, name: artistName }];
-				}
-			}
-		}
-	}
-
-	// Try author field
-	if (item.author) {
-		if (typeof item.author === 'string' && item.author.trim()) {
-			return [{ id: item.author, name: item.author }];
-		}
-		if (typeof item.author === 'object' && item.author.name) {
-			return [{ id: item.author.id || item.author.name, name: item.author.name }];
+/**
+ * Extracts artist references from a YouTube Music item using ONLY structured API fields.
+ *
+ * IMPORTANT: This function intentionally does NOT parse UI text like subtitles.
+ * Subtitle text is locale-dependent, fragile, and can contain type labels (e.g., "Album")
+ * that are not artist names. If no structured artist data exists, we accept UNKNOWN_ARTIST
+ * rather than guessing from display text.
+ *
+ * Structured sources checked (in order of preference):
+ * 1. item.artists - Primary artist array with id/channel_id
+ * 2. item.author - Author object with id field
+ * 3. item.flex_columns - Only when browseId is present (ensures it's a real entity reference)
+ */
+function extractArtistsFromItem(item: YouTubeMusicItem): ArtistReference[] {
+	// 1. Primary: artists array (most reliable)
+	if (item.artists && item.artists.length > 0) {
+		const mapped = item.artists
+			.filter((artist) => artist.name)
+			.map((artist) => ({
+				id: artist.id || artist.channel_id || artist.name,
+				name: artist.name,
+			}));
+		if (mapped.length > 0) {
+			return mapped;
 		}
 	}
 
-	// Try flex_columns (common in some YouTube Music responses)
+	// 2. Fallback: author field (structured object with id)
+	if (item.author && typeof item.author === 'object' && item.author.name) {
+		return [{ id: item.author.id || item.author.name, name: item.author.name }];
+	}
+
+	// 3. Fallback: flex_columns ONLY when browseId exists (ensures real entity reference)
 	if (item.flex_columns && item.flex_columns.length > 1) {
 		const artistColumn = item.flex_columns[1];
 		const runs = artistColumn?.title?.runs;
-		if (runs && runs.length > 0 && runs[0].text) {
-			return [{ id: runs[0].endpoint?.browseId || runs[0].text, name: runs[0].text }];
+		if (runs && runs.length > 0) {
+			const run = runs[0];
+			// Only use if we have a browseId - this confirms it's a navigable entity
+			if (run.text && run.endpoint?.browseId) {
+				return [{ id: run.endpoint.browseId, name: run.text }];
+			}
 		}
 	}
 
-	return [];
+	// No structured data available - accept it gracefully
+	return [UNKNOWN_ARTIST];
 }
 
 export function mapYouTubeAlbum(item: YouTubeMusicItem): Album | null {
@@ -268,14 +267,8 @@ export function mapYouTubeAlbum(item: YouTubeMusicItem): Album | null {
 		return null;
 	}
 
-	// Try multiple sources for artist info
-	let artists = mapYouTubeArtistReferences(item.artists);
-	if (artists.length === 1 && artists[0].id === 'unknown') {
-		const subtitleArtists = extractArtistFromSubtitle(item);
-		if (subtitleArtists.length > 0) {
-			artists = subtitleArtists;
-		}
-	}
+	// Extract artists from structured API fields only
+	const artists = extractArtistsFromItem(item);
 
 	const artwork = mapThumbnailsToArtwork(item.thumbnails);
 

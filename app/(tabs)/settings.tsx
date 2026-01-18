@@ -24,6 +24,7 @@ import {
 	SunIcon,
 	MoonIcon,
 	MusicIcon,
+	SearchIcon,
 	CompassIcon,
 	DownloadIcon,
 	RotateCcwIcon,
@@ -58,7 +59,7 @@ const THEME_OPTIONS: { value: ThemePreference; label: string; icon: LucideIcon }
 
 const DEFAULT_TAB_OPTIONS: { value: DefaultTab; label: string; icon: LucideIcon }[] = [
 	{ value: 'index', label: 'Library', icon: MusicIcon },
-	{ value: 'explore', label: 'Explore', icon: CompassIcon },
+	{ value: 'search', label: 'Search', icon: SearchIcon },
 	{ value: 'downloads', label: 'Downloads', icon: DownloadIcon },
 ];
 

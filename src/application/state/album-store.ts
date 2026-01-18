@@ -14,6 +14,7 @@ interface AlbumState {
 
 	setLoading: (albumId: string, isLoading: boolean) => void;
 	setAlbumDetail: (albumId: string, album: Album | null, tracks: Track[]) => void;
+	setAlbumPreview: (album: Album) => void;
 	setError: (albumId: string, error: string | null) => void;
 	clearAlbum: (albumId: string) => void;
 	clearAll: () => void;
@@ -50,6 +51,25 @@ export const useAlbumStore = create<AlbumState>((set) => ({
 				album,
 				tracks,
 				isLoading: false,
+				error: null,
+			});
+			return { albums };
+		});
+	},
+
+	setAlbumPreview: (album: Album) => {
+		set((state) => {
+			const albumId = album.id.value;
+			const existing = state.albums.get(albumId);
+			// Don't overwrite if we already have full data with tracks
+			if (existing?.tracks && existing.tracks.length > 0) {
+				return state;
+			}
+			const albums = new Map(state.albums);
+			albums.set(albumId, {
+				album,
+				tracks: existing?.tracks ?? [],
+				isLoading: existing?.isLoading ?? false,
 				error: null,
 			});
 			return { albums };

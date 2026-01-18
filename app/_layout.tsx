@@ -68,7 +68,7 @@ function AppContent() {
 				<Stack.Screen name="player" />
 				<Stack.Screen name="plugins" />
 				<Stack.Screen name="plugin/[id]" />
-				<Stack.Screen name="library/search" />
+				<Stack.Screen name="search" options={{ presentation: 'modal' }} />
 				<Stack.Screen name="library/settings" />
 				<Stack.Screen name="artist/[id]" />
 				<Stack.Screen name="album/[id]" />

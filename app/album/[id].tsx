@@ -2,18 +2,18 @@
  * AlbumScreen
  *
  * Display album details and tracks.
- * Uses M3 theming.
+ * Uses the unified DetailsPage component.
  */
 
 import { useEffect, useMemo, useCallback } from 'react';
-import { View, Image, StyleSheet } from 'react-native';
-import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
+import { View, StyleSheet } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { DiscIcon, SearchIcon, DownloadIcon } from 'lucide-react-native';
+import { DiscIcon, SearchIcon } from 'lucide-react-native';
 import { Text, Button, IconButton } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
-import { PageLayout } from '@/components/page-layout';
+import { DetailsPage } from '@/components/details-page';
+import { CollectionDownloadButton } from '@/components/collection-download-button';
 import { useBatchActions } from '@/hooks/use-batch-actions';
 import { TrackListItem } from '@/components/track-list-item';
 import {
@@ -31,6 +31,7 @@ import { getArtworkUrl, getArtistNames } from '@/src/domain/entities/track';
 import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
 import type { Artwork } from '@/src/domain/value-objects/artwork';
+import type { DetailsHeaderInfo, MetadataLine } from '@/components/details-page';
 
 function enrichTracksWithAlbumArtwork(tracks: Track[], albumArtworkUrl?: string): Track[] {
 	if (!albumArtworkUrl) return tracks;
@@ -69,7 +70,7 @@ export default function AlbumScreen() {
 	const insets = useSafeAreaInsets();
 	const { id, name } = useLocalSearchParams<{ id: string; name?: string }>();
 	const { colors } = useAppTheme();
-	const { downloadSelected, isDownloading } = useBatchActions();
+	const { downloadSelected, isDownloading, downloadProgress } = useBatchActions();
 
 	const libraryTracks = useLibraryAlbumTracks(id);
 
@@ -102,7 +103,7 @@ export default function AlbumScreen() {
 
 	const handleSearchAlbum = () => {
 		router.push({
-			pathname: '/explore',
+			pathname: '/search',
 			params: { query: albumInfo.name },
 		});
 	};
@@ -116,16 +117,11 @@ export default function AlbumScreen() {
 	const headerRightActions = (
 		<>
 			{enrichedTracks.length > 0 && (
-				<IconButton
-					icon={() => (
-						<Icon
-							as={DownloadIcon}
-							size={22}
-							color={isDownloading ? colors.outline : colors.onSurface}
-						/>
-					)}
-					onPress={handleDownloadAll}
-					disabled={isDownloading}
+				<CollectionDownloadButton
+					tracks={enrichedTracks}
+					isDownloading={isDownloading}
+					progress={downloadProgress}
+					onDownload={handleDownloadAll}
 				/>
 			)}
 			<IconButton
@@ -135,133 +131,87 @@ export default function AlbumScreen() {
 		</>
 	);
 
-	const headerContent = showHeaderSkeleton ? (
-		<AlbumHeaderSkeleton />
-	) : (
-		<View style={styles.albumInfo}>
-			{albumInfo.artwork ? (
-				<Image source={{ uri: albumInfo.artwork }} style={styles.albumArtwork} />
-			) : (
-				<View
-					style={[
-						styles.albumArtwork,
-						{ backgroundColor: colors.surfaceContainerHighest },
-					]}
-				>
-					<Icon as={DiscIcon} size={64} color={colors.onSurfaceVariant} />
+	const metadata: MetadataLine[] = [
+		{ text: albumInfo.artists, variant: 'primary' },
+		{ text: `${displayTracks.length} ${displayTracks.length === 1 ? 'track' : 'tracks'}` },
+	];
+
+	const headerInfo: DetailsHeaderInfo = {
+		title: albumInfo.name,
+		artworkUrl: albumInfo.artwork,
+		artworkShape: 'square',
+		placeholderIcon: DiscIcon,
+		metadata,
+	};
+
+	const renderContent = () => {
+		if (isLoading && !hasData) {
+			return <AlbumTrackListSkeleton />;
+		}
+
+		if (error) {
+			return (
+				<View style={styles.emptyState}>
+					<Text
+						variant="bodyMedium"
+						style={{ color: colors.onSurfaceVariant, textAlign: 'center' }}
+					>
+						{error}
+					</Text>
+					<Button mode="text" onPress={handleSearchAlbum}>
+						Search for tracks instead
+					</Button>
 				</View>
-			)}
-			<View style={styles.albumText}>
-				<Text
-					variant="headlineSmall"
-					style={{
-						color: colors.onSurface,
-						fontWeight: '700',
-						textAlign: 'center',
-					}}
-				>
-					{albumInfo.name}
-				</Text>
-				<View style={styles.albumMeta}>
+			);
+		}
+
+		if (enrichedTracks.length === 0) {
+			return (
+				<View style={styles.emptyState}>
 					<Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant }}>
-						{albumInfo.artists}
+						No tracks found for this album
 					</Text>
-					<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
-						•
-					</Text>
-					<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
-						{displayTracks.length} {displayTracks.length === 1 ? 'track' : 'tracks'}
-					</Text>
+					<Button mode="text" onPress={handleSearchAlbum}>
+						Search for tracks
+					</Button>
 				</View>
+			);
+		}
+
+		return (
+			<View style={styles.trackList}>
+				{enrichedTracks.map((track, index) => (
+					<TrackListItem
+						key={`album-${index}-${track.id.value}`}
+						track={track}
+						source="search"
+						queue={enrichedTracks}
+						queueIndex={index}
+					/>
+				))}
 			</View>
-		</View>
-	);
+		);
+	};
 
 	return (
-		<PageLayout
-			header={{
-				title: 'Album',
-				showBack: true,
-				backgroundColor: colors.surfaceContainerHigh,
-				borderRadius: 24,
-				belowTitle: headerContent,
-				rightActions: headerRightActions,
-				extended: true,
-			}}
-			style={{
-				gap: 12,
-			}}
+		<DetailsPage
+			pageTitle="Album"
+			headerInfo={headerInfo}
+			headerRightActions={headerRightActions}
+			isLoading={showHeaderSkeleton}
+			loadingContent={<AlbumHeaderSkeleton />}
+			scrollContentStyle={{ paddingBottom: insets.bottom + 80 }}
 		>
-			<PlayerAwareScrollView
-				contentContainerStyle={[
-					styles.scrollContent,
-					{ paddingBottom: insets.bottom + 80 },
-				]}
-			>
-				{isLoading ? (
-					<AlbumTrackListSkeleton />
-				) : error ? (
-					<View style={styles.emptyState}>
-						<Text
-							variant="bodyMedium"
-							style={{ color: colors.onSurfaceVariant, textAlign: 'center' }}
-						>
-							{error}
-						</Text>
-						<Button mode="text" onPress={handleSearchAlbum}>
-							Search for tracks instead
-						</Button>
-					</View>
-				) : enrichedTracks.length === 0 ? (
-					<View style={styles.emptyState}>
-						<Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant }}>
-							No tracks found for this album
-						</Text>
-						<Button mode="text" onPress={handleSearchAlbum}>
-							Search for tracks
-						</Button>
-					</View>
-				) : (
-					enrichedTracks.map((track, index) => (
-						<TrackListItem
-							key={`album-${index}-${track.id.value}`}
-							track={track}
-							source="search"
-							queue={enrichedTracks}
-							queueIndex={index}
-						/>
-					))
-				)}
-			</PlayerAwareScrollView>
-		</PageLayout>
+			<View style={styles.content}>{renderContent()}</View>
+		</DetailsPage>
 	);
 }
 
 const styles = StyleSheet.create({
-	albumInfo: {
-		alignItems: 'center',
-		gap: 16,
+	content: {
 		paddingHorizontal: 16,
 	},
-	albumArtwork: {
-		width: 160,
-		height: 160,
-		borderRadius: 12,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	albumText: {
-		alignItems: 'center',
-		gap: 4,
-	},
-	albumMeta: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 8,
-	},
-	scrollContent: {
-		paddingHorizontal: 16,
-		paddingVertical: 16,
+	trackList: {
 		gap: 8,
 	},
 	emptyState: {
