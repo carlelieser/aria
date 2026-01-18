@@ -22,7 +22,7 @@ Clean Architecture with Feature-First Organization
 ### Naming Conventions
 
 | Element            | Convention        | Example                               |
-| :----------------- | :---------------- | :------------------------------------ |
+|:-------------------|:------------------|:--------------------------------------|
 | Components         | `PascalCase`      | `UserProfile`, `AuthScreen`           |
 | Files (components) | `kebab-case`      | `user-profile.tsx`, `auth-screen.tsx` |
 | Files (non-comp)   | `kebab-case`      | `user-repository.ts`, `use-auth.ts`   |
@@ -129,7 +129,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 ### Types
 
 | Type       | Description                                             |
-| :--------- | :------------------------------------------------------ |
+|:-----------|:--------------------------------------------------------|
 | `feat`     | New feature                                             |
 | `fix`      | Bug fix                                                 |
 | `docs`     | Documentation only                                      |

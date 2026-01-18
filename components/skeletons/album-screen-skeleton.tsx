@@ -15,9 +15,8 @@ export function AlbumHeaderSkeleton() {
 			<Skeleton width={160} height={160} rounded="lg" />
 
 			<View style={styles.textContainer}>
-				<Skeleton width={180} height={24} rounded="md" />
-				<Skeleton width={120} height={16} rounded="sm" />
-				<Skeleton width={60} height={14} rounded="sm" />
+				<Skeleton width={120} height={24} rounded="md" />
+				<Skeleton width={80} height={16} rounded="sm" />
 			</View>
 		</View>
 	);

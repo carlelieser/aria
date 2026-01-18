@@ -37,7 +37,6 @@ PlayerAwareScrollView.displayName = 'PlayerAwareScrollView';
 
 const styles = StyleSheet.create({
 	container: {
-		borderRadius: 48,
 		flex: 1,
 		overflow: 'hidden',
 	},
