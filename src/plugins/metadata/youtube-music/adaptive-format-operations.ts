@@ -23,13 +23,19 @@ function extractAudioFormat(mimeType: string): AudioFormatType {
 	return 'm4a';
 }
 
-function buildStreamHeaders(): Record<string, string> {
-	return {
+function buildStreamHeaders(cookies?: string): Record<string, string> {
+	const headers: Record<string, string> = {
 		Accept: '*/*',
 		Origin: 'https://www.youtube.com',
 		Referer: 'https://www.youtube.com/',
 		'User-Agent': 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version',
 	};
+
+	if (cookies) {
+		headers['Cookie'] = cookies;
+	}
+
+	return headers;
 }
 
 async function extractFormatUrl(format: any, client: InnertubeClient): Promise<string | undefined> {
@@ -53,7 +59,8 @@ export async function tryAdaptiveFormat(
 	client: InnertubeClient,
 	videoId: string,
 	quality: StreamQuality,
-	clientType: 'TV' | 'IOS' | 'ANDROID' = 'TV'
+	clientType: 'TV' | 'IOS' | 'ANDROID' = 'TV',
+	cookies?: string
 ): Promise<AdaptiveFormatResult | null> {
 	try {
 		logger.debug(`[Adaptive] Trying ${clientType} client for video: ${videoId}`);
@@ -95,7 +102,7 @@ export async function tryAdaptiveFormat(
 				url,
 				format: audioFormat,
 				quality,
-				headers: buildStreamHeaders(),
+				headers: buildStreamHeaders(cookies),
 			}),
 			contentLength,
 		};
@@ -110,10 +117,11 @@ export async function tryMultipleClientTypes(
 	client: InnertubeClient,
 	videoId: string,
 	quality: StreamQuality,
-	clientTypes: readonly ('TV' | 'ANDROID' | 'IOS')[]
+	clientTypes: readonly ('TV' | 'ANDROID' | 'IOS')[],
+	cookies?: string
 ): Promise<AdaptiveFormatResult | null> {
 	for (const clientType of clientTypes) {
-		const result = await tryAdaptiveFormat(client, videoId, quality, clientType);
+		const result = await tryAdaptiveFormat(client, videoId, quality, clientType, cookies);
 		if (result) {
 			return result;
 		}

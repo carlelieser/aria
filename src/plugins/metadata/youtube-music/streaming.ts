@@ -29,7 +29,7 @@ async function handleDownloadableStream(
 	logger.debug('Preferring downloadable format...');
 
 	const clientTypes = ['TV', 'ANDROID', 'IOS'] as const;
-	const adaptiveResult = await tryMultipleClientTypes(client, videoId, quality, clientTypes);
+	const adaptiveResult = await tryMultipleClientTypes(client, videoId, quality, clientTypes, cookies);
 
 	if (adaptiveResult) {
 		const { stream: adaptiveStream, contentLength } = adaptiveResult;
@@ -109,7 +109,7 @@ async function handleStreamingPlayback(
 	logger.debug('Streaming playback: trying adaptive formats first...');
 
 	const playbackClients = ['TV', 'ANDROID', 'IOS'] as const;
-	const adaptiveResult = await tryMultipleClientTypes(client, videoId, quality, playbackClients);
+	const adaptiveResult = await tryMultipleClientTypes(client, videoId, quality, playbackClients, cookies);
 
 	if (adaptiveResult) {
 		const { stream: adaptiveStream, contentLength } = adaptiveResult;
