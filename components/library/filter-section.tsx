@@ -6,7 +6,6 @@
  */
 
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { Text, Switch } from 'react-native-paper';
 import { FilterChip } from './filter-chip';
 import { useAppTheme } from '@/lib/theme';
