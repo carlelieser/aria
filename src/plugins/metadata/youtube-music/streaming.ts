@@ -56,25 +56,10 @@ async function handleDownloadableStream(
 			);
 		}
 
-		// If caching failed, return stream URL with cookies for download manager
-		logger.debug('Caching failed, returning stream URL directly');
-		const headersWithCookies = { ...adaptiveStream.headers };
-		if (cookies) {
-			headersWithCookies['Cookie'] = cookies;
-			logger.debug('Including cookies in stream headers for download');
-		}
-
-		return ok(
-			createAudioStream({
-				url: adaptiveStream.url,
-				format: adaptiveStream.format,
-				quality: adaptiveStream.quality,
-				headers: headersWithCookies,
-			})
-		);
+		logger.debug('Adaptive caching failed, will try HLS fallback...');
 	}
 
-	// Last resort: try downloading from HLS stream
+	// Fallback: try downloading from HLS stream
 	logger.debug('Adaptive formats failed, trying HLS download...');
 	const hlsUrl =
 		(await tryHlsStream(client, videoId, 'IOS')) || (await tryHlsStream(client, videoId, 'TV'));
