@@ -7,7 +7,7 @@ import { PageLayout } from '@/components/page-layout';
 import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { EmptyState } from '@/components/empty-state';
 import { SettingsSection } from '@/components/settings/settings-section';
-import { ChevronRightIcon, PuzzleIcon, LockIcon } from 'lucide-react-native';
+import { ChevronRightIcon, LockIcon } from 'lucide-react-native';
 import { togglePluginRuntime } from '@/src/application/services/plugin-lifecycle-service';
 import { PluginListSkeleton } from '@/components/skeletons';
 import { useAppTheme } from '@/lib/theme';
@@ -18,6 +18,7 @@ import {
 	categoryLabels,
 	usePluginDisplayStatus,
 	usePluginList,
+	DEFAULT_PLUGIN_ICON,
 } from '@/hooks/use-plugin-display';
 
 export default function PluginsScreen() {
@@ -42,7 +43,7 @@ export default function PluginsScreen() {
 					</View>
 				) : plugins.length === 0 ? (
 					<EmptyState
-						icon={PuzzleIcon}
+						icon={DEFAULT_PLUGIN_ICON}
 						title="No plugins available"
 						description="Plugins extend Aria with new music sources, playback features, and more."
 					/>
@@ -79,7 +80,7 @@ function PluginItem({
 }) {
 	const { colors } = useAppTheme();
 	const { isEnabled, statusInfo, StatusIcon, statusColor } = usePluginDisplayStatus(plugin);
-	const PluginIcon = categoryIcons[plugin.category] || PuzzleIcon;
+	const PluginIcon = categoryIcons[plugin.category] || DEFAULT_PLUGIN_ICON;
 
 	return (
 		<Pressable

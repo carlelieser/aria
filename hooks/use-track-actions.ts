@@ -63,7 +63,6 @@ export function useTrackActions({
 		async (actionId: string) => {
 			const currentTrack = trackRef.current;
 
-			// Store track in navigation context for any navigation actions
 			setNavigationTrack(currentTrack);
 
 			const result = await trackActionsService.executeAction(actionId, {
@@ -73,7 +72,6 @@ export function useTrackActions({
 				trackPosition,
 			});
 
-			// Handle navigation intent from plugin
 			if (result.navigation) {
 				const { pathname, params } = result.navigation;
 				router.push({
@@ -82,7 +80,6 @@ export function useTrackActions({
 				});
 			}
 
-			// Handle feedback from plugin
 			if (result.feedback) {
 				const { message, description, type } = result.feedback;
 				if (type === 'error') {
@@ -92,7 +89,6 @@ export function useTrackActions({
 				}
 			}
 
-			// Refresh actions to reflect any state changes
 			if (result.handled) {
 				await loadActions();
 			}

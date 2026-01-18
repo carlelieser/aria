@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
@@ -7,10 +6,8 @@ const SVG_PATH = path.join(__dirname, '../assets/icon.svg');
 const SVG_MONOCHROME_PATH = path.join(__dirname, '../assets/icon-monochrome.svg');
 const OUTPUT_DIR = path.join(__dirname, '../assets/images');
 
-// Background color from icon.svg (#fafdff)
 const BACKGROUND_COLOR = { r: 250, g: 253, b: 255, alpha: 1 };
 
-// Default crop padding to remove from SVG (out of 1000px render)
 const DEFAULT_CROP_PADDING = 120;
 
 const ICONS = [
@@ -46,8 +43,6 @@ async function generateIcons() {
 				},
 			});
 		} else if (icon.monochrome) {
-			// Create white silhouette with alpha for Android themed icons
-			// Use icon-monochrome.svg (properly sized for monochrome display)
 			const monochromeSvgBuffer = fs.readFileSync(SVG_MONOCHROME_PATH);
 			const resized = await sharp(monochromeSvgBuffer)
 				.resize(icon.size, icon.size, {
@@ -63,7 +58,6 @@ async function generateIcons() {
 
 			for (let i = 0; i < data.length; i += 4) {
 				const alpha = data[i + 3];
-				// White pixel with original alpha
 				pixels[i] = 255;
 				pixels[i + 1] = 255;
 				pixels[i + 2] = 255;
@@ -74,14 +68,12 @@ async function generateIcons() {
 				raw: { width: info.width, height: info.height, channels: 4 },
 			});
 		} else if (icon.rounded || icon.cropPadding !== undefined) {
-			// Crop out the padding from the SVG
 			const roundedCorners = icon.rounded
 				? Buffer.from(
 						`<svg><circle cx="${icon.size / 2}" cy="${icon.size / 2}" r="${icon.size / 2}"/></svg>`
 					)
 				: null;
 
-			// First render at higher resolution, then crop the content area
 			const fullSize = 1000;
 			const cropPadding = icon.cropPadding ?? DEFAULT_CROP_PADDING;
 			const cropSize = fullSize - cropPadding * 2;

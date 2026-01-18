@@ -1,10 +1,3 @@
-/**
- * PlaylistScreen
- *
- * Display playlist details and tracks with CRUD operations.
- * Uses the unified DetailsPage component with scrollable header.
- */
-
 import { useCallback, useMemo, useState } from 'react';
 import { View, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';

@@ -1,10 +1,3 @@
-/**
- * Hook for executing track actions.
- *
- * This hook handles only action execution, not loading.
- * Actions are pre-loaded by track-options-store before the sheet opens.
- */
-
 import { useCallback, useRef } from 'react';
 import { router } from 'expo-router';
 import type { Track } from '@/src/domain/entities/track';

@@ -1,10 +1,3 @@
-/**
- * ArtistScreen
- *
- * Display artist details and albums.
- * Uses the unified DetailsPage component.
- */
-
 import { useEffect, useMemo } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { Image } from 'expo-image';

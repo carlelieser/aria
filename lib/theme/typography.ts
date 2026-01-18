@@ -1,10 +1,3 @@
-/**
- * Material 3 Typography Scale
- *
- * The type scale is a selection of font styles that can be used across an app,
- * ensuring a consistent and purposeful use of type.
- */
-
 import { Platform, TextStyle } from 'react-native';
 
 const getFontFamily = (): string => {
@@ -20,7 +13,6 @@ const getFontFamily = (): string => {
 const baseFontFamily = getFontFamily();
 
 export const M3Typography = {
-	// Display styles - Hero text, very large text
 	displayLarge: {
 		fontFamily: baseFontFamily,
 		fontSize: 57,
@@ -43,7 +35,6 @@ export const M3Typography = {
 		letterSpacing: 0,
 	},
 
-	// Headline styles - High-emphasis text
 	headlineLarge: {
 		fontFamily: baseFontFamily,
 		fontSize: 32,
@@ -66,7 +57,6 @@ export const M3Typography = {
 		letterSpacing: 0,
 	},
 
-	// Title styles - Medium-emphasis text
 	titleLarge: {
 		fontFamily: baseFontFamily,
 		fontSize: 22,
@@ -89,7 +79,6 @@ export const M3Typography = {
 		letterSpacing: 0.1,
 	},
 
-	// Body styles - Paragraph text
 	bodyLarge: {
 		fontFamily: baseFontFamily,
 		fontSize: 16,
@@ -112,7 +101,6 @@ export const M3Typography = {
 		letterSpacing: 0.4,
 	},
 
-	// Label styles - Utility text, buttons, tabs
 	labelLarge: {
 		fontFamily: baseFontFamily,
 		fontSize: 14,

@@ -1,9 +1,3 @@
-/**
- * Plugin Settings Hook
- *
- * Manages form state for plugin configuration with validation and auto-save.
- */
-
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { PluginRegistry } from '@/src/plugins/core/registry/plugin-registry';
 import { usePluginSettingsStore } from '@/src/application/state/plugin-settings-store';

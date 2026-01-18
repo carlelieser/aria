@@ -1,12 +1,6 @@
-/**
- * SelectableTrackListItem Component
- *
- * Wrapper around TrackListItem that adds selection mode support.
- * Shows checkbox overlay when in selection mode.
- */
-
 import { memo, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
 
 import { TrackListItem } from '@/components/track-list-item';
 import { SelectableCheckbox } from '@/components/ui/selectable-checkbox';
@@ -20,10 +14,9 @@ interface SelectableTrackListItemProps {
 	isSelected: boolean;
 	onLongPress: (track: Track) => void;
 	onSelectionToggle: (track: Track) => void;
-	/** Queue of tracks for skip next/previous functionality */
 	queue?: Track[];
-	/** Index of this track in the queue */
 	queueIndex?: number;
+	style?: StyleProp<ViewStyle>;
 }
 
 export const SelectableTrackListItem = memo(function SelectableTrackListItem({
@@ -35,6 +28,7 @@ export const SelectableTrackListItem = memo(function SelectableTrackListItem({
 	onSelectionToggle,
 	queue,
 	queueIndex,
+	style,
 }: SelectableTrackListItemProps) {
 	const handlePress = useCallback(
 		(pressedTrack: Track) => {
@@ -57,7 +51,7 @@ export const SelectableTrackListItem = memo(function SelectableTrackListItem({
 	}, [onSelectionToggle, track]);
 
 	return (
-		<View style={styles.container}>
+		<View style={[styles.container, style]}>
 			{isSelectionMode && (
 				<SelectableCheckbox isSelected={isSelected} onToggle={handleToggle} />
 			)}

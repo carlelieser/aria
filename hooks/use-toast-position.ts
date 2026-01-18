@@ -1,9 +1,3 @@
-/**
- * Hook for calculating toast bottom offset
- *
- * Accounts for tab bar, floating player, and safe area insets.
- */
-
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePathname } from 'expo-router';
 import { useCurrentTrack } from '@/src/application/state/player-store';

@@ -1,9 +1,3 @@
-/**
- * LyricsScreen
- *
- * Modal screen for viewing synced or plain lyrics of a track.
- */
-
 import { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';

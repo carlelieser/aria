@@ -1,10 +1,3 @@
-/**
- * Expo Config Plugin for react-native-track-player
- *
- * Configures Android for background audio playback with foreground service.
- * iOS background audio is configured via infoPlist in app.json.
- */
-
 const { withAndroidManifest } = require('@expo/config-plugins');
 
 function addForegroundServicePermissions(androidManifest) {

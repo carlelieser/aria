@@ -14,7 +14,7 @@ import { EqualizerSheet } from '@/components/equalizer-sheet';
 import {
 	TrashIcon,
 	InfoIcon,
-	PuzzleIcon,
+	PlugIcon,
 	HardDriveIcon,
 	SettingsIcon,
 	SunMoonIcon,
@@ -24,8 +24,6 @@ import {
 	SunIcon,
 	MoonIcon,
 	MusicIcon,
-	SearchIcon,
-	CompassIcon,
 	DownloadIcon,
 	RotateCcwIcon,
 	CodeIcon,
@@ -59,7 +57,6 @@ const THEME_OPTIONS: { value: ThemePreference; label: string; icon: LucideIcon }
 
 const DEFAULT_TAB_OPTIONS: { value: DefaultTab; label: string; icon: LucideIcon }[] = [
 	{ value: 'index', label: 'Library', icon: MusicIcon },
-	{ value: 'search', label: 'Search', icon: SearchIcon },
 	{ value: 'downloads', label: 'Downloads', icon: DownloadIcon },
 ];
 
@@ -206,7 +203,7 @@ export default function SettingsScreen() {
 			>
 				<SettingsSection title="Plugins">
 					<SettingsItem
-						icon={PuzzleIcon}
+						icon={PlugIcon}
 						title="Manage Plugins"
 						subtitle="Music sources, playback, and more"
 						onPress={() => router.push('/plugins')}

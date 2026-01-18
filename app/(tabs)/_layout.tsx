@@ -1,11 +1,3 @@
-/**
- * Tab Layout
- *
- * Material 3 bottom navigation with Library, Explore, Downloads, and Settings tabs.
- * Features a sliding animated indicator that transitions between tabs.
- * Tab order is customizable via settings.
- */
-
 import { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import { Tabs, router } from 'expo-router';
 import { View, Pressable, StyleSheet } from 'react-native';
@@ -14,11 +6,15 @@ import Animated, {
 	useAnimatedStyle,
 	useSharedValue,
 	withSpring,
+	withTiming,
 	FadeIn,
 	FadeOut,
 } from 'react-native-reanimated';
+import { SearchIcon } from 'lucide-react-native';
 import { useAppTheme } from '@/lib/theme';
 import { useDownloadQueue } from '@/hooks/use-download-queue';
+import { useCurrentTrack } from '@/src/application/state/player-store';
+import { Icon } from '@/components/ui/icon';
 import {
 	useDefaultTab,
 	useTabOrder,
@@ -43,17 +39,13 @@ export default function TabLayout() {
 	const [isHydrated, setIsHydrated] = useState(useSettingsStore.persist.hasHydrated());
 	const [isLayoutReady, setIsLayoutReady] = useState(false);
 
-	// Wait for store hydration before attempting navigation
 	useEffect(() => {
-		// If already hydrated, nothing to do
 		if (useSettingsStore.persist.hasHydrated()) {
 			setIsHydrated(true);
 			return;
 		}
 
-		// Subscribe to hydration completion
 		const unsubscribe = useSettingsStore.persist.onFinishHydration(() => {
-			// Defer state update to next frame to avoid navigating during transitions
 			const timeoutId = setTimeout(() => {
 				setIsHydrated(true);
 			}, 0);
@@ -63,7 +55,6 @@ export default function TabLayout() {
 		return unsubscribe;
 	}, []);
 
-	// Mark layout as ready after initial render to prevent blank screens
 	useEffect(() => {
 		const timeoutId = requestAnimationFrame(() => {
 			setIsLayoutReady(true);
@@ -71,9 +62,7 @@ export default function TabLayout() {
 		return () => cancelAnimationFrame(timeoutId);
 	}, []);
 
-	// Ensure tab order is valid and filter by enabled tabs
 	const validTabOrder = useMemo(() => {
-		// Ensure we have valid arrays to work with
 		const safeTabOrder =
 			Array.isArray(tabOrder) && tabOrder.length > 0 ? tabOrder : DEFAULT_TAB_ORDER;
 		const safeEnabledTabs =
@@ -89,31 +78,25 @@ export default function TabLayout() {
 	}, [tabOrder, enabledTabs]);
 
 	useEffect(() => {
-		// Only navigate after hydration is complete, layout is ready, and we haven't navigated yet
 		if (!isHydrated || !isLayoutReady || hasNavigatedRef.current) return;
 
-		// Check if we need to navigate to a different default tab
 		if (defaultTab !== validTabOrder[0]) {
 			hasNavigatedRef.current = true;
-			// If default tab is disabled, use first enabled tab
 			const targetTab = enabledTabs.includes(defaultTab) ? defaultTab : validTabOrder[0];
 			const config = TAB_CONFIG[targetTab];
 			if (config) {
-				// Defer navigation to next frame to ensure all animations complete
 				const timeoutId = setTimeout(() => {
-					router.replace(config.route as '/' | '/search' | '/downloads' | '/settings');
+					router.replace(config.route as '/' | '/downloads' | '/settings');
 				}, 50);
 				return () => clearTimeout(timeoutId);
 			}
 		}
 	}, [isHydrated, isLayoutReady, defaultTab, validTabOrder, enabledTabs]);
 
-	// Memoize screen options to prevent re-renders causing blank screens
 	const screenOptions = useMemo(
 		() => ({
 			headerShown: false,
 			animation: 'shift' as const,
-			// Prevent tabs from unmounting when not focused - fixes blank screen issue
 			lazy: false,
 			freezeOnBlur: false,
 		}),
@@ -135,7 +118,7 @@ export default function TabLayout() {
 						name={tabId}
 						options={{
 							title: config.label,
-							href: config.route as '/' | '/search' | '/downloads' | '/settings',
+							href: config.route as '/' | '/downloads' | '/settings',
 						}}
 					/>
 				);
@@ -148,13 +131,53 @@ interface CustomTabBarProps extends BottomTabBarProps {
 	tabOrder: TabId[];
 }
 
+const FLOATING_PLAYER_HEIGHT = 64;
+const FLOATING_PLAYER_MARGIN = 8;
+const FAB_DEFAULT_TOP = -62;
+
+function SearchFAB() {
+	const { colors } = useAppTheme();
+	const currentTrack = useCurrentTrack();
+	const isFloatingPlayerVisible = currentTrack !== null;
+
+	const animatedStyle = useAnimatedStyle(() => {
+		const floatingPlayerOffset = isFloatingPlayerVisible
+			? FLOATING_PLAYER_HEIGHT + FLOATING_PLAYER_MARGIN
+			: 0;
+
+		return {
+			top: withTiming(FAB_DEFAULT_TOP - floatingPlayerOffset, { duration: 200 }),
+		};
+	}, [isFloatingPlayerVisible]);
+
+	const handlePress = useCallback(() => {
+		router.push('/search');
+	}, []);
+
+	return (
+		<Animated.View style={[styles.searchFab, animatedStyle]}>
+			<Pressable
+				onPress={handlePress}
+				style={({ pressed }) => [
+					styles.searchFabInner,
+					{ backgroundColor: colors.primaryContainer },
+					pressed && styles.searchFabPressed,
+				]}
+				accessibilityRole="button"
+				accessibilityLabel="Search"
+			>
+				<Icon as={SearchIcon} size={24} color={colors.onPrimaryContainer} />
+			</Pressable>
+		</Animated.View>
+	);
+}
+
 function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 	const { colors } = useAppTheme();
 	const insets = useSafeAreaInsets();
 	const { hasActiveDownloads } = useDownloadQueue();
 	const tabBarHeight = TAB_BAR_HEIGHT + insets.bottom;
 
-	// Calculate visual index based on tab order, not route index
 	const currentRouteName = state.routes[state.index]?.name as TabId;
 	const visualIndex = tabOrder.indexOf(currentRouteName);
 	const initialX = Math.max(0, visualIndex) * TAB_WIDTH + (TAB_WIDTH - INDICATOR_WIDTH) / 2;
@@ -202,17 +225,19 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 	);
 
 	return (
-		<View
-			style={[
-				styles.tabBar,
-				{
-					backgroundColor: colors.surfaceContainer,
-					height: tabBarHeight,
-					paddingBottom: insets.bottom,
-				},
-			]}
-		>
-			<View style={styles.tabsContainer}>
+		<View style={styles.tabBarContainer}>
+			<SearchFAB />
+			<View
+				style={[
+					styles.tabBar,
+					{
+						backgroundColor: colors.surfaceContainer,
+						height: tabBarHeight,
+						paddingBottom: insets.bottom,
+					},
+				]}
+			>
+				<View style={styles.tabsContainer}>
 				<Animated.View
 					style={[
 						styles.indicator,
@@ -255,6 +280,7 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 						</Pressable>
 					);
 				})}
+				</View>
 			</View>
 		</View>
 	);
@@ -333,6 +359,30 @@ function TabLabel({ label, isFocused, color }: TabLabelProps) {
 }
 
 const styles = StyleSheet.create({
+	tabBarContainer: {
+		position: 'relative',
+	},
+	searchFab: {
+		position: 'absolute',
+		right: 16,
+		zIndex: 1,
+	},
+	searchFabInner: {
+		width: 56,
+		height: 56,
+		borderRadius: 16,
+		alignItems: 'center',
+		justifyContent: 'center',
+		elevation: 3,
+		shadowColor: '#000',
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.2,
+		shadowRadius: 4,
+	},
+	searchFabPressed: {
+		opacity: 0.8,
+		transform: [{ scale: 0.96 }],
+	},
 	tabBar: {
 		flexDirection: 'row',
 		justifyContent: 'center',

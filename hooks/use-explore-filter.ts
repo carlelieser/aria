@@ -1,10 +1,3 @@
-/**
- * useExploreFilter Hook
- *
- * Integration hook for explore screen filtering and sorting.
- * Returns filtered tracks, albums, and artists based on content type.
- */
-
 import { useMemo, useRef, useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useSearchStore } from '@/src/application/state/search-store';

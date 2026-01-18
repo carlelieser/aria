@@ -1,11 +1,3 @@
-/**
- * useUnifiedSearch Hook
- *
- * Orchestration hook for unified search in the Search tab.
- * Combines library search and explore (external plugin) search,
- * returning both result sets simultaneously for unified display.
- */
-
 import { useCallback, useMemo, useRef, useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useSearchStore } from '@/src/application/state/search-store';
@@ -19,6 +11,7 @@ import {
 	useAggregatedArtists,
 	useAggregatedAlbums,
 } from './use-aggregated-library';
+import { useResolvedTracks } from './use-resolved-track';
 import {
 	filterTracks,
 	sortTracks,
@@ -44,7 +37,6 @@ export function useUnifiedSearch() {
 	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const relevanceOrderRef = useRef<Map<string, number>>(new Map());
 
-	// Library data sources
 	const allTracks = useAggregatedTracks();
 	const allPlaylists = usePlaylists();
 	const allAlbums = useAggregatedAlbums();
@@ -52,12 +44,10 @@ export function useUnifiedSearch() {
 	const favorites = useFavorites();
 	const downloadedTracksMap = useDownloadedTracks();
 
-	// Explore data sources
 	const searchResults = useSearchStore((s) => s.results);
 	const isSearching = useSearchStore((s) => s.isSearching);
 	const searchError = useSearchStore((s) => s.error);
 
-	// Library filter store
 	const libraryFilterState = useLibraryFilterStore(
 		useShallow((s) => ({
 			sortField: s.sortField,
@@ -73,7 +63,6 @@ export function useUnifiedSearch() {
 		}))
 	);
 
-	// Explore filter store
 	const exploreFilterState = useExploreFilterStore(
 		useShallow((s) => ({
 			sortField: s.sortField,
@@ -89,12 +78,10 @@ export function useUnifiedSearch() {
 		}))
 	);
 
-	// Update relevance order when search results change
 	useEffect(() => {
 		relevanceOrderRef.current = createRelevanceOrderMap(searchResults.tracks);
 	}, [searchResults.tracks]);
 
-	// Cleanup on unmount
 	useEffect(() => {
 		return () => {
 			if (debounceTimerRef.current) {
@@ -107,7 +94,6 @@ export function useUnifiedSearch() {
 	const query = localQuery.trim();
 	const hasQuery = query.length > 0;
 
-	// Library search logic
 	const downloadedIds = useMemo(() => {
 		return new Set(downloadedTracksMap.keys());
 	}, [downloadedTracksMap]);
@@ -140,7 +126,48 @@ export function useUnifiedSearch() {
 		[libraryFilterState.activeFilters]
 	);
 
-	// Library filtered results
+	const matchingDownloadIds = useMemo(() => {
+		if (!hasQuery) return [];
+
+		const queryLower = query.toLowerCase();
+		const matchedIds: string[] = [];
+
+		for (const [trackId, metadata] of downloadedTracksMap) {
+			const titleMatch = metadata.title.toLowerCase().includes(queryLower);
+			const artistMatch = metadata.artistName.toLowerCase().includes(queryLower);
+			const albumMatch = metadata.albumName?.toLowerCase().includes(queryLower) ?? false;
+
+			if (titleMatch || artistMatch || albumMatch) {
+				matchedIds.push(trackId);
+			}
+		}
+
+		return matchedIds;
+	}, [downloadedTracksMap, query, hasQuery]);
+
+	const resolvedDownloadTracks = useResolvedTracks(matchingDownloadIds);
+
+	const downloadsTracks = useMemo(() => {
+		return matchingDownloadIds.map((trackId) => {
+			const resolved = resolvedDownloadTracks.get(trackId);
+			if (resolved) return resolved;
+
+			const metadata = downloadedTracksMap.get(trackId);
+			if (metadata) return createTrackFromDownloadedMetadata(metadata);
+
+			return createTrackFromDownloadedMetadata({
+				trackId,
+				filePath: '',
+				fileSize: 0,
+				downloadedAt: 0,
+				sourcePlugin: 'unknown',
+				format: 'unknown',
+				title: 'Unknown',
+				artistName: 'Unknown',
+			});
+		});
+	}, [matchingDownloadIds, resolvedDownloadTracks, downloadedTracksMap]);
+
 	const libraryTracks = useMemo(() => {
 		if (!hasQuery) return [];
 		const filtered = filterTracks(
@@ -175,7 +202,6 @@ export function useUnifiedSearch() {
 		return filterArtists(allArtists, query);
 	}, [allArtists, query, hasQuery]);
 
-	// Explore filtered results
 	const exploreFilteredTracks = useMemo(() => {
 		return filterSearchResults(
 			searchResults.tracks,
@@ -218,7 +244,6 @@ export function useUnifiedSearch() {
 		return searchResults.artists;
 	}, [searchResults.artists, exploreFilterState.activeFilters.contentType]);
 
-	// Filter options for sheets
 	const libraryFilterArtists = useMemo(() => {
 		const artistMap = new Map<string, { id: string; name: string }>();
 		libraryBaseTracks.forEach((track) => {
@@ -251,7 +276,6 @@ export function useUnifiedSearch() {
 		return extractSearchAlbums(searchResults.tracks);
 	}, [searchResults.tracks]);
 
-	// Search action
 	const search = useCallback((newQuery: string) => {
 		setLocalQuery(newQuery);
 
@@ -266,7 +290,6 @@ export function useUnifiedSearch() {
 			return;
 		}
 
-		// Debounced external search for explore mode
 		debounceTimerRef.current = setTimeout(async () => {
 			await searchService.search(trimmed);
 		}, DEBOUNCE_MS);
@@ -281,7 +304,6 @@ export function useUnifiedSearch() {
 		useSearchStore.getState().clearResults();
 	}, []);
 
-	// Unified computed values (no mode gating)
 	const hasLibraryResults =
 		libraryTracks.length > 0 ||
 		libraryPlaylists.length > 0 ||
@@ -291,7 +313,9 @@ export function useUnifiedSearch() {
 	const hasExploreResults =
 		exploreTracks.length > 0 || exploreAlbums.length > 0 || exploreArtists.length > 0;
 
-	const hasAnyResults = hasLibraryResults || hasExploreResults;
+	const hasDownloadsResults = downloadsTracks.length > 0;
+
+	const hasAnyResults = hasLibraryResults || hasExploreResults || hasDownloadsResults;
 
 	const hasLibraryFilters = hasLibraryActiveFilters(libraryFilterState.activeFilters);
 	const hasExploreFilters = hasActiveSearchFilters(exploreFilterState.activeFilters);
@@ -302,33 +326,30 @@ export function useUnifiedSearch() {
 	const filterCount = libraryFilterCount + exploreFilterCount;
 
 	return {
-		// Query
 		query: localQuery,
 		hasQuery,
 		search,
 		clearSearch,
 
-		// Loading state
 		isSearching,
 		error: searchError,
 
-		// Result flags
 		hasLibraryResults,
 		hasExploreResults,
+		hasDownloadsResults,
 		hasAnyResults,
 
-		// Library results
 		libraryTracks,
 		libraryPlaylists,
 		libraryAlbums: libraryAlbumsFiltered,
 		libraryArtists: libraryArtistsFiltered,
 
-		// Explore results
+		downloadsTracks,
+
 		exploreTracks,
 		exploreAlbums,
 		exploreArtists,
 
-		// Filter state
 		hasFilters,
 		hasLibraryFilters,
 		hasExploreFilters,
@@ -336,7 +357,6 @@ export function useUnifiedSearch() {
 		libraryFilterCount,
 		exploreFilterCount,
 
-		// Library filter controls
 		libraryFilterState: {
 			sortField: libraryFilterState.sortField,
 			sortDirection: libraryFilterState.sortDirection,
@@ -352,7 +372,6 @@ export function useUnifiedSearch() {
 			clearAll: libraryFilterState.clearAll,
 		},
 
-		// Explore filter controls
 		exploreFilterState: {
 			sortField: exploreFilterState.sortField,
 			sortDirection: exploreFilterState.sortDirection,

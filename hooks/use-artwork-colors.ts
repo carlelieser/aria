@@ -1,22 +1,11 @@
-/**
- * useArtworkColors Hook
- *
- * Extracts dominant colors from artwork images for dynamic theming.
- * Uses react-native-image-colors for cross-platform color extraction.
- */
-
 import { useState, useEffect, useRef } from 'react';
 import { getColors, ImageColorsResult } from 'react-native-image-colors';
 import { Platform } from 'react-native';
 
 export interface ArtworkColors {
-	/** Primary/dominant color extracted from the image */
 	readonly dominant: string | null;
-	/** Secondary color (platform-specific) */
 	readonly secondary: string | null;
-	/** Whether colors are currently being extracted */
 	readonly isLoading: boolean;
-	/** Error message if extraction failed */
 	readonly error: string | null;
 }
 
@@ -58,12 +47,6 @@ function extractColorsFromResult(
 	}
 }
 
-/**
- * Hook to extract dominant colors from an artwork URL
- *
- * @param artworkUrl - URL of the artwork image
- * @returns ArtworkColors object with extracted colors and loading state
- */
 export function useArtworkColors(artworkUrl: string | undefined): ArtworkColors {
 	const [colors, setColors] = useState<ArtworkColors>(DEFAULT_COLORS);
 	const prevUrlRef = useRef<string | undefined>(undefined);

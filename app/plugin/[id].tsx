@@ -1,10 +1,3 @@
-/**
- * PluginDetailScreen
- *
- * Display plugin details with enable/disable functionality.
- * Uses file-based routing with plugin ID as parameter.
- */
-
 import { useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
@@ -15,7 +8,7 @@ import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view'
 import { EmptyState } from '@/components/empty-state';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { PluginSettingsSection } from '@/components/plugin/plugin-settings-section';
-import { PuzzleIcon, LockIcon } from 'lucide-react-native';
+import { LockIcon } from 'lucide-react-native';
 import { togglePluginRuntime } from '@/src/application/services/plugin-lifecycle-service';
 import { useAppTheme } from '@/lib/theme';
 import {
@@ -23,6 +16,7 @@ import {
 	categoryLabels,
 	usePluginDisplayStatus,
 	usePluginById,
+	DEFAULT_PLUGIN_ICON,
 } from '@/hooks/use-plugin-display';
 
 export default function PluginDetailScreen() {
@@ -41,7 +35,7 @@ export default function PluginDetailScreen() {
 		return (
 			<PageLayout header={{ title: 'Plugin', showBack: true, compact: true }}>
 				<EmptyState
-					icon={PuzzleIcon}
+					icon={DEFAULT_PLUGIN_ICON}
 					title="Plugin not found"
 					description="This plugin may have been removed"
 				/>
@@ -74,7 +68,7 @@ export default function PluginDetailScreen() {
 						]}
 					>
 						<Icon
-							as={categoryIcons[plugin.category] || PuzzleIcon}
+							as={categoryIcons[plugin.category] || DEFAULT_PLUGIN_ICON}
 							size={40}
 							color={colors.onSurface}
 						/>

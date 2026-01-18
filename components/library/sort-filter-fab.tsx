@@ -60,10 +60,11 @@ export function SortFilterFAB({ filterCount, onPress }: SortFilterFABProps) {
 const styles = StyleSheet.create({
 	container: {
 		position: 'absolute',
-		right: 16,
+		right: 24,
 	},
 	fab: {
 		elevation: 4,
+		bottom: 24,
 	},
 	badge: {
 		position: 'absolute',

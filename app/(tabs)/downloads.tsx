@@ -5,7 +5,7 @@ import { Text, IconButton, SegmentedButtons, Portal, Dialog, Button } from 'reac
 import { Icon } from '@/components/ui/icon';
 import { PageLayout } from '@/components/page-layout';
 import { EmptyState } from '@/components/empty-state';
-import { DownloadIcon, TrashIcon, HardDriveIcon } from 'lucide-react-native';
+import { DownloadIcon, TrashIcon, HardDriveIcon, CheckCircle2Icon, AlertCircleIcon } from 'lucide-react-native';
 import { DownloadListItem } from '@/components/download-list-item';
 import { SelectableDownloadListItem } from '@/components/selectable-download-list-item';
 import { BatchActionBar } from '@/components/batch-action-bar';
@@ -73,16 +73,13 @@ export default function DownloadsScreen() {
 		}
 	}, [selectedTab, activeDownloads, completedDownloads, failedDownloads]);
 
-	// Get track IDs for completed downloads to resolve full track data
 	const completedTrackIds = useMemo(
 		() => completedDownloads.map((d) => d.trackId),
 		[completedDownloads]
 	);
 
-	// Resolve full track data from library/history for completed downloads
 	const resolvedTracks = useResolvedTracks(completedTrackIds);
 
-	// Build queue of tracks for playback (using resolved data where available)
 	const completedTracksQueue = useMemo(() => {
 		return completedDownloads.map((downloadInfo) => {
 			const resolved = resolvedTracks.get(downloadInfo.trackId);
@@ -155,14 +152,17 @@ export default function DownloadsScreen() {
 		{
 			value: 'active',
 			label: `Active${stats.activeCount > 0 ? ` (${stats.activeCount})` : ''}`,
+			icon: () => <Icon as={DownloadIcon} size={18} color={selectedTab === 'active' ? colors.onSecondaryContainer : colors.onSurface} />,
 		},
 		{
 			value: 'completed',
 			label: `Done${stats.completedCount > 0 ? ` (${stats.completedCount})` : ''}`,
+			icon: () => <Icon as={CheckCircle2Icon} size={18} color={selectedTab === 'completed' ? colors.onSecondaryContainer : colors.onSurface} />,
 		},
 		{
 			value: 'failed',
 			label: `Failed${stats.failedCount > 0 ? ` (${stats.failedCount})` : ''}`,
+			icon: () => <Icon as={AlertCircleIcon} size={18} color={selectedTab === 'failed' ? colors.onSecondaryContainer : colors.onSurface} />,
 		},
 	];
 
@@ -192,6 +192,7 @@ export default function DownloadsScreen() {
 
 			<View style={styles.tabsContainer}>
 				<SegmentedButtons
+					density={"small"}
 					value={selectedTab}
 					onValueChange={(value) => setSelectedTab(value as TabType)}
 					buttons={segmentedButtons}

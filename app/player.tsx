@@ -1,10 +1,3 @@
-/**
- * PlayerScreen
- *
- * Full player screen with artwork, controls, and progress.
- * Uses M3 theming.
- */
-
 import { View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -30,7 +23,6 @@ export default function PlayerScreen() {
 	const { colors } = useAppTheme();
 	const showLyrics = useShowLyrics();
 
-	// Fetch lyrics for current track (triggers fetch regardless of display state)
 	useLyrics();
 
 	useEffect(() => {

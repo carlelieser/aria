@@ -1,10 +1,3 @@
-/**
- * useDetailsPageTheme Hook
- *
- * Creates a scoped Material 3 theme from artwork colors for detail pages.
- * Generates a full M3 color palette from the dominant artwork color.
- */
-
 import { useMemo } from 'react';
 import { createMaterial3Theme, Material3Theme } from '@pchmn/expo-material3-theme';
 import { useArtworkColors } from './use-artwork-colors';
@@ -12,19 +5,12 @@ import { useAppTheme } from '@/lib/theme';
 import type { M3ColorScheme } from '@/lib/theme/colors';
 
 export interface DetailsPageTheme {
-	/** Scoped M3 colors derived from artwork */
 	readonly colors: M3ColorScheme;
-	/** Whether the theme is still loading */
 	readonly isLoading: boolean;
-	/** Whether custom colors are active (vs fallback to app theme) */
 	readonly hasCustomColors: boolean;
-	/** The source color used for theme generation */
 	readonly sourceColor: string | null;
 }
 
-/**
- * Generate a scoped theme from a source color
- */
 function generateScopedTheme(
 	sourceColor: string,
 	isDark: boolean,
@@ -43,12 +29,6 @@ function generateScopedTheme(
 	}
 }
 
-/**
- * Hook to create a scoped theme for detail pages based on artwork
- *
- * @param artworkUrl - URL of the artwork image to extract colors from
- * @returns DetailsPageTheme with scoped colors and loading state
- */
 export function useDetailsPageTheme(artworkUrl: string | undefined): DetailsPageTheme {
 	const { colors: appColors, isDark } = useAppTheme();
 	const artworkColors = useArtworkColors(artworkUrl);

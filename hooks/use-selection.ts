@@ -1,9 +1,3 @@
-/**
- * useSelection Hook
- *
- * Integration hook for multi-selection functionality.
- */
-
 import { useCallback } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useSelectionStore } from '@/src/application/state/selection-store';

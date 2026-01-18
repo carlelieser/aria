@@ -252,12 +252,14 @@ export const TrackListItem = memo(function TrackListItem({
 				renderDownloadActions()
 			) : (
 				<>
-					<Text
-						variant="bodySmall"
-						style={[styles.duration, { color: colors.onSurfaceVariant }]}
-					>
-						{duration}
-					</Text>
+					{!track.duration.isZero() && (
+						<Text
+							variant="bodySmall"
+							style={[styles.duration, { color: colors.onSurfaceVariant }]}
+						>
+							{duration}
+						</Text>
+					)}
 					{!hideOptionsMenu && (
 						<TrackOptionsMenu
 							track={track}

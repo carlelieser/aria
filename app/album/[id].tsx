@@ -1,10 +1,3 @@
-/**
- * AlbumScreen
- *
- * Display album details and tracks.
- * Uses the unified DetailsPage component.
- */
-
 import { useEffect, useMemo, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';

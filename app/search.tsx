@@ -1,12 +1,4 @@
-/**
- * Search Tab Screen
- *
- * Unified search combining library and external plugin results.
- * Shows curated content (recently played, favorites, recently added)
- * when idle, and unified search results when a query is entered.
- */
-
-import { useCallback, useMemo, useState, memo } from 'react';
+import { useCallback, useMemo, useState, memo, useEffect, useRef } from 'react';
 import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native';
 import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { Text } from 'react-native-paper';
@@ -23,6 +15,9 @@ import {
 	XIcon,
 	AlertCircleIcon,
 	SearchXIcon,
+	DownloadIcon,
+	LibraryBigIcon,
+	PlugIcon,
 } from 'lucide-react-native';
 import { TrackCard } from '@/components/track-card';
 import { SelectableTrackListItem } from '@/components/selectable-track-list-item';
@@ -125,8 +120,15 @@ export default function SearchScreen() {
 	const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
 	const [isPlaylistPickerOpen, setIsPlaylistPickerOpen] = useState(false);
 	const [selectionSource, setSelectionSource] = useState<'library' | 'explore'>('library');
+	const searchInputRef = useRef<TextInput>(null);
 
-	// Curated content data
+	useEffect(() => {
+		const timeoutId = setTimeout(() => {
+			searchInputRef.current?.focus();
+		}, 100);
+		return () => clearTimeout(timeoutId);
+	}, []);
+
 	const recentlyPlayed = useRecentlyPlayed(10);
 	const favoriteTracks = useFavoriteTracks();
 	const recentlyAdded = useRecentlyAddedTracks(10);
@@ -134,7 +136,6 @@ export default function SearchScreen() {
 
 	const hasCuratedContent = hasHistory || favoriteTracks.length > 0 || recentlyAdded.length > 0;
 
-	// Unified search
 	const {
 		query,
 		hasQuery,
@@ -144,11 +145,13 @@ export default function SearchScreen() {
 		error,
 		hasLibraryResults,
 		hasExploreResults,
+		hasDownloadsResults,
 		hasAnyResults,
 		libraryTracks,
 		libraryPlaylists,
 		libraryAlbums,
 		libraryArtists,
+		downloadsTracks,
 		exploreTracks,
 		exploreAlbums,
 		exploreArtists,
@@ -158,7 +161,6 @@ export default function SearchScreen() {
 		exploreFilterState,
 	} = useUnifiedSearch();
 
-	// Selection state
 	const {
 		isSelectionMode,
 		selectedTrackIds,
@@ -168,7 +170,6 @@ export default function SearchScreen() {
 		toggleTrackSelection,
 	} = useSelection();
 
-	// Batch actions
 	const {
 		downloadSelected,
 		addSelectedToLibrary,
@@ -180,14 +181,12 @@ export default function SearchScreen() {
 		isDeleting,
 	} = useBatchActions();
 
-	// Get tracks for batch operations based on selection source
 	const currentTracks = selectionSource === 'library' ? libraryTracks : exploreTracks;
 	const selectedTracks = useMemo(
 		() => currentTracks.filter((t) => selectedTrackIds.has(t.id.value)),
 		[currentTracks, selectedTrackIds]
 	);
 
-	// Library track handlers
 	const handleLibraryLongPress = useCallback(
 		(track: Track) => {
 			setSelectionSource('library');
@@ -203,7 +202,6 @@ export default function SearchScreen() {
 		[toggleTrackSelection]
 	);
 
-	// Explore track handlers
 	const handleExploreLongPress = useCallback(
 		(track: Track) => {
 			setSelectionSource('explore');
@@ -227,7 +225,6 @@ export default function SearchScreen() {
 		setIsFilterSheetOpen(false);
 	}, []);
 
-	// Batch action handlers
 	const handleBatchAddToQueue = useCallback(() => {
 		addSelectedToQueue(selectedTracks);
 		exitSelectionMode();
@@ -272,7 +269,6 @@ export default function SearchScreen() {
 		[selectedTracks, addSelectedToPlaylist, exitSelectionMode]
 	);
 
-	// Display states
 	const showCuratedContent = !hasQuery;
 	const showLoading = hasQuery && isSearching && !hasAnyResults;
 	const showNoResults = hasQuery && !hasAnyResults && !isSearching;
@@ -284,6 +280,7 @@ export default function SearchScreen() {
 				icon: SearchIcon,
 				title: 'Search',
 				showBorder: false,
+				showBack: true,
 			}}
 		>
 			<View style={styles.searchContainer}>
@@ -300,6 +297,7 @@ export default function SearchScreen() {
 						style={styles.searchIcon}
 					/>
 					<TextInput
+						ref={searchInputRef}
 						value={query}
 						onChangeText={search}
 						style={[styles.searchInput, { color: colors.onSurface }]}
@@ -400,6 +398,7 @@ export default function SearchScreen() {
 					<View style={styles.resultsContainer}>
 						<ResultGroup
 							title="Your Library"
+							icon={LibraryBigIcon}
 							isEmpty={!hasLibraryResults}
 							emptyState={
 								<EmptyState
@@ -423,12 +422,43 @@ export default function SearchScreen() {
 						</ResultGroup>
 
 						<ResultGroup
-							title="From YouTube Music"
+							title="Downloads"
+							icon={DownloadIcon}
+							isEmpty={!hasDownloadsResults}
+							emptyState={
+								<EmptyState
+									icon={DownloadIcon}
+									title="No download matches"
+									description={`"${query}" not found in downloads`}
+									compact
+								/>
+							}
+						>
+							<View style={styles.sectionContent}>
+								{downloadsTracks.slice(0, MAX_RESULTS_PER_SECTION).map((track, index) => (
+									<SelectableTrackListItem
+										key={track.id.value}
+										track={track}
+										source="library"
+										isSelectionMode={isSelectionMode && selectionSource === 'library'}
+										isSelected={selectedTrackIds.has(track.id.value)}
+										onLongPress={handleLibraryLongPress}
+										onSelectionToggle={handleLibrarySelectionToggle}
+										queue={downloadsTracks}
+										queueIndex={index}
+									/>
+								))}
+							</View>
+						</ResultGroup>
+
+						<ResultGroup
+							title="Plugins"
+							icon={PlugIcon}
 							isEmpty={!hasExploreResults && !isSearching}
 							emptyState={
 								<EmptyState
 									icon={SearchXIcon}
-									title="No external results"
+									title="No plugin results"
 									description="Try a different search term"
 									compact
 								/>
@@ -704,6 +734,7 @@ const styles = StyleSheet.create({
 	},
 	resultsContainer: {
 		gap: 32,
+		paddingBottom: 84
 	},
 	curatedSection: {
 		gap: 12,

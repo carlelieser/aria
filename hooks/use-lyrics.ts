@@ -16,7 +16,6 @@ export function useLyrics() {
 	const position = usePlayerStore((state) => state.position);
 	const lastTrackIdRef = useRef<string | null>(null);
 
-	// Fetch lyrics when track changes
 	useEffect(() => {
 		const { clear, setLoading, setLyrics, setError } = useLyricsStore.getState();
 
@@ -28,7 +27,6 @@ export function useLyrics() {
 
 		const trackIdValue = currentTrack.id.value;
 
-		// Skip if same track
 		if (lastTrackIdRef.current === trackIdValue) {
 			return;
 		}
@@ -55,7 +53,6 @@ export function useLyrics() {
 		fetchLyrics();
 	}, [currentTrack]);
 
-	// Update current line index based on position
 	useEffect(() => {
 		if (!lyrics?.syncedLyrics) {
 			return;

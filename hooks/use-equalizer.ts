@@ -51,10 +51,6 @@ export function useEqualizer() {
 	};
 }
 
-/**
- * Hook to initialize the native equalizer on mount.
- * Call this once at app startup.
- */
 export function useEqualizerInit() {
 	const initializeNative = useEqualizerStore((state) => state.initializeNative);
 

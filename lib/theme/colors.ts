@@ -1,10 +1,3 @@
-/**
- * Material 3 Color System
- *
- * Generated from seed color: #7C3AED (Violet-600)
- * These are static fallback colors when dynamic theming is unavailable.
- */
-
 export const SEED_COLOR = '#7C3AED';
 
 export const M3Colors = {
@@ -40,7 +33,6 @@ export const M3Colors = {
 		outline: '#79747E',
 		outlineVariant: '#CAC4D0',
 
-		// Surface container variants for M3 elevation
 		surfaceContainerLowest: '#FFFFFF',
 		surfaceContainerLow: '#F7F2FA',
 		surfaceContainer: '#F3EDF7',
@@ -56,7 +48,6 @@ export const M3Colors = {
 
 		surfaceTint: '#6750A4',
 
-		// Elevation surfaces (tonal elevation)
 		elevation: {
 			level0: 'transparent',
 			level1: '#F7F2FA',
@@ -99,7 +90,6 @@ export const M3Colors = {
 		outline: '#938F99',
 		outlineVariant: '#49454F',
 
-		// Surface container variants for M3 elevation
 		surfaceContainerLowest: '#0F0D13',
 		surfaceContainerLow: '#1D1B20',
 		surfaceContainer: '#211F26',
@@ -115,7 +105,6 @@ export const M3Colors = {
 
 		surfaceTint: '#D0BCFF',
 
-		// Elevation surfaces (tonal elevation in dark mode)
 		elevation: {
 			level0: 'transparent',
 			level1: '#2B2930',

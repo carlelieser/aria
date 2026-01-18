@@ -1,9 +1,3 @@
-/**
- * useBatchActions Hook
- *
- * Hook for executing batch operations on selected tracks.
- */
-
 import { useState, useCallback } from 'react';
 import type { Track } from '@/src/domain/entities/track';
 import { downloadService } from '@/src/application/services/download-service';
@@ -67,7 +61,6 @@ export function useBatchActions(): UseBatchActionsResult {
 			setIsDownloading(true);
 			setDownloadProgress({ completed: 0, total: tracksToDownload.length, failed: 0 });
 
-			// Defer download operations to next frame to avoid blocking UI
 			setTimeout(async () => {
 				let completed = 0;
 				let failed = 0;
@@ -210,7 +203,6 @@ export function useBatchActions(): UseBatchActionsResult {
 		(playlistId: string, positions: number[]) => {
 			if (positions.length === 0) return;
 
-			// Sort positions in descending order to avoid index shifting issues
 			const sortedPositions = [...positions].sort((a, b) => b - a);
 			for (const position of sortedPositions) {
 				removeTrackFromPlaylist(playlistId, position);

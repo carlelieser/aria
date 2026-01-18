@@ -3,24 +3,25 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
-export type TabId = 'index' | 'search' | 'downloads' | 'settings';
+export type TabId = 'index' | 'downloads' | 'settings';
 export type DefaultTab = TabId;
 export type LibraryTabId = 'songs' | 'playlists' | 'artists' | 'albums';
 
-export const DEFAULT_TAB_ORDER: TabId[] = ['index', 'search', 'downloads', 'settings'];
-export const DEFAULT_ENABLED_TABS: TabId[] = ['index', 'search', 'downloads', 'settings'];
+export const DEFAULT_TAB_ORDER: TabId[] = ['index', 'downloads', 'settings'];
+export const DEFAULT_ENABLED_TABS: TabId[] = ['index', 'downloads', 'settings'];
 export const REQUIRED_TABS: TabId[] = ['settings'];
 
 /**
- * Migrates legacy 'explore' tab ID to 'search' for existing users.
+ * Migrates legacy tab IDs for existing users.
+ * Removes 'explore' and 'search' tabs that no longer exist.
  */
-function migrateTabId(tabId: string): TabId {
-	if (tabId === 'explore') return 'search';
+function migrateTabId(tabId: string): TabId | null {
+	if (tabId === 'explore' || tabId === 'search') return null;
 	return tabId as TabId;
 }
 
 function migrateTabIds(tabIds: string[]): TabId[] {
-	return tabIds.map(migrateTabId);
+	return tabIds.map(migrateTabId).filter((id): id is TabId => id !== null);
 }
 
 interface SettingsState {
@@ -119,14 +120,17 @@ export const useSettingsStore = create<SettingsState>()(
 		{
 			name: 'aria-settings-storage',
 			storage: createJSONStorage(() => customStorage),
-			version: 1,
+			version: 2,
 			migrate: (persistedState, version) => {
 				const state = persistedState as Partial<SettingsState>;
-				// Version 0 -> 1: Migrate 'explore' to 'search'
-				if (version === 0) {
+				// Version 0/1 -> 2: Remove 'explore' and 'search' tabs (now a modal)
+				if (version < 2) {
+					const migratedDefaultTab = state.defaultTab
+						? migrateTabId(state.defaultTab)
+						: null;
 					return {
 						...state,
-						defaultTab: state.defaultTab ? migrateTabId(state.defaultTab) : 'index',
+						defaultTab: migratedDefaultTab ?? 'index',
 						tabOrder: state.tabOrder
 							? migrateTabIds(state.tabOrder)
 							: DEFAULT_TAB_ORDER,

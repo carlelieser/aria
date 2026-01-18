@@ -21,22 +21,11 @@ import { createArtwork } from '@/src/domain/value-objects/artwork';
 
 const LOCAL_LIBRARY_SOURCE = 'local-library';
 
-/**
- * Threshold for deferring heavy computations.
- * If combined track count exceeds this, we defer recomputation.
- */
 const DEFERRED_COMPUTATION_THRESHOLD = 200;
 
-/**
- * Higher threshold for deferral when resuming from long background
- * to avoid UI jank during critical resume period.
- */
 const RESUME_DEFERRED_THRESHOLD = 100;
 
-/**
- * Debounce time for recomputation during rapid state changes
- */
-const DEBOUNCE_MS = 16; // ~1 frame at 60fps
+const DEBOUNCE_MS = 16;
 
 function mapLocalTrackToTrack(localTrack: LocalTrack): Track {
 	const extension = localTrack.filePath.split('.').pop()?.toLowerCase() as
@@ -98,10 +87,6 @@ let cachedAggregatedTracks: Track[] = [];
 let cachedLibraryTracks: Track[] | null = null;
 let cachedLocalTracks: Record<string, LocalTrack> | null = null;
 
-/**
- * Compute aggregated tracks from library and local tracks.
- * This is extracted to allow both sync and deferred execution.
- */
 function computeAggregatedTracks(
 	libraryTracks: Track[],
 	localTracks: Record<string, LocalTrack>
@@ -122,35 +107,27 @@ export function useAggregatedTracks(): Track[] {
 	const isComputingRef = useRef(false);
 	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-	// Check if data has changed
 	const hasChanged = libraryTracks !== cachedLibraryTracks || localTracks !== cachedLocalTracks;
 
-	// Determine if we should defer computation
-	// Use lower threshold when resuming from long background
 	const totalCount = libraryTracks.length + Object.keys(localTracks).length;
 	const threshold = appResumeManager.wasLongBackground()
 		? RESUME_DEFERRED_THRESHOLD
 		: DEFERRED_COMPUTATION_THRESHOLD;
 	const shouldDefer = hasChanged && totalCount > threshold;
 
-	// Effect for deferred computation with debouncing
 	useEffect(() => {
 		if (!shouldDefer || isComputingRef.current) return;
 
-		// Clear any pending debounce
 		if (debounceTimerRef.current) {
 			clearTimeout(debounceTimerRef.current);
 		}
 
-		// Debounce rapid state changes to avoid multiple recomputations
 		debounceTimerRef.current = setTimeout(() => {
 			isComputingRef.current = true;
 
-			// Defer heavy computation until after interactions complete
 			const handle = InteractionManager.runAfterInteractions(() => {
 				const result = computeAggregatedTracks(libraryTracks, localTracks);
 
-				// Update cache
 				cachedAggregatedTracks = result;
 				cachedLibraryTracks = libraryTracks;
 				cachedLocalTracks = localTracks;
@@ -159,7 +136,6 @@ export function useAggregatedTracks(): Track[] {
 				isComputingRef.current = false;
 			});
 
-			// Cleanup handler reference for cancellation
 			debounceTimerRef.current = null;
 
 			return () => {
@@ -177,20 +153,15 @@ export function useAggregatedTracks(): Track[] {
 		};
 	}, [shouldDefer, libraryTracks, localTracks]);
 
-	// Use memoized sync computation for small libraries or when cache is valid
 	return useMemo(() => {
-		// Return cached result if nothing changed
 		if (!hasChanged) {
 			return cachedAggregatedTracks;
 		}
 
-		// For large libraries, return cached while computing in background
 		if (shouldDefer) {
-			// Return deferred result if available, otherwise return stale cache
 			return deferredResult ?? cachedAggregatedTracks;
 		}
 
-		// For small libraries, compute synchronously
 		const result = computeAggregatedTracks(libraryTracks, localTracks);
 
 		cachedAggregatedTracks = result;
@@ -206,9 +177,6 @@ let cachedLibraryArtistsRef: Track[] | null = null;
 let cachedLocalArtistsRef: Record<string, LocalArtist> | null = null;
 let cachedLocalTracksForArtists: Record<string, LocalTrack> | null = null;
 
-/**
- * Compute aggregated artists from library and local data.
- */
 function computeAggregatedArtists(
 	libraryTracks: Track[],
 	localArtists: Record<string, LocalArtist>,
@@ -343,9 +311,6 @@ let cachedAggregatedAlbums: UniqueAlbum[] = [];
 let cachedLibraryAlbumsRef: Track[] | null = null;
 let cachedLocalAlbumsRef: Record<string, LocalAlbum> | null = null;
 
-/**
- * Compute aggregated albums from library and local data.
- */
 function computeAggregatedAlbums(
 	libraryTracks: Track[],
 	localAlbums: Record<string, LocalAlbum>

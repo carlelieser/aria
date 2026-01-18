@@ -16,12 +16,14 @@ import Animated, {
 	FadeOut,
 } from 'react-native-reanimated';
 import { ChevronDownIcon } from 'lucide-react-native';
+import type { LucideIcon } from 'lucide-react-native';
 import { Icon } from '@/components/ui/icon';
 import { useAppTheme } from '@/lib/theme';
 
 interface ResultGroupProps {
 	readonly title: string;
 	readonly subtitle?: string;
+	readonly icon?: LucideIcon;
 	readonly children: React.ReactNode;
 	readonly defaultExpanded?: boolean;
 	readonly isEmpty?: boolean;
@@ -31,6 +33,7 @@ interface ResultGroupProps {
 export function ResultGroup({
 	title,
 	subtitle,
+	icon: IconComponent,
 	children,
 	defaultExpanded = true,
 	isEmpty = false,
@@ -58,24 +61,30 @@ export function ResultGroup({
 
 	return (
 		<View style={styles.container}>
-			<Pressable onPress={handleToggle} style={styles.header}>
-				<View style={styles.headerText}>
-					<Text variant="titleMedium" style={[styles.title, { color: colors.onSurface }]}>
-						{title}
-					</Text>
-					{subtitle && (
-						<Text
-							variant="bodySmall"
-							style={[styles.subtitle, { color: colors.onSurfaceVariant }]}
-						>
-							{subtitle}
-						</Text>
+			<View>
+				<Pressable onPress={handleToggle} style={styles.header}>
+					{IconComponent && (
+						<Icon as={IconComponent} size={20} color={colors.primary} />
 					)}
-				</View>
-				<Animated.View style={chevronStyle}>
-					<Icon as={ChevronDownIcon} size={20} color={colors.onSurfaceVariant} />
-				</Animated.View>
-			</Pressable>
+					<View style={styles.headerText}>
+						<Text variant="titleMedium" style={[styles.title, { color: colors.onSurface }]}>
+							{title}
+						</Text>
+						{subtitle && (
+							<Text
+								variant="bodySmall"
+								style={[styles.subtitle, { color: colors.onSurfaceVariant }]}
+							>
+								{subtitle}
+							</Text>
+						)}
+					</View>
+					<Animated.View style={chevronStyle}>
+						<Icon as={ChevronDownIcon} size={20} color={colors.onSurfaceVariant} />
+					</Animated.View>
+				</Pressable>
+				<View style={[styles.divider, { backgroundColor: colors.outlineVariant }]} />
+			</View>
 
 			{isExpanded && (
 				<Animated.View
@@ -102,6 +111,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'space-between',
+		gap: 12,
 		paddingHorizontal: 16,
 		paddingVertical: 8,
 	},
@@ -114,6 +124,10 @@ const styles = StyleSheet.create({
 	},
 	subtitle: {
 		fontSize: 12,
+	},
+	divider: {
+		height: 1,
+		width: '100%',
 	},
 	content: {
 		gap: 16,

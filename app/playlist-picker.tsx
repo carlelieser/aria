@@ -1,10 +1,3 @@
-/**
- * PlaylistPickerScreen
- *
- * Select or create a playlist to add a track to.
- * Uses M3 theming.
- */
-
 import { useState } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';

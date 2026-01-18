@@ -1,10 +1,3 @@
-/**
- * Plugin Display Hooks
- *
- * Shared hooks and utilities for displaying plugin information.
- * Used by both the plugins list screen and plugin detail screen.
- */
-
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import type { LucideIcon } from 'lucide-react-native';
 import {
@@ -16,6 +9,10 @@ import {
 	XCircleIcon,
 	AlertCircleIcon,
 	LoaderIcon,
+	PlugIcon,
+	MicIcon,
+	SparklesIcon,
+	WavesIcon,
 } from 'lucide-react-native';
 import { PluginRegistry } from '@/src/plugins/core/registry/plugin-registry';
 import { PluginManifestRegistry } from '@/src/plugins/core/registry/plugin-manifest-registry';
@@ -46,11 +43,13 @@ export const categoryIcons: Record<PluginCategory, LucideIcon> = {
 	'audio-source-provider': MusicIcon,
 	'playback-provider': PlayCircleIcon,
 	'sync-provider': CloudIcon,
-	'lyrics-provider': MusicIcon,
-	recommendation: MusicIcon,
-	visualizer: MusicIcon,
+	'lyrics-provider': MicIcon,
+	recommendation: SparklesIcon,
+	visualizer: WavesIcon,
 	'actions-provider': LibraryBigIcon,
 };
+
+export const DEFAULT_PLUGIN_ICON: LucideIcon = PlugIcon;
 
 export const categoryLabels: Record<PluginCategory, string> = {
 	'metadata-provider': 'Music Sources',

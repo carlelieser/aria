@@ -1,12 +1,3 @@
-/**
- * Global Error Capture
- *
- * Captures and logs all errors that might otherwise be swallowed:
- * - React component errors (via ErrorBoundary)
- * - Unhandled JS errors
- * - Unhandled promise rejections
- */
-
 import React, { Component, type ReactNode, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';

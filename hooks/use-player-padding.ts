@@ -1,10 +1,3 @@
-/**
- * usePlayerPadding
- *
- * Returns bottom padding style when the floating player is visible.
- * Use this with any scrollable component's contentContainerStyle.
- */
-
 import { useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import { useCurrentTrack } from '@/src/application/state/player-store';

@@ -29,7 +29,7 @@ import {
 	ArtistListSkeleton,
 	AlbumListSkeleton,
 } from '@/components/skeletons';
-import { ActiveFiltersBar, SortFilterFAB, LibrarySortFilterSheet } from '@/components/library';
+import { ActiveFiltersBar, LibrarySortFilterSheet } from '@/components/library';
 import { useLibraryFilter } from '@/hooks/use-library-filter';
 import { useUniqueFilterOptions } from '@/hooks/use-unique-filter-options';
 import { useSelection } from '@/hooks/use-selection';
@@ -46,7 +46,6 @@ export default function HomeScreen() {
 	const [isPlaylistPickerOpen, setIsPlaylistPickerOpen] = useState(false);
 	const hasAppliedDefaultRef = useRef(false);
 
-	// Sync with persisted default after store hydration
 	useEffect(() => {
 		if (hasAppliedDefaultRef.current) return;
 
@@ -78,7 +77,6 @@ export default function HomeScreen() {
 		toggleSortDirection,
 		activeFilters,
 		hasFilters,
-		filterCount,
 		toggleArtistFilter,
 		toggleAlbumFilter,
 		toggleFavoritesOnly,
@@ -110,10 +108,6 @@ export default function HomeScreen() {
 		() => filteredTracks.filter((t) => selectedTrackIds.has(t.id.value)),
 		[filteredTracks, selectedTrackIds]
 	);
-
-	const handleOpenFilterSheet = useCallback(() => {
-		setIsFilterSheetOpen(true);
-	}, []);
 
 	const handleCloseFilterSheet = useCallback(() => {
 		setIsFilterSheetOpen(false);
@@ -187,6 +181,7 @@ export default function HomeScreen() {
 		>
 			<View style={styles.tabsRow}>
 				<SegmentedButtons
+					density={"small"}
 					value={selected}
 					onValueChange={(value) => setSelected(value as ChipType)}
 					buttons={segmentedButtons}
@@ -226,10 +221,6 @@ export default function HomeScreen() {
 				{selected === 'albums' && <AlbumsList albums={albums} isLoading={isLoading} />}
 				{selected === 'artists' && <ArtistsList artists={artists} isLoading={isLoading} />}
 			</View>
-
-			{isSongsTab && !isSelectionMode && (
-				<SortFilterFAB filterCount={filterCount} onPress={handleOpenFilterSheet} />
-			)}
 
 			<LibrarySortFilterSheet
 				isOpen={isFilterSheetOpen}
