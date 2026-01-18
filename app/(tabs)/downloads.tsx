@@ -114,8 +114,6 @@ export default function DownloadsScreen() {
 		exitSelectionMode();
 	}, [selectedTrackIds, deleteSelectedDownloads, exitSelectionMode]);
 
-	const isCompletedTab = tabIndex === 1;
-
 	const handleSearch = useCallback(() => {
 		router.push('/search');
 	}, []);

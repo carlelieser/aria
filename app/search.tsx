@@ -17,8 +17,6 @@ import {
 	AlertCircleIcon,
 	SearchXIcon,
 	DownloadIcon,
-	LibraryBigIcon,
-	PlugIcon,
 } from 'lucide-react-native';
 import { TrackCard } from '@/components/track-card';
 import { SelectableTrackListItem } from '@/components/selectable-track-list-item';
