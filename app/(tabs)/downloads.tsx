@@ -1,11 +1,13 @@
 import { useState, useMemo, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { Text, IconButton, SegmentedButtons, Portal, Dialog, Button } from 'react-native-paper';
+import { Text, IconButton, Portal, Dialog, Button } from 'react-native-paper';
+import { TabsProvider, Tabs, TabScreen } from 'react-native-paper-tabs';
 import { Icon } from '@/components/ui/icon';
 import { PageLayout } from '@/components/page-layout';
 import { EmptyState } from '@/components/empty-state';
-import { DownloadIcon, TrashIcon, HardDriveIcon, CheckCircle2Icon, AlertCircleIcon } from 'lucide-react-native';
+import { DownloadIcon, TrashIcon, HardDriveIcon, CheckCircle2Icon, AlertCircleIcon, SearchIcon } from 'lucide-react-native';
+import { router } from 'expo-router';
 import { DownloadListItem } from '@/components/download-list-item';
 import { SelectableDownloadListItem } from '@/components/selectable-download-list-item';
 import { BatchActionBar } from '@/components/batch-action-bar';
@@ -20,14 +22,13 @@ import { useResolvedTracks } from '@/hooks/use-resolved-track';
 import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
 import { createTrackFromDownloadInfo } from '@/src/domain/utils/create-track-from-download';
+import type { DownloadInfo } from '@/src/domain/value-objects/download-state';
 
 const BATCH_ACTION_BAR_PADDING = 120;
 const DEFAULT_CONTENT_PADDING = 20;
 
-type TabType = 'active' | 'completed' | 'failed';
-
 export default function DownloadsScreen() {
-	const [selectedTab, setSelectedTab] = useState<TabType>('active');
+	const [tabIndex, setTabIndex] = useState(0);
 	const [clearDialogVisible, setClearDialogVisible] = useState(false);
 	const { success, error } = useToast();
 	const { colors } = useAppTheme();
@@ -60,19 +61,6 @@ export default function DownloadsScreen() {
 		}
 	}, [success, error]);
 
-	const currentList = useMemo(() => {
-		switch (selectedTab) {
-			case 'active':
-				return activeDownloads;
-			case 'completed':
-				return completedDownloads;
-			case 'failed':
-				return failedDownloads;
-			default:
-				return [];
-		}
-	}, [selectedTab, activeDownloads, completedDownloads, failedDownloads]);
-
 	const completedTrackIds = useMemo(
 		() => completedDownloads.map((d) => d.trackId),
 		[completedDownloads]
@@ -89,11 +77,11 @@ export default function DownloadsScreen() {
 
 	const handleLongPress = useCallback(
 		(track: Track) => {
-			if (selectedTab === 'completed') {
+			if (tabIndex === 1) {
 				enterSelectionMode(track.id.value);
 			}
 		},
-		[selectedTab, enterSelectionMode]
+		[tabIndex, enterSelectionMode]
 	);
 
 	const handleRetry = useCallback(
@@ -126,54 +114,30 @@ export default function DownloadsScreen() {
 		exitSelectionMode();
 	}, [selectedTrackIds, deleteSelectedDownloads, exitSelectionMode]);
 
-	const isCompletedTab = selectedTab === 'completed';
+	const isCompletedTab = tabIndex === 1;
 
-	const getEmptyMessage = () => {
-		switch (selectedTab) {
-			case 'active':
-				return {
-					title: 'No active downloads',
-					description: 'Downloads will appear here when you start downloading tracks',
-				};
-			case 'completed':
-				return {
-					title: 'No completed downloads',
-					description: 'Completed downloads will appear here',
-				};
-			case 'failed':
-				return {
-					title: 'No failed downloads',
-					description: 'Failed downloads will appear here for retry',
-				};
-		}
-	};
+	const handleSearch = useCallback(() => {
+		router.push('/search');
+	}, []);
 
-	const segmentedButtons = [
-		{
-			value: 'active',
-			label: `Active${stats.activeCount > 0 ? ` (${stats.activeCount})` : ''}`,
-			icon: () => <Icon as={DownloadIcon} size={18} color={selectedTab === 'active' ? colors.onSecondaryContainer : colors.onSurface} />,
-		},
-		{
-			value: 'completed',
-			label: `Done${stats.completedCount > 0 ? ` (${stats.completedCount})` : ''}`,
-			icon: () => <Icon as={CheckCircle2Icon} size={18} color={selectedTab === 'completed' ? colors.onSecondaryContainer : colors.onSurface} />,
-		},
-		{
-			value: 'failed',
-			label: `Failed${stats.failedCount > 0 ? ` (${stats.failedCount})` : ''}`,
-			icon: () => <Icon as={AlertCircleIcon} size={18} color={selectedTab === 'failed' ? colors.onSecondaryContainer : colors.onSurface} />,
-		},
-	];
-
-	const headerRightActions =
-		stats.completedCount > 0 ? (
+	const headerRightActions = (
+		<>
+			{stats.completedCount > 0 && (
+				<IconButton
+					icon={() => <Icon as={TrashIcon} size={20} color={colors.onSurfaceVariant} />}
+					onPress={() => setClearDialogVisible(true)}
+				/>
+			)}
 			<IconButton
-				icon={() => <Icon as={TrashIcon} size={20} color={colors.onSurfaceVariant} />}
-				onPress={() => setClearDialogVisible(true)}
-				size={14}
+				icon={() => <Icon as={SearchIcon} size={22} color={colors.onSurfaceVariant} />}
+				onPress={handleSearch}
 			/>
-		) : undefined;
+		</>
+	);
+
+	const activeLabel = `Active${stats.activeCount > 0 ? ` (${stats.activeCount})` : ''}`;
+	const doneLabel = `Done${stats.completedCount > 0 ? ` (${stats.completedCount})` : ''}`;
+	const failedLabel = `Failed${stats.failedCount > 0 ? ` (${stats.failedCount})` : ''}`;
 
 	return (
 		<PageLayout
@@ -190,54 +154,40 @@ export default function DownloadsScreen() {
 				</Text>
 			</View>
 
-			<View style={styles.tabsContainer}>
-				<SegmentedButtons
-					density={"small"}
-					value={selectedTab}
-					onValueChange={(value) => setSelectedTab(value as TabType)}
-					buttons={segmentedButtons}
-				/>
-			</View>
-
 			<View style={styles.content}>
-				{currentList.length === 0 ? (
-					<EmptyState icon={DownloadIcon} {...getEmptyMessage()} />
-				) : (
-					<FlashList
-						data={currentList}
-						keyExtractor={(item) => item.trackId}
-						renderItem={({ item, index }) => {
-							if (isCompletedTab) {
-								return (
-									<SelectableDownloadListItem
-										downloadInfo={item}
-										isSelectionMode={isSelectionMode}
-										isSelected={selectedTrackIds.has(item.trackId)}
-										onLongPress={handleLongPress}
-										onSelectionToggle={handleSelectionToggle}
-										queue={completedTracksQueue}
-										queueIndex={index}
-									/>
-								);
-							}
-
-							return (
-								<DownloadListItem
-									downloadInfo={item}
-									onRetry={item.status === 'failed' ? handleRetry : undefined}
+				<TabsProvider defaultIndex={tabIndex} onChangeIndex={setTabIndex}>
+					<Tabs
+						uppercase={false}
+						mode="fixed"
+						style={{ backgroundColor: colors.surface }}
+					>
+						<TabScreen label={activeLabel} icon="download">
+							<View style={styles.tabContent}>
+								<ActiveDownloadsList downloads={activeDownloads} />
+							</View>
+						</TabScreen>
+						<TabScreen label={doneLabel} icon="check-circle">
+							<View style={styles.tabContent}>
+								<CompletedDownloadsList
+									downloads={completedDownloads}
+									tracksQueue={completedTracksQueue}
+									isSelectionMode={isSelectionMode}
+									selectedTrackIds={selectedTrackIds}
+									onLongPress={handleLongPress}
+									onSelectionToggle={handleSelectionToggle}
 								/>
-							);
-						}}
-						showsVerticalScrollIndicator={false}
-						contentContainerStyle={{
-							paddingBottom:
-								isSelectionMode && isCompletedTab
-									? BATCH_ACTION_BAR_PADDING
-									: DEFAULT_CONTENT_PADDING,
-						}}
-						extraData={isSelectionMode ? selectedTrackIds : undefined}
-					/>
-				)}
+							</View>
+						</TabScreen>
+						<TabScreen label={failedLabel} icon="alert-circle">
+							<View style={styles.tabContent}>
+								<FailedDownloadsList
+									downloads={failedDownloads}
+									onRetry={handleRetry}
+								/>
+							</View>
+						</TabScreen>
+					</Tabs>
+				</TabsProvider>
 			</View>
 
 			<BatchActionBar
@@ -269,6 +219,112 @@ export default function DownloadsScreen() {
 	);
 }
 
+interface ActiveDownloadsListProps {
+	downloads: DownloadInfo[];
+}
+
+function ActiveDownloadsList({ downloads }: ActiveDownloadsListProps) {
+	if (downloads.length === 0) {
+		return (
+			<EmptyState
+				icon={DownloadIcon}
+				title="No active downloads"
+				description="Downloads will appear here when you start downloading tracks"
+			/>
+		);
+	}
+
+	return (
+		<FlashList
+			data={downloads}
+			keyExtractor={(item) => item.trackId}
+			renderItem={({ item }) => <DownloadListItem downloadInfo={item} />}
+			showsVerticalScrollIndicator={false}
+			contentContainerStyle={{ paddingBottom: DEFAULT_CONTENT_PADDING }}
+		/>
+	);
+}
+
+interface CompletedDownloadsListProps {
+	downloads: DownloadInfo[];
+	tracksQueue: Track[];
+	isSelectionMode: boolean;
+	selectedTrackIds: Set<string>;
+	onLongPress: (track: Track) => void;
+	onSelectionToggle: (track: Track) => void;
+}
+
+function CompletedDownloadsList({
+	downloads,
+	tracksQueue,
+	isSelectionMode,
+	selectedTrackIds,
+	onLongPress,
+	onSelectionToggle,
+}: CompletedDownloadsListProps) {
+	if (downloads.length === 0) {
+		return (
+			<EmptyState
+				icon={CheckCircle2Icon}
+				title="No completed downloads"
+				description="Completed downloads will appear here"
+			/>
+		);
+	}
+
+	return (
+		<FlashList
+			data={downloads}
+			keyExtractor={(item) => item.trackId}
+			renderItem={({ item, index }) => (
+				<SelectableDownloadListItem
+					downloadInfo={item}
+					isSelectionMode={isSelectionMode}
+					isSelected={selectedTrackIds.has(item.trackId)}
+					onLongPress={onLongPress}
+					onSelectionToggle={onSelectionToggle}
+					queue={tracksQueue}
+					queueIndex={index}
+				/>
+			)}
+			showsVerticalScrollIndicator={false}
+			contentContainerStyle={{
+				paddingBottom: isSelectionMode ? BATCH_ACTION_BAR_PADDING : DEFAULT_CONTENT_PADDING,
+			}}
+			extraData={isSelectionMode ? selectedTrackIds : undefined}
+		/>
+	);
+}
+
+interface FailedDownloadsListProps {
+	downloads: DownloadInfo[];
+	onRetry: (track: Track) => void;
+}
+
+function FailedDownloadsList({ downloads, onRetry }: FailedDownloadsListProps) {
+	if (downloads.length === 0) {
+		return (
+			<EmptyState
+				icon={AlertCircleIcon}
+				title="No failed downloads"
+				description="Failed downloads will appear here for retry"
+			/>
+		);
+	}
+
+	return (
+		<FlashList
+			data={downloads}
+			keyExtractor={(item) => item.trackId}
+			renderItem={({ item }) => (
+				<DownloadListItem downloadInfo={item} onRetry={onRetry} />
+			)}
+			showsVerticalScrollIndicator={false}
+			contentContainerStyle={{ paddingBottom: DEFAULT_CONTENT_PADDING }}
+		/>
+	);
+}
+
 const styles = StyleSheet.create({
 	statsRow: {
 		flexDirection: 'row',
@@ -278,11 +334,10 @@ const styles = StyleSheet.create({
 		paddingVertical: 12,
 		borderBottomWidth: 1,
 	},
-	tabsContainer: {
-		paddingHorizontal: 16,
-		paddingVertical: 12,
-	},
 	content: {
+		flex: 1,
+	},
+	tabContent: {
 		flex: 1,
 		paddingHorizontal: 16,
 	},

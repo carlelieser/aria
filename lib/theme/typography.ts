@@ -1,34 +1,30 @@
-import { Platform, TextStyle } from 'react-native';
+import { TextStyle } from 'react-native';
 
-const getFontFamily = (): string => {
-	if (Platform.OS === 'ios') {
-		return 'System';
-	}
-	if (Platform.OS === 'android') {
-		return 'Roboto';
-	}
-	return 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-};
-
-const baseFontFamily = getFontFamily();
+export const FontFamily = {
+	regular: 'GoogleSans-Regular',
+	medium: 'GoogleSans-Medium',
+	semiBold: 'GoogleSans-SemiBold',
+	bold: 'GoogleSans-Bold',
+	italic: 'GoogleSans-Italic',
+} as const;
 
 export const M3Typography = {
 	displayLarge: {
-		fontFamily: baseFontFamily,
+		fontFamily: FontFamily.regular,
 		fontSize: 57,
 		lineHeight: 64,
 		fontWeight: '400' as TextStyle['fontWeight'],
 		letterSpacing: -0.25,
 	},
 	displayMedium: {
-		fontFamily: baseFontFamily,
+		fontFamily: FontFamily.regular,
 		fontSize: 45,
 		lineHeight: 52,
 		fontWeight: '400' as TextStyle['fontWeight'],
 		letterSpacing: 0,
 	},
 	displaySmall: {
-		fontFamily: baseFontFamily,
+		fontFamily: FontFamily.regular,
 		fontSize: 36,
 		lineHeight: 44,
 		fontWeight: '400' as TextStyle['fontWeight'],
@@ -36,21 +32,21 @@ export const M3Typography = {
 	},
 
 	headlineLarge: {
-		fontFamily: baseFontFamily,
+		fontFamily: FontFamily.regular,
 		fontSize: 32,
 		lineHeight: 40,
 		fontWeight: '400' as TextStyle['fontWeight'],
 		letterSpacing: 0,
 	},
 	headlineMedium: {
-		fontFamily: baseFontFamily,
+		fontFamily: FontFamily.regular,
 		fontSize: 28,
 		lineHeight: 36,
 		fontWeight: '400' as TextStyle['fontWeight'],
 		letterSpacing: 0,
 	},
 	headlineSmall: {
-		fontFamily: baseFontFamily,
+		fontFamily: FontFamily.regular,
 		fontSize: 24,
 		lineHeight: 32,
 		fontWeight: '400' as TextStyle['fontWeight'],
@@ -58,21 +54,21 @@ export const M3Typography = {
 	},
 
 	titleLarge: {
-		fontFamily: baseFontFamily,
+		fontFamily: FontFamily.regular,
 		fontSize: 22,
 		lineHeight: 28,
 		fontWeight: '400' as TextStyle['fontWeight'],
 		letterSpacing: 0,
 	},
 	titleMedium: {
-		fontFamily: baseFontFamily,
+		fontFamily: FontFamily.medium,
 		fontSize: 16,
 		lineHeight: 24,
 		fontWeight: '500' as TextStyle['fontWeight'],
 		letterSpacing: 0.15,
 	},
 	titleSmall: {
-		fontFamily: baseFontFamily,
+		fontFamily: FontFamily.medium,
 		fontSize: 14,
 		lineHeight: 20,
 		fontWeight: '500' as TextStyle['fontWeight'],
@@ -80,21 +76,21 @@ export const M3Typography = {
 	},
 
 	bodyLarge: {
-		fontFamily: baseFontFamily,
+		fontFamily: FontFamily.regular,
 		fontSize: 16,
 		lineHeight: 24,
 		fontWeight: '400' as TextStyle['fontWeight'],
 		letterSpacing: 0.5,
 	},
 	bodyMedium: {
-		fontFamily: baseFontFamily,
+		fontFamily: FontFamily.regular,
 		fontSize: 14,
 		lineHeight: 20,
 		fontWeight: '400' as TextStyle['fontWeight'],
 		letterSpacing: 0.25,
 	},
 	bodySmall: {
-		fontFamily: baseFontFamily,
+		fontFamily: FontFamily.regular,
 		fontSize: 12,
 		lineHeight: 16,
 		fontWeight: '400' as TextStyle['fontWeight'],
@@ -102,21 +98,21 @@ export const M3Typography = {
 	},
 
 	labelLarge: {
-		fontFamily: baseFontFamily,
+		fontFamily: FontFamily.medium,
 		fontSize: 14,
 		lineHeight: 20,
 		fontWeight: '500' as TextStyle['fontWeight'],
 		letterSpacing: 0.1,
 	},
 	labelMedium: {
-		fontFamily: baseFontFamily,
+		fontFamily: FontFamily.medium,
 		fontSize: 12,
 		lineHeight: 16,
 		fontWeight: '500' as TextStyle['fontWeight'],
 		letterSpacing: 0.5,
 	},
 	labelSmall: {
-		fontFamily: baseFontFamily,
+		fontFamily: FontFamily.medium,
 		fontSize: 11,
 		lineHeight: 16,
 		fontWeight: '500' as TextStyle['fontWeight'],

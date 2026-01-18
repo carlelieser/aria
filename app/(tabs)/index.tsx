@@ -1,9 +1,12 @@
 import { View, StyleSheet } from 'react-native';
-import { SegmentedButtons } from 'react-native-paper';
+import { TabsProvider, Tabs, TabScreen } from 'react-native-paper-tabs';
 import { PlayerAwareFlashList } from '@/components/ui/player-aware-flash-list';
 import { PageLayout } from '@/components/page-layout';
 import { EmptyState } from '@/components/empty-state';
-import { MusicIcon, ListMusicIcon, UsersIcon, DiscIcon } from 'lucide-react-native';
+import { MusicIcon, ListMusicIcon, UsersIcon, DiscIcon, SearchIcon } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { IconButton } from 'react-native-paper';
+import { Icon } from '@/components/ui/icon';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
 	usePlaylists,
@@ -34,14 +37,25 @@ import { useLibraryFilter } from '@/hooks/use-library-filter';
 import { useUniqueFilterOptions } from '@/hooks/use-unique-filter-options';
 import { useSelection } from '@/hooks/use-selection';
 import { useBatchActions } from '@/hooks/use-batch-actions';
+import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
 import type { Playlist } from '@/src/domain/entities/playlist';
 
-type ChipType = 'playlists' | 'albums' | 'artists' | 'songs';
+type LibraryTabId = 'playlists' | 'albums' | 'artists' | 'songs';
+
+const TAB_INDEX_MAP: Record<LibraryTabId, number> = {
+	songs: 0,
+	artists: 1,
+	albums: 2,
+	playlists: 3,
+};
+
+const INDEX_TAB_MAP: LibraryTabId[] = ['songs', 'artists', 'albums', 'playlists'];
 
 export default function HomeScreen() {
+	const { colors } = useAppTheme();
 	const defaultLibraryTab = useDefaultLibraryTab();
-	const [selected, setSelected] = useState<ChipType>(defaultLibraryTab);
+	const [tabIndex, setTabIndex] = useState(TAB_INDEX_MAP[defaultLibraryTab]);
 	const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
 	const [isPlaylistPickerOpen, setIsPlaylistPickerOpen] = useState(false);
 	const hasAppliedDefaultRef = useRef(false);
@@ -51,13 +65,14 @@ export default function HomeScreen() {
 
 		if (useSettingsStore.persist.hasHydrated()) {
 			hasAppliedDefaultRef.current = true;
-			setSelected(defaultLibraryTab);
+			setTabIndex(TAB_INDEX_MAP[defaultLibraryTab]);
 			return;
 		}
 
 		const unsubscribe = useSettingsStore.persist.onFinishHydration(() => {
 			hasAppliedDefaultRef.current = true;
-			setSelected(useSettingsStore.getState().defaultLibraryTab);
+			const storedTab = useSettingsStore.getState().defaultLibraryTab;
+			setTabIndex(TAB_INDEX_MAP[storedTab]);
 		});
 
 		return unsubscribe;
@@ -161,15 +176,20 @@ export default function HomeScreen() {
 		[selectedTracks, addSelectedToPlaylist, exitSelectionMode]
 	);
 
-	const isSongsTab = selected === 'songs';
+	const currentTab = INDEX_TAB_MAP[tabIndex];
+	const isSongsTab = currentTab === 'songs';
 	const showActiveFilters = isSongsTab && hasFilters;
 
-	const segmentedButtons = [
-		{ value: 'playlists', label: 'Playlists', icon: 'playlist-music' },
-		{ value: 'albums', label: 'Albums', icon: 'album' },
-		{ value: 'artists', label: 'Artists', icon: 'account-music' },
-		{ value: 'songs', label: 'Songs', icon: 'music-note' },
-	];
+	const handleSearch = useCallback(() => {
+		router.push('/search');
+	}, []);
+
+	const headerRightActions = (
+		<IconButton
+			icon={() => <Icon as={SearchIcon} size={22} color={colors.onSurfaceVariant} />}
+			onPress={handleSearch}
+		/>
+	);
 
 	return (
 		<PageLayout
@@ -177,17 +197,9 @@ export default function HomeScreen() {
 				icon: MusicIcon,
 				title: 'Library',
 				showBorder: false,
+				rightActions: headerRightActions,
 			}}
 		>
-			<View style={styles.tabsRow}>
-				<SegmentedButtons
-					density={"small"}
-					value={selected}
-					onValueChange={(value) => setSelected(value as ChipType)}
-					buttons={segmentedButtons}
-				/>
-			</View>
-
 			{showActiveFilters && (
 				<View style={styles.filtersBar}>
 					<ActiveFiltersBar
@@ -204,22 +216,43 @@ export default function HomeScreen() {
 			)}
 
 			<View style={styles.content}>
-				{selected === 'songs' && (
-					<SongsList
-						tracks={filteredTracks}
-						isLoading={isLoading}
-						hasFilters={hasFilters}
-						isSelectionMode={isSelectionMode}
-						selectedTrackIds={selectedTrackIds}
-						onLongPress={handleLongPress}
-						onSelectionToggle={handleSelectionToggle}
-					/>
-				)}
-				{selected === 'playlists' && (
-					<PlaylistsList playlists={playlists} isLoading={isLoading} />
-				)}
-				{selected === 'albums' && <AlbumsList albums={albums} isLoading={isLoading} />}
-				{selected === 'artists' && <ArtistsList artists={artists} isLoading={isLoading} />}
+				<TabsProvider defaultIndex={tabIndex} onChangeIndex={setTabIndex}>
+					<Tabs
+						uppercase={false}
+						mode="scrollable"
+						showLeadingSpace={false}
+						style={{ backgroundColor: colors.surface }}
+					>
+						<TabScreen label="Songs" icon="music-note">
+							<View style={styles.tabContent}>
+								<SongsList
+									tracks={filteredTracks}
+									isLoading={isLoading}
+									hasFilters={hasFilters}
+									isSelectionMode={isSelectionMode}
+									selectedTrackIds={selectedTrackIds}
+									onLongPress={handleLongPress}
+									onSelectionToggle={handleSelectionToggle}
+								/>
+							</View>
+						</TabScreen>
+						<TabScreen label="Artists" icon="account-music">
+							<View style={styles.tabContent}>
+								<ArtistsList artists={artists} isLoading={isLoading} />
+							</View>
+						</TabScreen>
+						<TabScreen label="Albums" icon="album">
+							<View style={styles.tabContent}>
+								<AlbumsList albums={albums} isLoading={isLoading} />
+							</View>
+						</TabScreen>
+						<TabScreen label="Playlists" icon="playlist-music">
+							<View style={styles.tabContent}>
+								<PlaylistsList playlists={playlists} isLoading={isLoading} />
+							</View>
+						</TabScreen>
+					</Tabs>
+				</TabsProvider>
 			</View>
 
 			<LibrarySortFilterSheet
@@ -415,15 +448,13 @@ function AlbumsList({ albums, isLoading }: { albums: UniqueAlbum[]; isLoading: b
 }
 
 const styles = StyleSheet.create({
-	tabsRow: {
-		paddingHorizontal: 16,
-		marginBottom: 8,
-		marginTop: 8,
-	},
 	filtersBar: {
 		marginBottom: 8,
 	},
 	content: {
+		flex: 1,
+	},
+	tabContent: {
 		flex: 1,
 		paddingHorizontal: 16,
 	},

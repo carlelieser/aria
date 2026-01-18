@@ -1,6 +1,6 @@
 export { M3Colors, SEED_COLOR, type M3ColorScheme } from './colors';
 
-export { M3Typography, type M3TypographyVariant } from './typography';
+export { M3Typography, FontFamily, type M3TypographyVariant } from './typography';
 
 export { M3Shapes, M3ShapeStyles, getShapeRadius, type M3ShapeSize } from './shapes';
 

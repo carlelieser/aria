@@ -6,6 +6,7 @@ import { View, StyleSheet } from 'react-native';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
+import { useFonts } from 'expo-font';
 
 import { PortalHost } from '@rn-primitives/portal';
 import { lazyBootstrap, ensureBootstrapped } from '@/src/application/bootstrap';
@@ -96,6 +97,18 @@ function AppContent() {
 }
 
 export default function RootLayout() {
+	const [fontsLoaded] = useFonts({
+		'GoogleSans-Regular': require('@/assets/fonts/GoogleSans-Regular.ttf'),
+		'GoogleSans-Medium': require('@/assets/fonts/GoogleSans-Medium.ttf'),
+		'GoogleSans-SemiBold': require('@/assets/fonts/GoogleSans-SemiBold.ttf'),
+		'GoogleSans-Bold': require('@/assets/fonts/GoogleSans-Bold.ttf'),
+		'GoogleSans-Italic': require('@/assets/fonts/GoogleSans-Italic.ttf'),
+	});
+
+	if (!fontsLoaded) {
+		return null;
+	}
+
 	return (
 		<ErrorBoundary>
 			<GestureHandlerRootView style={styles.container}>

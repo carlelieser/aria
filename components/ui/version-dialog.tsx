@@ -106,8 +106,8 @@ export function VersionDialog({ visible, onDismiss }: VersionDialogProps) {
 						variant="bodySmall"
 						style={[styles.description, { color: colors.onSurfaceVariant }]}
 					>
-						A clean architecture music player built with Expo, React Native, and
-						TypeScript. Designed with Material Design 3 principles.
+						A powerful music player with plugin support for multiple sources, offline
+						downloads, and a customizable experience.
 					</Text>
 				</Dialog.Content>
 				<Dialog.Actions style={styles.actions}>

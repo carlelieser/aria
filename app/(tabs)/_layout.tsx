@@ -6,15 +6,11 @@ import Animated, {
 	useAnimatedStyle,
 	useSharedValue,
 	withSpring,
-	withTiming,
 	FadeIn,
 	FadeOut,
 } from 'react-native-reanimated';
-import { SearchIcon } from 'lucide-react-native';
 import { useAppTheme } from '@/lib/theme';
 import { useDownloadQueue } from '@/hooks/use-download-queue';
-import { useCurrentTrack } from '@/src/application/state/player-store';
-import { Icon } from '@/components/ui/icon';
 import {
 	useDefaultTab,
 	useTabOrder,
@@ -131,47 +127,6 @@ interface CustomTabBarProps extends BottomTabBarProps {
 	tabOrder: TabId[];
 }
 
-const FLOATING_PLAYER_HEIGHT = 64;
-const FLOATING_PLAYER_MARGIN = 8;
-const FAB_DEFAULT_TOP = -62;
-
-function SearchFAB() {
-	const { colors } = useAppTheme();
-	const currentTrack = useCurrentTrack();
-	const isFloatingPlayerVisible = currentTrack !== null;
-
-	const animatedStyle = useAnimatedStyle(() => {
-		const floatingPlayerOffset = isFloatingPlayerVisible
-			? FLOATING_PLAYER_HEIGHT + FLOATING_PLAYER_MARGIN
-			: 0;
-
-		return {
-			top: withTiming(FAB_DEFAULT_TOP - floatingPlayerOffset, { duration: 200 }),
-		};
-	}, [isFloatingPlayerVisible]);
-
-	const handlePress = useCallback(() => {
-		router.push('/search');
-	}, []);
-
-	return (
-		<Animated.View style={[styles.searchFab, animatedStyle]}>
-			<Pressable
-				onPress={handlePress}
-				style={({ pressed }) => [
-					styles.searchFabInner,
-					{ backgroundColor: colors.primaryContainer },
-					pressed && styles.searchFabPressed,
-				]}
-				accessibilityRole="button"
-				accessibilityLabel="Search"
-			>
-				<Icon as={SearchIcon} size={24} color={colors.onPrimaryContainer} />
-			</Pressable>
-		</Animated.View>
-	);
-}
-
 function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 	const { colors } = useAppTheme();
 	const insets = useSafeAreaInsets();
@@ -226,7 +181,6 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 
 	return (
 		<View style={styles.tabBarContainer}>
-			<SearchFAB />
 			<View
 				style={[
 					styles.tabBar,
@@ -361,27 +315,6 @@ function TabLabel({ label, isFocused, color }: TabLabelProps) {
 const styles = StyleSheet.create({
 	tabBarContainer: {
 		position: 'relative',
-	},
-	searchFab: {
-		position: 'absolute',
-		right: 16,
-		zIndex: 1,
-	},
-	searchFabInner: {
-		width: 56,
-		height: 56,
-		borderRadius: 16,
-		alignItems: 'center',
-		justifyContent: 'center',
-		elevation: 3,
-		shadowColor: '#000',
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.2,
-		shadowRadius: 4,
-	},
-	searchFabPressed: {
-		opacity: 0.8,
-		transform: [{ scale: 0.96 }],
 	},
 	tabBar: {
 		flexDirection: 'row',
