@@ -113,18 +113,26 @@ export default function AlbumScreen() {
 		}
 	}, [enrichedTracks, downloadSelected]);
 
-	const headerRightActions = enrichedTracks.length > 0 && (
-		<IconButton
-			icon={() => (
-				<Icon
-					as={DownloadIcon}
-					size={22}
-					color={isDownloading ? colors.outline : colors.onSurface}
+	const headerRightActions = (
+		<>
+			{enrichedTracks.length > 0 && (
+				<IconButton
+					icon={() => (
+						<Icon
+							as={DownloadIcon}
+							size={22}
+							color={isDownloading ? colors.outline : colors.onSurface}
+						/>
+					)}
+					onPress={handleDownloadAll}
+					disabled={isDownloading}
 				/>
 			)}
-			onPress={handleDownloadAll}
-			disabled={isDownloading}
-		/>
+			<IconButton
+				icon={() => <Icon as={SearchIcon} size={22} color={colors.onSurface} />}
+				onPress={handleSearchAlbum}
+			/>
+		</>
 	);
 
 	const headerContent = showHeaderSkeleton ? (
@@ -166,13 +174,6 @@ export default function AlbumScreen() {
 					</Text>
 				</View>
 			</View>
-			<Button
-				mode="outlined"
-				icon={() => <Icon as={SearchIcon} size={16} color={colors.primary} />}
-				onPress={handleSearchAlbum}
-			>
-				Search for more
-			</Button>
 		</View>
 	);
 

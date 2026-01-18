@@ -9,12 +9,7 @@ import { View, StyleSheet } from 'react-native';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TrackListItemSkeleton } from './track-list-item-skeleton';
 
-interface AlbumHeaderSkeletonProps {
-	/** Whether to show the search button skeleton */
-	showButton?: boolean;
-}
-
-export function AlbumHeaderSkeleton({ showButton = true }: AlbumHeaderSkeletonProps) {
+export function AlbumHeaderSkeleton() {
 	return (
 		<View style={styles.headerContent}>
 			<Skeleton width={160} height={160} rounded="lg" />
@@ -24,8 +19,6 @@ export function AlbumHeaderSkeleton({ showButton = true }: AlbumHeaderSkeletonPr
 				<Skeleton width={120} height={16} rounded="sm" />
 				<Skeleton width={60} height={14} rounded="sm" />
 			</View>
-
-			{showButton && <Skeleton width={140} height={40} rounded="full" />}
 		</View>
 	);
 }

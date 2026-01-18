@@ -11,7 +11,7 @@ import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view'
 import { Image } from 'expo-image';
 import { useLocalSearchParams, router } from 'expo-router';
 import { DiscIcon, SearchIcon, UserIcon } from 'lucide-react-native';
-import { Text, Button, ActivityIndicator } from 'react-native-paper';
+import { Text, Button, ActivityIndicator, IconButton } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
 import { PageLayout } from '@/components/page-layout';
 import { TrackListItem } from '@/components/track-list-item';
@@ -176,14 +176,14 @@ export default function ArtistScreen() {
 					</Text>
 				)}
 			</View>
-			<Button
-				mode="outlined"
-				icon={() => <Icon as={SearchIcon} size={16} color={colors.primary} />}
-				onPress={handleSearchArtist}
-			>
-				Search for more
-			</Button>
 		</View>
+	);
+
+	const headerRightActions = (
+		<IconButton
+			icon={() => <Icon as={SearchIcon} size={22} color={colors.onSurface} />}
+			onPress={handleSearchArtist}
+		/>
 	);
 
 	return (
@@ -194,6 +194,7 @@ export default function ArtistScreen() {
 				backgroundColor: colors.surfaceContainerHigh,
 				borderRadius: 24,
 				belowTitle: headerContent,
+				rightActions: headerRightActions,
 				extended: true,
 				compact: true,
 			}}
