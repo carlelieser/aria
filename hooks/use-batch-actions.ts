@@ -71,22 +71,41 @@ export function useBatchActions(): UseBatchActionsResult {
 			setTimeout(async () => {
 				let completed = 0;
 				let failed = 0;
+				const maxConcurrent = 3;
+				let activeCount = 0;
+				let currentIndex = 0;
 
-				const downloadPromises = tracksToDownload.map(async (track) => {
-					const result = await downloadService.downloadTrack(track);
-					if (result.success) {
-						completed++;
-					} else {
-						failed++;
+				const downloadNext = async (): Promise<void> => {
+					while (currentIndex < tracksToDownload.length && activeCount < maxConcurrent) {
+						const track = tracksToDownload[currentIndex++];
+						activeCount++;
+
+						downloadService.downloadTrack(track).then((result) => {
+							activeCount--;
+							if (result.success) {
+								completed++;
+							} else {
+								failed++;
+							}
+							setDownloadProgress({
+								completed,
+								total: tracksToDownload.length,
+								failed,
+							});
+						});
 					}
-					setDownloadProgress({
-						completed,
-						total: tracksToDownload.length,
-						failed,
-					});
-				});
+				};
 
-				await Promise.all(downloadPromises);
+				await new Promise<void>((resolve) => {
+					const checkComplete = setInterval(() => {
+						downloadNext();
+						if (completed + failed >= tracksToDownload.length) {
+							clearInterval(checkComplete);
+							resolve();
+						}
+					}, 100);
+					downloadNext();
+				});
 
 				setIsDownloading(false);
 
