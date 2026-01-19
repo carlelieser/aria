@@ -75,6 +75,7 @@
     "expo-video": "~3.0.15",
     "expo-web-browser": "~15.0.10",
     "jintr": "^3.3.1",
+    "lottie-react-native": "~7.3.1",
     "lucide-react-native": "^0.562.0",
     "music-metadata": "^11.10.5",
     "react": "19.1.0",

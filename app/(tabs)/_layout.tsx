@@ -6,8 +6,6 @@ import Animated, {
 	useAnimatedStyle,
 	useSharedValue,
 	withSpring,
-	FadeIn,
-	FadeOut,
 } from 'react-native-reanimated';
 import { useAppTheme } from '@/lib/theme';
 import { useDownloadQueue } from '@/hooks/use-download-queue';
@@ -21,6 +19,7 @@ import {
 } from '@/src/application/state/settings-store';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { TAB_CONFIG, TAB_BAR_HEIGHT } from '@/lib/tab-config';
+import { LottieTabIcon } from '@/components/ui/lottie-tab-icon';
 
 const TAB_WIDTH = 84;
 const INDICATOR_WIDTH = 64;
@@ -204,12 +203,11 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 
 				{tabOrder.map((tabId, visualIdx) => {
 					const config = TAB_CONFIG[tabId];
-					if (!config?.icon) return null;
+					if (!config?.lottieSource) return null;
 					const route = state.routes.find((r) => r.name === tabId);
 					if (!route) return null;
 					const routeIndex = state.routes.indexOf(route);
 					const isFocused = state.index === routeIndex;
-					const IconComponent = config.icon;
 					const showNotificationDot = tabId === 'downloads' && hasActiveDownloads;
 
 					return (
@@ -221,8 +219,8 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 							accessibilityLabel={config.label}
 							accessibilityState={{ selected: isFocused }}
 						>
-							<TabIcon
-								icon={IconComponent}
+							<LottieTabIcon
+								source={config.lottieSource}
 								isFocused={isFocused}
 								focusedColor={colors.primary}
 								inactiveColor={colors.onSurfaceVariant}
@@ -241,51 +239,6 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 		</View>
 	);
 }
-
-interface TabIconProps {
-	icon: React.ComponentType<{ size: number; color: string; strokeWidth: number }>;
-	isFocused: boolean;
-	focusedColor: string;
-	inactiveColor: string;
-	showNotificationDot: boolean;
-}
-
-const LABEL_HEIGHT = 18;
-
-const TabIcon = memo(function TabIcon({
-	icon: Icon,
-	isFocused,
-	focusedColor,
-	inactiveColor,
-	showNotificationDot,
-}: TabIconProps) {
-	const translateY = useSharedValue(isFocused ? 0 : LABEL_HEIGHT / 2);
-
-	useEffect(() => {
-		translateY.value = withSpring(isFocused ? 0 : LABEL_HEIGHT / 2, TAB_SPRING_CONFIG);
-	}, [isFocused, translateY]);
-
-	const animatedStyle = useAnimatedStyle(() => ({
-		transform: [{ translateY: translateY.value }],
-	}));
-
-	return (
-		<Animated.View style={[styles.iconContainer, animatedStyle]}>
-			<Icon
-				size={24}
-				color={isFocused ? focusedColor : inactiveColor}
-				strokeWidth={isFocused ? 2.5 : 2}
-			/>
-			{showNotificationDot && (
-				<Animated.View
-					entering={FadeIn.duration(200)}
-					exiting={FadeOut.duration(200)}
-					style={[styles.notificationDot, { backgroundColor: focusedColor }]}
-				/>
-			)}
-		</Animated.View>
-	);
-});
 
 interface TabLabelProps {
 	label: string;
@@ -343,17 +296,6 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		height: TAB_BAR_HEIGHT,
 		gap: 6,
-	},
-	iconContainer: {
-		position: 'relative',
-	},
-	notificationDot: {
-		position: 'absolute',
-		top: -2,
-		right: -4,
-		width: 8,
-		height: 8,
-		borderRadius: 4,
 	},
 	tabLabel: {
 		fontSize: 12,
