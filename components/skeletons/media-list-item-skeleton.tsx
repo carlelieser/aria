@@ -2,34 +2,54 @@
  * MediaListItemSkeleton Component
  *
  * Unified skeleton loading state for media list items.
- * Supports different artwork shapes and text line configurations.
+ * Supports different artwork shapes, sizes, and text line configurations.
+ * This is the base skeleton component used by all media list skeletons.
  */
 
 import { View, StyleSheet } from 'react-native';
 import { Skeleton } from '@/components/ui/skeleton';
 
+type WidthValue = number | `${number}%`;
+
 export interface MediaListItemSkeletonProps {
 	/** Artwork shape */
 	shape?: 'rounded' | 'circular';
+	/** Artwork size (48 for tracks, 56 for albums/artists/playlists) */
+	artworkSize?: 48 | 56;
 	/** Number of text lines to show (1-3) */
 	lines?: 1 | 2 | 3;
+	/** Width of primary text line */
+	primaryWidth?: WidthValue;
+	/** Width of secondary text line */
+	secondaryWidth?: WidthValue;
+	/** Width of tertiary text line */
+	tertiaryWidth?: WidthValue;
 	/** Show right accessory placeholder */
 	showAccessory?: boolean;
+	/** Vertical padding (12 for compact, 16 for standard) */
+	verticalPadding?: 12 | 16;
 }
 
 export function MediaListItemSkeleton({
 	shape = 'rounded',
+	artworkSize = 48,
 	lines = 2,
+	primaryWidth = '55%' as const,
+	secondaryWidth = '35%' as const,
+	tertiaryWidth = '25%' as const,
 	showAccessory = false,
+	verticalPadding = 12,
 }: MediaListItemSkeletonProps) {
+	const artworkRounded = shape === 'circular' ? 'full' : artworkSize === 56 ? 'lg' : 'sm';
+
 	return (
-		<View style={styles.container}>
-			<Skeleton width={48} height={48} rounded={shape === 'circular' ? 'full' : 'sm'} />
+		<View style={[styles.container, { paddingVertical: verticalPadding }]}>
+			<Skeleton width={artworkSize} height={artworkSize} rounded={artworkRounded} />
 
 			<View style={styles.textContainer}>
-				<Skeleton width="55%" height={16} rounded="sm" />
-				{lines >= 2 && <Skeleton width="35%" height={14} rounded="sm" />}
-				{lines >= 3 && <Skeleton width="25%" height={12} rounded="sm" />}
+				<Skeleton width={primaryWidth} height={16} rounded="sm" />
+				{lines >= 2 && <Skeleton width={secondaryWidth} height={14} rounded="sm" />}
+				{lines >= 3 && <Skeleton width={tertiaryWidth} height={12} rounded="sm" />}
 			</View>
 
 			{showAccessory && <Skeleton width={32} height={14} rounded="sm" />}
@@ -57,7 +77,6 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		width: '100%',
 		gap: 16,
-		paddingVertical: 12,
 	},
 	textContainer: {
 		flex: 1,

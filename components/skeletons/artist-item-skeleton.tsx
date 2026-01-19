@@ -2,22 +2,21 @@
  * ArtistItemSkeleton Component
  *
  * Skeleton loading state for artist list items.
- * Uses M3 theming.
+ * Uses the unified MediaListItemSkeleton with artist-specific configuration.
  */
 
-import { View, StyleSheet } from 'react-native';
-import { Skeleton } from '@/components/ui/skeleton';
+import { MediaListItemSkeleton, MediaListSkeleton } from './media-list-item-skeleton';
 
 export function ArtistItemSkeleton() {
 	return (
-		<View style={styles.container}>
-			<Skeleton width={56} height={56} rounded="full" />
-
-			<View style={styles.textContainer}>
-				<Skeleton width="55%" height={16} rounded="sm" />
-				<Skeleton width="25%" height={14} rounded="sm" />
-			</View>
-		</View>
+		<MediaListItemSkeleton
+			shape="circular"
+			artworkSize={56}
+			lines={2}
+			primaryWidth={'55%' as const}
+			secondaryWidth={'25%' as const}
+			verticalPadding={16}
+		/>
 	);
 }
 
@@ -27,24 +26,14 @@ interface ArtistListSkeletonProps {
 
 export function ArtistListSkeleton({ count = 5 }: ArtistListSkeletonProps) {
 	return (
-		<View>
-			{Array.from({ length: count }).map((_, index) => (
-				<ArtistItemSkeleton key={index} />
-			))}
-		</View>
+		<MediaListSkeleton
+			count={count}
+			shape="circular"
+			artworkSize={56}
+			lines={2}
+			primaryWidth={'55%' as const}
+			secondaryWidth={'25%' as const}
+			verticalPadding={16}
+		/>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		width: '100%',
-		gap: 16,
-		paddingVertical: 16,
-	},
-	textContainer: {
-		flex: 1,
-		gap: 8,
-	},
-});

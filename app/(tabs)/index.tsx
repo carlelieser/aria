@@ -1,4 +1,4 @@
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
 import { TabsProvider, Tabs, TabScreen } from 'react-native-paper-tabs';
 import { GenericListView } from '@/components/ui/generic-list-view';
 import { PageLayout } from '@/components/page-layout';
@@ -36,6 +36,7 @@ import { useLibraryFilter } from '@/hooks/use-library-filter';
 import { useUniqueFilterOptions } from '@/hooks/use-unique-filter-options';
 import { useSelection } from '@/hooks/use-selection';
 import { useBatchActions } from '@/hooks/use-batch-actions';
+import { useTabShadow } from '@/hooks/use-tab-shadow';
 import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
 import type { Playlist } from '@/src/domain/entities/playlist';
@@ -117,6 +118,8 @@ export default function HomeScreen() {
 		toggleSelectedFavorites,
 		isDeleting,
 	} = useBatchActions();
+
+	const { handleScroll, shadowStyle } = useTabShadow({ tabIndex });
 
 	const selectedTracks = useMemo(
 		() => filteredTracks.filter((t) => selectedTrackIds.has(t.id.value)),
@@ -220,7 +223,7 @@ export default function HomeScreen() {
 						uppercase={false}
 						mode="scrollable"
 						showLeadingSpace={false}
-						style={{ backgroundColor: colors.surface }}
+						style={{ backgroundColor: colors.surface, ...shadowStyle }}
 					>
 						<TabScreen label="Songs" icon="music-note">
 							<View style={styles.tabContent}>
@@ -232,22 +235,35 @@ export default function HomeScreen() {
 									selectedTrackIds={selectedTrackIds}
 									onLongPress={handleLongPress}
 									onSelectionToggle={handleSelectionToggle}
+									onScroll={handleScroll}
 								/>
 							</View>
 						</TabScreen>
 						<TabScreen label="Artists" icon="account-music">
 							<View style={styles.tabContent}>
-								<ArtistsList artists={artists} isLoading={isLoading} />
+								<ArtistsList
+									artists={artists}
+									isLoading={isLoading}
+									onScroll={handleScroll}
+								/>
 							</View>
 						</TabScreen>
 						<TabScreen label="Albums" icon="album">
 							<View style={styles.tabContent}>
-								<AlbumsList albums={albums} isLoading={isLoading} />
+								<AlbumsList
+									albums={albums}
+									isLoading={isLoading}
+									onScroll={handleScroll}
+								/>
 							</View>
 						</TabScreen>
 						<TabScreen label="Playlists" icon="playlist-music">
 							<View style={styles.tabContent}>
-								<PlaylistsList playlists={playlists} isLoading={isLoading} />
+								<PlaylistsList
+									playlists={playlists}
+									isLoading={isLoading}
+									onScroll={handleScroll}
+								/>
 							</View>
 						</TabScreen>
 					</Tabs>
@@ -292,6 +308,8 @@ export default function HomeScreen() {
 	);
 }
 
+type ScrollHandler = (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+
 interface SongsListProps {
 	tracks: Track[];
 	isLoading: boolean;
@@ -300,6 +318,7 @@ interface SongsListProps {
 	selectedTrackIds: Set<string>;
 	onLongPress: (track: Track) => void;
 	onSelectionToggle: (track: Track) => void;
+	onScroll?: ScrollHandler;
 }
 
 function SongsList({
@@ -310,6 +329,7 @@ function SongsList({
 	selectedTrackIds,
 	onLongPress,
 	onSelectionToggle,
+	onScroll,
 }: SongsListProps) {
 	return (
 		<GenericListView
@@ -341,11 +361,18 @@ function SongsList({
 			}}
 			hasFilters={hasFilters}
 			extraData={isSelectionMode ? selectedTrackIds : undefined}
+			onScroll={onScroll}
 		/>
 	);
 }
 
-function PlaylistsList({ playlists, isLoading }: { playlists: Playlist[]; isLoading: boolean }) {
+interface PlaylistsListProps {
+	playlists: Playlist[];
+	isLoading: boolean;
+	onScroll?: ScrollHandler;
+}
+
+function PlaylistsList({ playlists, isLoading, onScroll }: PlaylistsListProps) {
 	return (
 		<GenericListView
 			data={playlists}
@@ -358,11 +385,18 @@ function PlaylistsList({ playlists, isLoading }: { playlists: Playlist[]; isLoad
 				title: 'No playlists yet',
 				description: 'Create a playlist to organize your favorite tracks',
 			}}
+			onScroll={onScroll}
 		/>
 	);
 }
 
-function ArtistsList({ artists, isLoading }: { artists: UniqueArtist[]; isLoading: boolean }) {
+interface ArtistsListProps {
+	artists: UniqueArtist[];
+	isLoading: boolean;
+	onScroll?: ScrollHandler;
+}
+
+function ArtistsList({ artists, isLoading, onScroll }: ArtistsListProps) {
 	return (
 		<GenericListView
 			data={artists}
@@ -382,11 +416,18 @@ function ArtistsList({ artists, isLoading }: { artists: UniqueArtist[]; isLoadin
 				title: 'No artists yet',
 				description: 'Add some music to see your favorite artists here',
 			}}
+			onScroll={onScroll}
 		/>
 	);
 }
 
-function AlbumsList({ albums, isLoading }: { albums: UniqueAlbum[]; isLoading: boolean }) {
+interface AlbumsListProps {
+	albums: UniqueAlbum[];
+	isLoading: boolean;
+	onScroll?: ScrollHandler;
+}
+
+function AlbumsList({ albums, isLoading, onScroll }: AlbumsListProps) {
 	return (
 		<GenericListView
 			data={albums}
@@ -407,6 +448,7 @@ function AlbumsList({ albums, isLoading }: { albums: UniqueAlbum[]; isLoading: b
 				title: 'No albums yet',
 				description: 'Add some music to see your albums here',
 			}}
+			onScroll={onScroll}
 		/>
 	);
 }

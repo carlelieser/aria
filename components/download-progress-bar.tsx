@@ -98,20 +98,70 @@ interface StaticProgressBarProps {
 	progress: number;
 	height?: number;
 	status?: 'downloading' | 'completed' | 'failed' | 'pending';
+	/** Show indeterminate animation instead of progress */
+	indeterminate?: boolean;
 }
 
 export const StaticProgressBar = memo(function StaticProgressBar({
 	progress,
 	height = 2,
 	status = 'downloading',
+	indeterminate = false,
 }: StaticProgressBarProps) {
 	const { colors } = useAppTheme();
+
+	const translateX = useSharedValue(-100);
+
+	useEffect(() => {
+		if (indeterminate) {
+			const runAnimation = () => {
+				translateX.value = -100;
+				translateX.value = withTiming(200, {
+					duration: 1200,
+					easing: Easing.inOut(Easing.ease),
+				});
+			};
+			runAnimation();
+			const interval = setInterval(runAnimation, 1200);
+			return () => clearInterval(interval);
+		}
+	}, [indeterminate, translateX]);
+
+	const indeterminateStyle = useAnimatedStyle(() => ({
+		transform: [{ translateX: `${translateX.value}%` }],
+	}));
 
 	const getProgressColor = () => {
 		if (status === 'failed') return colors.error;
 		if (status === 'completed') return colors.primary;
 		return colors.primary;
 	};
+
+	if (indeterminate) {
+		return (
+			<View
+				style={[
+					styles.container,
+					{
+						height,
+						backgroundColor: colors.surfaceContainerHighest,
+					},
+				]}
+			>
+				<Animated.View
+					style={[
+						indeterminateStyle,
+						styles.progress,
+						styles.indeterminateBar,
+						{
+							height,
+							backgroundColor: getProgressColor(),
+						},
+					]}
+				/>
+			</View>
+		);
+	}
 
 	return (
 		<View
@@ -145,5 +195,8 @@ const styles = StyleSheet.create({
 	},
 	progress: {
 		borderRadius: 9999,
+	},
+	indeterminateBar: {
+		width: '40%',
 	},
 });

@@ -6,6 +6,7 @@
  */
 
 import type { ReactNode } from 'react';
+import type { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { FlashList, type FlashListProps } from '@shopify/flash-list';
 import { PlayerAwareFlashList } from '@/components/ui/player-aware-flash-list';
 import { EmptyState } from '@/components/empty-state';
@@ -13,6 +14,7 @@ import type { LucideIcon } from 'lucide-react-native';
 
 type ListRenderItem<T> = FlashListProps<T>['renderItem'];
 type ContentStyle = FlashListProps<unknown>['contentContainerStyle'];
+type ScrollHandler = (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
 interface EmptyStateConfig {
 	icon: LucideIcon;
@@ -38,6 +40,8 @@ interface GenericListViewProps<T> {
 	showsVerticalScrollIndicator?: boolean;
 	/** Use regular FlashList instead of PlayerAwareFlashList */
 	disablePlayerAwarePadding?: boolean;
+	/** Scroll event handler */
+	onScroll?: ScrollHandler;
 }
 
 export function GenericListView<T>({
@@ -53,6 +57,7 @@ export function GenericListView<T>({
 	contentContainerStyle,
 	showsVerticalScrollIndicator = false,
 	disablePlayerAwarePadding = false,
+	onScroll,
 }: GenericListViewProps<T>) {
 	if (isLoading) {
 		return <>{loadingSkeleton}</>;
@@ -75,6 +80,7 @@ export function GenericListView<T>({
 			showsVerticalScrollIndicator={showsVerticalScrollIndicator}
 			extraData={extraData}
 			contentContainerStyle={contentContainerStyle}
+			onScroll={onScroll}
 		/>
 	);
 }

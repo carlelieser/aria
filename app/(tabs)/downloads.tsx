@@ -1,11 +1,18 @@
 import { useState, useMemo, useCallback } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
 import { Text, IconButton, Portal, Dialog, Button } from 'react-native-paper';
 import { TabsProvider, Tabs, TabScreen } from 'react-native-paper-tabs';
 import { Icon } from '@/components/ui/icon';
 import { GenericListView } from '@/components/ui/generic-list-view';
 import { PageLayout } from '@/components/page-layout';
-import { DownloadIcon, TrashIcon, HardDriveIcon, CheckCircle2Icon, AlertCircleIcon, SearchIcon } from 'lucide-react-native';
+import {
+	DownloadIcon,
+	TrashIcon,
+	HardDriveIcon,
+	CheckCircle2Icon,
+	AlertCircleIcon,
+	SearchIcon,
+} from 'lucide-react-native';
 import { router } from 'expo-router';
 import { DownloadListItem } from '@/components/download-list-item';
 import { SelectableDownloadListItem } from '@/components/selectable-download-list-item';
@@ -18,6 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useSelection } from '@/hooks/use-selection';
 import { useBatchActions } from '@/hooks/use-batch-actions';
 import { useResolvedTracks } from '@/hooks/use-resolved-track';
+import { useTabShadow } from '@/hooks/use-tab-shadow';
 import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
 import { createTrackFromDownloadInfo } from '@/src/domain/utils/create-track-from-download';
@@ -45,6 +53,8 @@ export default function DownloadsScreen() {
 	} = useSelection();
 
 	const { addSelectedToLibrary, deleteSelectedDownloads, isDeleting } = useBatchActions();
+
+	const { handleScroll, shadowStyle } = useTabShadow({ tabIndex });
 
 	const clearAll = useDownloadStore((state) => state.clearAll);
 
@@ -158,14 +168,25 @@ export default function DownloadsScreen() {
 					<Tabs
 						uppercase={false}
 						mode="fixed"
-						style={{ backgroundColor: colors.surface }}
+						style={{ backgroundColor: colors.surface, ...shadowStyle }}
 					>
-						<TabScreen label={activeLabel} icon="download" badge={stats.activeCount || undefined}>
+						<TabScreen
+							label={activeLabel}
+							icon="download"
+							badge={stats.activeCount || undefined}
+						>
 							<View style={styles.tabContent}>
-								<ActiveDownloadsList downloads={activeDownloads} />
+								<ActiveDownloadsList
+									downloads={activeDownloads}
+									onScroll={handleScroll}
+								/>
 							</View>
 						</TabScreen>
-						<TabScreen label={doneLabel} icon="check-circle" badge={stats.completedCount || undefined}>
+						<TabScreen
+							label={doneLabel}
+							icon="check-circle"
+							badge={stats.completedCount || undefined}
+						>
 							<View style={styles.tabContent}>
 								<CompletedDownloadsList
 									downloads={completedDownloads}
@@ -174,14 +195,20 @@ export default function DownloadsScreen() {
 									selectedTrackIds={selectedTrackIds}
 									onLongPress={handleLongPress}
 									onSelectionToggle={handleSelectionToggle}
+									onScroll={handleScroll}
 								/>
 							</View>
 						</TabScreen>
-						<TabScreen label={failedLabel} icon="alert-circle" badge={stats.failedCount || undefined}>
+						<TabScreen
+							label={failedLabel}
+							icon="alert-circle"
+							badge={stats.failedCount || undefined}
+						>
 							<View style={styles.tabContent}>
 								<FailedDownloadsList
 									downloads={failedDownloads}
 									onRetry={handleRetry}
+									onScroll={handleScroll}
 								/>
 							</View>
 						</TabScreen>
@@ -218,11 +245,14 @@ export default function DownloadsScreen() {
 	);
 }
 
+type ScrollHandler = (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+
 interface ActiveDownloadsListProps {
 	downloads: DownloadInfo[];
+	onScroll?: ScrollHandler;
 }
 
-function ActiveDownloadsList({ downloads }: ActiveDownloadsListProps) {
+function ActiveDownloadsList({ downloads, onScroll }: ActiveDownloadsListProps) {
 	return (
 		<GenericListView
 			data={downloads}
@@ -237,6 +267,7 @@ function ActiveDownloadsList({ downloads }: ActiveDownloadsListProps) {
 			}}
 			contentContainerStyle={{ paddingBottom: DEFAULT_CONTENT_PADDING }}
 			disablePlayerAwarePadding
+			onScroll={onScroll}
 		/>
 	);
 }
@@ -248,6 +279,7 @@ interface CompletedDownloadsListProps {
 	selectedTrackIds: Set<string>;
 	onLongPress: (track: Track) => void;
 	onSelectionToggle: (track: Track) => void;
+	onScroll?: ScrollHandler;
 }
 
 function CompletedDownloadsList({
@@ -257,6 +289,7 @@ function CompletedDownloadsList({
 	selectedTrackIds,
 	onLongPress,
 	onSelectionToggle,
+	onScroll,
 }: CompletedDownloadsListProps) {
 	return (
 		<GenericListView
@@ -285,6 +318,7 @@ function CompletedDownloadsList({
 			}}
 			extraData={isSelectionMode ? selectedTrackIds : undefined}
 			disablePlayerAwarePadding
+			onScroll={onScroll}
 		/>
 	);
 }
@@ -292,9 +326,10 @@ function CompletedDownloadsList({
 interface FailedDownloadsListProps {
 	downloads: DownloadInfo[];
 	onRetry: (track: Track) => void;
+	onScroll?: ScrollHandler;
 }
 
-function FailedDownloadsList({ downloads, onRetry }: FailedDownloadsListProps) {
+function FailedDownloadsList({ downloads, onRetry, onScroll }: FailedDownloadsListProps) {
 	return (
 		<GenericListView
 			data={downloads}
@@ -309,6 +344,7 @@ function FailedDownloadsList({ downloads, onRetry }: FailedDownloadsListProps) {
 			}}
 			contentContainerStyle={{ paddingBottom: DEFAULT_CONTENT_PADDING }}
 			disablePlayerAwarePadding
+			onScroll={onScroll}
 		/>
 	);
 }

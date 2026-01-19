@@ -38,6 +38,11 @@ yarn-error.*
 .DS_Store
 *.pem
 
+# Design source files (not needed in builds)
+*.ai
+*.psd
+*.sketch
+
 # local env files
 .env
 .env*.local

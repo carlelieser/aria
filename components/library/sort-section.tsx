@@ -5,6 +5,7 @@
  * Uses M3 theming.
  */
 
+import React, { memo, useCallback } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
@@ -25,6 +26,41 @@ const SORT_OPTIONS: { field: SortField; label: string }[] = [
 	{ field: 'dateAdded', label: 'Date Added' },
 	{ field: 'duration', label: 'Duration' },
 ];
+
+interface SortOptionItemProps {
+	field: SortField;
+	label: string;
+	isSelected: boolean;
+	onSelect: (field: SortField) => void;
+}
+
+const SortOptionItem = memo(function SortOptionItem({
+	field,
+	label,
+	isSelected,
+	onSelect,
+}: SortOptionItemProps) {
+	const { colors } = useAppTheme();
+
+	const handlePress = useCallback(() => {
+		onSelect(field);
+	}, [onSelect, field]);
+
+	return (
+		<Pressable style={styles.optionRow} onPress={handlePress}>
+			<Text
+				variant="bodyMedium"
+				style={{
+					color: colors.onSurface,
+					fontWeight: isSelected ? '500' : '400',
+				}}
+			>
+				{label}
+			</Text>
+			{isSelected && <Icon as={Check} size={18} color={colors.primary} />}
+		</Pressable>
+	);
+});
 
 export function SortSection({
 	sortField,
@@ -55,27 +91,15 @@ export function SortSection({
 				</Pressable>
 			</View>
 			<View style={styles.options}>
-				{SORT_OPTIONS.map((option) => {
-					const isSelected = sortField === option.field;
-					return (
-						<Pressable
-							key={option.field}
-							style={styles.optionRow}
-							onPress={() => onSortFieldChange(option.field)}
-						>
-							<Text
-								variant="bodyMedium"
-								style={{
-									color: colors.onSurface,
-									fontWeight: isSelected ? '500' : '400',
-								}}
-							>
-								{option.label}
-							</Text>
-							{isSelected && <Icon as={Check} size={18} color={colors.primary} />}
-						</Pressable>
-					);
-				})}
+				{SORT_OPTIONS.map((option) => (
+					<SortOptionItem
+						key={option.field}
+						field={option.field}
+						label={option.label}
+						isSelected={sortField === option.field}
+						onSelect={onSortFieldChange}
+					/>
+				))}
 			</View>
 		</View>
 	);

@@ -6,7 +6,7 @@
  * Uses M3 theming.
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, memo } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { Text, Divider, Switch } from 'react-native-paper';
 import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
@@ -15,6 +15,58 @@ import { Icon } from '@/components/ui/icon';
 import { SlidersHorizontal, Check, Info, CheckCircle } from 'lucide-react-native';
 import { useEqualizer, useEqualizerInit } from '@/hooks/use-equalizer';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
+
+interface PresetButtonProps {
+	id: string;
+	name: string;
+	isSelected: boolean;
+	isEnabled: boolean;
+	onSelect: (presetId: string) => void;
+}
+
+const PresetButton = memo(function PresetButton({
+	id,
+	name,
+	isSelected,
+	isEnabled,
+	onSelect,
+}: PresetButtonProps) {
+	const { colors } = useAppTheme();
+
+	const handlePress = useCallback(() => {
+		onSelect(id);
+	}, [onSelect, id]);
+
+	return (
+		<Pressable
+			onPress={handlePress}
+			disabled={!isEnabled}
+			style={({ pressed }) => [
+				styles.presetButton,
+				{
+					backgroundColor: isSelected
+						? colors.primaryContainer
+						: pressed
+							? colors.surfaceContainerHighest
+							: colors.surfaceContainer,
+					borderColor: isSelected ? colors.primary : colors.outline,
+					opacity: isEnabled ? 1 : 0.5,
+				},
+			]}
+		>
+			<Text
+				variant="bodyMedium"
+				style={{
+					color: isSelected ? colors.onPrimaryContainer : colors.onSurface,
+					fontWeight: isSelected ? '600' : '400',
+				}}
+			>
+				{name}
+			</Text>
+			{isSelected && <Icon as={Check} size={16} color={colors.onPrimaryContainer} />}
+		</Pressable>
+	);
+});
 
 interface EqualizerSheetProps {
 	isOpen: boolean;
@@ -63,14 +115,9 @@ export function EqualizerSheet({ isOpen, onClose }: EqualizerSheetProps) {
 			</View>
 
 			{isNativeAvailable ? (
-				<View
-					style={[styles.infoContainer, { backgroundColor: colors.primaryContainer }]}
-				>
+				<View style={[styles.infoContainer, { backgroundColor: colors.primaryContainer }]}>
 					<Icon as={CheckCircle} size={16} color={colors.onPrimaryContainer} />
-					<Text
-						variant="bodySmall"
-						style={{ color: colors.onPrimaryContainer, flex: 1 }}
-					>
+					<Text variant="bodySmall" style={{ color: colors.onPrimaryContainer, flex: 1 }}>
 						Native equalizer active. Audio adjustments will affect playback.
 					</Text>
 				</View>
@@ -82,10 +129,7 @@ export function EqualizerSheet({ isOpen, onClose }: EqualizerSheetProps) {
 					]}
 				>
 					<Icon as={Info} size={16} color={colors.onSurfaceVariant} />
-					<Text
-						variant="bodySmall"
-						style={{ color: colors.onSurfaceVariant, flex: 1 }}
-					>
+					<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, flex: 1 }}>
 						Native equalizer unavailable. Visual preview only.
 					</Text>
 				</View>
@@ -113,43 +157,14 @@ export function EqualizerSheet({ isOpen, onClose }: EqualizerSheetProps) {
 
 			<View style={styles.presetGrid}>
 				{presets.map((preset) => (
-					<Pressable
+					<PresetButton
 						key={preset.id}
-						onPress={() => handlePresetSelect(preset.id)}
-						disabled={!isEnabled}
-						style={({ pressed }) => [
-							styles.presetButton,
-							{
-								backgroundColor:
-									selectedPresetId === preset.id
-										? colors.primaryContainer
-										: pressed
-											? colors.surfaceContainerHighest
-											: colors.surfaceContainer,
-								borderColor:
-									selectedPresetId === preset.id
-										? colors.primary
-										: colors.outline,
-								opacity: isEnabled ? 1 : 0.5,
-							},
-						]}
-					>
-						<Text
-							variant="bodyMedium"
-							style={{
-								color:
-									selectedPresetId === preset.id
-										? colors.onPrimaryContainer
-										: colors.onSurface,
-								fontWeight: selectedPresetId === preset.id ? '600' : '400',
-							}}
-						>
-							{preset.name}
-						</Text>
-						{selectedPresetId === preset.id && (
-							<Icon as={Check} size={16} color={colors.onPrimaryContainer} />
-						)}
-					</Pressable>
+						id={preset.id}
+						name={preset.name}
+						isSelected={selectedPresetId === preset.id}
+						isEnabled={isEnabled}
+						onSelect={handlePresetSelect}
+					/>
 				))}
 			</View>
 

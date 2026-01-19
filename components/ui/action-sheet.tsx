@@ -128,7 +128,7 @@ export function ActionSheet({
 								<ActionSheetItemComponent
 									key={item.id}
 									item={item}
-									onPress={() => handleItemPress(item.id)}
+									onSelect={handleItemPress}
 									colors={colors}
 								/>
 							))}
@@ -142,15 +142,20 @@ export function ActionSheet({
 	);
 }
 
-function ActionSheetItemComponent({
-	item,
-	onPress,
-	colors,
-}: {
+interface ActionSheetItemComponentProps {
 	item: ActionSheetItem;
-	onPress: () => void;
+	onSelect: (itemId: string) => void;
 	colors: ReturnType<typeof useAppTheme>['colors'];
-}) {
+}
+
+const ActionSheetItemComponent = React.memo(function ActionSheetItemComponent({
+	item,
+	onSelect,
+	colors,
+}: ActionSheetItemComponentProps) {
+	const handlePress = useCallback(() => {
+		onSelect(item.id);
+	}, [onSelect, item.id]);
 	const isDestructive = item.variant === 'destructive';
 	const IconComponent = item.icon;
 
@@ -159,7 +164,7 @@ function ActionSheetItemComponent({
 
 	return (
 		<Pressable
-			onPress={onPress}
+			onPress={handlePress}
 			disabled={item.disabled}
 			style={({ pressed }) => [
 				styles.itemContainer,
@@ -190,7 +195,7 @@ function ActionSheetItemComponent({
 			</View>
 		</Pressable>
 	);
-}
+});
 
 const styles = StyleSheet.create({
 	background: {

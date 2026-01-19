@@ -5,7 +5,7 @@
  * Uses M3 theming with preset color options.
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, memo } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import BottomSheet, {
 	BottomSheetBackdrop,
@@ -40,6 +40,92 @@ const CUSTOM_COLORS = [
 const DYNAMIC_COLOR = { value: null, label: 'Dynamic', color: SEED_COLOR } as const;
 
 const ALL_COLORS = [...CUSTOM_COLORS.map((c) => ({ ...c, color: c.value })), DYNAMIC_COLOR];
+
+interface ColorOptionItemProps {
+	colorValue: string;
+	label: string;
+	isSelected: boolean;
+	onSelect: (color: string | null) => void;
+	colors: ReturnType<typeof useAppTheme>['colors'];
+}
+
+const ColorOptionItem = memo(function ColorOptionItem({
+	colorValue,
+	label,
+	isSelected,
+	onSelect,
+	colors,
+}: ColorOptionItemProps) {
+	const handlePress = useCallback(() => {
+		onSelect(colorValue);
+	}, [onSelect, colorValue]);
+
+	return (
+		<Pressable
+			onPress={handlePress}
+			style={({ pressed }) => [
+				styles.itemContainer,
+				{
+					backgroundColor: pressed ? colors.surfaceContainerHighest : 'transparent',
+				},
+			]}
+		>
+			<View style={styles.itemContent}>
+				<View style={[styles.colorIndicator, { backgroundColor: colorValue }]} />
+				<Text variant="bodyLarge" style={[styles.itemText, { color: colors.onSurface }]}>
+					{label}
+				</Text>
+				{isSelected && (
+					<View style={styles.checkWrapper}>
+						<Icon as={Check} size={20} color={colors.primary} />
+					</View>
+				)}
+			</View>
+		</Pressable>
+	);
+});
+
+interface DynamicColorOptionProps {
+	isSelected: boolean;
+	onSelect: (color: null) => void;
+	dynamicColor: string;
+	colors: ReturnType<typeof useAppTheme>['colors'];
+}
+
+const DynamicColorOption = memo(function DynamicColorOption({
+	isSelected,
+	onSelect,
+	dynamicColor,
+	colors,
+}: DynamicColorOptionProps) {
+	const handlePress = useCallback(() => {
+		onSelect(null);
+	}, [onSelect]);
+
+	return (
+		<Pressable
+			onPress={handlePress}
+			style={({ pressed }) => [
+				styles.itemContainer,
+				{
+					backgroundColor: pressed ? colors.surfaceContainerHighest : 'transparent',
+				},
+			]}
+		>
+			<View style={styles.itemContent}>
+				<View style={[styles.colorIndicator, { backgroundColor: dynamicColor }]} />
+				<Text variant="bodyLarge" style={[styles.itemText, { color: colors.onSurface }]}>
+					{DYNAMIC_COLOR.label}
+				</Text>
+				{isSelected && (
+					<View style={styles.checkWrapper}>
+						<Icon as={Check} size={20} color={colors.primary} />
+					</View>
+				)}
+			</View>
+		</Pressable>
+	);
+});
 
 interface AccentColorPickerProps {
 	value: string | null;
@@ -141,50 +227,16 @@ export function AccentColorPicker({ value, onValueChange }: AccentColorPickerPro
 							<Divider style={{ backgroundColor: colors.outlineVariant }} />
 
 							{/* Custom colors */}
-							{CUSTOM_COLORS.map((colorOption) => {
-								const isSelected = value === colorOption.value;
-								return (
-									<Pressable
-										key={colorOption.value}
-										onPress={() => handleSelectColor(colorOption.value)}
-										style={({ pressed }) => [
-											styles.itemContainer,
-											{
-												backgroundColor: pressed
-													? colors.surfaceContainerHighest
-													: 'transparent',
-											},
-										]}
-									>
-										<View style={styles.itemContent}>
-											<View
-												style={[
-													styles.colorIndicator,
-													{ backgroundColor: colorOption.value },
-												]}
-											/>
-											<Text
-												variant="bodyLarge"
-												style={[
-													styles.itemText,
-													{ color: colors.onSurface },
-												]}
-											>
-												{colorOption.label}
-											</Text>
-											{isSelected && (
-												<View style={styles.checkWrapper}>
-													<Icon
-														as={Check}
-														size={20}
-														color={colors.primary}
-													/>
-												</View>
-											)}
-										</View>
-									</Pressable>
-								);
-							})}
+							{CUSTOM_COLORS.map((colorOption) => (
+								<ColorOptionItem
+									key={colorOption.value}
+									colorValue={colorOption.value}
+									label={colorOption.label}
+									isSelected={value === colorOption.value}
+									onSelect={handleSelectColor}
+									colors={colors}
+								/>
+							))}
 
 							<Divider
 								style={[
@@ -194,37 +246,12 @@ export function AccentColorPicker({ value, onValueChange }: AccentColorPickerPro
 							/>
 
 							{/* Dynamic color */}
-							<Pressable
-								onPress={() => handleSelectColor(DYNAMIC_COLOR.value)}
-								style={({ pressed }) => [
-									styles.itemContainer,
-									{
-										backgroundColor: pressed
-											? colors.surfaceContainerHighest
-											: 'transparent',
-									},
-								]}
-							>
-								<View style={styles.itemContent}>
-									<View
-										style={[
-											styles.colorIndicator,
-											{ backgroundColor: DYNAMIC_COLOR.color },
-										]}
-									/>
-									<Text
-										variant="bodyLarge"
-										style={[styles.itemText, { color: colors.onSurface }]}
-									>
-										{DYNAMIC_COLOR.label}
-									</Text>
-									{value === DYNAMIC_COLOR.value && (
-										<View style={styles.checkWrapper}>
-											<Icon as={Check} size={20} color={colors.primary} />
-										</View>
-									)}
-								</View>
-							</Pressable>
+							<DynamicColorOption
+								isSelected={value === DYNAMIC_COLOR.value}
+								onSelect={handleSelectColor}
+								dynamicColor={DYNAMIC_COLOR.color}
+								colors={colors}
+							/>
 
 							<View style={styles.bottomPadding} />
 						</BottomSheetScrollView>

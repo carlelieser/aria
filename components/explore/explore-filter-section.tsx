@@ -75,9 +75,10 @@ export function ExploreFilterSection({
 						{artists.map((artist) => (
 							<FilterChip
 								key={artist.id}
+								id={artist.id}
 								label={artist.name}
 								selected={activeFilters.artistIds.includes(artist.id)}
-								onPress={() => onToggleArtist(artist.id)}
+								onToggle={onToggleArtist}
 							/>
 						))}
 					</PlayerAwareScrollView>
@@ -101,9 +102,10 @@ export function ExploreFilterSection({
 						{albums.map((album) => (
 							<FilterChip
 								key={album.id}
+								id={album.id}
 								label={album.name}
 								selected={activeFilters.albumIds.includes(album.id)}
-								onPress={() => onToggleAlbum(album.id)}
+								onToggle={onToggleAlbum}
 							/>
 						))}
 					</PlayerAwareScrollView>

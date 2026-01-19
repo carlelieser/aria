@@ -113,7 +113,7 @@ export const TrackListItem = memo(function TrackListItem({
 	const renderDownloadStatus = () => {
 		if (!downloadInfo) return null;
 
-		if (isDownloading) {
+		if (isDownloading && downloadInfo.progress > 0) {
 			return (
 				<View style={styles.statusRow}>
 					<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
@@ -243,6 +243,7 @@ export const TrackListItem = memo(function TrackListItem({
 							progress={downloadInfo.progress}
 							status={downloadInfo.status}
 							height={3}
+							indeterminate={downloadInfo.progress === 0}
 						/>
 					</View>
 				)}

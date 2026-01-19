@@ -5,7 +5,7 @@
  * Uses M3 theming.
  */
 
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, memo } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import {
 	BottomSheetBackdrop,
@@ -19,6 +19,43 @@ import { Icon } from '@/components/ui/icon';
 import { Check, Clock, Music2 } from 'lucide-react-native';
 import { useSleepTimer, SLEEP_TIMER_PRESETS } from '@/hooks/use-sleep-timer';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
+
+interface TimerPresetButtonProps {
+	minutes: number;
+	label: string;
+	onSelect: (minutes: number) => void;
+}
+
+const TimerPresetButton = memo(function TimerPresetButton({
+	minutes,
+	label,
+	onSelect,
+}: TimerPresetButtonProps) {
+	const { colors } = useAppTheme();
+
+	const handlePress = useCallback(() => {
+		onSelect(minutes);
+	}, [onSelect, minutes]);
+
+	return (
+		<Pressable
+			onPress={handlePress}
+			style={({ pressed }) => [
+				styles.presetButton,
+				{
+					backgroundColor: pressed
+						? colors.surfaceContainerHighest
+						: colors.surfaceContainer,
+					borderColor: colors.outline,
+				},
+			]}
+		>
+			<Text variant="titleMedium" style={{ color: colors.onSurface, fontWeight: '500' }}>
+				{label}
+			</Text>
+		</Pressable>
+	);
+});
 
 interface SleepTimerSheetProps {
 	isOpen: boolean;
@@ -165,26 +202,12 @@ export function SleepTimerSheet({ isOpen, onClose }: SleepTimerSheetProps) {
 
 				<View style={styles.presetGrid}>
 					{SLEEP_TIMER_PRESETS.map((preset) => (
-						<Pressable
+						<TimerPresetButton
 							key={preset.minutes}
-							onPress={() => handlePresetSelect(preset.minutes)}
-							style={({ pressed }) => [
-								styles.presetButton,
-								{
-									backgroundColor: pressed
-										? colors.surfaceContainerHighest
-										: colors.surfaceContainer,
-									borderColor: colors.outline,
-								},
-							]}
-						>
-							<Text
-								variant="titleMedium"
-								style={{ color: colors.onSurface, fontWeight: '500' }}
-							>
-								{preset.label}
-							</Text>
-						</Pressable>
+							minutes={preset.minutes}
+							label={preset.label}
+							onSelect={handlePresetSelect}
+						/>
 					))}
 				</View>
 
