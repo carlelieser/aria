@@ -78,6 +78,7 @@ export default function PlaylistScreen() {
 		addSelectedToQueue,
 		removeSelectedFromPlaylist,
 		downloadSelected,
+		cancelDownload,
 		isDownloading,
 		downloadProgress,
 	} = useBatchActions();
@@ -281,6 +282,7 @@ export default function PlaylistScreen() {
 					isDownloading={isDownloading}
 					progress={downloadProgress}
 					onDownload={handleDownloadAll}
+					onCancel={cancelDownload}
 				/>
 			)}
 			<Menu

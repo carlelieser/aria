@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { Track } from '@/src/domain/entities/track';
 import { downloadService } from '@/src/application/services/download-service';
 import { useLibraryStore } from '@/src/application/state/library-store';
@@ -13,6 +13,7 @@ interface BatchProgress {
 
 interface UseBatchActionsResult {
 	downloadSelected: (tracks: Track[]) => Promise<void>;
+	cancelDownload: () => void;
 	addSelectedToLibrary: (tracks: Track[]) => void;
 	addSelectedToQueue: (tracks: Track[]) => void;
 	removeSelectedFromLibrary: (trackIds: string[]) => void;
@@ -42,6 +43,11 @@ export function useBatchActions(): UseBatchActionsResult {
 		total: 0,
 		failed: 0,
 	});
+	const cancelledRef = useRef(false);
+
+	const cancelDownload = useCallback(() => {
+		cancelledRef.current = true;
+	}, []);
 
 	const downloadSelected = useCallback(
 		async (tracks: Track[]) => {
@@ -58,6 +64,7 @@ export function useBatchActions(): UseBatchActionsResult {
 				return;
 			}
 
+			cancelledRef.current = false;
 			setIsDownloading(true);
 			setDownloadProgress({ completed: 0, total: tracksToDownload.length, failed: 0 });
 
@@ -69,7 +76,11 @@ export function useBatchActions(): UseBatchActionsResult {
 				let currentIndex = 0;
 
 				const downloadNext = async (): Promise<void> => {
-					while (currentIndex < tracksToDownload.length && activeCount < maxConcurrent) {
+					while (
+						currentIndex < tracksToDownload.length &&
+						activeCount < maxConcurrent &&
+						!cancelledRef.current
+					) {
 						const track = tracksToDownload[currentIndex++];
 						activeCount++;
 
@@ -91,6 +102,11 @@ export function useBatchActions(): UseBatchActionsResult {
 
 				await new Promise<void>((resolve) => {
 					const checkComplete = setInterval(() => {
+						if (cancelledRef.current) {
+							clearInterval(checkComplete);
+							resolve();
+							return;
+						}
 						downloadNext();
 						if (completed + failed >= tracksToDownload.length) {
 							clearInterval(checkComplete);
@@ -102,7 +118,9 @@ export function useBatchActions(): UseBatchActionsResult {
 
 				setIsDownloading(false);
 
-				if (failed === 0) {
+				if (cancelledRef.current) {
+					info(`Download cancelled. ${completed} tracks completed.`);
+				} else if (failed === 0) {
 					success(`Downloaded ${completed} tracks`);
 				} else if (completed > 0) {
 					info(`Downloaded ${completed} tracks, ${failed} failed`);
@@ -214,6 +232,7 @@ export function useBatchActions(): UseBatchActionsResult {
 
 	return {
 		downloadSelected,
+		cancelDownload,
 		addSelectedToLibrary,
 		addSelectedToQueue,
 		removeSelectedFromLibrary,

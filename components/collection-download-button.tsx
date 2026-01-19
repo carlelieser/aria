@@ -3,12 +3,13 @@
  *
  * Download button for collections (albums, playlists) with proper states:
  * - Not downloaded: Shows download icon
- * - Partially downloaded: Shows download icon with progress indicator
- * - Downloading: Shows animated progress
+ * - Partially downloaded: Shows download icon with progress ring
+ * - Downloading (initial): Shows spinner with progress ring (disabled)
+ * - Downloading (active): Shows pause icon with progress ring (tap to cancel)
  * - Fully downloaded: Shows checkmark icon
  */
 
-import { memo, useMemo, useCallback } from 'react';
+import { memo, useMemo, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Animated, {
 	useSharedValue,
@@ -19,7 +20,7 @@ import Animated, {
 	useAnimatedProps,
 } from 'react-native-reanimated';
 import { Svg, Circle } from 'react-native-svg';
-import { DownloadIcon, CheckIcon, Loader2Icon } from 'lucide-react-native';
+import { DownloadIcon, CheckIcon, Loader2Icon, PauseIcon } from 'lucide-react-native';
 import { IconButton } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
 import { useDownloadStore } from '@/src/application/state/download-store';
@@ -35,6 +36,7 @@ interface CollectionDownloadButtonProps {
 	readonly isDownloading: boolean;
 	readonly progress?: { completed: number; total: number };
 	readonly onDownload: () => void;
+	readonly onCancel?: () => void;
 	readonly size?: number;
 }
 
@@ -89,28 +91,13 @@ export const CollectionDownloadButton = memo(function CollectionDownloadButton({
 	isDownloading,
 	progress,
 	onDownload,
+	onCancel,
 	size = 22,
 }: CollectionDownloadButtonProps) {
 	const { colors } = useAppTheme();
 	const { state, downloadedCount, totalCount } = useCollectionDownloadState(tracks);
 
-	const rotation = useSharedValue(0);
-
 	const effectiveState: DownloadState = isDownloading ? 'downloading' : state;
-
-	const animatedRotationStyle = useAnimatedStyle(() => ({
-		transform: [{ rotate: `${rotation.value}deg` }],
-	}));
-
-	if (effectiveState === 'downloading') {
-		rotation.value = withRepeat(
-			withTiming(360, { duration: 1000, easing: Easing.linear }),
-			-1,
-			false
-		);
-	} else {
-		rotation.value = 0;
-	}
 
 	const progressValue = useMemo(() => {
 		if (progress && progress.total > 0) {
@@ -122,22 +109,38 @@ export const CollectionDownloadButton = memo(function CollectionDownloadButton({
 		return 0;
 	}, [progress, downloadedCount, totalCount]);
 
-	const getIconColor = useCallback(() => {
+	const isInitialLoading = effectiveState === 'downloading' && progressValue === 0;
+
+	const rotation = useSharedValue(0);
+
+	useEffect(() => {
+		if (isInitialLoading) {
+			rotation.value = withRepeat(
+				withTiming(360, { duration: 1000, easing: Easing.linear }),
+				-1,
+				false
+			);
+		} else {
+			rotation.value = 0;
+		}
+	}, [isInitialLoading, rotation]);
+
+	const animatedRotationStyle = useAnimatedStyle(() => ({
+		transform: [{ rotate: `${rotation.value}deg` }],
+	}));
+
+	const iconColor = useMemo(() => {
 		switch (effectiveState) {
 			case 'complete':
-				return colors.primary;
 			case 'downloading':
 				return colors.primary;
 			case 'partial':
-				return colors.onSurface;
 			default:
 				return colors.onSurface;
 		}
 	}, [effectiveState, colors]);
 
-	const renderIcon = () => {
-		const iconColor = getIconColor();
-
+	const icon = useMemo(() => {
 		if (effectiveState === 'complete') {
 			return <Icon as={CheckIcon} size={size} color={iconColor} />;
 		}
@@ -152,9 +155,9 @@ export const CollectionDownloadButton = memo(function CollectionDownloadButton({
 						color={colors.primary}
 						backgroundColor={colors.surfaceContainerHighest}
 					/>
-					<Animated.View style={[styles.spinnerIcon, animatedRotationStyle]}>
-						<Icon as={Loader2Icon} size={size - 4} color={iconColor} />
-					</Animated.View>
+					<View style={styles.centerIcon}>
+						<Icon as={PauseIcon} size={size - 4} color={iconColor} />
+					</View>
 				</View>
 			);
 		}
@@ -169,7 +172,7 @@ export const CollectionDownloadButton = memo(function CollectionDownloadButton({
 						color={colors.primary}
 						backgroundColor={colors.surfaceContainerHighest}
 					/>
-					<View style={styles.partialIcon}>
+					<View style={styles.centerIcon}>
 						<Icon as={DownloadIcon} size={size - 4} color={iconColor} />
 					</View>
 				</View>
@@ -177,15 +180,30 @@ export const CollectionDownloadButton = memo(function CollectionDownloadButton({
 		}
 
 		return <Icon as={DownloadIcon} size={size} color={iconColor} />;
-	};
+	}, [effectiveState, size, iconColor, progressValue, colors]);
 
-	const isDisabled = effectiveState === 'downloading' || effectiveState === 'complete';
+	const handlePress = useMemo(() => {
+		if (effectiveState === 'downloading' && onCancel) {
+			return onCancel;
+		}
+		return onDownload;
+	}, [effectiveState, onCancel, onDownload]);
+
+	if (isInitialLoading) {
+		return (
+			<View style={styles.spinnerContainer}>
+				<Animated.View style={animatedRotationStyle}>
+					<Icon as={Loader2Icon} size={size} color={colors.primary} />
+				</Animated.View>
+			</View>
+		);
+	}
 
 	return (
 		<IconButton
-			icon={() => renderIcon()}
-			onPress={onDownload}
-			disabled={isDisabled}
+			icon={() => icon}
+			onPress={handlePress}
+			disabled={effectiveState === 'complete'}
 			style={styles.button}
 		/>
 	);
@@ -199,12 +217,21 @@ interface ProgressRingProps {
 	backgroundColor: string;
 }
 
-function ProgressRing({ progress, size, strokeWidth, color, backgroundColor }: ProgressRingProps) {
+const ProgressRing = memo(function ProgressRing({
+	progress,
+	size,
+	strokeWidth,
+	color,
+	backgroundColor,
+}: ProgressRingProps) {
 	const radius = (size - strokeWidth) / 2;
 	const circumference = 2 * Math.PI * radius;
 
 	const animatedProgress = useSharedValue(progress);
-	animatedProgress.value = withTiming(progress, { duration: 300 });
+
+	useEffect(() => {
+		animatedProgress.value = withTiming(progress, { duration: 300 });
+	}, [progress, animatedProgress]);
 
 	const animatedProps = useAnimatedProps(() => ({
 		strokeDashoffset: circumference * (1 - animatedProgress.value),
@@ -235,11 +262,17 @@ function ProgressRing({ progress, size, strokeWidth, color, backgroundColor }: P
 			/>
 		</Svg>
 	);
-}
+});
 
 const styles = StyleSheet.create({
 	button: {
 		margin: 0,
+	},
+	spinnerContainer: {
+		width: 48,
+		height: 48,
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
 	downloadingContainer: {
 		alignItems: 'center',
@@ -252,10 +285,7 @@ const styles = StyleSheet.create({
 	progressRing: {
 		position: 'absolute',
 	},
-	spinnerIcon: {
-		position: 'absolute',
-	},
-	partialIcon: {
+	centerIcon: {
 		position: 'absolute',
 	},
 });

@@ -63,7 +63,7 @@ export default function AlbumScreen() {
 	const insets = useSafeAreaInsets();
 	const { id, name } = useLocalSearchParams<{ id: string; name?: string }>();
 	const { colors } = useAppTheme();
-	const { downloadSelected, isDownloading, downloadProgress } = useBatchActions();
+	const { downloadSelected, cancelDownload, isDownloading, downloadProgress } = useBatchActions();
 
 	const libraryTracks = useLibraryAlbumTracks(id);
 
@@ -115,6 +115,7 @@ export default function AlbumScreen() {
 					isDownloading={isDownloading}
 					progress={downloadProgress}
 					onDownload={handleDownloadAll}
+					onCancel={cancelDownload}
 				/>
 			)}
 			<IconButton
