@@ -2,7 +2,6 @@ import { useCallback, useMemo, useState, memo, useEffect, useRef } from 'react';
 import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native';
 import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { Text } from 'react-native-paper';
-import { TabsProvider, Tabs, TabScreen } from 'react-native-paper-tabs';
 import { PageLayout } from '@/components/page-layout';
 import {
 	HeartIcon,
@@ -17,6 +16,8 @@ import {
 	AlertCircleIcon,
 	SearchXIcon,
 	DownloadIcon,
+	LibraryBigIcon,
+	PlugIcon,
 } from 'lucide-react-native';
 import { TrackCard } from '@/components/track-card';
 import { SelectableTrackListItem } from '@/components/selectable-track-list-item';
@@ -26,7 +27,7 @@ import { PlaylistListItem } from '@/components/media-list';
 import { Icon } from '@/components/ui/icon';
 import { EmptyState } from '@/components/empty-state';
 import { TrackListSkeleton } from '@/components/skeletons';
-import { UnifiedFilterSheet } from '@/components/unified-search';
+import { ResultGroup, UnifiedFilterSheet } from '@/components/unified-search';
 import { SortFilterFAB } from '@/components/library/sort-filter-fab';
 import { BatchActionBar } from '@/components/batch-action-bar';
 import { BatchPlaylistPicker } from '@/components/batch-playlist-picker';
@@ -46,7 +47,7 @@ import type { LucideIcon } from 'lucide-react-native';
 
 const BATCH_ACTION_BAR_PADDING = 120;
 const DEFAULT_CONTENT_PADDING = 20;
-const MAX_RESULTS_PER_SECTION = 10;
+const MAX_RESULTS_PER_SECTION = 5;
 
 interface CuratedSectionProps {
 	readonly id: string;
@@ -95,6 +96,7 @@ interface ResultSectionProps {
 	readonly title: string;
 	readonly icon: LucideIcon;
 	readonly children: React.ReactNode;
+	readonly maxItems?: number;
 }
 
 function ResultSection({ title, icon: IconComponent, children }: ResultSectionProps) {
@@ -115,7 +117,6 @@ function ResultSection({ title, icon: IconComponent, children }: ResultSectionPr
 
 export default function SearchScreen() {
 	const { colors } = useAppTheme();
-	const [tabIndex, setTabIndex] = useState(0);
 	const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
 	const [isPlaylistPickerOpen, setIsPlaylistPickerOpen] = useState(false);
 	const [selectionSource, setSelectionSource] = useState<'library' | 'explore'>('library');
@@ -273,14 +274,6 @@ export default function SearchScreen() {
 	const showNoResults = hasQuery && !hasAnyResults && !isSearching;
 	const showResults = hasQuery && hasAnyResults;
 
-	const libraryResultCount = libraryTracks.length + libraryPlaylists.length + libraryAlbums.length + libraryArtists.length;
-	const downloadsResultCount = downloadsTracks.length;
-	const pluginsResultCount = exploreTracks.length + exploreAlbums.length + exploreArtists.length;
-
-	const libraryLabel = hasQuery && libraryResultCount > 0 ? `Library (${libraryResultCount})` : 'Library';
-	const downloadsLabel = hasQuery && downloadsResultCount > 0 ? `Downloads (${downloadsResultCount})` : 'Downloads';
-	const pluginsLabel = hasQuery && pluginsResultCount > 0 ? `Plugins (${pluginsResultCount})` : 'Plugins';
-
 	return (
 		<PageLayout
 			header={{
@@ -322,191 +315,178 @@ export default function SearchScreen() {
 				</View>
 			</View>
 
-			{showCuratedContent && (
-				<PlayerAwareScrollView
-					contentContainerStyle={[
-						styles.scrollContent,
-						{ paddingBottom: DEFAULT_CONTENT_PADDING },
-					]}
-				>
-					{!hasCuratedContent && (
-						<View style={styles.emptyContainer}>
-							<EmptyState
-								icon={SearchIcon}
-								title="Search for music"
-								description="Find songs, artists, and albums from your library and YouTube Music"
-							/>
-						</View>
-					)}
-
-					{hasCuratedContent && (
-						<>
-							<CuratedSection
-								id="recently-played"
-								title="Recently Played"
-								icon={ClockIcon}
-								tracks={recentlyPlayed}
-							/>
-
-							<CuratedSection
-								id="favorites"
-								title="Favorites"
-								icon={HeartIcon}
-								tracks={favoriteTracks}
-							/>
-
-							{recentlyAdded.length > 0 && (
-								<CuratedSection
-									id="recently-added"
-									title="Recently Added"
-									icon={SparklesIcon}
-									tracks={recentlyAdded}
-								/>
-							)}
-						</>
-					)}
-				</PlayerAwareScrollView>
-			)}
-
 			{showLoading && (
 				<View style={styles.loadingContainer}>
 					<TrackListSkeleton count={8} />
 				</View>
 			)}
 
-			{showNoResults && (
-				<View style={styles.emptyContainer}>
-					{error ? (
-						<EmptyState
-							icon={AlertCircleIcon}
-							title="Something went wrong"
-							description={error}
-						/>
-					) : (
-						<EmptyState
-							icon={SearchXIcon}
-							title="No results found"
-							description={
-								hasFilters
-									? 'Try adjusting your filters or search term'
-									: `No matches for "${query}"`
-							}
-						/>
-					)}
-				</View>
-			)}
+			<PlayerAwareScrollView
+				contentContainerStyle={[
+					styles.scrollContent,
+					{
+						paddingBottom: isSelectionMode
+							? BATCH_ACTION_BAR_PADDING
+							: DEFAULT_CONTENT_PADDING,
+					},
+				]}
+			>
+				{showCuratedContent && (
+					<>
+						{!hasCuratedContent && (
+							<View style={styles.emptyContainer}>
+								<EmptyState
+									icon={SearchIcon}
+									title="Search for music"
+									description="Find songs, artists, and albums from your library and YouTube Music"
+								/>
+							</View>
+						)}
 
-			{showResults && (
-				<View style={styles.tabsContainer}>
-					<TabsProvider defaultIndex={tabIndex} onChangeIndex={setTabIndex}>
-						<Tabs
-							uppercase={false}
-							mode="fixed"
-							style={{ backgroundColor: colors.surface }}
+						{hasCuratedContent && (
+							<>
+								<CuratedSection
+									id="recently-played"
+									title="Recently Played"
+									icon={ClockIcon}
+									tracks={recentlyPlayed}
+								/>
+
+								<CuratedSection
+									id="favorites"
+									title="Favorites"
+									icon={HeartIcon}
+									tracks={favoriteTracks}
+								/>
+
+								{recentlyAdded.length > 0 && (
+									<CuratedSection
+										id="recently-added"
+										title="Recently Added"
+										icon={SparklesIcon}
+										tracks={recentlyAdded}
+									/>
+								)}
+							</>
+						)}
+					</>
+				)}
+
+				{showNoResults && (
+					<View style={styles.emptyContainer}>
+						{error ? (
+							<EmptyState
+								icon={AlertCircleIcon}
+								title="Something went wrong"
+								description={error}
+							/>
+						) : (
+							<EmptyState
+								icon={SearchXIcon}
+								title="No results found"
+								description={
+									hasFilters
+										? 'Try adjusting your filters or search term'
+										: `No matches for "${query}"`
+								}
+							/>
+						)}
+					</View>
+				)}
+
+				{showResults && (
+					<View style={styles.resultsContainer}>
+						<ResultGroup
+							title="Your Library"
+							icon={LibraryBigIcon}
+							isEmpty={!hasLibraryResults}
+							emptyState={
+								<EmptyState
+									icon={MusicIcon}
+									title="No library matches"
+									description={`"${query}" not found in your library`}
+									compact
+								/>
+							}
 						>
-							<TabScreen label={libraryLabel} icon="library">
-								<PlayerAwareScrollView
-									contentContainerStyle={[
-										styles.tabScrollContent,
-										{
-											paddingBottom: isSelectionMode
-												? BATCH_ACTION_BAR_PADDING
-												: DEFAULT_CONTENT_PADDING,
-										},
-									]}
-								>
-									{!hasLibraryResults ? (
-										<EmptyState
-											icon={MusicIcon}
-											title="No library matches"
-											description={`"${query}" not found in your library`}
-										/>
-									) : (
-										<LibraryResults
-											tracks={libraryTracks.slice(0, MAX_RESULTS_PER_SECTION)}
-											playlists={libraryPlaylists.slice(0, MAX_RESULTS_PER_SECTION)}
-											albums={libraryAlbums.slice(0, MAX_RESULTS_PER_SECTION)}
-											artists={libraryArtists.slice(0, MAX_RESULTS_PER_SECTION)}
-											isSelectionMode={isSelectionMode && selectionSource === 'library'}
-											selectedTrackIds={selectedTrackIds}
+							<LibraryResults
+								tracks={libraryTracks.slice(0, MAX_RESULTS_PER_SECTION)}
+								playlists={libraryPlaylists.slice(0, MAX_RESULTS_PER_SECTION)}
+								albums={libraryAlbums.slice(0, MAX_RESULTS_PER_SECTION)}
+								artists={libraryArtists.slice(0, MAX_RESULTS_PER_SECTION)}
+								isSelectionMode={isSelectionMode && selectionSource === 'library'}
+								selectedTrackIds={selectedTrackIds}
+								onLongPress={handleLibraryLongPress}
+								onSelectionToggle={handleLibrarySelectionToggle}
+							/>
+						</ResultGroup>
+
+						<ResultGroup
+							title="Downloads"
+							icon={DownloadIcon}
+							isEmpty={!hasDownloadsResults}
+							emptyState={
+								<EmptyState
+									icon={DownloadIcon}
+									title="No download matches"
+									description={`"${query}" not found in downloads`}
+									compact
+								/>
+							}
+						>
+							<View style={styles.sectionContent}>
+								{downloadsTracks
+									.slice(0, MAX_RESULTS_PER_SECTION)
+									.map((track, index) => (
+										<SelectableTrackListItem
+											key={track.id.value}
+											track={track}
+											source="library"
+											isSelectionMode={
+												isSelectionMode && selectionSource === 'library'
+											}
+											isSelected={selectedTrackIds.has(track.id.value)}
 											onLongPress={handleLibraryLongPress}
 											onSelectionToggle={handleLibrarySelectionToggle}
+											queue={downloadsTracks}
+											queueIndex={index}
 										/>
-									)}
-								</PlayerAwareScrollView>
-							</TabScreen>
-							<TabScreen label={downloadsLabel} icon="download">
-								<PlayerAwareScrollView
-									contentContainerStyle={[
-										styles.tabScrollContent,
-										{
-											paddingBottom: isSelectionMode
-												? BATCH_ACTION_BAR_PADDING
-												: DEFAULT_CONTENT_PADDING,
-										},
-									]}
-								>
-									{!hasDownloadsResults ? (
-										<EmptyState
-											icon={DownloadIcon}
-											title="No download matches"
-											description={`"${query}" not found in downloads`}
-										/>
-									) : (
-										<View style={styles.sectionContent}>
-											{downloadsTracks.slice(0, MAX_RESULTS_PER_SECTION).map((track, index) => (
-												<SelectableTrackListItem
-													key={track.id.value}
-													track={track}
-													source="library"
-													isSelectionMode={isSelectionMode && selectionSource === 'library'}
-													isSelected={selectedTrackIds.has(track.id.value)}
-													onLongPress={handleLibraryLongPress}
-													onSelectionToggle={handleLibrarySelectionToggle}
-													queue={downloadsTracks}
-													queueIndex={index}
-												/>
-											))}
-										</View>
-									)}
-								</PlayerAwareScrollView>
-							</TabScreen>
-							<TabScreen label={pluginsLabel} icon="puzzle">
-								<PlayerAwareScrollView
-									contentContainerStyle={[
-										styles.tabScrollContent,
-										{
-											paddingBottom: isSelectionMode
-												? BATCH_ACTION_BAR_PADDING
-												: DEFAULT_CONTENT_PADDING,
-										},
-									]}
-								>
-									{isSearching && !hasExploreResults ? (
-										<TrackListSkeleton count={5} />
-									) : !hasExploreResults ? (
-										<EmptyState
-											icon={SearchXIcon}
-											title="No plugin results"
-											description="Try a different search term"
-										/>
-									) : (
-										<ExploreResults
-											tracks={exploreTracks.slice(0, MAX_RESULTS_PER_SECTION)}
-											albums={exploreAlbums.slice(0, MAX_RESULTS_PER_SECTION)}
-											artists={exploreArtists.slice(0, MAX_RESULTS_PER_SECTION)}
-											isSelectionMode={isSelectionMode && selectionSource === 'explore'}
-											selectedTrackIds={selectedTrackIds}
-											onLongPress={handleExploreLongPress}
-											onSelectionToggle={handleExploreSelectionToggle}
-										/>
-									)}
-								</PlayerAwareScrollView>
-							</TabScreen>
-						</Tabs>
-					</TabsProvider>
-				</View>
-			)}
+									))}
+							</View>
+						</ResultGroup>
+
+						<ResultGroup
+							title="Plugins"
+							icon={PlugIcon}
+							isEmpty={!hasExploreResults && !isSearching}
+							emptyState={
+								<EmptyState
+									icon={SearchXIcon}
+									title="No plugin results"
+									description="Try a different search term"
+									compact
+								/>
+							}
+						>
+							{isSearching && !hasExploreResults ? (
+								<TrackListSkeleton count={3} />
+							) : (
+								<ExploreResults
+									tracks={exploreTracks.slice(0, MAX_RESULTS_PER_SECTION)}
+									albums={exploreAlbums.slice(0, MAX_RESULTS_PER_SECTION)}
+									artists={exploreArtists.slice(0, MAX_RESULTS_PER_SECTION)}
+									isSelectionMode={
+										isSelectionMode && selectionSource === 'explore'
+									}
+									selectedTrackIds={selectedTrackIds}
+									onLongPress={handleExploreLongPress}
+									onSelectionToggle={handleExploreSelectionToggle}
+								/>
+							)}
+						</ResultGroup>
+					</View>
+				)}
+			</PlayerAwareScrollView>
 
 			{hasQuery && hasAnyResults && !isSelectionMode && (
 				<SortFilterFAB filterCount={filterCount} onPress={handleOpenFilterSheet} />
@@ -752,17 +732,13 @@ const styles = StyleSheet.create({
 		gap: 24,
 		paddingVertical: 24,
 	},
-	tabsContainer: {
-		flex: 1,
-	},
-	tabScrollContent: {
-		gap: 24,
-		paddingVertical: 16,
-		paddingHorizontal: 16,
-	},
 	emptyContainer: {
 		paddingHorizontal: 16,
 		paddingTop: 32,
+	},
+	resultsContainer: {
+		gap: 32,
+		paddingBottom: 84,
 	},
 	curatedSection: {
 		gap: 12,
@@ -788,8 +764,10 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		gap: 8,
+		paddingHorizontal: 16,
 	},
 	sectionContent: {
+		paddingHorizontal: 16,
 		gap: 4,
 	},
 });

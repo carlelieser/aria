@@ -21,11 +21,14 @@ import { AnimatedSplash } from '@/components/ui/animated-splash';
 import { AppThemeProvider, useAppTheme } from '@/lib/theme';
 import { ErrorBoundary, useGlobalErrorHandlers } from '@/lib/error-capture';
 import { useSleepTimerSheetOpen, usePlayerUIStore } from '@/src/application/state/player-ui-store';
+import { enableFreeze } from 'react-native-screens';
 
 const PORTAL_Z_INDEX = 9999;
 
 SplashScreen.hide();
 lazyBootstrap();
+enableFreeze(true);
+
 
 function AppContent() {
 	const { colors, isDark } = useAppTheme();
