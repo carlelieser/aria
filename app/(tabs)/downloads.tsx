@@ -133,9 +133,12 @@ export default function DownloadsScreen() {
 		</>
 	);
 
-	const activeLabel = `Active${stats.activeCount > 0 ? ` (${stats.activeCount})` : ''}`;
-	const doneLabel = `Done${stats.completedCount > 0 ? ` (${stats.completedCount})` : ''}`;
-	const failedLabel = `Failed${stats.failedCount > 0 ? ` (${stats.failedCount})` : ''}`;
+	// Note: Labels must be static strings because react-native-paper-tabs uses them as React keys.
+	// Dynamic labels (with counts) cause react-native-pager-view to fire onPageSelected incorrectly
+	// when content changes. See: https://github.com/callstack/react-native-pager-view/issues/84
+	const activeLabel = 'Active';
+	const doneLabel = 'Done';
+	const failedLabel = 'Failed';
 
 	return (
 		<PageLayout
@@ -159,12 +162,12 @@ export default function DownloadsScreen() {
 						mode="fixed"
 						style={{ backgroundColor: colors.surface }}
 					>
-						<TabScreen label={activeLabel} icon="download">
+						<TabScreen label={activeLabel} icon="download" badge={stats.activeCount || undefined}>
 							<View style={styles.tabContent}>
 								<ActiveDownloadsList downloads={activeDownloads} />
 							</View>
 						</TabScreen>
-						<TabScreen label={doneLabel} icon="check-circle">
+						<TabScreen label={doneLabel} icon="check-circle" badge={stats.completedCount || undefined}>
 							<View style={styles.tabContent}>
 								<CompletedDownloadsList
 									downloads={completedDownloads}
@@ -176,7 +179,7 @@ export default function DownloadsScreen() {
 								/>
 							</View>
 						</TabScreen>
-						<TabScreen label={failedLabel} icon="alert-circle">
+						<TabScreen label={failedLabel} icon="alert-circle" badge={stats.failedCount || undefined}>
 							<View style={styles.tabContent}>
 								<FailedDownloadsList
 									downloads={failedDownloads}

@@ -1,0 +1,18 @@
+diff --git a/node_modules/react-native-paper-tabs/lib/module/TabsHeaderItem.js b/node_modules/react-native-paper-tabs/lib/module/TabsHeaderItem.js
+index fe948ec..09745cb 100644
+--- a/node_modules/react-native-paper-tabs/lib/module/TabsHeaderItem.js
++++ b/node_modules/react-native-paper-tabs/lib/module/TabsHeaderItem.js
+@@ -99,10 +99,12 @@ export default function TabsHeaderItem({
+           }],
+           children: badgeWithoutContent ? /*#__PURE__*/_jsx(Badge, {
+             visible: true,
+-            size: 8
++            size: 8,
++            style: { backgroundColor: theme.colors.primary }
+           }) : /*#__PURE__*/_jsx(Badge, {
+             visible: true,
+             size: 16,
++            style: { backgroundColor: theme.colors.primary },
+             children: tab.props.badge
+           })
+         }) : null, showTextLabel ? /*#__PURE__*/_jsx(AnimatedText, {
