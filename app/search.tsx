@@ -99,21 +99,30 @@ interface ResultSectionProps {
 	readonly maxItems?: number;
 }
 
-function ResultSection({ title, icon: IconComponent, children }: ResultSectionProps) {
+const ResultSection = memo(function ResultSection({
+	title,
+	icon: IconComponent,
+	children,
+}: ResultSectionProps) {
 	const { colors } = useAppTheme();
+
+	const titleStyle = useMemo(
+		() => ({ color: colors.onSurface, fontWeight: '600' as const }),
+		[colors.onSurface]
+	);
 
 	return (
 		<View style={styles.section}>
 			<View style={styles.sectionHeader}>
 				<Icon as={IconComponent} size={18} color={colors.primary} />
-				<Text variant="titleSmall" style={{ color: colors.onSurface, fontWeight: '600' }}>
+				<Text variant="titleSmall" style={titleStyle}>
 					{title}
 				</Text>
 			</View>
 			<View style={styles.sectionContent}>{children}</View>
 		</View>
 	);
-}
+});
 
 export default function SearchScreen() {
 	const { colors } = useAppTheme();

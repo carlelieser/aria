@@ -138,6 +138,16 @@ export default function AlbumScreen() {
 		metadata,
 	};
 
+	const errorTextStyle = useMemo(
+		() => ({ color: colors.onSurfaceVariant, textAlign: 'center' as const }),
+		[colors.onSurfaceVariant]
+	);
+
+	const emptyTextStyle = useMemo(
+		() => ({ color: colors.onSurfaceVariant }),
+		[colors.onSurfaceVariant]
+	);
+
 	const renderContent = () => {
 		if (isLoading && !hasData) {
 			return <AlbumTrackListSkeleton />;
@@ -146,10 +156,7 @@ export default function AlbumScreen() {
 		if (error) {
 			return (
 				<View style={styles.emptyState}>
-					<Text
-						variant="bodyMedium"
-						style={{ color: colors.onSurfaceVariant, textAlign: 'center' }}
-					>
+					<Text variant="bodyMedium" style={errorTextStyle}>
 						{error}
 					</Text>
 					<Button mode="text" onPress={handleSearchAlbum}>
@@ -162,7 +169,7 @@ export default function AlbumScreen() {
 		if (enrichedTracks.length === 0) {
 			return (
 				<View style={styles.emptyState}>
-					<Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant }}>
+					<Text variant="bodyMedium" style={emptyTextStyle}>
 						No tracks found for this album
 					</Text>
 					<Button mode="text" onPress={handleSearchAlbum}>
@@ -176,7 +183,7 @@ export default function AlbumScreen() {
 			<View style={styles.trackList}>
 				{enrichedTracks.map((track, index) => (
 					<TrackListItem
-						key={`album-${index}-${track.id.value}`}
+						key={track.id.value}
 						track={track}
 						source="search"
 						queue={enrichedTracks}

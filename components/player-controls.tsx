@@ -16,6 +16,12 @@ interface PlayerControlsProps {
 	size?: 'sm' | 'md' | 'lg';
 }
 
+const ICON_SIZES = {
+	sm: { main: 32, secondary: 24, fab: 'small' as const },
+	md: { main: 48, secondary: 28, fab: 'medium' as const },
+	lg: { main: 64, secondary: 32, fab: 'large' as const },
+} as const;
+
 export function PlayerControls({ size = 'md' }: PlayerControlsProps) {
 	const {
 		isPlaying,
@@ -30,13 +36,7 @@ export function PlayerControls({ size = 'md' }: PlayerControlsProps) {
 	} = usePlayer();
 	const { colors } = useAppTheme();
 
-	const iconSizes = {
-		sm: { main: 32, secondary: 24, fab: 'small' as const },
-		md: { main: 48, secondary: 28, fab: 'medium' as const },
-		lg: { main: 64, secondary: 32, fab: 'large' as const },
-	};
-
-	const { secondary: secondaryIconSize, fab: fabSize } = iconSizes[size];
+	const { secondary: secondaryIconSize, fab: fabSize } = ICON_SIZES[size];
 
 	const surfaceColor = colors.onSurface;
 	const primaryColor = colors.onPrimary;

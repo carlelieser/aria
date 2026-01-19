@@ -145,18 +145,22 @@ function TrackOptionsContent({
 			groupMap.set(action.group, group);
 		}
 
-		return ACTION_GROUP_ORDER.filter((groupName) => groupMap.has(groupName)).map(
-			(groupName) => ({
-				items: groupMap.get(groupName)!.map((action) => ({
-					id: action.id,
-					label: action.label,
-					icon: getIconComponent(action.icon),
-					variant: action.variant,
-					disabled: !action.enabled,
-					checked: action.checked,
-				})),
-			})
-		);
+		return ACTION_GROUP_ORDER.flatMap((groupName) => {
+			const groupActions = groupMap.get(groupName);
+			if (!groupActions) return [];
+			return [
+				{
+					items: groupActions.map((action) => ({
+						id: action.id,
+						label: action.label,
+						icon: getIconComponent(action.icon),
+						variant: action.variant,
+						disabled: !action.enabled,
+						checked: action.checked,
+					})),
+				},
+			];
+		});
 	}, [actions]);
 
 	const handleItemPress = useCallback(

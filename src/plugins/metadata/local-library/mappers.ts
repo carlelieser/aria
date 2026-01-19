@@ -161,10 +161,12 @@ export function buildArtistsFromTracks(tracks: LocalTrack[]): Map<string, LocalA
 		}
 
 		if (track.albumId) {
-			if (!albumsByArtist.has(track.artistId)) {
-				albumsByArtist.set(track.artistId, new Set());
+			let albumSet = albumsByArtist.get(track.artistId);
+			if (!albumSet) {
+				albumSet = new Set();
+				albumsByArtist.set(track.artistId, albumSet);
 			}
-			albumsByArtist.get(track.artistId)!.add(track.albumId);
+			albumSet.add(track.albumId);
 		}
 	}
 

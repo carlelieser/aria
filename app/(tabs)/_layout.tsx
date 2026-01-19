@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useMemo, useState } from 'react';
+import { useEffect, useRef, useCallback, useMemo, useState, memo } from 'react';
 import { Tabs, router } from 'expo-router';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,6 +26,8 @@ const TAB_WIDTH = 84;
 const INDICATOR_WIDTH = 64;
 const INDICATOR_HEIGHT = 32;
 const INDICATOR_TOP = 11;
+
+const TAB_SPRING_CONFIG = { damping: 20, stiffness: 200, mass: 0.5 };
 
 export default function TabLayout() {
 	const defaultTab = useDefaultTab();
@@ -250,7 +252,7 @@ interface TabIconProps {
 
 const LABEL_HEIGHT = 18;
 
-function TabIcon({
+const TabIcon = memo(function TabIcon({
 	icon: Icon,
 	isFocused,
 	focusedColor,
@@ -260,8 +262,7 @@ function TabIcon({
 	const translateY = useSharedValue(isFocused ? 0 : LABEL_HEIGHT / 2);
 
 	useEffect(() => {
-		const springConfig = { damping: 20, stiffness: 200, mass: 0.5 };
-		translateY.value = withSpring(isFocused ? 0 : LABEL_HEIGHT / 2, springConfig);
+		translateY.value = withSpring(isFocused ? 0 : LABEL_HEIGHT / 2, TAB_SPRING_CONFIG);
 	}, [isFocused, translateY]);
 
 	const animatedStyle = useAnimatedStyle(() => ({
@@ -284,7 +285,7 @@ function TabIcon({
 			)}
 		</Animated.View>
 	);
-}
+});
 
 interface TabLabelProps {
 	label: string;
@@ -292,14 +293,13 @@ interface TabLabelProps {
 	color: string;
 }
 
-function TabLabel({ label, isFocused, color }: TabLabelProps) {
+const TabLabel = memo(function TabLabel({ label, isFocused, color }: TabLabelProps) {
 	const opacity = useSharedValue(isFocused ? 1 : 0);
 	const translateY = useSharedValue(isFocused ? 0 : 4);
 
 	useEffect(() => {
-		const springConfig = { damping: 20, stiffness: 200, mass: 0.5 };
-		opacity.value = withSpring(isFocused ? 1 : 0, springConfig);
-		translateY.value = withSpring(isFocused ? 0 : 4, springConfig);
+		opacity.value = withSpring(isFocused ? 1 : 0, TAB_SPRING_CONFIG);
+		translateY.value = withSpring(isFocused ? 0 : 4, TAB_SPRING_CONFIG);
 	}, [isFocused, opacity, translateY]);
 
 	const animatedStyle = useAnimatedStyle(() => ({
@@ -310,7 +310,7 @@ function TabLabel({ label, isFocused, color }: TabLabelProps) {
 	return (
 		<Animated.Text style={[styles.tabLabel, { color }, animatedStyle]}>{label}</Animated.Text>
 	);
-}
+});
 
 const styles = StyleSheet.create({
 	tabBarContainer: {

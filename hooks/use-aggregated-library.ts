@@ -1,12 +1,11 @@
-import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
-import { InteractionManager } from 'react-native';
+import { useMemo, useCallback } from 'react';
 import {
 	useLibraryStore,
 	type UniqueArtist,
 	type UniqueAlbum,
 } from '@/src/application/state/library-store';
 import { useLocalLibraryStore } from '@/src/plugins/metadata/local-library/storage/local-library-store';
-import { appResumeManager } from '@/src/application/services/app-resume-manager';
+import { createDeferredComputation } from '@/hooks/use-deferred-computation';
 import type { Track } from '@/src/domain/entities/track';
 import type {
 	LocalTrack,
@@ -20,12 +19,6 @@ import { createLocalSource, type AudioFileType } from '@/src/domain/value-object
 import { createArtwork } from '@/src/domain/value-objects/artwork';
 
 const LOCAL_LIBRARY_SOURCE = 'local-library';
-
-const DEFERRED_COMPUTATION_THRESHOLD = 200;
-
-const RESUME_DEFERRED_THRESHOLD = 100;
-
-const DEBOUNCE_MS = 16;
 
 function mapLocalTrackToTrack(localTrack: LocalTrack): Track {
 	const extension = localTrack.filePath.split('.').pop()?.toLowerCase() as
@@ -83,10 +76,6 @@ function mapLocalArtistToUniqueArtist(
 	};
 }
 
-let cachedAggregatedTracks: Track[] = [];
-let cachedLibraryTracks: Track[] | null = null;
-let cachedLocalTracks: Record<string, LocalTrack> | null = null;
-
 function computeAggregatedTracks(
 	libraryTracks: Track[],
 	localTracks: Record<string, LocalTrack>
@@ -100,82 +89,21 @@ function computeAggregatedTracks(
 	return [...libraryTracks, ...uniqueLocalTracks];
 }
 
+const useDeferredTracks = createDeferredComputation<Track[]>([]);
+
 export function useAggregatedTracks(): Track[] {
 	const libraryTracks = useLibraryStore((state) => state.tracks);
 	const localTracks = useLocalLibraryStore((state) => state.tracks);
-	const [deferredResult, setDeferredResult] = useState<Track[] | null>(null);
-	const isComputingRef = useRef(false);
-	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-	const hasChanged = libraryTracks !== cachedLibraryTracks || localTracks !== cachedLocalTracks;
+	const computeFn = useCallback(
+		() => computeAggregatedTracks(libraryTracks, localTracks),
+		[libraryTracks, localTracks]
+	);
 
 	const totalCount = libraryTracks.length + Object.keys(localTracks).length;
-	const threshold = appResumeManager.wasLongBackground()
-		? RESUME_DEFERRED_THRESHOLD
-		: DEFERRED_COMPUTATION_THRESHOLD;
-	const shouldDefer = hasChanged && totalCount > threshold;
 
-	useEffect(() => {
-		if (!shouldDefer || isComputingRef.current) return;
-
-		if (debounceTimerRef.current) {
-			clearTimeout(debounceTimerRef.current);
-		}
-
-		debounceTimerRef.current = setTimeout(() => {
-			isComputingRef.current = true;
-
-			const handle = InteractionManager.runAfterInteractions(() => {
-				const result = computeAggregatedTracks(libraryTracks, localTracks);
-
-				cachedAggregatedTracks = result;
-				cachedLibraryTracks = libraryTracks;
-				cachedLocalTracks = localTracks;
-
-				setDeferredResult(result);
-				isComputingRef.current = false;
-			});
-
-			debounceTimerRef.current = null;
-
-			return () => {
-				handle.cancel();
-				isComputingRef.current = false;
-			};
-		}, DEBOUNCE_MS);
-
-		return () => {
-			if (debounceTimerRef.current) {
-				clearTimeout(debounceTimerRef.current);
-				debounceTimerRef.current = null;
-			}
-			isComputingRef.current = false;
-		};
-	}, [shouldDefer, libraryTracks, localTracks]);
-
-	return useMemo(() => {
-		if (!hasChanged) {
-			return cachedAggregatedTracks;
-		}
-
-		if (shouldDefer) {
-			return deferredResult ?? cachedAggregatedTracks;
-		}
-
-		const result = computeAggregatedTracks(libraryTracks, localTracks);
-
-		cachedAggregatedTracks = result;
-		cachedLibraryTracks = libraryTracks;
-		cachedLocalTracks = localTracks;
-
-		return result;
-	}, [libraryTracks, localTracks, hasChanged, shouldDefer, deferredResult]);
+	return useDeferredTracks(computeFn, [libraryTracks, localTracks], totalCount);
 }
-
-let cachedAggregatedArtists: UniqueArtist[] = [];
-let cachedLibraryArtistsRef: Track[] | null = null;
-let cachedLocalArtistsRef: Record<string, LocalArtist> | null = null;
-let cachedLocalTracksForArtists: Record<string, LocalTrack> | null = null;
 
 function computeAggregatedArtists(
 	libraryTracks: Track[],
@@ -229,87 +157,26 @@ function computeAggregatedArtists(
 	return Array.from(artistMap.values()).sort((a, b) => a.name.localeCompare(b.name));
 }
 
+const useDeferredArtists = createDeferredComputation<UniqueArtist[]>([]);
+
 export function useAggregatedArtists(): UniqueArtist[] {
 	const libraryTracks = useLibraryStore((state) => state.tracks);
 	const localArtists = useLocalLibraryStore((state) => state.artists);
 	const localTracks = useLocalLibraryStore((state) => state.tracks);
-	const [deferredResult, setDeferredResult] = useState<UniqueArtist[] | null>(null);
-	const isComputingRef = useRef(false);
-	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-	const hasChanged =
-		libraryTracks !== cachedLibraryArtistsRef ||
-		localArtists !== cachedLocalArtistsRef ||
-		localTracks !== cachedLocalTracksForArtists;
+	const computeFn = useCallback(
+		() => computeAggregatedArtists(libraryTracks, localArtists, localTracks),
+		[libraryTracks, localArtists, localTracks]
+	);
 
 	const totalCount = libraryTracks.length + Object.keys(localArtists).length;
-	const threshold = appResumeManager.wasLongBackground()
-		? RESUME_DEFERRED_THRESHOLD
-		: DEFERRED_COMPUTATION_THRESHOLD;
-	const shouldDefer = hasChanged && totalCount > threshold;
 
-	useEffect(() => {
-		if (!shouldDefer || isComputingRef.current) return;
-
-		if (debounceTimerRef.current) {
-			clearTimeout(debounceTimerRef.current);
-		}
-
-		debounceTimerRef.current = setTimeout(() => {
-			isComputingRef.current = true;
-
-			const handle = InteractionManager.runAfterInteractions(() => {
-				const result = computeAggregatedArtists(libraryTracks, localArtists, localTracks);
-
-				cachedAggregatedArtists = result;
-				cachedLibraryArtistsRef = libraryTracks;
-				cachedLocalArtistsRef = localArtists;
-				cachedLocalTracksForArtists = localTracks;
-
-				setDeferredResult(result);
-				isComputingRef.current = false;
-			});
-
-			debounceTimerRef.current = null;
-
-			return () => {
-				handle.cancel();
-				isComputingRef.current = false;
-			};
-		}, DEBOUNCE_MS);
-
-		return () => {
-			if (debounceTimerRef.current) {
-				clearTimeout(debounceTimerRef.current);
-				debounceTimerRef.current = null;
-			}
-			isComputingRef.current = false;
-		};
-	}, [shouldDefer, libraryTracks, localArtists, localTracks]);
-
-	return useMemo(() => {
-		if (!hasChanged) {
-			return cachedAggregatedArtists;
-		}
-
-		if (shouldDefer) {
-			return deferredResult ?? cachedAggregatedArtists;
-		}
-
-		const result = computeAggregatedArtists(libraryTracks, localArtists, localTracks);
-
-		cachedAggregatedArtists = result;
-		cachedLibraryArtistsRef = libraryTracks;
-		cachedLocalArtistsRef = localArtists;
-		cachedLocalTracksForArtists = localTracks;
-
-		return result;
-	}, [libraryTracks, localArtists, localTracks, hasChanged, shouldDefer, deferredResult]);
+	return useDeferredArtists(
+		computeFn,
+		[libraryTracks, localArtists, localTracks],
+		totalCount
+	);
 }
-
-let cachedAggregatedAlbums: UniqueAlbum[] = [];
-let cachedLibraryAlbumsRef: Track[] | null = null;
-let cachedLocalAlbumsRef: Record<string, LocalAlbum> | null = null;
 
 function computeAggregatedAlbums(
 	libraryTracks: Track[],
@@ -353,77 +220,20 @@ function computeAggregatedAlbums(
 	return Array.from(albumMap.values()).sort((a, b) => a.name.localeCompare(b.name));
 }
 
+const useDeferredAlbums = createDeferredComputation<UniqueAlbum[]>([]);
+
 export function useAggregatedAlbums(): UniqueAlbum[] {
 	const libraryTracks = useLibraryStore((state) => state.tracks);
 	const localAlbums = useLocalLibraryStore((state) => state.albums);
-	const [deferredResult, setDeferredResult] = useState<UniqueAlbum[] | null>(null);
-	const isComputingRef = useRef(false);
-	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-	const hasChanged =
-		libraryTracks !== cachedLibraryAlbumsRef || localAlbums !== cachedLocalAlbumsRef;
+	const computeFn = useCallback(
+		() => computeAggregatedAlbums(libraryTracks, localAlbums),
+		[libraryTracks, localAlbums]
+	);
 
 	const totalCount = libraryTracks.length + Object.keys(localAlbums).length;
-	const threshold = appResumeManager.wasLongBackground()
-		? RESUME_DEFERRED_THRESHOLD
-		: DEFERRED_COMPUTATION_THRESHOLD;
-	const shouldDefer = hasChanged && totalCount > threshold;
 
-	useEffect(() => {
-		if (!shouldDefer || isComputingRef.current) return;
-
-		if (debounceTimerRef.current) {
-			clearTimeout(debounceTimerRef.current);
-		}
-
-		debounceTimerRef.current = setTimeout(() => {
-			isComputingRef.current = true;
-
-			const handle = InteractionManager.runAfterInteractions(() => {
-				const result = computeAggregatedAlbums(libraryTracks, localAlbums);
-
-				cachedAggregatedAlbums = result;
-				cachedLibraryAlbumsRef = libraryTracks;
-				cachedLocalAlbumsRef = localAlbums;
-
-				setDeferredResult(result);
-				isComputingRef.current = false;
-			});
-
-			debounceTimerRef.current = null;
-
-			return () => {
-				handle.cancel();
-				isComputingRef.current = false;
-			};
-		}, DEBOUNCE_MS);
-
-		return () => {
-			if (debounceTimerRef.current) {
-				clearTimeout(debounceTimerRef.current);
-				debounceTimerRef.current = null;
-			}
-			isComputingRef.current = false;
-		};
-	}, [shouldDefer, libraryTracks, localAlbums]);
-
-	return useMemo(() => {
-		if (!hasChanged) {
-			return cachedAggregatedAlbums;
-		}
-
-		if (shouldDefer) {
-			return deferredResult ?? cachedAggregatedAlbums;
-		}
-
-		const result = computeAggregatedAlbums(libraryTracks, localAlbums);
-
-		cachedAggregatedAlbums = result;
-		cachedLibraryAlbumsRef = libraryTracks;
-		cachedLocalAlbumsRef = localAlbums;
-
-		return result;
-	}, [libraryTracks, localAlbums, hasChanged, shouldDefer, deferredResult]);
+	return useDeferredAlbums(computeFn, [libraryTracks, localAlbums], totalCount);
 }
 
 export function useAggregatedTrackCount(): number {

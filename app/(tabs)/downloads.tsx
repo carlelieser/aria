@@ -1,11 +1,10 @@
 import { useState, useMemo, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
 import { Text, IconButton, Portal, Dialog, Button } from 'react-native-paper';
 import { TabsProvider, Tabs, TabScreen } from 'react-native-paper-tabs';
 import { Icon } from '@/components/ui/icon';
+import { GenericListView } from '@/components/ui/generic-list-view';
 import { PageLayout } from '@/components/page-layout';
-import { EmptyState } from '@/components/empty-state';
 import { DownloadIcon, TrashIcon, HardDriveIcon, CheckCircle2Icon, AlertCircleIcon, SearchIcon } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { DownloadListItem } from '@/components/download-list-item';
@@ -47,19 +46,18 @@ export default function DownloadsScreen() {
 
 	const { addSelectedToLibrary, deleteSelectedDownloads, isDeleting } = useBatchActions();
 
+	const clearAll = useDownloadStore((state) => state.clearAll);
+
 	const handleClearAllDownloads = useCallback(async () => {
 		setClearDialogVisible(false);
 		const result = await clearAllDownloads();
 		if (result.success) {
-			useDownloadStore.setState({
-				downloads: new Map(),
-				downloadedTracks: new Map(),
-			});
+			clearAll();
 			success('Downloads cleared', 'All downloaded files have been removed');
 		} else {
 			error('Failed to clear downloads', result.error.message);
 		}
-	}, [success, error]);
+	}, [clearAll, success, error]);
 
 	const completedTrackIds = useMemo(
 		() => completedDownloads.map((d) => d.trackId),
@@ -225,23 +223,20 @@ interface ActiveDownloadsListProps {
 }
 
 function ActiveDownloadsList({ downloads }: ActiveDownloadsListProps) {
-	if (downloads.length === 0) {
-		return (
-			<EmptyState
-				icon={DownloadIcon}
-				title="No active downloads"
-				description="Downloads will appear here when you start downloading tracks"
-			/>
-		);
-	}
-
 	return (
-		<FlashList
+		<GenericListView
 			data={downloads}
+			isLoading={false}
 			keyExtractor={(item) => item.trackId}
 			renderItem={({ item }) => <DownloadListItem downloadInfo={item} />}
-			showsVerticalScrollIndicator={false}
+			loadingSkeleton={null}
+			emptyState={{
+				icon: DownloadIcon,
+				title: 'No active downloads',
+				description: 'Downloads will appear here when you start downloading tracks',
+			}}
 			contentContainerStyle={{ paddingBottom: DEFAULT_CONTENT_PADDING }}
+			disablePlayerAwarePadding
 		/>
 	);
 }
@@ -263,19 +258,10 @@ function CompletedDownloadsList({
 	onLongPress,
 	onSelectionToggle,
 }: CompletedDownloadsListProps) {
-	if (downloads.length === 0) {
-		return (
-			<EmptyState
-				icon={CheckCircle2Icon}
-				title="No completed downloads"
-				description="Completed downloads will appear here"
-			/>
-		);
-	}
-
 	return (
-		<FlashList
+		<GenericListView
 			data={downloads}
+			isLoading={false}
 			keyExtractor={(item) => item.trackId}
 			renderItem={({ item, index }) => (
 				<SelectableDownloadListItem
@@ -288,11 +274,17 @@ function CompletedDownloadsList({
 					queueIndex={index}
 				/>
 			)}
-			showsVerticalScrollIndicator={false}
+			loadingSkeleton={null}
+			emptyState={{
+				icon: CheckCircle2Icon,
+				title: 'No completed downloads',
+				description: 'Completed downloads will appear here',
+			}}
 			contentContainerStyle={{
 				paddingBottom: isSelectionMode ? BATCH_ACTION_BAR_PADDING : DEFAULT_CONTENT_PADDING,
 			}}
 			extraData={isSelectionMode ? selectedTrackIds : undefined}
+			disablePlayerAwarePadding
 		/>
 	);
 }
@@ -303,25 +295,20 @@ interface FailedDownloadsListProps {
 }
 
 function FailedDownloadsList({ downloads, onRetry }: FailedDownloadsListProps) {
-	if (downloads.length === 0) {
-		return (
-			<EmptyState
-				icon={AlertCircleIcon}
-				title="No failed downloads"
-				description="Failed downloads will appear here for retry"
-			/>
-		);
-	}
-
 	return (
-		<FlashList
+		<GenericListView
 			data={downloads}
+			isLoading={false}
 			keyExtractor={(item) => item.trackId}
-			renderItem={({ item }) => (
-				<DownloadListItem downloadInfo={item} onRetry={onRetry} />
-			)}
-			showsVerticalScrollIndicator={false}
+			renderItem={({ item }) => <DownloadListItem downloadInfo={item} onRetry={onRetry} />}
+			loadingSkeleton={null}
+			emptyState={{
+				icon: AlertCircleIcon,
+				title: 'No failed downloads',
+				description: 'Failed downloads will appear here for retry',
+			}}
 			contentContainerStyle={{ paddingBottom: DEFAULT_CONTENT_PADDING }}
+			disablePlayerAwarePadding
 		/>
 	);
 }

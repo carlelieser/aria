@@ -1,8 +1,7 @@
 import { View, StyleSheet } from 'react-native';
 import { TabsProvider, Tabs, TabScreen } from 'react-native-paper-tabs';
-import { PlayerAwareFlashList } from '@/components/ui/player-aware-flash-list';
+import { GenericListView } from '@/components/ui/generic-list-view';
 import { PageLayout } from '@/components/page-layout';
-import { EmptyState } from '@/components/empty-state';
 import { MusicIcon, ListMusicIcon, UsersIcon, DiscIcon, SearchIcon } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { IconButton } from 'react-native-paper';
@@ -312,32 +311,10 @@ function SongsList({
 	onLongPress,
 	onSelectionToggle,
 }: SongsListProps) {
-	if (isLoading) {
-		return <TrackListSkeleton count={8} />;
-	}
-
-	if (tracks.length === 0) {
-		if (hasFilters) {
-			return (
-				<EmptyState
-					icon={MusicIcon}
-					title="No matches"
-					description="Try adjusting your filters"
-				/>
-			);
-		}
-		return (
-			<EmptyState
-				icon={MusicIcon}
-				title="No songs yet"
-				description="Search for music or add local files to build your library"
-			/>
-		);
-	}
-
 	return (
-		<PlayerAwareFlashList
+		<GenericListView
 			data={tracks}
+			isLoading={isLoading}
 			keyExtractor={(item) => item.id.value}
 			renderItem={({ item, index }) => (
 				<SelectableTrackListItem
@@ -351,55 +328,45 @@ function SongsList({
 					queueIndex={index}
 				/>
 			)}
-			showsVerticalScrollIndicator={false}
+			loadingSkeleton={<TrackListSkeleton count={8} />}
+			emptyState={{
+				icon: MusicIcon,
+				title: 'No songs yet',
+				description: 'Search for music or add local files to build your library',
+			}}
+			filteredEmptyState={{
+				icon: MusicIcon,
+				title: 'No matches',
+				description: 'Try adjusting your filters',
+			}}
+			hasFilters={hasFilters}
 			extraData={isSelectionMode ? selectedTrackIds : undefined}
 		/>
 	);
 }
 
 function PlaylistsList({ playlists, isLoading }: { playlists: Playlist[]; isLoading: boolean }) {
-	if (isLoading) {
-		return <PlaylistListSkeleton count={6} />;
-	}
-
-	if (playlists.length === 0) {
-		return (
-			<EmptyState
-				icon={ListMusicIcon}
-				title="No playlists yet"
-				description="Create a playlist to organize your favorite tracks"
-			/>
-		);
-	}
-
 	return (
-		<PlayerAwareFlashList
+		<GenericListView
 			data={playlists}
+			isLoading={isLoading}
 			keyExtractor={(item) => item.id}
 			renderItem={({ item }) => <PlaylistListItem playlist={item} />}
-			showsVerticalScrollIndicator={false}
+			loadingSkeleton={<PlaylistListSkeleton count={6} />}
+			emptyState={{
+				icon: ListMusicIcon,
+				title: 'No playlists yet',
+				description: 'Create a playlist to organize your favorite tracks',
+			}}
 		/>
 	);
 }
 
 function ArtistsList({ artists, isLoading }: { artists: UniqueArtist[]; isLoading: boolean }) {
-	if (isLoading) {
-		return <ArtistListSkeleton count={6} />;
-	}
-
-	if (artists.length === 0) {
-		return (
-			<EmptyState
-				icon={UsersIcon}
-				title="No artists yet"
-				description="Add some music to see your favorite artists here"
-			/>
-		);
-	}
-
 	return (
-		<PlayerAwareFlashList
+		<GenericListView
 			data={artists}
+			isLoading={isLoading}
 			keyExtractor={(item) => item.id}
 			renderItem={({ item }) => (
 				<ArtistListItem
@@ -409,29 +376,21 @@ function ArtistsList({ artists, isLoading }: { artists: UniqueArtist[]; isLoadin
 					trackCount={item.trackCount}
 				/>
 			)}
-			showsVerticalScrollIndicator={false}
+			loadingSkeleton={<ArtistListSkeleton count={6} />}
+			emptyState={{
+				icon: UsersIcon,
+				title: 'No artists yet',
+				description: 'Add some music to see your favorite artists here',
+			}}
 		/>
 	);
 }
 
 function AlbumsList({ albums, isLoading }: { albums: UniqueAlbum[]; isLoading: boolean }) {
-	if (isLoading) {
-		return <AlbumListSkeleton count={6} />;
-	}
-
-	if (albums.length === 0) {
-		return (
-			<EmptyState
-				icon={DiscIcon}
-				title="No albums yet"
-				description="Add some music to see your albums here"
-			/>
-		);
-	}
-
 	return (
-		<PlayerAwareFlashList
+		<GenericListView
 			data={albums}
+			isLoading={isLoading}
 			keyExtractor={(item) => item.id}
 			renderItem={({ item }) => (
 				<AlbumListItem
@@ -442,7 +401,12 @@ function AlbumsList({ albums, isLoading }: { albums: UniqueAlbum[]; isLoading: b
 					trackCount={item.trackCount}
 				/>
 			)}
-			showsVerticalScrollIndicator={false}
+			loadingSkeleton={<AlbumListSkeleton count={6} />}
+			emptyState={{
+				icon: DiscIcon,
+				title: 'No albums yet',
+				description: 'Add some music to see your albums here',
+			}}
 		/>
 	);
 }

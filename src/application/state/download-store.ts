@@ -30,6 +30,7 @@ interface DownloadState {
 	failDownload: (trackId: string, error: string) => void;
 	removeDownload: (trackId: string) => void;
 	clearActiveDownloads: () => void;
+	clearAll: () => void;
 
 	isDownloaded: (trackId: string) => boolean;
 	isDownloading: (trackId: string) => boolean;
@@ -135,6 +136,13 @@ export const useDownloadStore = create<DownloadState>()(
 						}
 					}
 					return { downloads: newDownloads };
+				});
+			},
+
+			clearAll: () => {
+				set({
+					downloads: new Map(),
+					downloadedTracks: new Map(),
 				});
 			},
 

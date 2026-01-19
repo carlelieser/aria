@@ -67,6 +67,34 @@ export class YouTubeMusicProvider implements YouTubeMusicLibraryProvider {
 		this._authManager = new YouTubeMusicAuthManager();
 	}
 
+	private _getSearchOps(): SearchOperations {
+		if (!this.searchOps) {
+			throw new Error('YouTube Music provider not initialized');
+		}
+		return this.searchOps;
+	}
+
+	private _getInfoOps(): InfoOperations {
+		if (!this.infoOps) {
+			throw new Error('YouTube Music provider not initialized');
+		}
+		return this.infoOps;
+	}
+
+	private _getStreamingOps(): StreamingOperations {
+		if (!this.streamingOps) {
+			throw new Error('YouTube Music provider not initialized');
+		}
+		return this.streamingOps;
+	}
+
+	private _getRecommendationOps(): RecommendationOperations {
+		if (!this.recommendationOps) {
+			throw new Error('YouTube Music provider not initialized');
+		}
+		return this.recommendationOps;
+	}
+
 	async onInit(context: PluginInitContext): Promise<Result<void, Error>> {
 		try {
 			this.status = 'initializing';
@@ -139,51 +167,51 @@ export class YouTubeMusicProvider implements YouTubeMusicLibraryProvider {
 		query: string,
 		options?: SearchOptions
 	): Promise<Result<SearchResults<Track>, Error>> {
-		return this.searchOps!.searchTracks(query, options);
+		return this._getSearchOps().searchTracks(query, options);
 	}
 
 	searchAlbums(
 		query: string,
 		options?: SearchOptions
 	): Promise<Result<SearchResults<Album>, Error>> {
-		return this.searchOps!.searchAlbums(query, options);
+		return this._getSearchOps().searchAlbums(query, options);
 	}
 
 	searchArtists(
 		query: string,
 		options?: SearchOptions
 	): Promise<Result<SearchResults<Artist>, Error>> {
-		return this.searchOps!.searchArtists(query, options);
+		return this._getSearchOps().searchArtists(query, options);
 	}
 
 	getTrackInfo(trackId: TrackId): Promise<Result<Track, Error>> {
-		return this.infoOps!.getTrackInfo(trackId);
+		return this._getInfoOps().getTrackInfo(trackId);
 	}
 
 	getAlbumInfo(albumId: string): Promise<Result<Album, Error>> {
-		return this.infoOps!.getAlbumInfo(albumId);
+		return this._getInfoOps().getAlbumInfo(albumId);
 	}
 
 	getArtistInfo(artistId: string): Promise<Result<Artist, Error>> {
-		return this.infoOps!.getArtistInfo(artistId);
+		return this._getInfoOps().getArtistInfo(artistId);
 	}
 
 	getAlbumTracks(
 		albumId: string,
 		options?: Pick<SearchOptions, 'limit' | 'offset'>
 	): Promise<Result<SearchResults<Track>, Error>> {
-		return this.infoOps!.getAlbumTracks(albumId, options);
+		return this._getInfoOps().getAlbumTracks(albumId, options);
 	}
 
 	getArtistAlbums(
 		artistId: string,
 		options?: Pick<SearchOptions, 'limit' | 'offset'>
 	): Promise<Result<SearchResults<Album>, Error>> {
-		return this.infoOps!.getArtistAlbums(artistId, options);
+		return this._getInfoOps().getArtistAlbums(artistId, options);
 	}
 
 	getStreamUrl(trackId: TrackId, options?: StreamOptions): Promise<Result<AudioStream, Error>> {
-		return this.streamingOps!.getStreamUrl(trackId, options);
+		return this._getStreamingOps().getStreamUrl(trackId, options);
 	}
 
 	getRecommendations(
@@ -191,7 +219,7 @@ export class YouTubeMusicProvider implements YouTubeMusicLibraryProvider {
 		params?: RecommendationParams,
 		limit?: number
 	): Promise<Result<Track[], Error>> {
-		return this.recommendationOps!.getRecommendations(seed, params, limit);
+		return this._getRecommendationOps().getRecommendations(seed, params, limit);
 	}
 
 	// Authentication methods

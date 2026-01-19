@@ -130,10 +130,12 @@ export async function indexTracks(tracks: LocalTrack[]): AsyncResult<void, Error
 		return err(new Error('Database not initialized'));
 	}
 
+	const database = db;
+
 	try {
-		await db.withTransactionAsync(async () => {
+		await database.withTransactionAsync(async () => {
 			for (const track of tracks) {
-				await db!.runAsync(
+				await database.runAsync(
 					`INSERT OR REPLACE INTO tracks
 					(id, file_path, file_name, file_size, title, artist_name, artist_id,
 					 album_name, album_id, duration, year, genre, track_number, disc_number,
@@ -160,7 +162,7 @@ export async function indexTracks(tracks: LocalTrack[]): AsyncResult<void, Error
 					]
 				);
 
-				await db!.runAsync(
+				await database.runAsync(
 					`INSERT OR REPLACE INTO tracks_fts (id, title, artist_name, album_name)
 					 VALUES (?, ?, ?, ?)`,
 					[track.id, track.title, track.artistName, track.albumName ?? '']

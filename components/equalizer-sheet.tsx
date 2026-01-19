@@ -6,17 +6,11 @@
  * Uses M3 theming.
  */
 
-import React, { useCallback, useMemo, useRef, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
-import BottomSheet, {
-	BottomSheetBackdrop,
-	BottomSheetScrollView,
-	type BottomSheetBackdropProps,
-} from '@gorhom/bottom-sheet';
-import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
-import { Portal } from '@rn-primitives/portal';
 import { Text, Divider, Switch } from 'react-native-paper';
 import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
+import { ManagedBottomSheet } from '@/components/ui/managed-bottom-sheet';
 import { Icon } from '@/components/ui/icon';
 import { SlidersHorizontal, Check, Info, CheckCircle } from 'lucide-react-native';
 import { useEqualizer, useEqualizerInit } from '@/hooks/use-equalizer';
@@ -29,7 +23,6 @@ interface EqualizerSheetProps {
 
 export function EqualizerSheet({ isOpen, onClose }: EqualizerSheetProps) {
 	const { colors } = useAppTheme();
-	const sheetRef = useRef<BottomSheetMethods>(null);
 	const {
 		isEnabled,
 		selectedPresetId,
@@ -44,36 +37,6 @@ export function EqualizerSheet({ isOpen, onClose }: EqualizerSheetProps) {
 	// Initialize native equalizer when sheet is opened
 	useEqualizerInit();
 
-	const snapPoints = useMemo(() => ['85%'], []);
-
-	useEffect(() => {
-		if (isOpen) {
-			sheetRef.current?.snapToIndex(0);
-		}
-	}, [isOpen]);
-
-	const handleSheetChanges = useCallback(
-		(index: number) => {
-			if (index === -1) {
-				onClose();
-			}
-		},
-		[onClose]
-	);
-
-	const renderBackdrop = useCallback(
-		(props: BottomSheetBackdropProps) => (
-			<BottomSheetBackdrop
-				{...props}
-				disappearsOnIndex={-1}
-				appearsOnIndex={0}
-				opacity={0.5}
-				pressBehavior="close"
-			/>
-		),
-		[]
-	);
-
 	const handlePresetSelect = useCallback(
 		(presetId: string) => {
 			selectPreset(presetId);
@@ -81,141 +44,117 @@ export function EqualizerSheet({ isOpen, onClose }: EqualizerSheetProps) {
 		[selectPreset]
 	);
 
-	if (!isOpen) {
-		return null;
-	}
-
 	return (
-		<Portal name="equalizer-sheet">
-			<BottomSheet
-				ref={sheetRef}
-				index={0}
-				snapPoints={snapPoints}
-				enablePanDownToClose
-				backdropComponent={renderBackdrop}
-				onChange={handleSheetChanges}
-				backgroundStyle={[
-					styles.background,
-					{ backgroundColor: colors.surfaceContainerHigh },
-				]}
-				handleIndicatorStyle={[
-					styles.handleIndicator,
-					{ backgroundColor: colors.outlineVariant },
-				]}
-			>
-				<BottomSheetScrollView style={styles.contentContainer}>
-					<View style={styles.header}>
-						<View style={styles.headerLeft}>
-							<Icon as={SlidersHorizontal} size={24} color={colors.primary} />
-							<Text variant="titleLarge" style={{ color: colors.onSurface }}>
-								Equalizer
-							</Text>
-						</View>
-						<Switch
-							value={isEnabled}
-							onValueChange={toggleEnabled}
-							color={colors.primary}
-						/>
-					</View>
-
-					{isNativeAvailable ? (
-						<View
-							style={[
-								styles.infoContainer,
-								{ backgroundColor: colors.primaryContainer },
-							]}
-						>
-							<Icon as={CheckCircle} size={16} color={colors.onPrimaryContainer} />
-							<Text
-								variant="bodySmall"
-								style={{ color: colors.onPrimaryContainer, flex: 1 }}
-							>
-								Native equalizer active. Audio adjustments will affect playback.
-							</Text>
-						</View>
-					) : (
-						<View
-							style={[
-								styles.infoContainer,
-								{ backgroundColor: colors.surfaceContainerHighest },
-							]}
-						>
-							<Icon as={Info} size={16} color={colors.onSurfaceVariant} />
-							<Text
-								variant="bodySmall"
-								style={{ color: colors.onSurfaceVariant, flex: 1 }}
-							>
-								Native equalizer unavailable. Visual preview only.
-							</Text>
-						</View>
-					)}
-
-					<Divider style={{ backgroundColor: colors.outlineVariant }} />
-
-					<View style={[styles.visualizerContainer, !isEnabled && styles.disabled]}>
-						{bands.map((band, index) => (
-							<EqualizerBand
-								key={band.frequency}
-								label={band.label}
-								gain={currentGains[index]}
-								isEnabled={isEnabled}
-							/>
-						))}
-					</View>
-
-					<Text
-						variant="labelLarge"
-						style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}
-					>
-						Presets
+		<ManagedBottomSheet
+			portalName="equalizer-sheet"
+			isOpen={isOpen}
+			onClose={onClose}
+			snapPoints={['85%']}
+			scrollable
+		>
+			<View style={styles.header}>
+				<View style={styles.headerLeft}>
+					<Icon as={SlidersHorizontal} size={24} color={colors.primary} />
+					<Text variant="titleLarge" style={{ color: colors.onSurface }}>
+						Equalizer
 					</Text>
+				</View>
+				<Switch value={isEnabled} onValueChange={toggleEnabled} color={colors.primary} />
+			</View>
 
-					<View style={styles.presetGrid}>
-						{presets.map((preset) => (
-							<Pressable
-								key={preset.id}
-								onPress={() => handlePresetSelect(preset.id)}
-								disabled={!isEnabled}
-								style={({ pressed }) => [
-									styles.presetButton,
-									{
-										backgroundColor:
-											selectedPresetId === preset.id
-												? colors.primaryContainer
-												: pressed
-													? colors.surfaceContainerHighest
-													: colors.surfaceContainer,
-										borderColor:
-											selectedPresetId === preset.id
-												? colors.primary
-												: colors.outline,
-										opacity: isEnabled ? 1 : 0.5,
-									},
-								]}
-							>
-								<Text
-									variant="bodyMedium"
-									style={{
-										color:
-											selectedPresetId === preset.id
-												? colors.onPrimaryContainer
-												: colors.onSurface,
-										fontWeight: selectedPresetId === preset.id ? '600' : '400',
-									}}
-								>
-									{preset.name}
-								</Text>
-								{selectedPresetId === preset.id && (
-									<Icon as={Check} size={16} color={colors.onPrimaryContainer} />
-								)}
-							</Pressable>
-						))}
-					</View>
+			{isNativeAvailable ? (
+				<View
+					style={[styles.infoContainer, { backgroundColor: colors.primaryContainer }]}
+				>
+					<Icon as={CheckCircle} size={16} color={colors.onPrimaryContainer} />
+					<Text
+						variant="bodySmall"
+						style={{ color: colors.onPrimaryContainer, flex: 1 }}
+					>
+						Native equalizer active. Audio adjustments will affect playback.
+					</Text>
+				</View>
+			) : (
+				<View
+					style={[
+						styles.infoContainer,
+						{ backgroundColor: colors.surfaceContainerHighest },
+					]}
+				>
+					<Icon as={Info} size={16} color={colors.onSurfaceVariant} />
+					<Text
+						variant="bodySmall"
+						style={{ color: colors.onSurfaceVariant, flex: 1 }}
+					>
+						Native equalizer unavailable. Visual preview only.
+					</Text>
+				</View>
+			)}
 
-					<View style={styles.bottomPadding} />
-				</BottomSheetScrollView>
-			</BottomSheet>
-		</Portal>
+			<Divider style={{ backgroundColor: colors.outlineVariant }} />
+
+			<View style={[styles.visualizerContainer, !isEnabled && styles.disabled]}>
+				{bands.map((band, index) => (
+					<EqualizerBand
+						key={band.frequency}
+						label={band.label}
+						gain={currentGains[index]}
+						isEnabled={isEnabled}
+					/>
+				))}
+			</View>
+
+			<Text
+				variant="labelLarge"
+				style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}
+			>
+				Presets
+			</Text>
+
+			<View style={styles.presetGrid}>
+				{presets.map((preset) => (
+					<Pressable
+						key={preset.id}
+						onPress={() => handlePresetSelect(preset.id)}
+						disabled={!isEnabled}
+						style={({ pressed }) => [
+							styles.presetButton,
+							{
+								backgroundColor:
+									selectedPresetId === preset.id
+										? colors.primaryContainer
+										: pressed
+											? colors.surfaceContainerHighest
+											: colors.surfaceContainer,
+								borderColor:
+									selectedPresetId === preset.id
+										? colors.primary
+										: colors.outline,
+								opacity: isEnabled ? 1 : 0.5,
+							},
+						]}
+					>
+						<Text
+							variant="bodyMedium"
+							style={{
+								color:
+									selectedPresetId === preset.id
+										? colors.onPrimaryContainer
+										: colors.onSurface,
+								fontWeight: selectedPresetId === preset.id ? '600' : '400',
+							}}
+						>
+							{preset.name}
+						</Text>
+						{selectedPresetId === preset.id && (
+							<Icon as={Check} size={16} color={colors.onPrimaryContainer} />
+						)}
+					</Pressable>
+				))}
+			</View>
+
+			<View style={styles.bottomPadding} />
+		</ManagedBottomSheet>
 	);
 }
 
@@ -272,18 +211,6 @@ function EqualizerBand({ label, gain, isEnabled }: EqualizerBandProps) {
 }
 
 const styles = StyleSheet.create({
-	background: {
-		borderTopLeftRadius: M3Shapes.extraLarge,
-		borderTopRightRadius: M3Shapes.extraLarge,
-	},
-	handleIndicator: {
-		width: 36,
-		height: 4,
-		borderRadius: 2,
-	},
-	contentContainer: {
-		paddingHorizontal: 16,
-	},
 	header: {
 		flexDirection: 'row',
 		alignItems: 'center',

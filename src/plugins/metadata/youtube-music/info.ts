@@ -317,18 +317,6 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 					return ok(emptySearchResults());
 				}
 
-				// DEBUG: Log each section's type and first item type
-				for (let i = 0; i < Math.min(info.sections.length, 5); i++) {
-					const s = info.sections[i] as Record<string, unknown>;
-					const title = (s.title as Record<string, unknown>)?.text;
-					const firstItem = (s.contents as unknown[])?.[0] as Record<string, unknown> | undefined;
-					console.log(`[getArtistAlbums] Section ${i}: title="${title || '(none)'}", type="${s.type}", itemCount=${(s.contents as unknown[])?.length || 0}, firstItemType="${firstItem?.type}"`);
-					if (firstItem && i > 0) {
-						console.log(`[getArtistAlbums] Section ${i} first item:`, JSON.stringify(firstItem, null, 2).slice(0, 1500));
-						break; // Only log one non-song section
-					}
-				}
-
 				const albums: Album[] = [];
 				for (const section of info.sections) {
 					if (!section?.contents) continue;
