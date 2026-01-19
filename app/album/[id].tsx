@@ -86,10 +86,15 @@ export default function AlbumScreen() {
 			}
 		: getAlbumInfo(libraryTracks, id, name);
 
-	const enrichedTracks = useMemo(
-		() => enrichTracksWithAlbumArtwork(displayTracks, albumInfo.artwork),
-		[displayTracks, albumInfo.artwork]
-	);
+	const enrichedTracks = useMemo(() => {
+		const enriched = enrichTracksWithAlbumArtwork(displayTracks, albumInfo.artwork);
+		const seen = new Set<string>();
+		return enriched.filter((track) => {
+			if (seen.has(track.id.value)) return false;
+			seen.add(track.id.value);
+			return true;
+		});
+	}, [displayTracks, albumInfo.artwork]);
 
 	const hasData = albumDetail.album !== null || libraryTracks.length > 0;
 	const showHeaderSkeleton = isLoading && !hasData;

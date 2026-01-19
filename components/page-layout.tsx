@@ -107,7 +107,7 @@ function PageHeader({
 				<View style={[styles.headerTitle]}>
 					{IconComponent && !showBack && (
 						<View
-							style={[styles.iconCircle, { backgroundColor: `${colors.primary}20` }]}
+							style={[styles.iconCircle, { backgroundColor: `${colors.primary}10` }]}
 						>
 							<Icon as={IconComponent} size={24} color={colors.primary} />
 						</View>
@@ -169,7 +169,6 @@ const styles = StyleSheet.create({
 	},
 	content: {
 		flex: 1,
-		paddingBottom: 12,
 	},
 	contentPadding: {
 		paddingHorizontal: 16,
