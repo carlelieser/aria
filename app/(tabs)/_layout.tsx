@@ -22,6 +22,7 @@ import { TAB_CONFIG, TAB_BAR_HEIGHT } from '@/lib/tab-config';
 import { LottieTabIcon } from '@/components/ui/lottie-tab-icon';
 
 const TAB_WIDTH = 84;
+const TAB_GAP = 12;
 const INDICATOR_WIDTH = 64;
 const INDICATOR_HEIGHT = 32;
 const INDICATOR_TOP = 11;
@@ -136,14 +137,16 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 
 	const currentRouteName = state.routes[state.index]?.name as TabId;
 	const visualIndex = tabOrder.indexOf(currentRouteName);
-	const initialX = Math.max(0, visualIndex) * TAB_WIDTH + (TAB_WIDTH - INDICATOR_WIDTH) / 2;
+	const initialX =
+		Math.max(0, visualIndex) * (TAB_WIDTH + TAB_GAP) + (TAB_WIDTH - INDICATOR_WIDTH) / 2;
 
 	const indicatorX = useSharedValue(initialX);
 
 	useEffect(() => {
 		const newVisualIndex = tabOrder.indexOf(currentRouteName);
 		if (newVisualIndex >= 0) {
-			const newX = newVisualIndex * TAB_WIDTH + (TAB_WIDTH - INDICATOR_WIDTH) / 2;
+			const newX =
+				newVisualIndex * (TAB_WIDTH + TAB_GAP) + (TAB_WIDTH - INDICATOR_WIDTH) / 2;
 			indicatorX.value = withSpring(newX, {
 				damping: 25,
 				stiffness: 180,
@@ -160,7 +163,8 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 
 	const handleTabPress = useCallback(
 		(visualIdx: number, routeIndex: number, routeName: string) => {
-			const newX = visualIdx * TAB_WIDTH + (TAB_WIDTH - INDICATOR_WIDTH) / 2;
+			const newX =
+				visualIdx * (TAB_WIDTH + TAB_GAP) + (TAB_WIDTH - INDICATOR_WIDTH) / 2;
 			indicatorX.value = withSpring(newX, {
 				damping: 25,
 				stiffness: 180,
@@ -193,47 +197,47 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 				]}
 			>
 				<View style={styles.tabsContainer}>
-				<Animated.View
-					style={[
-						styles.indicator,
-						{ backgroundColor: colors.secondaryContainer, top: INDICATOR_TOP },
-						animatedIndicatorStyle,
-					]}
-				/>
+					<Animated.View
+						style={[
+							styles.indicator,
+							{ backgroundColor: colors.secondaryContainer, top: INDICATOR_TOP },
+							animatedIndicatorStyle,
+						]}
+					/>
 
-				{tabOrder.map((tabId, visualIdx) => {
-					const config = TAB_CONFIG[tabId];
-					if (!config?.lottieSource) return null;
-					const route = state.routes.find((r) => r.name === tabId);
-					if (!route) return null;
-					const routeIndex = state.routes.indexOf(route);
-					const isFocused = state.index === routeIndex;
-					const showNotificationDot = tabId === 'downloads' && hasActiveDownloads;
+					{tabOrder.map((tabId, visualIdx) => {
+						const config = TAB_CONFIG[tabId];
+						if (!config?.lottieSource) return null;
+						const route = state.routes.find((r) => r.name === tabId);
+						if (!route) return null;
+						const routeIndex = state.routes.indexOf(route);
+						const isFocused = state.index === routeIndex;
+						const showNotificationDot = tabId === 'downloads' && hasActiveDownloads;
 
-					return (
-						<Pressable
-							key={tabId}
-							onPress={() => handleTabPress(visualIdx, routeIndex, tabId)}
-							style={styles.tabButton}
-							accessibilityRole="tab"
-							accessibilityLabel={config.label}
-							accessibilityState={{ selected: isFocused }}
-						>
-							<LottieTabIcon
-								source={config.lottieSource}
-								isFocused={isFocused}
-								focusedColor={colors.primary}
-								inactiveColor={colors.onSurfaceVariant}
-								showNotificationDot={showNotificationDot}
-							/>
-							<TabLabel
-								label={config.label}
-								isFocused={isFocused}
-								color={colors.primary}
-							/>
-						</Pressable>
-					);
-				})}
+						return (
+							<Pressable
+								key={tabId}
+								onPress={() => handleTabPress(visualIdx, routeIndex, tabId)}
+								style={styles.tabButton}
+								accessibilityRole="tab"
+								accessibilityLabel={config.label}
+								accessibilityState={{ selected: isFocused }}
+							>
+								<LottieTabIcon
+									source={config.lottieSource}
+									isFocused={isFocused}
+									focusedColor={colors.primary}
+									inactiveColor={colors.onSurfaceVariant}
+									showNotificationDot={showNotificationDot}
+								/>
+								<TabLabel
+									label={config.label}
+									isFocused={isFocused}
+									color={colors.primary}
+								/>
+							</Pressable>
+						);
+					})}
 				</View>
 			</View>
 		</View>
@@ -282,6 +286,7 @@ const styles = StyleSheet.create({
 	},
 	tabsContainer: {
 		flexDirection: 'row',
+		gap: TAB_GAP,
 	},
 	indicator: {
 		position: 'absolute',
