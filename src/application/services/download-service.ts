@@ -22,6 +22,7 @@ import {
 import type { Result } from '../../shared/types/result';
 import { ok, err } from '../../shared/types/result';
 import { getLogger } from '../../shared/services/logger';
+import { libraryService } from './library-service';
 
 const logger = getLogger('DownloadService');
 
@@ -209,6 +210,12 @@ export class DownloadService {
 
 			store.completeDownload(trackId, metadata);
 			this.activeDownloads.delete(trackId);
+
+			// Auto-add downloaded track to library
+			if (!libraryService.isInLibrary(trackId)) {
+				libraryService.addTrack(track);
+				logger.debug(`Added to library: ${track.title}`);
+			}
 
 			logger.info(`Download complete: ${track.title}`);
 			return ok(undefined);

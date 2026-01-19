@@ -5,7 +5,7 @@
  * Uses M3 theming.
  */
 
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { Button } from 'react-native-paper';
 import { FilterChip } from './filter-chip';
@@ -51,7 +51,7 @@ export function ActiveFiltersBar({
 
 	return (
 		<View style={styles.container}>
-			<PlayerAwareScrollView
+			<ScrollView
 				horizontal
 				showsHorizontalScrollIndicator={false}
 				contentContainerStyle={styles.chipContainer}
@@ -91,10 +91,7 @@ export function ActiveFiltersBar({
 						onRemove={() => onToggleAlbum(album.id)}
 					/>
 				))}
-			</PlayerAwareScrollView>
-			<Button mode="text" compact onPress={onClearAll} textColor={colors.onSurfaceVariant}>
-				Clear
-			</Button>
+			</ScrollView>
 		</View>
 	);
 }
@@ -103,13 +100,11 @@ const styles = StyleSheet.create({
 	container: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		paddingHorizontal: 16,
+		paddingHorizontal: 14,
 		gap: 8,
 	},
 	scrollView: {
 		flex: 1,
-		borderRadius: 12,
-		overflow: 'hidden',
 	},
 	chipContainer: {
 		flexDirection: 'row',

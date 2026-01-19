@@ -82,5 +82,6 @@ export const FilterChip = memo(function FilterChip({
 const styles = StyleSheet.create({
 	chip: {
 		marginRight: 8,
+		alignItems: 'center'
 	},
 });

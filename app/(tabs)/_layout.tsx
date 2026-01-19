@@ -20,6 +20,7 @@ import {
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { TAB_CONFIG, TAB_BAR_HEIGHT } from '@/lib/tab-config';
 import { LottieTabIcon } from '@/components/ui/lottie-tab-icon';
+import { SearchFAB } from '@/components/search-fab';
 
 const TAB_WIDTH = 84;
 const TAB_GAP = 12;
@@ -102,26 +103,29 @@ export default function TabLayout() {
 	);
 
 	return (
-		<Tabs
-			screenOptions={screenOptions}
-			tabBar={(props) => <CustomTabBar {...props} tabOrder={validTabOrder} />}
-		>
-			{validTabOrder.map((tabId) => {
-				const config = TAB_CONFIG[tabId];
-				if (!config) return null;
+		<>
+			<Tabs
+				screenOptions={screenOptions}
+				tabBar={(props) => <CustomTabBar {...props} tabOrder={validTabOrder} />}
+			>
+				{validTabOrder.map((tabId) => {
+					const config = TAB_CONFIG[tabId];
+					if (!config) return null;
 
-				return (
-					<Tabs.Screen
-						key={tabId}
-						name={tabId}
-						options={{
-							title: config.label,
-							href: config.route as '/' | '/downloads' | '/settings',
-						}}
-					/>
-				);
-			})}
-		</Tabs>
+					return (
+						<Tabs.Screen
+							key={tabId}
+							name={tabId}
+							options={{
+								title: config.label,
+								href: config.route as '/' | '/downloads' | '/settings',
+							}}
+						/>
+					);
+				})}
+			</Tabs>
+			<SearchFAB />
+		</>
 	);
 }
 
@@ -132,7 +136,7 @@ interface CustomTabBarProps extends BottomTabBarProps {
 function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 	const { colors } = useAppTheme();
 	const insets = useSafeAreaInsets();
-	const { hasActiveDownloads } = useDownloadQueue();
+	const { stats } = useDownloadQueue();
 	const tabBarHeight = TAB_BAR_HEIGHT + insets.bottom;
 
 	const currentRouteName = state.routes[state.index]?.name as TabId;
@@ -212,7 +216,8 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 						if (!route) return null;
 						const routeIndex = state.routes.indexOf(route);
 						const isFocused = state.index === routeIndex;
-						const showNotificationDot = tabId === 'downloads' && hasActiveDownloads;
+						const isDownloadsTab = tabId === 'downloads';
+						const downloadBadgeCount = isDownloadsTab ? stats.activeCount : undefined;
 
 						return (
 							<Pressable
@@ -228,7 +233,7 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 									isFocused={isFocused}
 									focusedColor={colors.primary}
 									inactiveColor={colors.onSurfaceVariant}
-									showNotificationDot={showNotificationDot}
+									badgeCount={downloadBadgeCount}
 								/>
 								<TabLabel
 									label={config.label}

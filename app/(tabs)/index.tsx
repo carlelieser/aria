@@ -2,8 +2,7 @@ import { View, StyleSheet, type NativeSyntheticEvent, type NativeScrollEvent } f
 import { TabsProvider, Tabs, TabScreen } from 'react-native-paper-tabs';
 import { GenericListView } from '@/components/ui/generic-list-view';
 import { PageLayout } from '@/components/page-layout';
-import { MusicIcon, ListMusicIcon, UsersIcon, DiscIcon, SearchIcon } from 'lucide-react-native';
-import { router } from 'expo-router';
+import { MusicIcon, ListMusicIcon, UsersIcon, DiscIcon, CassetteTapeIcon } from 'lucide-react-native';
 import { IconButton } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
@@ -178,19 +177,27 @@ export default function HomeScreen() {
 		[selectedTracks, addSelectedToPlaylist, exitSelectionMode]
 	);
 
-	const currentTab = INDEX_TAB_MAP[tabIndex];
-	const isSongsTab = currentTab === 'songs';
-	const showActiveFilters = isSongsTab && hasFilters;
-
-	const handleSearch = useCallback(() => {
-		router.push('/search');
-	}, []);
-
-	const headerRightActions = (
-		<IconButton
-			icon={() => <Icon as={SearchIcon} size={22} color={colors.onSurfaceVariant} />}
-			onPress={handleSearch}
-		/>
+	const offlineToggle = useMemo(
+		() => (
+			<IconButton
+				icon={() => (
+					<Icon
+						as={CassetteTapeIcon}
+						size={24}
+						color={
+							activeFilters.downloadedOnly ? colors.primary : colors.onSurfaceVariant
+						}
+					/>
+				)}
+				onPress={toggleDownloadedOnly}
+			/>
+		),
+		[
+			activeFilters.downloadedOnly,
+			colors.primary,
+			colors.onSurfaceVariant,
+			toggleDownloadedOnly,
+		]
 	);
 
 	return (
@@ -199,24 +206,23 @@ export default function HomeScreen() {
 				icon: MusicIcon,
 				title: 'Library',
 				showBorder: false,
-				rightActions: headerRightActions,
+				rightActions: offlineToggle,
 			}}
 		>
-			{showActiveFilters && (
-				<View style={styles.filtersBar}>
-					<ActiveFiltersBar
-						activeFilters={activeFilters}
-						artists={filterArtists}
-						albums={filterAlbums}
-						onToggleArtist={toggleArtistFilter}
-						onToggleAlbum={toggleAlbumFilter}
-						onToggleFavorites={toggleFavoritesOnly}
-						onToggleDownloaded={toggleDownloadedOnly}
-						onClearAll={clearFilters}
-					/>
-				</View>
-			)}
-
+			{/*{hasFilters && (*/}
+			{/*	<View style={styles.filtersBar}>*/}
+			{/*		<ActiveFiltersBar*/}
+			{/*			activeFilters={activeFilters}*/}
+			{/*			artists={filterArtists}*/}
+			{/*			albums={filterAlbums}*/}
+			{/*			onToggleArtist={toggleArtistFilter}*/}
+			{/*			onToggleAlbum={toggleAlbumFilter}*/}
+			{/*			onToggleFavorites={toggleFavoritesOnly}*/}
+			{/*			onToggleDownloaded={toggleDownloadedOnly}*/}
+			{/*			onClearAll={clearFilters}*/}
+			{/*		/>*/}
+			{/*	</View>*/}
+			{/*)}*/}
 			<View style={styles.content}>
 				<TabsProvider defaultIndex={tabIndex} onChangeIndex={setTabIndex}>
 					<Tabs

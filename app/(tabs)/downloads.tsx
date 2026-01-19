@@ -11,9 +11,7 @@ import {
 	HardDriveIcon,
 	CheckCircle2Icon,
 	AlertCircleIcon,
-	SearchIcon,
 } from 'lucide-react-native';
-import { router } from 'expo-router';
 import { DownloadListItem } from '@/components/download-list-item';
 import { SelectableDownloadListItem } from '@/components/selectable-download-list-item';
 import { BatchActionBar } from '@/components/batch-action-bar';
@@ -122,24 +120,13 @@ export default function DownloadsScreen() {
 		exitSelectionMode();
 	}, [selectedTrackIds, deleteSelectedDownloads, exitSelectionMode]);
 
-	const handleSearch = useCallback(() => {
-		router.push('/search');
-	}, []);
-
-	const headerRightActions = (
-		<>
-			{stats.completedCount > 0 && (
-				<IconButton
-					icon={() => <Icon as={TrashIcon} size={20} color={colors.onSurfaceVariant} />}
-					onPress={() => setClearDialogVisible(true)}
-				/>
-			)}
+	const headerRightActions =
+		stats.completedCount > 0 ? (
 			<IconButton
-				icon={() => <Icon as={SearchIcon} size={22} color={colors.onSurfaceVariant} />}
-				onPress={handleSearch}
+				icon={() => <Icon as={TrashIcon} size={20} color={colors.onSurfaceVariant} />}
+				onPress={() => setClearDialogVisible(true)}
 			/>
-		</>
-	);
+		) : null;
 
 	// Note: Labels must be static strings because react-native-paper-tabs uses them as React keys.
 	// Dynamic labels (with counts) cause react-native-pager-view to fire onPageSelected incorrectly

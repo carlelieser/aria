@@ -43,7 +43,8 @@ interface LottieTabIconProps {
 	readonly isFocused: boolean;
 	readonly focusedColor: string;
 	readonly inactiveColor: string;
-	readonly showNotificationDot: boolean;
+	readonly showNotificationDot?: boolean;
+	readonly badgeCount?: number;
 }
 
 export const LottieTabIcon = memo(function LottieTabIcon({
@@ -52,6 +53,7 @@ export const LottieTabIcon = memo(function LottieTabIcon({
 	focusedColor,
 	inactiveColor,
 	showNotificationDot,
+	badgeCount,
 }: LottieTabIconProps) {
 	const lottieRef = useRef<LottieView>(null);
 	const wasFocusedRef = useRef(isFocused);
@@ -82,6 +84,8 @@ export const LottieTabIcon = memo(function LottieTabIcon({
 		[source, currentColor]
 	);
 
+	const showBadge = badgeCount !== undefined && badgeCount > 0;
+
 	return (
 		<Animated.View style={[styles.iconContainer, animatedStyle]}>
 			<LottieView
@@ -92,7 +96,18 @@ export const LottieTabIcon = memo(function LottieTabIcon({
 				loop={false}
 				speed={1}
 			/>
-			{showNotificationDot && (
+			{showBadge && (
+				<Animated.View
+					entering={FadeIn.duration(200)}
+					exiting={FadeOut.duration(200)}
+					style={[styles.badge, { backgroundColor: focusedColor }]}
+				>
+					<Animated.Text style={styles.badgeText}>
+						{badgeCount > 99 ? '99+' : badgeCount}
+					</Animated.Text>
+				</Animated.View>
+			)}
+			{!showBadge && showNotificationDot && (
 				<Animated.View
 					entering={FadeIn.duration(200)}
 					exiting={FadeOut.duration(200)}
@@ -118,9 +133,25 @@ const styles = StyleSheet.create({
 	notificationDot: {
 		position: 'absolute',
 		top: 0,
-		right: 0,
+		right: -4,
 		width: 8,
 		height: 8,
 		borderRadius: 4,
+	},
+	badge: {
+		position: 'absolute',
+		top: -4,
+		right: -10,
+		minWidth: 18,
+		height: 18,
+		borderRadius: 9,
+		justifyContent: 'center',
+		alignItems: 'center',
+		paddingHorizontal: 4,
+	},
+	badgeText: {
+		color: '#FFFFFF',
+		fontSize: 10,
+		fontWeight: '600',
 	},
 });

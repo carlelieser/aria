@@ -7,8 +7,8 @@ export type TabId = 'index' | 'downloads' | 'settings';
 export type DefaultTab = TabId;
 export type LibraryTabId = 'songs' | 'playlists' | 'artists' | 'albums';
 
-export const DEFAULT_TAB_ORDER: TabId[] = ['index', 'downloads', 'settings'];
-export const DEFAULT_ENABLED_TABS: TabId[] = ['index', 'downloads', 'settings'];
+export const DEFAULT_TAB_ORDER: TabId[] = ['downloads', 'index', 'settings'];
+export const DEFAULT_ENABLED_TABS: TabId[] = ['downloads', 'index', 'settings'];
 export const REQUIRED_TABS: TabId[] = ['settings'];
 
 /**
