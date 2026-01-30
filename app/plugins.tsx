@@ -1,13 +1,13 @@
-import { View, Pressable, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useCallback } from 'react';
 import { router, type Href } from 'expo-router';
-import { Text, Switch } from 'react-native-paper';
+import { Switch, List } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
 import { PageLayout } from '@/components/page-layout';
 import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { EmptyState } from '@/components/empty-state';
 import { SettingsSection } from '@/components/settings/settings-section';
-import { ChevronRightIcon, LockIcon } from 'lucide-react-native';
+import { ChevronRightIcon } from 'lucide-react-native';
 import { togglePluginRuntime } from '@/src/application/services/plugin-lifecycle-service';
 import { PluginListSkeleton } from '@/components/skeletons';
 import { useAppTheme } from '@/lib/theme';
@@ -79,45 +79,27 @@ function PluginItem({
 	onToggle: () => void;
 }) {
 	const { colors } = useAppTheme();
-	const { isEnabled, statusInfo, StatusIcon, statusColor } = usePluginDisplayStatus(plugin);
+	const { isEnabled } = usePluginDisplayStatus(plugin);
 	const PluginIcon = categoryIcons[plugin.category] || DEFAULT_PLUGIN_ICON;
 
 	return (
-		<Pressable
-			style={({ pressed }) => [styles.pluginItem, pressed && styles.pressed]}
+		<List.Item
+			title={plugin.name}
+			description={`v${plugin.version}`}
+			left={() => (
+				<View style={[styles.iconContainer, { backgroundColor: colors.surfaceContainerHighest }]}>
+					<Icon as={PluginIcon} size={20} color={colors.onSurface} />
+				</View>
+			)}
+			right={() => (
+				<View style={styles.actions}>
+					<Switch value={isEnabled} onValueChange={onToggle} disabled={plugin.isRequired} />
+					<Icon as={ChevronRightIcon} size={20} color={colors.onSurfaceVariant} />
+				</View>
+			)}
 			onPress={onPress}
-		>
-			<View
-				style={[styles.iconContainer, { backgroundColor: colors.surfaceContainerHighest }]}
-			>
-				<Icon as={PluginIcon} size={20} color={colors.onSurface} />
-			</View>
-
-			<View style={styles.content}>
-				<View style={styles.titleRow}>
-					<Text variant="bodyMedium" style={[styles.title, { color: colors.onSurface }]}>
-						{plugin.name}
-					</Text>
-					<Text variant="labelSmall" style={{ color: colors.onSurfaceVariant }}>
-						v{plugin.version}
-					</Text>
-					{plugin.requiresAuth && (
-						<Icon as={LockIcon} size={12} color={colors.onSurfaceVariant} />
-					)}
-				</View>
-				<View style={styles.statusRow}>
-					<Icon as={StatusIcon} size={12} color={statusColor} />
-					<Text variant="labelSmall" style={{ color: statusColor }}>
-						{isEnabled && !plugin.isLoaded ? 'Restart to load' : statusInfo.label}
-					</Text>
-				</View>
-			</View>
-
-			<View style={styles.actions}>
-				<Switch value={isEnabled} onValueChange={onToggle} disabled={plugin.isRequired} />
-				<Icon as={ChevronRightIcon} size={20} color={colors.onSurfaceVariant} />
-			</View>
-		</Pressable>
+			style={styles.pluginItem}
+		/>
 	);
 }
 
@@ -133,14 +115,8 @@ const styles = StyleSheet.create({
 		marginTop: 24,
 		marginHorizontal: 8,
 	},
-	pressed: {
-		opacity: 0.7,
-	},
 	pluginItem: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 16,
-		paddingVertical: 14,
+		paddingVertical: 6,
 		paddingHorizontal: 16,
 	},
 	iconContainer: {
@@ -149,23 +125,6 @@ const styles = StyleSheet.create({
 		borderRadius: 20,
 		alignItems: 'center',
 		justifyContent: 'center',
-	},
-	content: {
-		flex: 1,
-	},
-	titleRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 8,
-	},
-	title: {
-		fontWeight: '500',
-	},
-	statusRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 4,
-		marginTop: 2,
 	},
 	actions: {
 		flexDirection: 'row',

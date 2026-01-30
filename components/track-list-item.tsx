@@ -10,7 +10,7 @@ import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { CheckCircle, AlertCircle, X, Trash2, Music, RotateCcw } from 'lucide-react-native';
-import { Text, IconButton } from 'react-native-paper';
+import { Text, IconButton, ProgressBar } from 'react-native-paper';
 
 import { Icon } from '@/components/ui/icon';
 import { usePlayer } from '@/hooks/use-player';
@@ -21,7 +21,6 @@ import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import { getArtistNames } from '@/src/domain/entities/track';
 import { TrackOptionsMenu } from '@/components/track-options-menu';
 import { DownloadIndicator } from '@/components/download-indicator';
-import { StaticProgressBar } from '@/components/download-progress-bar';
 import { useDownloadActions } from '@/hooks/use-download-actions';
 import { formatFileSize } from '@/hooks/use-download-queue';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
@@ -239,11 +238,11 @@ export const TrackListItem = memo(function TrackListItem({
 				{renderDownloadStatus()}
 				{isDownloading && (
 					<View style={styles.progressBarContainer}>
-						<StaticProgressBar
-							progress={downloadInfo.progress}
-							status={downloadInfo.status}
-							height={3}
+						<ProgressBar
+							progress={downloadInfo.progress / 100}
+							color={colors.primary}
 							indeterminate={downloadInfo.progress === 0}
+							style={styles.progressBar}
 						/>
 					</View>
 				)}
@@ -314,6 +313,10 @@ const styles = StyleSheet.create({
 	},
 	progressBarContainer: {
 		marginTop: 4,
+	},
+	progressBar: {
+		height: 3,
+		borderRadius: 9999,
 	},
 	duration: {
 		marginRight: 4,

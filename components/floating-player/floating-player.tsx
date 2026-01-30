@@ -18,7 +18,7 @@ import Animated, {
 	runOnJS,
 } from 'react-native-reanimated';
 import { useEffect, useState, useMemo, useCallback } from 'react';
-import { IconButton, Text } from 'react-native-paper';
+import { IconButton, Text, Surface } from 'react-native-paper';
 
 import { FloatingProgressBar } from './floating-progress-bar';
 
@@ -30,7 +30,7 @@ import { getLargestArtwork } from '@/src/domain/value-objects/artwork';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 import { TAB_BAR_HEIGHT } from '@/lib/tab-config';
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+const AnimatedSurface = Animated.createAnimatedComponent(Surface);
 
 export const FLOATING_PLAYER_HEIGHT = 64;
 const TAB_ROUTES = ['/', '/explore', '/downloads', '/settings'];
@@ -96,13 +96,10 @@ export function FloatingPlayer() {
 	const containerStyle = useMemo(
 		() => [
 			styles.container,
-			{
-				bottom: bottomOffset,
-				backgroundColor: colors.surfaceContainerHigh,
-			},
+			{ bottom: bottomOffset },
 			animatedStyle,
 		],
-		[bottomOffset, colors.surfaceContainerHigh, animatedStyle]
+		[bottomOffset, animatedStyle]
 	);
 
 	const playPauseIcon = useCallback(
@@ -120,66 +117,64 @@ export function FloatingPlayer() {
 	}
 
 	return (
-		<AnimatedPressable
+		<AnimatedSurface
 			key="floating-player"
-			onPress={handlePress}
-			pointerEvents={shouldShow ? 'auto' : 'none'}
+			elevation={3}
+			mode="flat"
 			style={containerStyle}
+			pointerEvents={shouldShow ? 'auto' : 'none'}
 		>
-			{/* Progress bar at top */}
-			<View style={styles.progressContainer}>
-				<FloatingProgressBar />
-			</View>
-
-			{/* Content */}
-			<View style={styles.content}>
-				{/* Artwork */}
-				<View style={styles.artworkContainer}>
-					<Image
-						source={{ uri: artworkUrl }}
-						style={styles.artwork}
-						contentFit="cover"
-						transition={200}
-						cachePolicy="memory-disk"
-						recyclingKey={currentTrack?.id.value}
-					/>
-					{showLoadingIndicator && (
-						<View style={styles.loadingOverlay}>
-							<ActivityIndicator size="small" color="white" />
-						</View>
-					)}
+			<Pressable onPress={handlePress} style={styles.pressable}>
+				<View style={styles.progressContainer}>
+					<FloatingProgressBar />
 				</View>
 
-				{/* Track info */}
-				<View style={styles.trackInfo}>
-					<Text
-						variant="titleSmall"
-						numberOfLines={1}
-						style={{ color: colors.onSurface }}
-					>
-						{currentTrack?.title}
-					</Text>
-					<Text
-						variant="bodySmall"
-						numberOfLines={1}
-						style={{ color: colors.onSurfaceVariant }}
-					>
-						{artistNames}
-					</Text>
-				</View>
+				<View style={styles.content}>
+					<View style={styles.artworkContainer}>
+						<Image
+							source={{ uri: artworkUrl }}
+							style={styles.artwork}
+							contentFit="cover"
+							transition={200}
+							cachePolicy="memory-disk"
+							recyclingKey={currentTrack?.id.value}
+						/>
+						{showLoadingIndicator && (
+							<View style={styles.loadingOverlay}>
+								<ActivityIndicator size="small" color="white" />
+							</View>
+						)}
+					</View>
 
-				{/* Controls */}
-				<View style={styles.controls}>
-					<IconButton
-						icon={playPauseIcon}
-						size={24}
-						onPress={handlePlayPause}
-						disabled={isLoading}
-						iconColor={colors.onSurface}
-					/>
+					<View style={styles.trackInfo}>
+						<Text
+							variant="titleSmall"
+							numberOfLines={1}
+							style={{ color: colors.onSurface }}
+						>
+							{currentTrack?.title}
+						</Text>
+						<Text
+							variant="bodySmall"
+							numberOfLines={1}
+							style={{ color: colors.onSurfaceVariant }}
+						>
+							{artistNames}
+						</Text>
+					</View>
+
+					<View style={styles.controls}>
+						<IconButton
+							icon={playPauseIcon}
+							size={24}
+							onPress={handlePlayPause}
+							disabled={isLoading}
+							iconColor={colors.onSurface}
+						/>
+					</View>
 				</View>
-			</View>
-		</AnimatedPressable>
+			</Pressable>
+		</AnimatedSurface>
 	);
 }
 
@@ -196,11 +191,9 @@ const styles = StyleSheet.create({
 		height: FLOATING_PLAYER_HEIGHT,
 		borderRadius: M3Shapes.large,
 		overflow: 'hidden',
-		elevation: 3,
-		shadowColor: '#000',
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.1,
-		shadowRadius: 4,
+	},
+	pressable: {
+		flex: 1,
 	},
 	progressContainer: {
 		position: 'absolute',
@@ -225,11 +218,7 @@ const styles = StyleSheet.create({
 		borderRadius: M3Shapes.small,
 	},
 	loadingOverlay: {
-		position: 'absolute',
-		top: 0,
-		left: 0,
-		right: 0,
-		bottom: 0,
+		...StyleSheet.absoluteFillObject,
 		alignItems: 'center',
 		justifyContent: 'center',
 		backgroundColor: 'rgba(0,0,0,0.3)',

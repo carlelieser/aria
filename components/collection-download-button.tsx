@@ -13,15 +13,12 @@ import { memo, useMemo, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Animated, {
 	useSharedValue,
-	useAnimatedStyle,
-	withRepeat,
 	withTiming,
-	Easing,
 	useAnimatedProps,
 } from 'react-native-reanimated';
 import { Svg, Circle } from 'react-native-svg';
-import { DownloadIcon, CheckIcon, Loader2Icon, PauseIcon } from 'lucide-react-native';
-import { IconButton } from 'react-native-paper';
+import { DownloadIcon, CheckIcon, PauseIcon } from 'lucide-react-native';
+import { IconButton, ActivityIndicator } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
 import { useDownloadStore } from '@/src/application/state/download-store';
 import { useAppTheme } from '@/lib/theme';
@@ -111,24 +108,6 @@ export const CollectionDownloadButton = memo(function CollectionDownloadButton({
 
 	const isInitialLoading = effectiveState === 'downloading' && progressValue === 0;
 
-	const rotation = useSharedValue(0);
-
-	useEffect(() => {
-		if (isInitialLoading) {
-			rotation.value = withRepeat(
-				withTiming(360, { duration: 1000, easing: Easing.linear }),
-				-1,
-				false
-			);
-		} else {
-			rotation.value = 0;
-		}
-	}, [isInitialLoading, rotation]);
-
-	const animatedRotationStyle = useAnimatedStyle(() => ({
-		transform: [{ rotate: `${rotation.value}deg` }],
-	}));
-
 	const iconColor = useMemo(() => {
 		switch (effectiveState) {
 			case 'complete':
@@ -192,9 +171,7 @@ export const CollectionDownloadButton = memo(function CollectionDownloadButton({
 	if (isInitialLoading) {
 		return (
 			<View style={styles.spinnerContainer}>
-				<Animated.View style={animatedRotationStyle}>
-					<Icon as={Loader2Icon} size={size} color={colors.primary} />
-				</Animated.View>
+				<ActivityIndicator size={size} color={colors.primary} />
 			</View>
 		);
 	}

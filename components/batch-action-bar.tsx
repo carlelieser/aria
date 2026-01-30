@@ -8,7 +8,7 @@
 import { memo, useMemo } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
-import { Text } from 'react-native-paper';
+import { Text, Surface } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import {
@@ -24,6 +24,8 @@ import {
 
 import { Icon } from '@/components/ui/icon';
 import { useAppTheme } from '@/lib/theme';
+
+const AnimatedSurface = Animated.createAnimatedComponent(Surface);
 
 export type BatchActionContext = 'explore' | 'library' | 'downloads' | 'playlist';
 
@@ -147,16 +149,12 @@ export const BatchActionBar = memo(function BatchActionBar(props: BatchActionBar
 	}
 
 	return (
-		<Animated.View
+		<AnimatedSurface
 			entering={FadeInDown.duration(200)}
 			exiting={FadeOutDown.duration(200)}
-			style={[
-				styles.container,
-				{
-					backgroundColor: colors.surfaceContainerHigh,
-					paddingBottom: Math.max(insets.bottom, 16),
-				},
-			]}
+			elevation={4}
+			mode="flat"
+			style={[styles.container, { paddingBottom: Math.max(insets.bottom, 16) }]}
 		>
 			<View style={styles.header}>
 				<Pressable style={styles.cancelButton} onPress={onCancel} hitSlop={8}>
@@ -187,7 +185,7 @@ export const BatchActionBar = memo(function BatchActionBar(props: BatchActionBar
 						)
 				)}
 			</PlayerAwareScrollView>
-		</Animated.View>
+		</AnimatedSurface>
 	);
 });
 
@@ -201,11 +199,6 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 16,
 		borderTopLeftRadius: 16,
 		borderTopRightRadius: 16,
-		shadowColor: '#000',
-		shadowOffset: { width: 0, height: -2 },
-		shadowOpacity: 0.1,
-		shadowRadius: 8,
-		elevation: 8,
 	},
 	scrollView: {
 		borderRadius: 12,

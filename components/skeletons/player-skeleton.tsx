@@ -61,11 +61,7 @@ const styles = StyleSheet.create({
 		height: '100%',
 	},
 	bufferingOverlay: {
-		position: 'absolute',
-		top: 0,
-		left: 0,
-		right: 0,
-		bottom: 0,
+		...StyleSheet.absoluteFillObject,
 		alignItems: 'center',
 		justifyContent: 'center',
 		borderRadius: 16,

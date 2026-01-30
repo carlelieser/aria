@@ -7,7 +7,7 @@
 
 import { memo, useEffect, useState, useCallback } from 'react';
 import { StyleSheet, View, Pressable, ActivityIndicator } from 'react-native';
-import { Text } from 'react-native-paper';
+import { Text, ProgressBar } from 'react-native-paper';
 import { Portal } from '@rn-primitives/portal';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -18,7 +18,6 @@ import Animated, {
 	runOnJS,
 	interpolate,
 	Extrapolation,
-	Easing,
 } from 'react-native-reanimated';
 import { useAppTheme } from '@/lib/theme';
 import { useToastPosition } from '@/hooks/use-toast-position';
@@ -70,7 +69,6 @@ export const ScanProgressToast = memo(function ScanProgressToast() {
 	const translateX = useSharedValue(0);
 	const translateY = useSharedValue(100);
 	const opacity = useSharedValue(0);
-	const progressWidth = useSharedValue(0);
 	const scale = useSharedValue(1);
 
 	// Calculate progress percentage
@@ -78,14 +76,6 @@ export const ScanProgressToast = memo(function ScanProgressToast() {
 		scanProgress && scanProgress.total > 0
 			? Math.round((scanProgress.current / scanProgress.total) * 100)
 			: 0;
-
-	// Animate progress bar
-	useEffect(() => {
-		progressWidth.value = withTiming(percentage, {
-			duration: 300,
-			easing: Easing.out(Easing.ease),
-		});
-	}, [percentage, progressWidth]);
 
 	// Handle visibility based on scanning state
 	useEffect(() => {
@@ -159,10 +149,6 @@ export const ScanProgressToast = memo(function ScanProgressToast() {
 		),
 	}));
 
-	const animatedProgressStyle = useAnimatedStyle(() => ({
-		width: `${progressWidth.value}%`,
-	}));
-
 	if (!isVisible) {
 		return null;
 	}
@@ -227,20 +213,11 @@ export const ScanProgressToast = memo(function ScanProgressToast() {
 
 						{!showComplete && (
 							<>
-								<View
-									style={[
-										styles.progressTrack,
-										{ backgroundColor: colors.primary + '33' },
-									]}
-								>
-									<Animated.View
-										style={[
-											styles.progressBar,
-											{ backgroundColor: colors.primary },
-											animatedProgressStyle,
-										]}
-									/>
-								</View>
+								<ProgressBar
+									progress={percentage / 100}
+									color={colors.primary}
+									style={styles.progressBar}
+								/>
 
 								<View style={styles.footer}>
 									<Text
@@ -297,13 +274,8 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 		alignItems: 'center',
 	},
-	progressTrack: {
-		height: 4,
-		borderRadius: 2,
-		overflow: 'hidden',
-	},
 	progressBar: {
-		height: '100%',
+		height: 4,
 		borderRadius: 2,
 	},
 	footer: {

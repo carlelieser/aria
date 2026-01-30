@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { Text, Switch } from 'react-native-paper';
+import { Text, Switch, Chip } from 'react-native-paper';
 import { Icon } from '@/components/ui/icon';
 import { PageLayout } from '@/components/page-layout';
 import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
@@ -91,17 +91,9 @@ export default function PluginDetailScreen() {
 						</Text>
 					</View>
 					{plugin.isRequired && (
-						<View
-							style={[
-								styles.requiredBadge,
-								{ backgroundColor: colors.surfaceContainerHighest },
-							]}
-						>
-							<Icon as={LockIcon} size={12} color={colors.onSurfaceVariant} />
-							<Text variant="labelSmall" style={{ color: colors.onSurfaceVariant }}>
-								Required plugin
-							</Text>
-						</View>
+						<Chip icon={LockIcon} compact style={styles.requiredBadge}>
+							Required plugin
+						</Chip>
 					)}
 				</View>
 
@@ -141,20 +133,9 @@ export default function PluginDetailScreen() {
 						<View style={styles.detailCard}>
 							<View style={styles.capabilitiesContainer}>
 								{plugin.capabilities.map((cap) => (
-									<View
-										key={cap}
-										style={[
-											styles.capabilityChip,
-											{ backgroundColor: colors.surfaceContainerHighest },
-										]}
-									>
-										<Text
-											variant="labelSmall"
-											style={{ color: colors.onSurface }}
-										>
-											{cap.replace(/-/g, ' ')}
-										</Text>
-									</View>
+									<Chip key={cap} compact>
+										{cap.replace(/-/g, ' ')}
+									</Chip>
 								))}
 							</View>
 						</View>
@@ -197,12 +178,6 @@ const styles = StyleSheet.create({
 		marginTop: 8,
 	},
 	requiredBadge: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 4,
-		paddingHorizontal: 12,
-		paddingVertical: 6,
-		borderRadius: 9999,
 		marginTop: 12,
 	},
 	detailCard: {
@@ -217,10 +192,5 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		flexWrap: 'wrap',
 		gap: 8,
-	},
-	capabilityChip: {
-		paddingHorizontal: 12,
-		paddingVertical: 4,
-		borderRadius: 9999,
 	},
 });

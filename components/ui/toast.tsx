@@ -8,7 +8,7 @@
 
 import React, { useEffect, useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Text } from 'react-native-paper';
+import { Text, Surface } from 'react-native-paper';
 import { Portal } from '@rn-primitives/portal';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -28,6 +28,8 @@ import {
 } from '@/src/application/state/toast-store';
 import { useAppTheme } from '@/lib/theme';
 import { useToastPosition } from '@/hooks/use-toast-position';
+
+const AnimatedSurface = Animated.createAnimatedComponent(Surface);
 
 const SWIPE_THRESHOLD = 50;
 const DISMISS_VELOCITY = 500;
@@ -158,7 +160,9 @@ export function ToastContainer() {
 		<Portal name="toast-container">
 			<View style={[styles.container, { bottom: bottomOffset }]} pointerEvents="box-none">
 				<GestureDetector gesture={panGesture}>
-					<Animated.View
+					<AnimatedSurface
+						elevation={3}
+						mode="flat"
 						style={[
 							styles.toast,
 							{ backgroundColor: variantColors.backgroundColor },
@@ -178,7 +182,7 @@ export function ToastContainer() {
 								{visibleToast.description}
 							</Text>
 						)}
-					</Animated.View>
+					</AnimatedSurface>
 				</GestureDetector>
 			</View>
 		</Portal>
@@ -195,11 +199,6 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 16,
 		paddingVertical: 14,
 		borderRadius: 12,
-		elevation: 6,
-		shadowColor: '#000',
-		shadowOffset: { width: 0, height: 3 },
-		shadowOpacity: 0.15,
-		shadowRadius: 8,
 	},
 	toastTitle: {
 		fontSize: 14,

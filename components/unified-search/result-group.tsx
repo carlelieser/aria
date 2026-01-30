@@ -7,7 +7,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
-import { Text } from 'react-native-paper';
+import { Text, Divider } from 'react-native-paper';
 import Animated, {
 	useAnimatedStyle,
 	withTiming,
@@ -83,7 +83,7 @@ export function ResultGroup({
 						<Icon as={ChevronDownIcon} size={20} color={colors.onSurfaceVariant} />
 					</Animated.View>
 				</Pressable>
-				<View style={[styles.divider, { backgroundColor: colors.outlineVariant }]} />
+				<Divider />
 			</View>
 
 			{isExpanded && (
@@ -124,10 +124,6 @@ const styles = StyleSheet.create({
 	},
 	subtitle: {
 		fontSize: 12,
-	},
-	divider: {
-		height: 1,
-		width: '100%',
 	},
 	content: {
 		gap: 16,
