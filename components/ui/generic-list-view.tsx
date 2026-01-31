@@ -29,18 +29,12 @@ interface GenericListViewProps<T> {
 	renderItem: ListRenderItem<T>;
 	loadingSkeleton: ReactNode;
 	emptyState: EmptyStateConfig;
-	/** Optional alternate empty state when filters are active */
 	filteredEmptyState?: EmptyStateConfig;
-	/** Whether filters are currently active */
 	hasFilters?: boolean;
-	/** Extra data to trigger re-renders (e.g., selection state) */
 	extraData?: unknown;
-	/** Custom content container style */
 	contentContainerStyle?: ContentStyle;
 	showsVerticalScrollIndicator?: boolean;
-	/** Use regular FlashList instead of PlayerAwareFlashList */
 	disablePlayerAwarePadding?: boolean;
-	/** Scroll event handler */
 	onScroll?: ScrollHandler;
 }
 

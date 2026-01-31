@@ -187,9 +187,11 @@ export function mapYouTubeTrack(
 	};
 
 	if (item.album?.name) {
-		const albumSourceId = item.album.id || item.album.name;
+		const albumBrowseId = item.album.id?.startsWith('MPR') ? item.album.id : undefined;
 		params.album = {
-			id: AlbumId.create('youtube-music', albumSourceId).value,
+			id: albumBrowseId
+				? AlbumId.create('youtube-music', albumBrowseId).value
+				: `youtube-music:${item.album.name}`,
 			name: item.album.name,
 		};
 
@@ -258,7 +260,7 @@ function extractArtistsFromItem(item: YouTubeMusicItem): ArtistReference[] {
 
 export function mapYouTubeAlbum(item: YouTubeMusicItem): Album | null {
 	const browseId = item.browseId || item.endpoint?.payload?.browseId || item.id;
-	if (!browseId) {
+	if (!browseId || !browseId.startsWith('MPR')) {
 		return null;
 	}
 
@@ -270,7 +272,7 @@ export function mapYouTubeAlbum(item: YouTubeMusicItem): Album | null {
 	// Extract artists from structured API fields only
 	const artists = extractArtistsFromItem(item);
 
-	const artwork = mapThumbnailsToArtwork(item.thumbnails);
+	const artwork = mapThumbnailsToArtwork(item.thumbnails ?? item.thumbnail);
 
 	// Try to extract year from album info or subtitle
 	const subtitleText =
@@ -298,7 +300,7 @@ export function mapYouTubeArtist(item: YouTubeMusicItem): Artist | null {
 		return null;
 	}
 
-	const artwork = mapThumbnailsToArtwork(item.thumbnails);
+	const artwork = mapThumbnailsToArtwork(item.thumbnails ?? item.thumbnail);
 
 	return {
 		id: browseId,

@@ -32,7 +32,7 @@ export default function PluginsScreen() {
 	}, []);
 
 	return (
-		<PageLayout header={{ title: 'Plugins', showBack: true, compact: true }}>
+		<PageLayout header={{ title: 'Plugins', showBack: true }}>
 			<PlayerAwareScrollView
 				style={styles.scrollView}
 				contentContainerStyle={styles.scrollContent}

@@ -28,7 +28,7 @@ export default function LibrarySettingsScreen() {
 	const setDefaultLibraryTab = useSetDefaultLibraryTab();
 
 	return (
-		<PageLayout header={{ title: 'Library', showBack: true, compact: true }}>
+		<PageLayout header={{ title: 'Library', showBack: true }}>
 			<PlayerAwareScrollView
 				style={styles.scrollView}
 				contentContainerStyle={styles.scrollContent}
@@ -36,7 +36,7 @@ export default function LibrarySettingsScreen() {
 				<SettingsSection title="Display">
 					<SettingsSelect
 						icon={MusicIcon}
-						title="Default Tab"
+						title="Default tab"
 						options={LIBRARY_TAB_OPTIONS}
 						value={defaultLibraryTab}
 						onValueChange={setDefaultLibraryTab}

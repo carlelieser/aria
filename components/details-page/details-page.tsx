@@ -18,7 +18,7 @@
  */
 
 import { createContext, useContext, type ReactNode } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text } from 'react-native-paper';
 import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
 import { PageLayout } from '@/components/page-layout';
@@ -70,7 +70,6 @@ export function DetailsPage({
 	loadingContent,
 	emptyContent,
 	bottomContent,
-	compact = false,
 	scrollContentStyle,
 	disableScroll = false,
 }: ExtendedDetailsPageProps) {
@@ -107,14 +106,14 @@ export function DetailsPage({
 					</Text>
 				)}
 				{section.horizontal ? (
-					<PlayerAwareScrollView
+					<ScrollView
 						horizontal
 						showsHorizontalScrollIndicator={false}
 						style={styles.horizontalScrollView}
 						contentContainerStyle={styles.horizontalContent}
 					>
 						{section.content}
-					</PlayerAwareScrollView>
+					</ScrollView>
 				) : (
 					section.content
 				)}
@@ -161,7 +160,6 @@ export function DetailsPage({
 					backgroundColor: colors.surfaceContainerHigh,
 					rightActions: headerRightActions,
 					extended: true,
-					compact,
 					showBorder: false,
 				}}
 			>
@@ -189,17 +187,16 @@ const styles = StyleSheet.create({
 	},
 	section: {
 		marginBottom: 24,
-		paddingHorizontal: 16,
 	},
 	sectionTitle: {
 		fontWeight: '600',
 		marginBottom: 12,
+		paddingHorizontal: 24,
 	},
 	horizontalScrollView: {
-		marginHorizontal: -16,
 	},
 	horizontalContent: {
-		paddingHorizontal: 16,
+		paddingHorizontal: 24,
 		gap: 12,
 	},
 });

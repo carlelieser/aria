@@ -283,6 +283,15 @@ export default function SearchScreen() {
 	const showNoResults = hasQuery && !hasAnyResults && !isSearching;
 	const showResults = hasQuery && hasAnyResults;
 
+	const sectionOrder = useMemo(() => {
+		const sections = [
+			{ key: 'library' as const, hasResults: hasLibraryResults },
+			{ key: 'downloads' as const, hasResults: hasDownloadsResults },
+			{ key: 'plugins' as const, hasResults: hasExploreResults || isSearching },
+		];
+		return sections.sort((a, b) => Number(b.hasResults) - Number(a.hasResults));
+	}, [hasLibraryResults, hasDownloadsResults, hasExploreResults, isSearching]);
+
 	return (
 		<PageLayout
 			header={{
@@ -405,94 +414,108 @@ export default function SearchScreen() {
 
 				{showResults && (
 					<View style={styles.resultsContainer}>
-						<ResultGroup
-							title="Your Library"
-							icon={LibraryBigIcon}
-							isEmpty={!hasLibraryResults}
-							emptyState={
-								<EmptyState
-									icon={MusicIcon}
-									title="No library matches"
-									description={`"${query}" not found in your library`}
-									compact
-								/>
-							}
-						>
-							<LibraryResults
-								tracks={libraryTracks.slice(0, MAX_RESULTS_PER_SECTION)}
-								playlists={libraryPlaylists.slice(0, MAX_RESULTS_PER_SECTION)}
-								albums={libraryAlbums.slice(0, MAX_RESULTS_PER_SECTION)}
-								artists={libraryArtists.slice(0, MAX_RESULTS_PER_SECTION)}
-								isSelectionMode={isSelectionMode && selectionSource === 'library'}
-								selectedTrackIds={selectedTrackIds}
-								onLongPress={handleLibraryLongPress}
-								onSelectionToggle={handleLibrarySelectionToggle}
-							/>
-						</ResultGroup>
-
-						<ResultGroup
-							title="Downloads"
-							icon={DownloadIcon}
-							isEmpty={!hasDownloadsResults}
-							emptyState={
-								<EmptyState
-									icon={DownloadIcon}
-									title="No download matches"
-									description={`"${query}" not found in downloads`}
-									compact
-								/>
-							}
-						>
-							<View style={styles.sectionContent}>
-								{downloadsTracks
-									.slice(0, MAX_RESULTS_PER_SECTION)
-									.map((track, index) => (
-										<SelectableTrackListItem
-											key={track.id.value}
-											track={track}
-											source="library"
-											isSelectionMode={
-												isSelectionMode && selectionSource === 'library'
+						{sectionOrder.map(({ key }) => {
+							switch (key) {
+								case 'library':
+									return (
+										<ResultGroup
+											key={key}
+											title="Your Library"
+											icon={LibraryBigIcon}
+											isEmpty={!hasLibraryResults}
+											emptyState={
+												<EmptyState
+													icon={MusicIcon}
+													title="No library matches"
+													description={`"${query}" not found in your library`}
+													compact
+												/>
 											}
-											isSelected={selectedTrackIds.has(track.id.value)}
-											onLongPress={handleLibraryLongPress}
-											onSelectionToggle={handleLibrarySelectionToggle}
-											queue={downloadsTracks}
-											queueIndex={index}
-										/>
-									))}
-							</View>
-						</ResultGroup>
-
-						<ResultGroup
-							title="Plugins"
-							icon={PlugIcon}
-							isEmpty={!hasExploreResults && !isSearching}
-							emptyState={
-								<EmptyState
-									icon={SearchXIcon}
-									title="No plugin results"
-									description="Try a different search term"
-									compact
-								/>
+										>
+											<LibraryResults
+												tracks={libraryTracks.slice(0, MAX_RESULTS_PER_SECTION)}
+												playlists={libraryPlaylists.slice(0, MAX_RESULTS_PER_SECTION)}
+												albums={libraryAlbums.slice(0, MAX_RESULTS_PER_SECTION)}
+												artists={libraryArtists.slice(0, MAX_RESULTS_PER_SECTION)}
+												isSelectionMode={isSelectionMode && selectionSource === 'library'}
+												selectedTrackIds={selectedTrackIds}
+												onLongPress={handleLibraryLongPress}
+												onSelectionToggle={handleLibrarySelectionToggle}
+											/>
+										</ResultGroup>
+									);
+								case 'downloads':
+									return (
+										<ResultGroup
+											key={key}
+											title="Downloads"
+											icon={DownloadIcon}
+											isEmpty={!hasDownloadsResults}
+											emptyState={
+												<EmptyState
+													icon={DownloadIcon}
+													title="No download matches"
+													description={`"${query}" not found in downloads`}
+													compact
+												/>
+											}
+										>
+											<View style={styles.sectionContent}>
+												{downloadsTracks
+													.slice(0, MAX_RESULTS_PER_SECTION)
+													.map((track, index) => (
+														<SelectableTrackListItem
+															key={track.id.value}
+															track={track}
+															source="library"
+															isSelectionMode={
+																isSelectionMode && selectionSource === 'library'
+															}
+															isSelected={selectedTrackIds.has(track.id.value)}
+															onLongPress={handleLibraryLongPress}
+															onSelectionToggle={handleLibrarySelectionToggle}
+															queue={downloadsTracks}
+															queueIndex={index}
+														/>
+													))}
+											</View>
+										</ResultGroup>
+									);
+								case 'plugins':
+									return (
+										<ResultGroup
+											key={key}
+											title="Plugins"
+											icon={PlugIcon}
+											isEmpty={!hasExploreResults && !isSearching}
+											emptyState={
+												<EmptyState
+													icon={SearchXIcon}
+													title="No plugin results"
+													description="Try a different search term"
+													compact
+												/>
+											}
+										>
+											{isSearching && !hasExploreResults ? (
+												<TrackListSkeleton count={3} />
+											) : (
+												<ExploreResults
+													tracks={exploreTracks.slice(0, MAX_RESULTS_PER_SECTION)}
+													albums={exploreAlbums.slice(0, MAX_RESULTS_PER_SECTION)}
+													artists={exploreArtists.slice(0, MAX_RESULTS_PER_SECTION)}
+													isSelectionMode={
+														isSelectionMode && selectionSource === 'explore'
+													}
+													selectedTrackIds={selectedTrackIds}
+													onLongPress={handleExploreLongPress}
+													onSelectionToggle={handleExploreSelectionToggle}
+												/>
+											)}
+										</ResultGroup>
+									);
 							}
-						>
-							{isSearching && !hasExploreResults ? (
-								<TrackListSkeleton count={3} />
-							) : (
-								<ExploreResults
-									tracks={exploreTracks.slice(0, MAX_RESULTS_PER_SECTION)}
-									albums={exploreAlbums.slice(0, MAX_RESULTS_PER_SECTION)}
-									artists={exploreArtists.slice(0, MAX_RESULTS_PER_SECTION)}
-									isSelectionMode={
-										isSelectionMode && selectionSource === 'explore'
-									}
-									selectedTrackIds={selectedTrackIds}
-									onLongPress={handleExploreLongPress}
-									onSelectionToggle={handleExploreSelectionToggle}
-								/>
-							)}
-						</ResultGroup>
+						})}
 					</View>
 				)}
 			</PlayerAwareScrollView>

@@ -259,7 +259,7 @@ export default function PlaylistScreen() {
 		};
 
 		return (
-			<DetailsPage pageTitle="Playlist" headerInfo={emptyHeaderInfo} compact>
+			<DetailsPage pageTitle="Playlist" headerInfo={emptyHeaderInfo}>
 				<EmptyState
 					icon={ListMusicIcon}
 					title="Playlist not found"
@@ -303,7 +303,7 @@ export default function PlaylistScreen() {
 						<Icon as={GripVerticalIcon} size={20} color={colors.onSurface} />
 					)}
 					onPress={toggleEditMode}
-					title="Reorder Tracks"
+					title="Reorder tracks"
 					titleStyle={{ color: colors.onSurface }}
 					disabled={tracks.length < 2}
 				/>
@@ -313,7 +313,7 @@ export default function PlaylistScreen() {
 						setMenuVisible(false);
 						setRenameDialogVisible(true);
 					}}
-					title="Rename Playlist"
+					title="Rename playlist"
 					titleStyle={{ color: colors.onSurface }}
 				/>
 				<Menu.Item
@@ -322,7 +322,7 @@ export default function PlaylistScreen() {
 						setMenuVisible(false);
 						setDeleteDialogVisible(true);
 					}}
-					title="Delete Playlist"
+					title="Delete playlist"
 					titleStyle={{ color: colors.error }}
 				/>
 			</Menu>
@@ -369,7 +369,7 @@ export default function PlaylistScreen() {
 
 			<ConfirmationDialog
 				visible={deleteDialogVisible}
-				title="Delete Playlist"
+				title="Delete playlist"
 				message={`Are you sure you want to delete "${playlist.name}"? This action cannot be undone.`}
 				confirmLabel="Delete"
 				destructive
@@ -379,7 +379,7 @@ export default function PlaylistScreen() {
 
 			<InputDialog
 				visible={renameDialogVisible}
-				title="Rename Playlist"
+				title="Rename playlist"
 				placeholder="Playlist name"
 				initialValue={playlist.name}
 				confirmLabel="Rename"
@@ -449,7 +449,6 @@ export default function PlaylistScreen() {
 			headerInfo={headerInfo}
 			headerRightActions={headerRightActions}
 			bottomContent={bottomContent}
-			compact
 			disableScroll
 			renderContent={renderContent}
 		/>

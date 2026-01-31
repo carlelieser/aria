@@ -14,7 +14,6 @@ interface PageHeaderProps {
 	onBack?: () => void;
 	rightActions?: ReactNode;
 	showBorder?: boolean;
-	compact?: boolean;
 	backgroundColor?: string;
 	borderRadius?: number;
 	belowTitle?: ReactNode;
@@ -65,7 +64,6 @@ function PageHeader({
 	onBack,
 	rightActions,
 	showBorder = true,
-	compact = false,
 	backgroundColor,
 	borderRadius,
 	belowTitle,
@@ -114,10 +112,10 @@ function PageHeader({
 					)}
 					{title && (
 						<Text
-							variant={compact ? 'titleLarge' : 'headlineSmall'}
+							variant="headlineSmall"
 							style={{
 								color: colors.onSurface,
-								fontWeight: compact ? '600' : '700',
+								fontWeight: '700',
 								flex: showBack ? 1 : undefined,
 							}}
 						>

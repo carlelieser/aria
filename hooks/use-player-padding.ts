@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 import { useCurrentTrack } from '@/src/application/state/player-store';
 import { FLOATING_PLAYER_HEIGHT } from '@/components/floating-player';
 
-const FLOATING_PLAYER_PADDING = FLOATING_PLAYER_HEIGHT + 16;
+const FLOATING_PLAYER_PADDING = FLOATING_PLAYER_HEIGHT + 80;
 
 const styles = StyleSheet.create({
 	playerPadding: {

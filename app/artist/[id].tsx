@@ -285,6 +285,7 @@ const styles = StyleSheet.create({
 	},
 	trackList: {
 		gap: 8,
+		paddingHorizontal: 24
 	},
 	loadingState: {
 		paddingVertical: 48,

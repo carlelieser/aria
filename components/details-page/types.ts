@@ -41,5 +41,4 @@ export interface DetailsPageProps {
 	readonly loadingContent?: ReactNode;
 	readonly emptyContent?: ReactNode;
 	readonly bottomContent?: ReactNode;
-	readonly compact?: boolean;
 }

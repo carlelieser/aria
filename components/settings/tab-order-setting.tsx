@@ -93,7 +93,7 @@ export function TabOrderSetting() {
 		<>
 			<SettingsItem
 				icon={GripVerticalIcon}
-				title="Tab Order"
+				title="Tab order"
 				subtitle={orderSummary}
 				onPress={handlePress}
 				showChevron
@@ -103,7 +103,7 @@ export function TabOrderSetting() {
 				isOpen={isOpen}
 				onClose={handleClose}
 				portalName="tab-order-setting"
-				title="Reorder Tabs"
+				title="Reorder tabs"
 				showReset={!isDefault}
 				onReset={handleReset}
 			>

@@ -31,6 +31,8 @@ export interface YouTubeMusicItem {
 	album?: YouTubeAlbum;
 	duration?: YouTubeDuration | string | number;
 	thumbnails?: YouTubeThumbnail[];
+	/** Singular thumbnail field used by MusicTwoRowItem (artist sections) */
+	thumbnail?: YouTubeThumbnail[];
 	type?: string;
 
 	videoId?: string;

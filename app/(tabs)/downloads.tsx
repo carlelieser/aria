@@ -304,7 +304,6 @@ function CompletedDownloadsList({
 				paddingBottom: isSelectionMode ? BATCH_ACTION_BAR_PADDING : DEFAULT_CONTENT_PADDING,
 			}}
 			extraData={isSelectionMode ? selectedTrackIds : undefined}
-			disablePlayerAwarePadding
 			onScroll={onScroll}
 		/>
 	);

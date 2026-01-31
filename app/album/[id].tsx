@@ -97,7 +97,6 @@ export default function AlbumScreen() {
 	}, [displayTracks, albumInfo.artwork]);
 
 	const hasData = albumDetail.album !== null || libraryTracks.length > 0;
-	const showHeaderSkeleton = isLoading && !hasData;
 
 	const handleSearchAlbum = () => {
 		router.push({
@@ -204,7 +203,7 @@ export default function AlbumScreen() {
 			pageTitle="Album"
 			headerInfo={headerInfo}
 			headerRightActions={headerRightActions}
-			isLoading={showHeaderSkeleton}
+			isLoading={isLoading}
 			loadingContent={<AlbumHeaderSkeleton />}
 			scrollContentStyle={{ paddingBottom: insets.bottom + 80 }}
 		>

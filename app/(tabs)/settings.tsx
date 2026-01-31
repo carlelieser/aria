@@ -204,7 +204,7 @@ export default function SettingsScreen() {
 				<SettingsSection title="Plugins">
 					<SettingsItem
 						icon={PlugIcon}
-						title="Manage Plugins"
+						title="Manage plugins"
 						subtitle="Music sources, playback, and more"
 						onPress={() => router.push('/plugins')}
 						showChevron
@@ -223,7 +223,7 @@ export default function SettingsScreen() {
 					<AccentColorPicker value={accentColor} onValueChange={setAccentColor} />
 					<SettingsSelect
 						icon={LayoutGridIcon}
-						title="Default Home Screen"
+						title="Default home screen"
 						options={DEFAULT_TAB_OPTIONS}
 						value={defaultTab}
 						onValueChange={setDefaultTab}
@@ -245,13 +245,13 @@ export default function SettingsScreen() {
 				<SettingsSection title="Storage">
 					<SettingsItem
 						icon={HardDriveIcon}
-						title="Storage Used"
+						title="Storage used"
 						subtitle={`${formatFileSize(stats.totalSize)} · ${stats.completedCount} files`}
 					/>
 					{stats.completedCount > 0 && (
 						<SettingsItem
 							icon={TrashIcon}
-							title="Clear All Downloads"
+							title="Clear all downloads"
 							subtitle="Remove all downloaded files"
 							onPress={handleClearDownloads}
 							destructive
@@ -262,19 +262,19 @@ export default function SettingsScreen() {
 				<SettingsSection title="Library">
 					<SettingsItem
 						icon={MusicIcon}
-						title="Library Settings"
+						title="Library settings"
 						subtitle="Default tab and display options"
 						onPress={() => router.push('/library/settings')}
 						showChevron
 					/>
 					<SettingsItem
 						icon={InfoIcon}
-						title="Library Stats"
+						title="Library stats"
 						subtitle={`${tracks.length} tracks · ${playlists.length} playlists · ${favorites.size} favorites`}
 					/>
 					<SettingsItem
 						icon={TrashIcon}
-						title="Clear Library"
+						title="Clear library"
 						subtitle="Remove all tracks and playlists"
 						onPress={handleClearLibrary}
 						destructive
@@ -284,21 +284,21 @@ export default function SettingsScreen() {
 				<SettingsSection title="Reset">
 					<SettingsItem
 						icon={RotateCcwIcon}
-						title="Reset Settings"
+						title="Reset settings"
 						subtitle="Reset appearance and navigation preferences"
 						onPress={handleResetSettings}
 						destructive
 					/>
 					<SettingsItem
 						icon={RotateCcwIcon}
-						title="Reset Equalizer"
+						title="Reset equalizer"
 						subtitle="Reset equalizer to default"
 						onPress={handleResetEqualizer}
 						destructive
 					/>
 					<SettingsItem
 						icon={RotateCcwIcon}
-						title="Factory Reset"
+						title="Factory reset"
 						subtitle="Clear all data and reset to defaults"
 						onPress={handleFactoryReset}
 						destructive
@@ -308,7 +308,7 @@ export default function SettingsScreen() {
 				<SettingsSection title="Developer">
 					<SettingsItem
 						icon={CameraIcon}
-						title="Screenshot Mode"
+						title="Screenshot mode"
 						subtitle={
 							mockDataLoaded
 								? 'Loaded (tap to clear)'
@@ -335,7 +335,7 @@ export default function SettingsScreen() {
 					/>
 					<SettingsItem
 						icon={GithubIcon}
-						title="Source Code"
+						title="Source code"
 						subtitle="View on GitHub"
 						onPress={() => Linking.openURL('https://github.com/carlelieser/aria')}
 						showChevron
@@ -347,7 +347,7 @@ export default function SettingsScreen() {
 
 			<ConfirmationDialog
 				visible={clearLibraryDialogVisible}
-				title="Clear Library"
+				title="Clear library"
 				message="This will remove all tracks, playlists, and favorites. This action cannot be undone."
 				confirmLabel="Clear"
 				cancelLabel="Cancel"
@@ -358,7 +358,7 @@ export default function SettingsScreen() {
 
 			<ConfirmationDialog
 				visible={clearDownloadsDialogVisible}
-				title="Clear All Downloads"
+				title="Clear all downloads"
 				message="This will remove all downloaded files. This action cannot be undone."
 				confirmLabel="Clear All"
 				cancelLabel="Cancel"
@@ -369,7 +369,7 @@ export default function SettingsScreen() {
 
 			<ConfirmationDialog
 				visible={resetSettingsDialogVisible}
-				title="Reset Settings"
+				title="Reset settings"
 				message="This will reset all appearance and navigation preferences to their defaults."
 				confirmLabel="Reset"
 				cancelLabel="Cancel"
@@ -380,7 +380,7 @@ export default function SettingsScreen() {
 
 			<ConfirmationDialog
 				visible={resetEqualizerDialogVisible}
-				title="Reset Equalizer"
+				title="Reset equalizer"
 				message="This will disable the equalizer and reset all bands to flat."
 				confirmLabel="Reset"
 				cancelLabel="Cancel"
@@ -391,7 +391,7 @@ export default function SettingsScreen() {
 
 			<ConfirmationDialog
 				visible={factoryResetDialogVisible}
-				title="Factory Reset"
+				title="Factory reset"
 				message="This will clear all your data including library, downloads, settings, and equalizer. This action cannot be undone."
 				confirmLabel="Reset Everything"
 				cancelLabel="Cancel"

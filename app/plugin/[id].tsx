@@ -33,7 +33,7 @@ export default function PluginDetailScreen() {
 
 	if (!plugin) {
 		return (
-			<PageLayout header={{ title: 'Plugin', showBack: true, compact: true }}>
+			<PageLayout header={{ title: 'Plugin', showBack: true }}>
 				<EmptyState
 					icon={DEFAULT_PLUGIN_ICON}
 					title="Plugin not found"
@@ -52,7 +52,6 @@ export default function PluginDetailScreen() {
 			header={{
 				title: plugin.name,
 				showBack: true,
-				compact: true,
 				rightActions: headerRightActions,
 			}}
 		>
