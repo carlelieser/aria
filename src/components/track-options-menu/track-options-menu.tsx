@@ -8,7 +8,7 @@
 import React, { useCallback } from 'react';
 import { MoreVertical, MoreHorizontal } from 'lucide-react-native';
 import { IconButton } from 'react-native-paper';
-import { Icon } from '@/components/ui/icon';
+import { Icon } from '@/src/components/ui/icon';
 import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
 import type { TrackActionSource } from '@/src/domain/actions/track-action';

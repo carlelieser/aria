@@ -17,24 +17,24 @@ import {
 	CheckIcon,
 } from 'lucide-react-native';
 import { Text, IconButton, Button, Menu } from 'react-native-paper';
-import { Icon } from '@/components/ui/icon';
-import { DetailsPage } from '@/components/details-page';
-import { CollectionDownloadButton } from '@/components/collection-download-button';
-import { SelectableTrackListItem } from '@/components/selectable-track-list-item';
-import { BatchActionBar } from '@/components/batch-action-bar';
-import { EmptyState } from '@/components/empty-state';
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import { InputDialog } from '@/components/ui/input-dialog';
+import { Icon } from '@/src/components/ui/icon';
+import { DetailsPage } from '@/src/components/details-page';
+import { CollectionDownloadButton } from '@/src/components/collection-download-button';
+import { SelectableTrackListItem } from '@/src/components/selectable-track-list-item';
+import { BatchActionBar } from '@/src/components/batch-action-bar';
+import { EmptyState } from '@/src/components/empty-state';
+import { ConfirmationDialog } from '@/src/components/ui/confirmation-dialog';
+import { InputDialog } from '@/src/components/ui/input-dialog';
 import { usePlaylist, useLibraryStore } from '@/src/application/state/library-store';
-import { usePlayer } from '@/hooks/use-player';
-import { useToast } from '@/hooks/use-toast';
-import { useSelection } from '@/hooks/use-selection';
-import { useBatchActions } from '@/hooks/use-batch-actions';
+import { usePlayer } from '@/src/hooks/use-player';
+import { useToast } from '@/src/hooks/use-toast';
+import { useSelection } from '@/src/hooks/use-selection';
+import { useBatchActions } from '@/src/hooks/use-batch-actions';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 import { getPlaylistDuration, type PlaylistTrack } from '@/src/domain/entities/playlist';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import { getArtistNames, type Track } from '@/src/domain/entities/track';
-import type { DetailsHeaderInfo, MetadataLine } from '@/components/details-page';
+import type { DetailsHeaderInfo, MetadataLine } from '@/src/components/details-page';
 import type { ReactNode } from 'react';
 
 function formatDuration(ms: number): string {

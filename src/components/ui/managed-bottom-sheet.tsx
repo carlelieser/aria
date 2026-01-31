@@ -36,6 +36,10 @@ interface ManagedBottomSheetProps {
 	scrollable?: boolean;
 	/** Callback when sheet is opened (after animation) */
 	onOpen?: () => void;
+	/** Keyboard behavior: 'extend' pushes sheet up, 'interactive' follows keyboard, 'fillParent' expands to full height */
+	keyboardBehavior?: 'extend' | 'interactive' | 'fillParent';
+	/** What happens when keyboard is dismissed by tapping outside the input */
+	keyboardBlurBehavior?: 'none' | 'restore';
 }
 
 export function ManagedBottomSheet({
@@ -46,6 +50,8 @@ export function ManagedBottomSheet({
 	children,
 	scrollable = false,
 	onOpen,
+	keyboardBehavior,
+	keyboardBlurBehavior,
 }: ManagedBottomSheetProps) {
 	const { colors } = useAppTheme();
 	const sheetRef = useRef<BottomSheetMethods>(null);
@@ -95,6 +101,8 @@ export function ManagedBottomSheet({
 				enablePanDownToClose
 				backdropComponent={renderBackdrop}
 				onChange={handleSheetChanges}
+				keyboardBehavior={keyboardBehavior}
+				keyboardBlurBehavior={keyboardBlurBehavior}
 				backgroundStyle={[
 					styles.background,
 					{ backgroundColor: colors.surfaceContainerHigh },

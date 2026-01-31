@@ -8,10 +8,8 @@
 import { memo } from 'react';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
-import type { LucideIcon } from 'lucide-react-native';
-
 import { useAppTheme } from '@/lib/theme';
-import { MediaArtwork } from './media-artwork';
+import { MediaArtwork, type MediaArtworkProps } from './media-artwork';
 
 export interface MediaListItemProps {
 	/** Primary text (title/name) */
@@ -27,12 +25,7 @@ export interface MediaListItemProps {
 	/** Disabled state */
 	disabled?: boolean;
 	/** Artwork configuration */
-	artwork: {
-		url?: string;
-		shape?: 'rounded' | 'circular';
-		fallbackIcon: LucideIcon;
-		recyclingKey?: string;
-	};
+	artwork: Omit<MediaArtworkProps, 'size'>;
 	/** Right-side accessory content (duration, options menu, etc.) */
 	accessory?: React.ReactNode;
 }

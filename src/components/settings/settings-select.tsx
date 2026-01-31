@@ -9,9 +9,9 @@ import { useState, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import { type LucideIcon } from 'lucide-react-native';
-import { Icon } from '@/components/ui/icon';
-import { ActionSheet, type ActionSheetGroup } from '@/components/ui/action-sheet';
-import { SettingsItem } from '@/components/settings/settings-item';
+import { Icon } from '@/src/components/ui/icon';
+import { ActionSheet, type ActionSheetGroup } from '@/src/components/ui/action-sheet';
+import { SettingsItem } from '@/src/components/settings/settings-item';
 import { useAppTheme } from '@/lib/theme';
 
 interface SelectOption<T extends string> {

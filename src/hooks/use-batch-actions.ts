@@ -3,7 +3,7 @@ import type { Track } from '@/src/domain/entities/track';
 import { downloadService } from '@/src/application/services/download-service';
 import { useLibraryStore } from '@/src/application/state/library-store';
 import { usePlayerStore } from '@/src/application/state/player-store';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/src/hooks/use-toast';
 
 interface BatchProgress {
 	completed: number;

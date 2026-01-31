@@ -12,17 +12,17 @@ import { router } from 'expo-router';
 import { CheckCircle, AlertCircle, X, Trash2, Music, RotateCcw } from 'lucide-react-native';
 import { Text, IconButton, ProgressBar } from 'react-native-paper';
 
-import { Icon } from '@/components/ui/icon';
-import { usePlayer } from '@/hooks/use-player';
+import { Icon } from '@/src/components/ui/icon';
+import { usePlayer } from '@/src/hooks/use-player';
 import type { Track } from '@/src/domain/entities/track';
 import type { TrackActionSource } from '@/src/domain/actions/track-action';
 import type { DownloadInfo } from '@/src/domain/value-objects/download-state';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import { getArtistNames } from '@/src/domain/entities/track';
-import { TrackOptionsMenu } from '@/components/track-options-menu';
-import { DownloadIndicator } from '@/components/download-indicator';
-import { useDownloadActions } from '@/hooks/use-download-actions';
-import { formatFileSize } from '@/hooks/use-download-queue';
+import { TrackOptionsMenu } from '@/src/components/track-options-menu';
+import { DownloadIndicator } from '@/src/components/download-indicator';
+import { useDownloadActions } from '@/src/hooks/use-download-actions';
+import { formatFileSize } from '@/src/hooks/use-download-queue';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 
 interface TrackListItemProps {

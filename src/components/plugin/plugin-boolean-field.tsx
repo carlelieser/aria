@@ -8,7 +8,7 @@ import { memo, useMemo } from 'react';
 import { Switch } from 'react-native-paper';
 import * as LucideIcons from 'lucide-react-native';
 import { CircleDotIcon, type LucideIcon } from 'lucide-react-native';
-import { SettingsItem } from '@/components/settings/settings-item';
+import { SettingsItem } from '@/src/components/settings/settings-item';
 import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plugin';
 
 const DEFAULT_BOOLEAN_ICON = CircleDotIcon;

@@ -19,8 +19,8 @@ import { Text, Divider } from 'react-native-paper';
 import * as LucideIcons from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import { Check } from 'lucide-react-native';
-import { BottomSheetPortal } from '@/components/ui/bottom-sheet-portal';
-import { Icon } from '@/components/ui/icon';
+import { BottomSheetPortal } from '@/src/components/ui/bottom-sheet-portal';
+import { Icon } from '@/src/components/ui/icon';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 import { ACTION_GROUP_ORDER } from '@/src/domain/actions/track-action';
 import type { TrackAction } from '@/src/domain/actions/track-action';
@@ -34,7 +34,7 @@ import {
 	useIsTrackOptionsOpen,
 	useTrackOptionsActions,
 } from '@/src/application/state/track-options-store';
-import { useTrackActionExecutor } from '@/hooks/use-track-action-executor';
+import { useTrackActionExecutor } from '@/src/hooks/use-track-action-executor';
 
 function getIconComponent(iconName: string): LucideIcon {
 	const icons = LucideIcons as unknown as Record<string, LucideIcon>;

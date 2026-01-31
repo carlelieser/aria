@@ -6,7 +6,7 @@
  */
 
 import { View, StyleSheet } from 'react-native';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/src/components/ui/skeleton';
 import { useAppTheme } from '@/lib/theme';
 
 export function PlayerArtworkSkeleton() {

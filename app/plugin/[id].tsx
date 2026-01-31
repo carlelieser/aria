@@ -2,12 +2,12 @@ import { useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Text, Switch, Chip } from 'react-native-paper';
-import { Icon } from '@/components/ui/icon';
-import { PageLayout } from '@/components/page-layout';
-import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
-import { EmptyState } from '@/components/empty-state';
-import { SettingsSection } from '@/components/settings/settings-section';
-import { PluginSettingsSection } from '@/components/plugin/plugin-settings-section';
+import { Icon } from '@/src/components/ui/icon';
+import { PageLayout } from '@/src/components/page-layout';
+import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
+import { EmptyState } from '@/src/components/empty-state';
+import { SettingsSection } from '@/src/components/settings/settings-section';
+import { PluginSettingsSection } from '@/src/components/plugin/plugin-settings-section';
 import { LockIcon } from 'lucide-react-native';
 import { togglePluginRuntime } from '@/src/application/services/plugin-lifecycle-service';
 import { useAppTheme } from '@/lib/theme';
@@ -17,7 +17,7 @@ import {
 	usePluginDisplayStatus,
 	usePluginById,
 	DEFAULT_PLUGIN_ICON,
-} from '@/hooks/use-plugin-display';
+} from '@/src/hooks/use-plugin-display';
 
 export default function PluginDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();

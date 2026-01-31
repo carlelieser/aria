@@ -7,7 +7,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import { Menu, Divider, Text } from 'react-native-paper';
-import { Icon } from '@/components/ui/icon';
+import { Icon } from '@/src/components/ui/icon';
 import { Check } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import { useAppTheme } from '@/lib/theme';

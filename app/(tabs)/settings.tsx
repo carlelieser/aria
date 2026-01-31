@@ -1,16 +1,16 @@
 import { StyleSheet, Linking } from 'react-native';
 import { useCallback, useState } from 'react';
 import { router } from 'expo-router';
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import { VersionDialog } from '@/components/ui/version-dialog';
-import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
-import { PageLayout } from '@/components/page-layout';
-import { SettingsItem } from '@/components/settings/settings-item';
-import { SettingsSection } from '@/components/settings/settings-section';
-import { SettingsSelect } from '@/components/settings/settings-select';
-import { AccentColorPicker } from '@/components/settings/accent-color-picker';
-import { TabOrderSetting } from '@/components/settings/tab-order-setting';
-import { EqualizerSheet } from '@/components/equalizer-sheet';
+import { ConfirmationDialog } from '@/src/components/ui/confirmation-dialog';
+import { VersionDialog } from '@/src/components/ui/version-dialog';
+import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
+import { PageLayout } from '@/src/components/page-layout';
+import { SettingsItem } from '@/src/components/settings/settings-item';
+import { SettingsSection } from '@/src/components/settings/settings-section';
+import { SettingsSelect } from '@/src/components/settings/settings-select';
+import { AccentColorPicker } from '@/src/components/settings/accent-color-picker';
+import { TabOrderSetting } from '@/src/components/settings/tab-order-setting';
+import { EqualizerSheet } from '@/src/components/equalizer-sheet';
 import {
 	TrashIcon,
 	InfoIcon,
@@ -42,10 +42,10 @@ import {
 	type ThemePreference,
 	type DefaultTab,
 } from '@application/state/settings-store';
-import { useDownloadQueue, formatFileSize } from '@/hooks/use-download-queue';
-import { useEqualizer } from '@/hooks/use-equalizer';
+import { useDownloadQueue, formatFileSize } from '@/src/hooks/use-download-queue';
+import { useEqualizer } from '@/src/hooks/use-equalizer';
 import { clearAllDownloads } from '@infrastructure/filesystem/download-manager';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/src/hooks/use-toast';
 import { loadMockData, clearMockData, isMockDataLoaded } from '@/src/dev/load-mock-data';
 import Constants from 'expo-constants';
 

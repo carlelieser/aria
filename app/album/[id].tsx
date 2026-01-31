@@ -4,15 +4,15 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DiscIcon, SearchIcon } from 'lucide-react-native';
 import { Text, Button, IconButton } from 'react-native-paper';
-import { Icon } from '@/components/ui/icon';
-import { DetailsPage } from '@/components/details-page';
-import { CollectionDownloadButton } from '@/components/collection-download-button';
-import { useBatchActions } from '@/hooks/use-batch-actions';
-import { TrackListItem } from '@/components/track-list-item';
+import { Icon } from '@/src/components/ui/icon';
+import { DetailsPage } from '@/src/components/details-page';
+import { CollectionDownloadButton } from '@/src/components/collection-download-button';
+import { useBatchActions } from '@/src/hooks/use-batch-actions';
+import { TrackListItem } from '@/src/components/track-list-item';
 import {
 	AlbumHeaderSkeleton,
 	AlbumTrackListSkeleton,
-} from '@/components/skeletons/album-screen-skeleton';
+} from '@/src/components/skeletons/album-screen-skeleton';
 import { useTracks } from '@/src/application/state/library-store';
 import {
 	useAlbumDetail,
@@ -24,7 +24,7 @@ import { getArtworkUrl, getArtistNames } from '@/src/domain/entities/track';
 import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
 import type { Artwork } from '@/src/domain/value-objects/artwork';
-import type { DetailsHeaderInfo, MetadataLine } from '@/components/details-page';
+import type { DetailsHeaderInfo, MetadataLine } from '@/src/components/details-page';
 
 function enrichTracksWithAlbumArtwork(tracks: Track[], albumArtworkUrl?: string): Track[] {
 	if (!albumArtworkUrl) return tracks;

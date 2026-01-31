@@ -16,10 +16,10 @@ import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/typ
 import { Portal } from '@rn-primitives/portal';
 import { Text, Button, Divider, Switch } from 'react-native-paper';
 import Animated, { useAnimatedStyle, withTiming, useSharedValue } from 'react-native-reanimated';
-import { SortSection } from '@/components/library/sort-section';
-import { ExploreSortSection } from '@/components/explore/explore-sort-section';
-import { ContentTypeChips } from '@/components/explore/content-type-chips';
-import { FilterChip } from '@/components/library/filter-chip';
+import { SortSection } from '@/src/components/library/sort-section';
+import { ExploreSortSection } from '@/src/components/explore/explore-sort-section';
+import { ContentTypeChips } from '@/src/components/explore/content-type-chips';
+import { FilterChip } from '@/src/components/library/filter-chip';
 import { useAppTheme } from '@/lib/theme';
 import type { SortField, SortDirection, LibraryFilters } from '@/src/domain/utils/track-filtering';
 import type {

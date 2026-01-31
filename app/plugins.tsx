@@ -2,14 +2,14 @@ import { View, StyleSheet } from 'react-native';
 import { useCallback } from 'react';
 import { router, type Href } from 'expo-router';
 import { Switch, List } from 'react-native-paper';
-import { Icon } from '@/components/ui/icon';
-import { PageLayout } from '@/components/page-layout';
-import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
-import { EmptyState } from '@/components/empty-state';
-import { SettingsSection } from '@/components/settings/settings-section';
+import { Icon } from '@/src/components/ui/icon';
+import { PageLayout } from '@/src/components/page-layout';
+import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
+import { EmptyState } from '@/src/components/empty-state';
+import { SettingsSection } from '@/src/components/settings/settings-section';
 import { ChevronRightIcon } from 'lucide-react-native';
 import { togglePluginRuntime } from '@/src/application/services/plugin-lifecycle-service';
-import { PluginListSkeleton } from '@/components/skeletons';
+import { PluginListSkeleton } from '@/src/components/skeletons';
 import { useAppTheme } from '@/lib/theme';
 import {
 	type PluginDisplayInfo,
@@ -19,7 +19,7 @@ import {
 	usePluginDisplayStatus,
 	usePluginList,
 	DEFAULT_PLUGIN_ICON,
-} from '@/hooks/use-plugin-display';
+} from '@/src/hooks/use-plugin-display';
 
 export default function PluginsScreen() {
 	const { plugins, pluginsByCategory, isLoading } = usePluginList();

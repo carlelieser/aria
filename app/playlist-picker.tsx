@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
-import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
+import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeftIcon, PlusIcon, ListMusicIcon, CheckIcon, XIcon } from 'lucide-react-native';
-import { Text, IconButton, Button, TextInput, Surface } from 'react-native-paper';
-import { Icon } from '@/components/ui/icon';
+import { PlusIcon, ListMusicIcon, CheckIcon } from 'lucide-react-native';
+import { Text, Button } from 'react-native-paper';
+import { Icon } from '@/src/components/ui/icon';
+import { EmptyState } from '@/src/components/empty-state';
+import { PageLayout } from '@/src/components/page-layout';
+import { CreatePlaylistSheet } from '@/src/components/create-playlist-sheet';
 import { useLibraryStore, usePlaylists, useTrack } from '@/src/application/state/library-store';
-import { createPlaylist } from '@/src/domain/entities/playlist';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/src/hooks/use-toast';
 import { useAppTheme } from '@/lib/theme';
 import type { Playlist } from '@/src/domain/entities/playlist';
 
@@ -59,12 +61,10 @@ export default function PlaylistPickerScreen() {
 	const { success, error } = useToast();
 	const { colors } = useAppTheme();
 
-	const [isCreating, setIsCreating] = useState(false);
-	const [newPlaylistName, setNewPlaylistName] = useState('');
+	const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
 
 	const track = useTrack(trackId);
 	const playlists = usePlaylists();
-	const addPlaylist = useLibraryStore((state) => state.addPlaylist);
 	const addTrackToPlaylist = useLibraryStore((state) => state.addTrackToPlaylist);
 
 	const handleSelectPlaylist = (playlist: Playlist) => {
@@ -78,25 +78,16 @@ export default function PlaylistPickerScreen() {
 		router.back();
 	};
 
-	const handleCreatePlaylist = () => {
-		const name = newPlaylistName.trim();
-		if (!name) {
-			error('Invalid name', 'Please enter a playlist name');
-			return;
-		}
-
-		const playlist = createPlaylist({ name });
-		addPlaylist(playlist);
+	const handlePlaylistCreated = (playlistId: string, playlistName: string) => {
+		setIsCreateSheetOpen(false);
 
 		if (track) {
-			addTrackToPlaylist(playlist.id, track);
-			success(`Created "${name}"`, `Added "${track.title}" to your new playlist`);
+			addTrackToPlaylist(playlistId, track);
+			success(`Created "${playlistName}"`, `Added "${track.title}" to your new playlist`);
 		} else {
-			success(`Created "${name}"`, 'Your new playlist is ready');
+			success(`Created "${playlistName}"`, 'Your new playlist is ready');
 		}
 
-		setIsCreating(false);
-		setNewPlaylistName('');
 		router.back();
 	};
 
@@ -106,43 +97,29 @@ export default function PlaylistPickerScreen() {
 	};
 
 	return (
-		<View style={[styles.container, { backgroundColor: colors.background }]}>
-			<View
-				style={[
-					styles.header,
-					{ backgroundColor: colors.surfaceContainerHigh, paddingTop: insets.top + 16 },
-				]}
-			>
-				<View style={styles.headerRow}>
-					<View style={styles.headerTitleRow}>
-						<IconButton
-							icon={() => (
-								<Icon as={ChevronLeftIcon} size={22} color={colors.onSurface} />
-							)}
-							onPress={() => router.back()}
-							style={styles.backButton}
-						/>
-						<Text
-							variant="titleLarge"
-							style={{ color: colors.onSurface, fontWeight: '700' }}
-						>
-							Add to Playlist
-						</Text>
-					</View>
-					{!isCreating && (
-						<Button
-							mode="text"
-							icon={() => <Icon as={PlusIcon} size={18} color={colors.primary} />}
-							onPress={() => setIsCreating(true)}
-						>
-							New
-						</Button>
-					)}
-				</View>
-
-				{track && (
-					<Surface
-						style={[styles.trackPreview, { backgroundColor: `${colors.background}80` }]}
+		<PageLayout
+			header={{
+				title: 'Add to Playlist',
+				showBack: true,
+				extended: true,
+				backgroundColor: colors.surfaceContainerHigh,
+				borderRadius: 24,
+				showBorder: false,
+				rightActions: (
+					<Button
+						mode="text"
+						icon={() => <Icon as={PlusIcon} size={18} color={colors.primary} />}
+						onPress={() => setIsCreateSheetOpen(true)}
+					>
+						New
+					</Button>
+				),
+				belowTitle: track ? (
+					<View
+						style={[
+							styles.trackPreview,
+							{ backgroundColor: `${colors.background}80` },
+						]}
 					>
 						<Text
 							variant="bodyMedium"
@@ -158,67 +135,26 @@ export default function PlaylistPickerScreen() {
 						>
 							{track.artists.map((a) => a.name).join(', ')}
 						</Text>
-					</Surface>
-				)}
-
-				{isCreating && (
-					<View style={styles.createForm}>
-						<TextInput
-							value={newPlaylistName}
-							onChangeText={setNewPlaylistName}
-							placeholder="Playlist name"
-							mode="outlined"
-							autoFocus
-							onSubmitEditing={handleCreatePlaylist}
-						/>
-						<View style={styles.createActions}>
-							<Button
-								mode="outlined"
-								icon={() => <Icon as={XIcon} size={16} color={colors.onSurface} />}
-								onPress={() => {
-									setIsCreating(false);
-									setNewPlaylistName('');
-								}}
-								style={styles.createButton}
-							>
-								Cancel
-							</Button>
-							<Button
-								mode="contained"
-								icon={() => (
-									<Icon as={CheckIcon} size={16} color={colors.onPrimary} />
-								)}
-								onPress={handleCreatePlaylist}
-								disabled={!newPlaylistName.trim()}
-								style={styles.createButton}
-							>
-								Create
-							</Button>
-						</View>
 					</View>
-				)}
-			</View>
-
+				) : undefined,
+			}}
+		>
 			<PlayerAwareScrollView
-				style={styles.scrollView}
 				contentContainerStyle={[
 					styles.scrollContent,
 					{ paddingBottom: insets.bottom + 80 },
 				]}
 			>
-				{playlists.length === 0 && !isCreating ? (
-					<View style={styles.emptyState}>
-						<Icon as={ListMusicIcon} size={48} color={colors.onSurfaceVariant} />
-						<Text
-							variant="bodyMedium"
-							style={{ color: colors.onSurfaceVariant, marginTop: 16 }}
-						>
-							No playlists yet
-						</Text>
-						<Button mode="text" onPress={() => setIsCreating(true)}>
-							Create your first playlist
-						</Button>
-					</View>
+				{playlists.length === 0 ? (
+					<EmptyState
+						icon={ListMusicIcon}
+						title="No playlists yet"
+						action={
+							<Button mode="text" onPress={() => setIsCreateSheetOpen(true)}>
+								Create your first playlist
+							</Button>
+						}
+					/>
 				) : (
 					playlists.map((playlist) => (
 						<PlaylistItem
@@ -230,51 +166,21 @@ export default function PlaylistPickerScreen() {
 					))
 				)}
 			</PlayerAwareScrollView>
-		</View>
+
+			<CreatePlaylistSheet
+				isOpen={isCreateSheetOpen}
+				onClose={() => setIsCreateSheetOpen(false)}
+				onCreated={handlePlaylistCreated}
+			/>
+		</PageLayout>
 	);
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-	},
-	scrollView: {
-		borderRadius: 12,
-		overflow: 'hidden',
-	},
-	header: {
-		paddingHorizontal: 16,
-		paddingBottom: 16,
-		borderBottomLeftRadius: 24,
-		borderBottomRightRadius: 24,
-		gap: 16,
-	},
-	headerRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-	},
-	headerTitleRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 12,
-	},
-	backButton: {
-		opacity: 0.7,
-	},
 	trackPreview: {
 		padding: 12,
 		borderRadius: 12,
-	},
-	createForm: {
-		gap: 12,
-	},
-	createActions: {
-		flexDirection: 'row',
-		gap: 8,
-	},
-	createButton: {
-		flex: 1,
+		marginHorizontal: 16,
 	},
 	scrollContent: {
 		paddingVertical: 8,
@@ -300,10 +206,5 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		gap: 4,
-	},
-	emptyState: {
-		paddingVertical: 48,
-		alignItems: 'center',
-		paddingHorizontal: 16,
 	},
 });

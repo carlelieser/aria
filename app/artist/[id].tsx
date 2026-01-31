@@ -4,9 +4,9 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams, router } from 'expo-router';
 import { DiscIcon, SearchIcon, UserIcon } from 'lucide-react-native';
 import { Text, Button, ActivityIndicator, IconButton } from 'react-native-paper';
-import { Icon } from '@/components/ui/icon';
-import { DetailsPage } from '@/components/details-page';
-import { TrackListItem } from '@/components/track-list-item';
+import { Icon } from '@/src/components/ui/icon';
+import { DetailsPage } from '@/src/components/details-page';
+import { TrackListItem } from '@/src/components/track-list-item';
 import { useTracks } from '@/src/application/state/library-store';
 import {
 	useArtistDetail,
@@ -23,7 +23,7 @@ import type {
 	DetailsHeaderInfo,
 	MetadataLine,
 	DetailsPageSection,
-} from '@/components/details-page';
+} from '@/src/components/details-page';
 
 function useLibraryArtistTracks(artistId: string): Track[] {
 	const tracks = useTracks();

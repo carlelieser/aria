@@ -7,7 +7,7 @@
 import React, { memo, useCallback } from 'react';
 import { StyleSheet } from 'react-native';
 import { Chip } from 'react-native-paper';
-import { Icon } from '@/components/ui/icon';
+import { Icon } from '@/src/components/ui/icon';
 import { X } from 'lucide-react-native';
 import { useAppTheme } from '@/lib/theme';
 

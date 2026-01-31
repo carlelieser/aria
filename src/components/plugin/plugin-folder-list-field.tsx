@@ -10,9 +10,9 @@ import { View, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import { FolderPlusIcon, FolderIcon, Trash2Icon, RefreshCwIcon } from 'lucide-react-native';
 import { RectButton } from 'react-native-gesture-handler';
-import { Button } from '@/components/ui/button';
-import { Icon } from '@/components/ui/icon';
-import { EmptyState } from '@/components/empty-state';
+import { Button } from '@/src/components/ui/button';
+import { Icon } from '@/src/components/ui/icon';
+import { EmptyState } from '@/src/components/empty-state';
 import { useAppTheme } from '@/lib/theme';
 import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plugin';
 import {
@@ -131,7 +131,7 @@ export const PluginFolderListField = memo(function PluginFolderListField({
 			</View>
 
 			{folders.length === 0 ? (
-				<EmptyState icon={FolderIcon} title="No folders added" compact />
+				<EmptyState icon={FolderIcon} title="No folders added" />
 			) : (
 				<View style={[styles.folderList, { backgroundColor: colors.surfaceContainerLow }]}>
 					{folders.map((folder) => (

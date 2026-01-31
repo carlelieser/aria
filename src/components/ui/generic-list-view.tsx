@@ -8,8 +8,8 @@
 import type { ReactNode } from 'react';
 import type { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { FlashList, type FlashListProps } from '@shopify/flash-list';
-import { PlayerAwareFlashList } from '@/components/ui/player-aware-flash-list';
-import { EmptyState } from '@/components/empty-state';
+import { PlayerAwareFlashList } from '@/src/components/ui/player-aware-flash-list';
+import { EmptyState } from '@/src/components/empty-state';
 import type { LucideIcon } from 'lucide-react-native';
 
 type ListRenderItem<T> = FlashListProps<T>['renderItem'];

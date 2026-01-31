@@ -9,7 +9,7 @@ import { memo, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { List } from 'react-native-paper';
 import { ChevronRightIcon, type LucideIcon } from 'lucide-react-native';
-import { Icon } from '@/components/ui/icon';
+import { Icon } from '@/src/components/ui/icon';
 import { useAppTheme } from '@/lib/theme';
 
 interface SettingsItemProps {

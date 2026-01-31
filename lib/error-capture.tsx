@@ -1,6 +1,6 @@
 import React, { Component, type ReactNode, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
+import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
 
 const ERROR_TAG = '[ErrorCapture]';
 

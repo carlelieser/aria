@@ -9,7 +9,7 @@ import { useCallback, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { IconButton, FAB } from 'react-native-paper';
 import { Play, Pause, SkipBack, SkipForward, Repeat, Repeat1, Shuffle } from 'lucide-react-native';
-import { usePlayer } from '@/hooks/use-player';
+import { usePlayer } from '@/src/hooks/use-player';
 import { useAppTheme } from '@/lib/theme';
 
 interface PlayerControlsProps {

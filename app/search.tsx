@@ -1,17 +1,13 @@
-import { useCallback, useMemo, useState, memo, useEffect, useRef } from 'react';
-import { View, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native';
-import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
-import { Text } from 'react-native-paper';
-import { PageLayout } from '@/components/page-layout';
+import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
+import { View, StyleSheet, TextInput, Pressable } from 'react-native';
+import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
+import { PageLayout } from '@/src/components/page-layout';
 import {
 	HeartIcon,
 	ClockIcon,
 	SparklesIcon,
 	SearchIcon,
 	MusicIcon,
-	ListMusicIcon,
-	UsersIcon,
-	DiscIcon,
 	XIcon,
 	AlertCircleIcon,
 	SearchXIcon,
@@ -19,115 +15,34 @@ import {
 	LibraryBigIcon,
 	PlugIcon,
 } from 'lucide-react-native';
-import { TrackCard } from '@/components/track-card';
-import { SelectableTrackListItem } from '@/components/selectable-track-list-item';
-import { AlbumListItem } from '@/components/album-list-item';
-import { ArtistListItem } from '@/components/artist-list-item';
-import { PlaylistListItem } from '@/components/media-list';
-import { Icon } from '@/components/ui/icon';
-import { EmptyState } from '@/components/empty-state';
-import { TrackListSkeleton } from '@/components/skeletons';
-import { ResultGroup, UnifiedFilterSheet } from '@/components/unified-search';
-import { SortFilterFAB } from '@/components/library/sort-filter-fab';
-import { BatchActionBar } from '@/components/batch-action-bar';
-import { BatchPlaylistPicker } from '@/components/batch-playlist-picker';
+import { SelectableTrackListItem } from '@/src/components/selectable-track-list-item';
+import { Icon } from '@/src/components/ui/icon';
+import { EmptyState } from '@/src/components/empty-state';
+import { TrackListSkeleton } from '@/src/components/skeletons';
+import { ResultGroup, UnifiedFilterSheet } from '@/src/components/unified-search';
+import { SortFilterFAB } from '@/src/components/library/sort-filter-fab';
+import { BatchActionBar } from '@/src/components/batch-action-bar';
+import { BatchPlaylistPicker } from '@/src/components/batch-playlist-picker';
+import {
+	CuratedSection,
+	LibraryResults,
+	ExploreResults,
+} from '@/src/components/search';
 import { useRecentlyPlayed, useHasHistory } from '@/src/application/state/history-store';
-import { getTrackIdString } from '@/src/domain/value-objects/track-id';
 import { useFavoriteTracks, useRecentlyAddedTracks } from '@/src/application/state/library-store';
-import { useUnifiedSearch } from '@/hooks/use-unified-search';
-import { useSelection } from '@/hooks/use-selection';
-import { useBatchActions } from '@/hooks/use-batch-actions';
+import { useUnifiedSearch } from '@/src/hooks/use-unified-search';
+import { useSelection } from '@/src/hooks/use-selection';
+import { useBatchHandlers } from '@/src/hooks/use-batch-handlers';
 import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
-import type { Playlist } from '@/src/domain/entities/playlist';
-import type { Album } from '@/src/domain/entities/album';
-import type { Artist } from '@/src/domain/entities/artist';
-import type { UniqueAlbum, UniqueArtist } from '@/src/application/state/library-store';
-import type { LucideIcon } from 'lucide-react-native';
 
 const BATCH_ACTION_BAR_PADDING = 120;
 const DEFAULT_CONTENT_PADDING = 20;
 const MAX_RESULTS_PER_SECTION = 5;
 
-interface CuratedSectionProps {
-	readonly id: string;
-	readonly title: string;
-	readonly icon: LucideIcon;
-	readonly tracks: Track[];
-}
-
-const CuratedSection = memo(function CuratedSection({ id, title, tracks }: CuratedSectionProps) {
-	const { colors } = useAppTheme();
-
-	const titleStyle = useMemo(
-		() => ({ color: colors.onSurface, fontWeight: '600' as const }),
-		[colors.onSurface]
-	);
-
-	if (tracks.length === 0) return null;
-
-	return (
-		<View style={styles.curatedSection}>
-			<View style={styles.curatedSectionHeader}>
-				<Text variant="labelLarge" style={titleStyle}>
-					{title}
-				</Text>
-			</View>
-			<ScrollView
-				horizontal
-				showsHorizontalScrollIndicator={false}
-				style={styles.horizontalScrollView}
-				contentContainerStyle={styles.horizontalScroll}
-			>
-				{tracks.map((track, index) => (
-					<TrackCard
-						key={`${id}-${getTrackIdString(track.id)}`}
-						track={track}
-						queue={tracks}
-						queueIndex={index}
-					/>
-				))}
-			</ScrollView>
-		</View>
-	);
-});
-
-interface ResultSectionProps {
-	readonly title: string;
-	readonly icon: LucideIcon;
-	readonly children: React.ReactNode;
-	readonly maxItems?: number;
-}
-
-const ResultSection = memo(function ResultSection({
-	title,
-	icon: IconComponent,
-	children,
-}: ResultSectionProps) {
-	const { colors } = useAppTheme();
-
-	const titleStyle = useMemo(
-		() => ({ color: colors.onSurface, fontWeight: '600' as const }),
-		[colors.onSurface]
-	);
-
-	return (
-		<View style={styles.section}>
-			<View style={styles.sectionHeader}>
-				<Icon as={IconComponent} size={18} color={colors.primary} />
-				<Text variant="titleSmall" style={titleStyle}>
-					{title}
-				</Text>
-			</View>
-			<View style={styles.sectionContent}>{children}</View>
-		</View>
-	);
-});
-
 export default function SearchScreen() {
 	const { colors } = useAppTheme();
 	const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
-	const [isPlaylistPickerOpen, setIsPlaylistPickerOpen] = useState(false);
 	const [selectionSource, setSelectionSource] = useState<'library' | 'explore'>('library');
 	const searchInputRef = useRef<TextInput>(null);
 
@@ -179,22 +94,25 @@ export default function SearchScreen() {
 		toggleTrackSelection,
 	} = useSelection();
 
-	const {
-		downloadSelected,
-		addSelectedToLibrary,
-		addSelectedToQueue,
-		addSelectedToPlaylist,
-		removeSelectedFromLibrary,
-		toggleSelectedFavorites,
-		isDownloading,
-		isDeleting,
-	} = useBatchActions();
-
 	const currentTracks = selectionSource === 'library' ? libraryTracks : exploreTracks;
 	const selectedTracks = useMemo(
 		() => currentTracks.filter((t) => selectedTrackIds.has(t.id.value)),
 		[currentTracks, selectedTrackIds]
 	);
+
+	const {
+		handleBatchAddToQueue,
+		handleBatchToggleFavorites,
+		handleBatchRemoveFromLibrary,
+		handleBatchAddToLibrary,
+		handleBatchDownload,
+		handleOpenPlaylistPicker,
+		handleClosePlaylistPicker,
+		handleSelectPlaylist,
+		isPlaylistPickerOpen,
+		isDownloading,
+		isDeleting,
+	} = useBatchHandlers({ selectedTracks, selectedTrackIds, exitSelectionMode });
 
 	const handleLibraryLongPress = useCallback(
 		(track: Track) => {
@@ -233,50 +151,6 @@ export default function SearchScreen() {
 	const handleCloseFilterSheet = useCallback(() => {
 		setIsFilterSheetOpen(false);
 	}, []);
-
-	const handleBatchAddToQueue = useCallback(() => {
-		addSelectedToQueue(selectedTracks);
-		exitSelectionMode();
-	}, [selectedTracks, addSelectedToQueue, exitSelectionMode]);
-
-	const handleBatchToggleFavorites = useCallback(() => {
-		const trackIds = Array.from(selectedTrackIds);
-		toggleSelectedFavorites(trackIds);
-		exitSelectionMode();
-	}, [selectedTrackIds, toggleSelectedFavorites, exitSelectionMode]);
-
-	const handleBatchRemoveFromLibrary = useCallback(() => {
-		const trackIds = Array.from(selectedTrackIds);
-		removeSelectedFromLibrary(trackIds);
-		exitSelectionMode();
-	}, [selectedTrackIds, removeSelectedFromLibrary, exitSelectionMode]);
-
-	const handleBatchDownload = useCallback(async () => {
-		await downloadSelected(selectedTracks);
-		exitSelectionMode();
-	}, [selectedTracks, downloadSelected, exitSelectionMode]);
-
-	const handleBatchAddToLibrary = useCallback(() => {
-		addSelectedToLibrary(selectedTracks);
-		exitSelectionMode();
-	}, [selectedTracks, addSelectedToLibrary, exitSelectionMode]);
-
-	const handleOpenPlaylistPicker = useCallback(() => {
-		setIsPlaylistPickerOpen(true);
-	}, []);
-
-	const handleClosePlaylistPicker = useCallback(() => {
-		setIsPlaylistPickerOpen(false);
-	}, []);
-
-	const handleSelectPlaylist = useCallback(
-		(playlistId: string) => {
-			addSelectedToPlaylist(playlistId, selectedTracks);
-			setIsPlaylistPickerOpen(false);
-			exitSelectionMode();
-		},
-		[selectedTracks, addSelectedToPlaylist, exitSelectionMode]
-	);
 
 	const showCuratedContent = !hasQuery;
 	const showLoading = hasQuery && isSearching && !hasAnyResults;
@@ -428,7 +302,6 @@ export default function SearchScreen() {
 													icon={MusicIcon}
 													title="No library matches"
 													description={`"${query}" not found in your library`}
-													compact
 												/>
 											}
 										>
@@ -456,7 +329,6 @@ export default function SearchScreen() {
 													icon={DownloadIcon}
 													title="No download matches"
 													description={`"${query}" not found in downloads`}
-													compact
 												/>
 											}
 										>
@@ -493,7 +365,6 @@ export default function SearchScreen() {
 													icon={SearchXIcon}
 													title="No plugin results"
 													description="Try a different search term"
-													compact
 												/>
 											}
 										>
@@ -591,145 +462,6 @@ export default function SearchScreen() {
 	);
 }
 
-interface LibraryResultsProps {
-	readonly tracks: Track[];
-	readonly playlists: Playlist[];
-	readonly albums: UniqueAlbum[];
-	readonly artists: UniqueArtist[];
-	readonly isSelectionMode: boolean;
-	readonly selectedTrackIds: Set<string>;
-	readonly onLongPress: (track: Track) => void;
-	readonly onSelectionToggle: (track: Track) => void;
-}
-
-function LibraryResults({
-	tracks,
-	playlists,
-	albums,
-	artists,
-	isSelectionMode,
-	selectedTrackIds,
-	onLongPress,
-	onSelectionToggle,
-}: LibraryResultsProps) {
-	return (
-		<>
-			{tracks.length > 0 && (
-				<ResultSection title="Songs" icon={MusicIcon}>
-					{tracks.map((track, index) => (
-						<SelectableTrackListItem
-							key={track.id.value}
-							track={track}
-							source="library"
-							isSelectionMode={isSelectionMode}
-							isSelected={selectedTrackIds.has(track.id.value)}
-							onLongPress={onLongPress}
-							onSelectionToggle={onSelectionToggle}
-							queue={tracks}
-							queueIndex={index}
-						/>
-					))}
-				</ResultSection>
-			)}
-
-			{playlists.length > 0 && (
-				<ResultSection title="Playlists" icon={ListMusicIcon}>
-					{playlists.map((playlist) => (
-						<PlaylistListItem key={playlist.id} playlist={playlist} />
-					))}
-				</ResultSection>
-			)}
-
-			{albums.length > 0 && (
-				<ResultSection title="Albums" icon={DiscIcon}>
-					{albums.map((album) => (
-						<AlbumListItem
-							key={album.id}
-							id={album.id}
-							name={album.name}
-							artistName={album.artistName ?? 'Unknown Artist'}
-							artworkUrl={album.artworkUrl}
-							trackCount={album.trackCount}
-						/>
-					))}
-				</ResultSection>
-			)}
-
-			{artists.length > 0 && (
-				<ResultSection title="Artists" icon={UsersIcon}>
-					{artists.map((artist) => (
-						<ArtistListItem
-							key={artist.id}
-							id={artist.id}
-							name={artist.name}
-							artworkUrl={artist.artworkUrl}
-							trackCount={artist.trackCount}
-						/>
-					))}
-				</ResultSection>
-			)}
-		</>
-	);
-}
-
-interface ExploreResultsProps {
-	readonly tracks: Track[];
-	readonly albums: Album[];
-	readonly artists: Artist[];
-	readonly isSelectionMode: boolean;
-	readonly selectedTrackIds: Set<string>;
-	readonly onLongPress: (track: Track) => void;
-	readonly onSelectionToggle: (track: Track) => void;
-}
-
-function ExploreResults({
-	tracks,
-	albums,
-	artists,
-	isSelectionMode,
-	selectedTrackIds,
-	onLongPress,
-	onSelectionToggle,
-}: ExploreResultsProps) {
-	return (
-		<>
-			{tracks.length > 0 && (
-				<ResultSection title="Songs" icon={MusicIcon}>
-					{tracks.map((track, index) => (
-						<SelectableTrackListItem
-							key={track.id.value}
-							track={track}
-							source="search"
-							isSelectionMode={isSelectionMode}
-							isSelected={selectedTrackIds.has(track.id.value)}
-							onLongPress={onLongPress}
-							onSelectionToggle={onSelectionToggle}
-							queue={tracks}
-							queueIndex={index}
-						/>
-					))}
-				</ResultSection>
-			)}
-
-			{albums.length > 0 && (
-				<ResultSection title="Albums" icon={DiscIcon}>
-					{albums.map((album) => (
-						<AlbumListItem key={album.id.value} album={album} />
-					))}
-				</ResultSection>
-			)}
-
-			{artists.length > 0 && (
-				<ResultSection title="Artists" icon={UsersIcon}>
-					{artists.map((artist) => (
-						<ArtistListItem key={artist.id} artist={artist} />
-					))}
-				</ResultSection>
-			)}
-		</>
-	);
-}
-
 const styles = StyleSheet.create({
 	searchContainer: {
 		paddingHorizontal: 16,
@@ -771,32 +503,6 @@ const styles = StyleSheet.create({
 	resultsContainer: {
 		gap: 32,
 		paddingBottom: 84,
-	},
-	curatedSection: {
-		gap: 12,
-	},
-	curatedSectionHeader: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-		paddingHorizontal: 16,
-	},
-	horizontalScrollView: {
-		borderRadius: 12,
-		overflow: 'hidden',
-	},
-	horizontalScroll: {
-		gap: 16,
-		paddingHorizontal: 16,
-	},
-	section: {
-		gap: 8,
-	},
-	sectionHeader: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 8,
-		paddingHorizontal: 16,
 	},
 	sectionContent: {
 		paddingHorizontal: 16,

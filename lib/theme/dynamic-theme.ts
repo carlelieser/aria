@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useMaterial3Theme } from '@pchmn/expo-material3-theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { useAccentColor } from '@/src/application/state/settings-store';
 import { MD3DarkTheme, MD3LightTheme, adaptNavigationTheme } from 'react-native-paper';
 import {

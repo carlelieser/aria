@@ -10,10 +10,10 @@ import React, { useCallback, memo } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { Text, Divider, Switch } from 'react-native-paper';
 import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
-import { ManagedBottomSheet } from '@/components/ui/managed-bottom-sheet';
-import { Icon } from '@/components/ui/icon';
+import { ManagedBottomSheet } from '@/src/components/ui/managed-bottom-sheet';
+import { Icon } from '@/src/components/ui/icon';
 import { SlidersHorizontal, Check, Info, CheckCircle } from 'lucide-react-native';
-import { useEqualizer, useEqualizerInit } from '@/hooks/use-equalizer';
+import { useEqualizer, useEqualizerInit } from '@/src/hooks/use-equalizer';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 
 interface PresetButtonProps {

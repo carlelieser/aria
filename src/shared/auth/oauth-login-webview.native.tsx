@@ -12,7 +12,7 @@ import { WebView, type WebViewNavigation } from 'react-native-webview';
 import { XIcon, RefreshCwIcon, MoreVerticalIcon, CheckCircleIcon } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/lib/theme';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/src/components/ui/button';
 import { useCookiePolling } from './use-cookie-polling';
 
 export type { WebViewNavigation };

@@ -1,10 +1,10 @@
 import { View, StyleSheet, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
 import { TabsProvider, Tabs, TabScreen } from 'react-native-paper-tabs';
-import { GenericListView } from '@/components/ui/generic-list-view';
-import { PageLayout } from '@/components/page-layout';
+import { GenericListView } from '@/src/components/ui/generic-list-view';
+import { PageLayout } from '@/src/components/page-layout';
 import { MusicIcon, ListMusicIcon, UsersIcon, DiscIcon, CassetteTapeIcon } from 'lucide-react-native';
 import { IconButton } from 'react-native-paper';
-import { Icon } from '@/components/ui/icon';
+import { Icon } from '@/src/components/ui/icon';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
 	usePlaylists,
@@ -17,25 +17,25 @@ import {
 	useAggregatedTracks,
 	useAggregatedArtists,
 	useAggregatedAlbums,
-} from '@/hooks/use-aggregated-library';
-import { SelectableTrackListItem } from '@/components/selectable-track-list-item';
-import { AlbumListItem } from '@/components/album-list-item';
-import { ArtistListItem } from '@/components/artist-list-item';
-import { PlaylistListItem } from '@/components/media-list';
-import { BatchActionBar } from '@/components/batch-action-bar';
-import { BatchPlaylistPicker } from '@/components/batch-playlist-picker';
+} from '@/src/hooks/use-aggregated-library';
+import { SelectableTrackListItem } from '@/src/components/selectable-track-list-item';
+import { AlbumListItem } from '@/src/components/album-list-item';
+import { ArtistListItem } from '@/src/components/artist-list-item';
+import { PlaylistListItem } from '@/src/components/media-list';
+import { BatchActionBar } from '@/src/components/batch-action-bar';
+import { BatchPlaylistPicker } from '@/src/components/batch-playlist-picker';
 import {
 	TrackListSkeleton,
 	PlaylistListSkeleton,
 	ArtistListSkeleton,
 	AlbumListSkeleton,
-} from '@/components/skeletons';
-import { ActiveFiltersBar, LibrarySortFilterSheet } from '@/components/library';
-import { useLibraryFilter } from '@/hooks/use-library-filter';
-import { useUniqueFilterOptions } from '@/hooks/use-unique-filter-options';
-import { useSelection } from '@/hooks/use-selection';
-import { useBatchActions } from '@/hooks/use-batch-actions';
-import { useTabShadow } from '@/hooks/use-tab-shadow';
+} from '@/src/components/skeletons';
+import { ActiveFiltersBar, LibrarySortFilterSheet } from '@/src/components/library';
+import { useLibraryFilter } from '@/src/hooks/use-library-filter';
+import { useUniqueFilterOptions } from '@/src/hooks/use-unique-filter-options';
+import { useSelection } from '@/src/hooks/use-selection';
+import { useBatchActions } from '@/src/hooks/use-batch-actions';
+import { useTabShadow } from '@/src/hooks/use-tab-shadow';
 import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
 import type { Playlist } from '@/src/domain/entities/playlist';

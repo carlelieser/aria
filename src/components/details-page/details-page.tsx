@@ -20,11 +20,11 @@
 import { createContext, useContext, type ReactNode } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text } from 'react-native-paper';
-import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
-import { PageLayout } from '@/components/page-layout';
+import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
+import { PageLayout } from '@/src/components/page-layout';
 import { DetailsHeader } from './details-header';
 import { useAppTheme } from '@/lib/theme';
-import { useDetailsPageTheme } from '@/hooks/use-details-page-theme';
+import { useDetailsPageTheme } from '@/src/hooks/use-details-page-theme';
 import type { M3ColorScheme } from '@/lib/theme/colors';
 import type { DetailsPageProps, DetailsPageSection } from './types';
 

@@ -6,10 +6,10 @@
  */
 
 import { View, StyleSheet } from 'react-native';
-import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
+import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
 import { Text, Switch } from 'react-native-paper';
 import { ContentTypeChips } from './content-type-chips';
-import { FilterChip } from '@/components/library/filter-chip';
+import { FilterChip } from '@/src/components/library/filter-chip';
 import { useAppTheme } from '@/lib/theme';
 import type { ArtistReference } from '@/src/domain/entities/artist';
 import type { AlbumReference } from '@/src/domain/entities/album';

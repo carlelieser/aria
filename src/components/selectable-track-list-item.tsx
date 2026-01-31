@@ -2,8 +2,8 @@ import { memo, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 
-import { TrackListItem } from '@/components/track-list-item';
-import { SelectableCheckbox } from '@/components/ui/selectable-checkbox';
+import { TrackListItem } from '@/src/components/track-list-item';
+import { SelectableCheckbox } from '@/src/components/ui/selectable-checkbox';
 import type { Track } from '@/src/domain/entities/track';
 import type { TrackActionSource } from '@/src/domain/actions/track-action';
 

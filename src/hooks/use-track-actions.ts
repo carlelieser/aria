@@ -6,7 +6,7 @@ import { trackActionsService } from '@/src/application/services/track-actions-se
 import { useIsFavorite } from '@/src/application/state/library-store';
 import { useIsDownloaded, useIsDownloading } from '@/src/application/state/download-store';
 import { setNavigationTrack } from '@/src/application/state/navigation-context-store';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/src/hooks/use-toast';
 
 interface UseTrackActionsOptions {
 	track: Track;

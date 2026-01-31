@@ -12,12 +12,12 @@ import { router } from 'expo-router';
 import { Text } from 'react-native-paper';
 import { Music } from 'lucide-react-native';
 
-import { Icon } from '@/components/ui/icon';
-import { usePlayer } from '@/hooks/use-player';
+import { Icon } from '@/src/components/ui/icon';
+import { usePlayer } from '@/src/hooks/use-player';
 import type { Track } from '@/src/domain/entities/track';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import { getArtistNames } from '@/src/domain/entities/track';
-import { DownloadIndicator } from '@/components/download-indicator';
+import { DownloadIndicator } from '@/src/components/download-indicator';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 
 interface TrackCardProps {

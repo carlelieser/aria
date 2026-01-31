@@ -17,7 +17,7 @@ import BottomSheet, {
 import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { Portal } from '@rn-primitives/portal';
 import { RotateCcwIcon } from 'lucide-react-native';
-import { Icon } from '@/components/ui/icon';
+import { Icon } from '@/src/components/ui/icon';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 
 interface SettingsBottomSheetProps {

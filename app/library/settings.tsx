@@ -1,8 +1,8 @@
 import { StyleSheet } from 'react-native';
-import { PageLayout } from '@/components/page-layout';
-import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
-import { SettingsSection } from '@/components/settings/settings-section';
-import { SettingsSelect } from '@/components/settings/settings-select';
+import { PageLayout } from '@/src/components/page-layout';
+import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
+import { SettingsSection } from '@/src/components/settings/settings-section';
+import { SettingsSelect } from '@/src/components/settings/settings-select';
 import {
 	MusicIcon,
 	ListMusicIcon,

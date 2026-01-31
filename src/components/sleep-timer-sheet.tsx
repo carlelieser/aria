@@ -14,10 +14,10 @@ import {
 } from '@gorhom/bottom-sheet';
 import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { Text, Divider, Button } from 'react-native-paper';
-import { BottomSheetPortal } from '@/components/ui/bottom-sheet-portal';
-import { Icon } from '@/components/ui/icon';
+import { BottomSheetPortal } from '@/src/components/ui/bottom-sheet-portal';
+import { Icon } from '@/src/components/ui/icon';
 import { Check, Clock, Music2 } from 'lucide-react-native';
-import { useSleepTimer, SLEEP_TIMER_PRESETS } from '@/hooks/use-sleep-timer';
+import { useSleepTimer, SLEEP_TIMER_PRESETS } from '@/src/hooks/use-sleep-timer';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 
 interface TimerPresetButtonProps {

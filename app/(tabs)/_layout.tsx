@@ -8,7 +8,7 @@ import Animated, {
 	withSpring,
 } from 'react-native-reanimated';
 import { useAppTheme } from '@/lib/theme';
-import { useDownloadQueue } from '@/hooks/use-download-queue';
+import { useDownloadQueue } from '@/src/hooks/use-download-queue';
 import {
 	useDefaultTab,
 	useTabOrder,
@@ -19,8 +19,8 @@ import {
 } from '@/src/application/state/settings-store';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { TAB_CONFIG, TAB_BAR_HEIGHT } from '@/lib/tab-config';
-import { LottieTabIcon } from '@/components/ui/lottie-tab-icon';
-import { SearchFAB } from '@/components/search-fab';
+import { LottieTabIcon } from '@/src/components/ui/lottie-tab-icon';
+import { SearchFAB } from '@/src/components/search-fab';
 
 const TAB_WIDTH = 84;
 const TAB_GAP = 12;

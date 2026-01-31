@@ -2,9 +2,9 @@ import { useState, useMemo, useCallback } from 'react';
 import { View, StyleSheet, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
 import { Text, IconButton, Portal, Dialog, Button } from 'react-native-paper';
 import { TabsProvider, Tabs, TabScreen } from 'react-native-paper-tabs';
-import { Icon } from '@/components/ui/icon';
-import { GenericListView } from '@/components/ui/generic-list-view';
-import { PageLayout } from '@/components/page-layout';
+import { Icon } from '@/src/components/ui/icon';
+import { GenericListView } from '@/src/components/ui/generic-list-view';
+import { PageLayout } from '@/src/components/page-layout';
 import {
 	DownloadIcon,
 	TrashIcon,
@@ -12,18 +12,18 @@ import {
 	CheckCircle2Icon,
 	AlertCircleIcon,
 } from 'lucide-react-native';
-import { DownloadListItem } from '@/components/download-list-item';
-import { SelectableDownloadListItem } from '@/components/selectable-download-list-item';
-import { BatchActionBar } from '@/components/batch-action-bar';
-import { useDownloadQueue, formatFileSize } from '@/hooks/use-download-queue';
-import { useDownloadActions } from '@/hooks/use-download-actions';
+import { DownloadListItem } from '@/src/components/download-list-item';
+import { SelectableDownloadListItem } from '@/src/components/selectable-download-list-item';
+import { BatchActionBar } from '@/src/components/batch-action-bar';
+import { useDownloadQueue, formatFileSize } from '@/src/hooks/use-download-queue';
+import { useDownloadActions } from '@/src/hooks/use-download-actions';
 import { useDownloadStore } from '@/src/application/state/download-store';
 import { clearAllDownloads } from '@/src/infrastructure/filesystem/download-manager';
-import { useToast } from '@/hooks/use-toast';
-import { useSelection } from '@/hooks/use-selection';
-import { useBatchActions } from '@/hooks/use-batch-actions';
-import { useResolvedTracks } from '@/hooks/use-resolved-track';
-import { useTabShadow } from '@/hooks/use-tab-shadow';
+import { useToast } from '@/src/hooks/use-toast';
+import { useSelection } from '@/src/hooks/use-selection';
+import { useBatchActions } from '@/src/hooks/use-batch-actions';
+import { useResolvedTracks } from '@/src/hooks/use-resolved-track';
+import { useTabShadow } from '@/src/hooks/use-tab-shadow';
 import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
 import { createTrackFromDownloadInfo } from '@/src/domain/utils/create-track-from-download';

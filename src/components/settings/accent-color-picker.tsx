@@ -16,8 +16,8 @@ import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/typ
 import { Portal } from '@rn-primitives/portal';
 import { Text, Divider } from 'react-native-paper';
 import { PaletteIcon, Check } from 'lucide-react-native';
-import { Icon } from '@/components/ui/icon';
-import { SettingsItem } from '@/components/settings/settings-item';
+import { Icon } from '@/src/components/ui/icon';
+import { SettingsItem } from '@/src/components/settings/settings-item';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 import { SEED_COLOR } from '@/lib/theme/colors';
 

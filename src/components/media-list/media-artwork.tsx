@@ -10,7 +10,7 @@ import { View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import type { LucideIcon } from 'lucide-react-native';
 
-import { Icon } from '@/components/ui/icon';
+import { Icon } from '@/src/components/ui/icon';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 
 const DEFAULT_SIZE = 48;

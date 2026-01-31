@@ -2,7 +2,7 @@ import { View, StyleSheet, type ViewStyle, type StyleProp } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets, type Edge } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Text, IconButton } from 'react-native-paper';
-import { Icon } from '@/components/ui/icon';
+import { Icon } from '@/src/components/ui/icon';
 import { ChevronLeftIcon, type LucideIcon } from 'lucide-react-native';
 import { useAppTheme } from '@/lib/theme';
 import type { ReactNode } from 'react';

@@ -27,7 +27,7 @@ import {
 	type ToastVariant,
 } from '@/src/application/state/toast-store';
 import { useAppTheme } from '@/lib/theme';
-import { useToastPosition } from '@/hooks/use-toast-position';
+import { useToastPosition } from '@/src/hooks/use-toast-position';
 
 const AnimatedSurface = Animated.createAnimatedComponent(Surface);
 

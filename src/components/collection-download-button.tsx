@@ -19,7 +19,7 @@ import Animated, {
 import { Svg, Circle } from 'react-native-svg';
 import { DownloadIcon, CheckIcon, PauseIcon } from 'lucide-react-native';
 import { IconButton, ActivityIndicator } from 'react-native-paper';
-import { Icon } from '@/components/ui/icon';
+import { Icon } from '@/src/components/ui/icon';
 import { useDownloadStore } from '@/src/application/state/download-store';
 import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';

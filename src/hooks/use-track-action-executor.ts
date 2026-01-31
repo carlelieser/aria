@@ -8,7 +8,7 @@ import { downloadService } from '@/src/application/services/download-service';
 import { useIsFavorite } from '@/src/application/state/library-store';
 import { setNavigationTrack } from '@/src/application/state/navigation-context-store';
 import { usePlayerUIStore } from '@/src/application/state/player-ui-store';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/src/hooks/use-toast';
 import { useRefreshTrackOptionsActions } from '@/src/application/state/track-options-store';
 
 interface UseTrackActionExecutorOptions {

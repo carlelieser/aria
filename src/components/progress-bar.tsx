@@ -7,8 +7,8 @@
 
 import { View, LayoutChangeEvent, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
-import { Skeleton } from '@/components/ui/skeleton';
-import { usePlayer } from '@/hooks/use-player';
+import { Skeleton } from '@/src/components/ui/skeleton';
+import { usePlayer } from '@/src/hooks/use-player';
 import { Duration } from '@/src/domain/value-objects/duration';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import Animated, {

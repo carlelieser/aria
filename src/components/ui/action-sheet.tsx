@@ -14,7 +14,7 @@ import BottomSheet, {
 import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { Portal } from '@rn-primitives/portal';
 import { Text, Divider } from 'react-native-paper';
-import { Icon } from '@/components/ui/icon';
+import { Icon } from '@/src/components/ui/icon';
 import { Check } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import { useAppTheme, M3Shapes } from '@/lib/theme';

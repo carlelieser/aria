@@ -20,7 +20,7 @@ import Animated, {
 	Extrapolation,
 } from 'react-native-reanimated';
 import { useAppTheme } from '@/lib/theme';
-import { useToastPosition } from '@/hooks/use-toast-position';
+import { useToastPosition } from '@/src/hooks/use-toast-position';
 import {
 	useIsScanning,
 	useScanProgress,

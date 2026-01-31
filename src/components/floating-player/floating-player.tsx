@@ -23,7 +23,7 @@ import { IconButton, Text, Surface } from 'react-native-paper';
 import { FloatingProgressBar } from './floating-progress-bar';
 
 import { Play, Pause } from 'lucide-react-native';
-import { usePlayer } from '@/hooks/use-player';
+import { usePlayer } from '@/src/hooks/use-player';
 import { useCurrentTrack, usePlaybackStatus } from '@/src/application/state/player-store';
 import { getArtistNames } from '@/src/domain/entities/track';
 import { getLargestArtwork } from '@/src/domain/value-objects/artwork';

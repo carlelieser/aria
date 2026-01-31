@@ -7,7 +7,7 @@
 
 import { memo, useMemo } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
-import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
+import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
 import { Text, Surface } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
@@ -22,7 +22,7 @@ import {
 	Minus,
 } from 'lucide-react-native';
 
-import { Icon } from '@/components/ui/icon';
+import { Icon } from '@/src/components/ui/icon';
 import { useAppTheme } from '@/lib/theme';
 
 const AnimatedSurface = Animated.createAnimatedComponent(Surface);

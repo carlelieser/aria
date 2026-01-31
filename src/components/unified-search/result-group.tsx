@@ -17,7 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { ChevronDownIcon } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
-import { Icon } from '@/components/ui/icon';
+import { Icon } from '@/src/components/ui/icon';
 import { useAppTheme } from '@/lib/theme';
 
 interface ResultGroupProps {

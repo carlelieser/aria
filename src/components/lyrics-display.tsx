@@ -7,7 +7,7 @@
 
 import { useRef, useEffect, useCallback } from 'react';
 import { View, StyleSheet, Pressable, type ScrollView } from 'react-native';
-import { PlayerAwareScrollView } from '@/components/ui/player-aware-scroll-view';
+import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
 import { Text } from 'react-native-paper';
 import Animated, {
 	useSharedValue,
@@ -17,11 +17,11 @@ import Animated, {
 	FadeIn,
 	FadeOut,
 } from 'react-native-reanimated';
-import { useLyrics } from '@/hooks/use-lyrics';
-import { usePlayer } from '@/hooks/use-player';
+import { useLyrics } from '@/src/hooks/use-lyrics';
+import { usePlayer } from '@/src/hooks/use-player';
 import { Duration } from '@/src/domain/value-objects/duration';
 import { useAppTheme } from '@/lib/theme';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/src/components/ui/skeleton';
 
 interface LyricsDisplayProps {
 	maxHeight?: number;

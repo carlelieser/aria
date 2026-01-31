@@ -16,8 +16,8 @@ import Animated, {
 	Easing,
 } from 'react-native-reanimated';
 import { AlertCircle, ArrowDown } from 'lucide-react-native';
-import { Icon } from '@/components/ui/icon';
-import { useDownloadStatus } from '@/hooks/use-download-status';
+import { Icon } from '@/src/components/ui/icon';
+import { useDownloadStatus } from '@/src/hooks/use-download-status';
 import { useAppTheme } from '@/lib/theme';
 
 interface DownloadIndicatorProps {

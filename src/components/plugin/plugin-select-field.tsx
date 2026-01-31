@@ -8,9 +8,9 @@ import { memo, useState, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import { ListIcon } from 'lucide-react-native';
-import { Icon } from '@/components/ui/icon';
-import { SettingsItem } from '@/components/settings/settings-item';
-import { ActionSheet, type ActionSheetGroup } from '@/components/ui/action-sheet';
+import { Icon } from '@/src/components/ui/icon';
+import { SettingsItem } from '@/src/components/settings/settings-item';
+import { ActionSheet, type ActionSheetGroup } from '@/src/components/ui/action-sheet';
 import { useAppTheme } from '@/lib/theme';
 import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plugin';
 

@@ -6,7 +6,7 @@
  */
 
 import { useCallback, useState } from 'react';
-import { useBatchActions } from '@/hooks/use-batch-actions';
+import { useBatchActions } from '@/src/hooks/use-batch-actions';
 import type { Track } from '@/src/domain/entities/track';
 
 interface UseBatchHandlersOptions {
@@ -27,6 +27,8 @@ interface BatchHandlers {
 	handleBatchRemoveFromLibrary: () => void;
 	/** Add selected tracks to library and exit selection mode */
 	handleBatchAddToLibrary: () => void;
+	/** Download selected tracks and exit selection mode */
+	handleBatchDownload: () => Promise<void>;
 	/** Open playlist picker sheet */
 	handleOpenPlaylistPicker: () => void;
 	/** Close playlist picker sheet */
@@ -35,8 +37,10 @@ interface BatchHandlers {
 	handleSelectPlaylist: (playlistId: string) => void;
 	/** Whether the playlist picker is open */
 	isPlaylistPickerOpen: boolean;
-	/** Whether a batch action is currently processing */
-	isProcessing: boolean;
+	/** Whether a download batch action is processing */
+	isDownloading: boolean;
+	/** Whether a delete batch action is processing */
+	isDeleting: boolean;
 }
 
 export function useBatchHandlers({
@@ -52,6 +56,8 @@ export function useBatchHandlers({
 		addSelectedToPlaylist,
 		removeSelectedFromLibrary,
 		toggleSelectedFavorites,
+		downloadSelected,
+		isDownloading,
 		isDeleting,
 	} = useBatchActions();
 
@@ -77,6 +83,11 @@ export function useBatchHandlers({
 		exitSelectionMode();
 	}, [selectedTracks, addSelectedToLibrary, exitSelectionMode]);
 
+	const handleBatchDownload = useCallback(async () => {
+		await downloadSelected(selectedTracks);
+		exitSelectionMode();
+	}, [selectedTracks, downloadSelected, exitSelectionMode]);
+
 	const handleOpenPlaylistPicker = useCallback(() => {
 		setIsPlaylistPickerOpen(true);
 	}, []);
@@ -99,10 +110,12 @@ export function useBatchHandlers({
 		handleBatchToggleFavorites,
 		handleBatchRemoveFromLibrary,
 		handleBatchAddToLibrary,
+		handleBatchDownload,
 		handleOpenPlaylistPicker,
 		handleClosePlaylistPicker,
 		handleSelectPlaylist,
 		isPlaylistPickerOpen,
-		isProcessing: isDeleting,
+		isDownloading,
+		isDeleting,
 	};
 }

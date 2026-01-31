@@ -5,7 +5,7 @@ import {
 	type UniqueAlbum,
 } from '@/src/application/state/library-store';
 import { useLocalLibraryStore } from '@/src/plugins/metadata/local-library/storage/local-library-store';
-import { createDeferredComputation } from '@/hooks/use-deferred-computation';
+import { createDeferredComputation } from '@/src/hooks/use-deferred-computation';
 import type { Track } from '@/src/domain/entities/track';
 import type {
 	LocalTrack,

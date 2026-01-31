@@ -8,7 +8,7 @@ import { StyleSheet, View, Platform, Linking } from 'react-native';
 import { Dialog, Portal, Text, Button, Divider } from 'react-native-paper';
 import Constants from 'expo-constants';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
-import { Icon } from '@/components/ui/icon';
+import { Icon } from '@/src/components/ui/icon';
 import { SmartphoneIcon, CpuIcon, PackageIcon, CodeIcon, GithubIcon } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 

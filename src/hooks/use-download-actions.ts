@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import type { Track } from '@/src/domain/entities/track';
 import { downloadService } from '@/src/application/services/download-service';
 import { useDownloadStore } from '@/src/application/state/download-store';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/src/hooks/use-toast';
 
 interface UseDownloadActionsResult {
 	startDownload: (track: Track) => Promise<void>;

@@ -8,9 +8,9 @@
 import { memo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
-import { SettingsSection } from '@/components/settings/settings-section';
+import { SettingsSection } from '@/src/components/settings/settings-section';
 import { PluginConfigField } from './plugin-config-field';
-import { usePluginSettings } from '@/hooks/use-plugin-settings';
+import { usePluginSettings } from '@/src/hooks/use-plugin-settings';
 import { useIsPluginEnabled } from '@/src/application/state/plugin-settings-store';
 import { useAppTheme } from '@/lib/theme';
 

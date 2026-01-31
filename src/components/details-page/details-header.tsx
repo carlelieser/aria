@@ -10,7 +10,7 @@
 import { View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { Text } from 'react-native-paper';
-import { Icon } from '@/components/ui/icon';
+import { Icon } from '@/src/components/ui/icon';
 import { useAppTheme } from '@/lib/theme';
 import type { M3ColorScheme } from '@/lib/theme/colors';
 import type { DetailsHeaderInfo } from './types';

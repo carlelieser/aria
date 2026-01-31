@@ -8,12 +8,12 @@
 import { memo, useCallback, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 
-import { TrackListItem } from '@/components/track-list-item';
-import { SelectableCheckbox } from '@/components/ui/selectable-checkbox';
+import { TrackListItem } from '@/src/components/track-list-item';
+import { SelectableCheckbox } from '@/src/components/ui/selectable-checkbox';
 import type { Track } from '@/src/domain/entities/track';
 import type { DownloadInfo } from '@/src/domain/value-objects/download-state';
 import { createTrackFromDownloadInfo } from '@/src/domain/utils/create-track-from-download';
-import { useResolvedTrack } from '@/hooks/use-resolved-track';
+import { useResolvedTrack } from '@/src/hooks/use-resolved-track';
 
 interface SelectableDownloadListItemProps {
 	/** The download info containing track reference and download status */

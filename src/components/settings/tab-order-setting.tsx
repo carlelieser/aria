@@ -9,8 +9,8 @@ import { useState, useCallback } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { Text, Switch } from 'react-native-paper';
 import { GripVerticalIcon, ChevronUpIcon, ChevronDownIcon } from 'lucide-react-native';
-import { SettingsItem } from '@/components/settings/settings-item';
-import { SettingsBottomSheet } from '@/components/settings/settings-bottom-sheet';
+import { SettingsItem } from '@/src/components/settings/settings-item';
+import { SettingsBottomSheet } from '@/src/components/settings/settings-bottom-sheet';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 import { TAB_CONFIG } from '@/lib/tab-config';
 import {

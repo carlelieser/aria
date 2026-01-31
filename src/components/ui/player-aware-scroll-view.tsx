@@ -8,7 +8,7 @@
 import { ScrollView, type ScrollViewProps, StyleSheet, View } from 'react-native';
 import { forwardRef } from 'react';
 import { useCurrentTrack } from '@/src/application/state/player-store';
-import { FLOATING_PLAYER_HEIGHT } from '@/components/floating-player';
+import { FLOATING_PLAYER_HEIGHT } from '@/src/components/floating-player';
 
 const FLOATING_PLAYER_PADDING = FLOATING_PLAYER_HEIGHT + 48;
 

@@ -1,5 +1,5 @@
 import { Redirect, useRootNavigationState } from 'expo-router';
-import { usePlayer } from '@/hooks/use-player';
+import { usePlayer } from '@/src/hooks/use-player';
 
 export default function NotificationClickHandler() {
 	const { currentTrack } = usePlayer();
