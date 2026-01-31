@@ -1,4 +1,4 @@
-import '@/src/lib/crypto-polyfill';
+import '@/lib/crypto-polyfill';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';

@@ -1,3 +1,3 @@
 import '@/lib/polyfills';
 import 'expo-router/entry';
-import '@/src/lib/track-player-setup';
+import '@/lib/track-player-setup';
