@@ -97,45 +97,41 @@ async function handleStreamingPlayback(
 ): Promise<Result<AudioStream, Error>> {
 	const client = await clientManager.getClient();
 
-	if (cookies) {
-		logger.debug('Streaming playback: trying adaptive formats first...');
+	logger.debug('Streaming playback: trying adaptive formats first...');
 
-		const playbackClients = ['TV', 'ANDROID', 'IOS'] as const;
-		const adaptiveResult = await tryMultipleClientTypes(
-			client,
-			videoId,
-			quality,
-			playbackClients,
-			cookies
+	const playbackClients = ['TV', 'ANDROID', 'IOS'] as const;
+	const adaptiveResult = await tryMultipleClientTypes(
+		client,
+		videoId,
+		quality,
+		playbackClients,
+		cookies
+	);
+
+	if (adaptiveResult) {
+		const { stream: adaptiveStream, contentLength } = adaptiveResult;
+
+		// Return the adaptive URL directly for immediate playback.
+		// The native player (ExoPlayer/AVPlayer) handles HTTP streaming
+		// with headers natively, eliminating the need to download first.
+		logger.debug(
+			`Returning adaptive stream directly for native playback ` +
+				`(expected: ${contentLength ?? 'unknown'} bytes)`
 		);
 
-		if (adaptiveResult) {
-			const { stream: adaptiveStream, contentLength } = adaptiveResult;
+		// Fire-and-forget background cache for subsequent plays
+		backgroundCacheStream({
+			url: adaptiveStream.url,
+			videoId,
+			headers: adaptiveStream.headers,
+			cookies,
+			expectedSize: contentLength,
+		});
 
-			// Return the adaptive URL directly for immediate playback.
-			// The native player (ExoPlayer/AVPlayer) handles HTTP streaming
-			// with headers natively, eliminating the need to download first.
-			logger.debug(
-				`Returning adaptive stream directly for native playback ` +
-					`(expected: ${contentLength ?? 'unknown'} bytes)`
-			);
-
-			// Fire-and-forget background cache for subsequent plays
-			backgroundCacheStream({
-				url: adaptiveStream.url,
-				videoId,
-				headers: adaptiveStream.headers,
-				cookies,
-				expectedSize: contentLength,
-			});
-
-			return ok(adaptiveStream);
-		}
-
-		logger.debug('Adaptive formats unavailable, trying HLS...');
-	} else {
-		logger.debug('Unauthenticated: skipping adaptive formats, trying HLS directly...');
+		return ok(adaptiveStream);
 	}
+
+	logger.debug('Adaptive formats unavailable, trying HLS...');
 
 	// Try HLS streaming
 	const hlsUrl =
@@ -146,7 +142,8 @@ async function handleStreamingPlayback(
 		// headers to segment requests. Cache the audio for reliable playback.
 		if (cookies) {
 			logger.debug('Authenticated user: caching HLS for reliable playback...');
-			const cachedFile = await downloadHlsToCache(hlsUrl, videoId, cookies, true);
+			const cachedFile = await downloadHlsToCache(hlsUrl, videoId, cookies);
+
 			if (cachedFile) {
 				logger.debug('HLS cached successfully for playback');
 				return ok(
@@ -163,6 +160,7 @@ async function handleStreamingPlayback(
 		// Unauthenticated or caching failed: try direct HLS
 		// Native player handles HLS natively with seeking support
 		logger.debug('Using direct HLS streaming (native player support)');
+
 		const playbackHeaders: Record<string, string> = {
 			Accept: '*/*',
 			Origin: 'https://www.youtube.com',

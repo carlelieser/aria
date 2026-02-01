@@ -32,10 +32,6 @@ export function getCachedFilePath(videoId: string): string {
 	return FileSystem.cacheDirectory + CACHE_DIR + `${videoId}.m4a`;
 }
 
-export function getPartialFilePath(videoId: string): string {
-	return FileSystem.cacheDirectory + CACHE_DIR + `${videoId}_partial.m4a`;
-}
-
 export function getTempDirectory(videoId: string): string {
 	return FileSystem.cacheDirectory + CACHE_DIR + `${videoId}_segments/`;
 }
