@@ -47,7 +47,7 @@ export interface AudioSourceProvider extends BasePlugin {
 
 	supportsTrack(track: Track): boolean;
 
-	getStreamUrl(trackId: TrackId, options?: StreamOptions): AsyncResult<AudioStream, Error>;
+	getStreamUrl(track: Track, options?: StreamOptions): AsyncResult<AudioStream, Error>;
 
 	getAvailableFormats?(trackId: TrackId): AsyncResult<AvailableFormat[], Error>;
 

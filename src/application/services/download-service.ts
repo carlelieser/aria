@@ -319,7 +319,7 @@ export class DownloadService {
 
 		// First, try to get a downloadable format (direct URL, not HLS)
 		logger.debug('Trying downloadable format...');
-		const downloadableResult = await supportingProvider.getStreamUrl(track.id, {
+		const downloadableResult = await supportingProvider.getStreamUrl(track, {
 			preferDownloadable: true,
 		});
 
@@ -345,7 +345,7 @@ export class DownloadService {
 		logger.debug('Downloadable format failed, trying streaming fallback...');
 
 		// Fallback: use regular streaming path which may cache the file
-		const streamResult = await supportingProvider.getStreamUrl(track.id);
+		const streamResult = await supportingProvider.getStreamUrl(track);
 
 		if (streamResult.success) {
 			const url = streamResult.data.url;

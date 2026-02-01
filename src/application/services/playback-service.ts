@@ -351,7 +351,7 @@ export class PlaybackService {
 
 		if (supportingProvider) {
 			logger.debug('Found supporting provider:', supportingProvider.manifest.id);
-			const result = await supportingProvider.getStreamUrl(track.id);
+			const result = await supportingProvider.getStreamUrl(track);
 			if (result.success) {
 				logger.debug('Got audio stream successfully');
 				this._cacheStream(track.id.value, result.data);
@@ -367,7 +367,7 @@ export class PlaybackService {
 			if (provider === supportingProvider) continue;
 			try {
 				if (provider.supportsTrack(track)) {
-					const result = await provider.getStreamUrl(track.id);
+					const result = await provider.getStreamUrl(track);
 					if (result.success) {
 						this._cacheStream(track.id.value, result.data);
 						return ok(result.data);

@@ -21,10 +21,10 @@ export interface StreamingOperations {
 async function handleDownloadableStream(
 	clientManager: ClientManager,
 	videoId: string,
-	quality: StreamQuality
+	quality: StreamQuality,
+	cookies: string | undefined
 ): Promise<Result<AudioStream, Error>> {
 	const client = await clientManager.getClient();
-	const cookies = await clientManager.getCookies();
 
 	logger.debug('Preferring downloadable format...');
 
@@ -92,46 +92,50 @@ async function handleDownloadableStream(
 async function handleStreamingPlayback(
 	clientManager: ClientManager,
 	videoId: string,
-	quality: StreamQuality
+	quality: StreamQuality,
+	cookies: string | undefined
 ): Promise<Result<AudioStream, Error>> {
 	const client = await clientManager.getClient();
-	const cookies = await clientManager.getCookies();
 
-	logger.debug('Streaming playback: trying adaptive formats first...');
+	if (cookies) {
+		logger.debug('Streaming playback: trying adaptive formats first...');
 
-	const playbackClients = ['TV', 'ANDROID', 'IOS'] as const;
-	const adaptiveResult = await tryMultipleClientTypes(
-		client,
-		videoId,
-		quality,
-		playbackClients,
-		cookies
-	);
-
-	if (adaptiveResult) {
-		const { stream: adaptiveStream, contentLength } = adaptiveResult;
-
-		// Return the adaptive URL directly for immediate playback.
-		// The native player (ExoPlayer/AVPlayer) handles HTTP streaming
-		// with headers natively, eliminating the need to download first.
-		logger.debug(
-			`Returning adaptive stream directly for native playback ` +
-				`(expected: ${contentLength ?? 'unknown'} bytes)`
+		const playbackClients = ['TV', 'ANDROID', 'IOS'] as const;
+		const adaptiveResult = await tryMultipleClientTypes(
+			client,
+			videoId,
+			quality,
+			playbackClients,
+			cookies
 		);
 
-		// Fire-and-forget background cache for subsequent plays
-		backgroundCacheStream({
-			url: adaptiveStream.url,
-			videoId,
-			headers: adaptiveStream.headers,
-			cookies,
-			expectedSize: contentLength,
-		});
+		if (adaptiveResult) {
+			const { stream: adaptiveStream, contentLength } = adaptiveResult;
 
-		return ok(adaptiveStream);
+			// Return the adaptive URL directly for immediate playback.
+			// The native player (ExoPlayer/AVPlayer) handles HTTP streaming
+			// with headers natively, eliminating the need to download first.
+			logger.debug(
+				`Returning adaptive stream directly for native playback ` +
+					`(expected: ${contentLength ?? 'unknown'} bytes)`
+			);
+
+			// Fire-and-forget background cache for subsequent plays
+			backgroundCacheStream({
+				url: adaptiveStream.url,
+				videoId,
+				headers: adaptiveStream.headers,
+				cookies,
+				expectedSize: contentLength,
+			});
+
+			return ok(adaptiveStream);
+		}
+
+		logger.debug('Adaptive formats unavailable, trying HLS...');
+	} else {
+		logger.debug('Unauthenticated: skipping adaptive formats, trying HLS directly...');
 	}
-
-	logger.debug('Adaptive formats failed, trying HLS...');
 
 	// Try HLS streaming
 	const hlsUrl =
@@ -244,12 +248,12 @@ export function createStreamingOperations(clientManager: ClientManager): Streami
 				// When preferDownloadable is set (for downloads), try adaptive format first
 				// HLS manifests can't be saved as files, so we need direct URLs for downloads
 				if (preferDownloadable) {
-					return handleDownloadableStream(clientManager, videoId, quality);
+					return handleDownloadableStream(clientManager, videoId, quality, cookies);
 				}
 
 				// For streaming playback, try adaptive formats first (better quality, seekable)
 				// When authenticated, we cache to local file since RNTP can't forward cookies
-				return handleStreamingPlayback(clientManager, videoId, quality);
+				return handleStreamingPlayback(clientManager, videoId, quality, cookies);
 			} catch (error) {
 				logger.error('getStreamUrl error', error instanceof Error ? error : undefined);
 				return err(

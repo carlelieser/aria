@@ -99,7 +99,7 @@ export class AlbumService {
 
 			const [albumInfoResult, tracksResult] = await Promise.all([
 				targetProvider.getAlbumInfo(albumId.sourceId),
-				targetProvider.getAlbumTracks(albumId.sourceId, { limit: 100 }),
+				targetProvider.getAlbumTracks(albumId.sourceId),
 			]);
 
 			if (!tracksResult.success) {
