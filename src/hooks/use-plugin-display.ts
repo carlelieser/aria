@@ -10,7 +10,8 @@ import {
 	AlertCircleIcon,
 	LoaderIcon,
 	PlugIcon,
-	MicIcon,
+	MicVocalIcon,
+	DatabaseIcon,
 	SparklesIcon,
 	WavesIcon,
 } from 'lucide-react-native';
@@ -39,11 +40,11 @@ export interface PluginDisplayInfo {
 }
 
 export const categoryIcons: Record<PluginCategory, LucideIcon> = {
-	'metadata-provider': MusicIcon,
+	'metadata-provider': DatabaseIcon,
 	'audio-source-provider': MusicIcon,
 	'playback-provider': PlayCircleIcon,
 	'sync-provider': CloudIcon,
-	'lyrics-provider': MicIcon,
+	'lyrics-provider': MicVocalIcon,
 	recommendation: SparklesIcon,
 	visualizer: WavesIcon,
 	'actions-provider': LibraryBigIcon,

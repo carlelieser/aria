@@ -54,7 +54,7 @@ export const AlbumListItem = memo(function AlbumListItem(props: AlbumListItemPro
 
 	const artworkUrl = useMemo(() => {
 		if (isAlbumObject) {
-			return getBestArtwork(props.album.artwork, 48)?.url;
+			return getBestArtwork(props.album.artwork, 300)?.url;
 		}
 		return props.artworkUrl;
 	}, [isAlbumObject, props]);

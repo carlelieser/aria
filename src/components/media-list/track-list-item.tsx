@@ -89,7 +89,7 @@ export const TrackListItem = memo(function TrackListItem({
 		}
 	}, [removeDownload, downloadInfo]);
 
-	const artwork = getBestArtwork(track.artwork, 48);
+	const artwork = getBestArtwork(track.artwork, 300);
 	const artworkUrl = artwork?.url ?? fallbackArtworkUrl;
 	const artistNames = getArtistNames(track);
 	const albumName = track.album?.name;
