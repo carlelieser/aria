@@ -6,9 +6,9 @@ import { DiscIcon, SearchIcon } from 'lucide-react-native';
 import { Text, Button, IconButton } from 'react-native-paper';
 import { Icon } from '@/src/components/ui/icon';
 import { DetailsPage } from '@/src/components/details-page';
-import { CollectionDownloadButton } from '@/src/components/collection-download-button';
+import { CollectionDownloadButton } from '@/src/components/downloads/collection-download-button';
 import { useBatchActions } from '@/src/hooks/use-batch-actions';
-import { TrackListItem } from '@/src/components/track-list-item';
+import { TrackListItem } from '@/src/components/media-list/track-list-item';
 import {
 	AlbumHeaderSkeleton,
 	AlbumTrackListSkeleton,

@@ -20,7 +20,7 @@ import type { DownloadInfo } from '@/src/domain/value-objects/download-state';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import { getArtistNames } from '@/src/domain/entities/track';
 import { TrackOptionsMenu } from '@/src/components/track-options-menu';
-import { DownloadIndicator } from '@/src/components/download-indicator';
+import { DownloadIndicator } from './download-indicator';
 import { useDownloadActions } from '@/src/hooks/use-download-actions';
 import { formatFileSize } from '@/src/hooks/use-download-queue';
 import { useAppTheme, M3Shapes } from '@/lib/theme';

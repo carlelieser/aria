@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, TextInput, Pressable } from 'react-native';
 import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
-import { PageLayout } from '@/src/components/page-layout';
+import { PageLayout } from '@/src/components/ui/page-layout';
 import {
 	HeartIcon,
 	ClockIcon,
@@ -15,14 +15,14 @@ import {
 	LibraryBigIcon,
 	PlugIcon,
 } from 'lucide-react-native';
-import { SelectableTrackListItem } from '@/src/components/selectable-track-list-item';
+import { SelectableTrackListItem } from '@/src/components/media-list/selectable-track-list-item';
 import { Icon } from '@/src/components/ui/icon';
-import { EmptyState } from '@/src/components/empty-state';
+import { EmptyState } from '@/src/components/ui/empty-state';
 import { TrackListSkeleton } from '@/src/components/skeletons';
 import { ResultGroup, UnifiedFilterSheet } from '@/src/components/unified-search';
 import { SortFilterFAB } from '@/src/components/library/sort-filter-fab';
-import { BatchActionBar } from '@/src/components/batch-action-bar';
-import { BatchPlaylistPicker } from '@/src/components/batch-playlist-picker';
+import { BatchActionBar } from '@/src/components/selection/batch-action-bar';
+import { BatchPlaylistPicker } from '@/src/components/playlist/batch-playlist-picker';
 import {
 	CuratedSection,
 	LibraryResults,

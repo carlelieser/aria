@@ -57,8 +57,6 @@ class DIContainer {
 
 export const container = new DIContainer();
 
-export { DIContainer };
-
 export const ServiceKeys = {
 	TRACK_REPOSITORY: 'TrackRepository',
 	PLAYLIST_REPOSITORY: 'PlaylistRepository',

@@ -1,7 +1,7 @@
 import { View, StyleSheet, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
 import { TabsProvider, Tabs, TabScreen } from 'react-native-paper-tabs';
 import { GenericListView } from '@/src/components/ui/generic-list-view';
-import { PageLayout } from '@/src/components/page-layout';
+import { PageLayout } from '@/src/components/ui/page-layout';
 import { MusicIcon, ListMusicIcon, UsersIcon, DiscIcon } from 'lucide-react-native';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
@@ -16,12 +16,12 @@ import {
 	useAggregatedArtists,
 	useAggregatedAlbums,
 } from '@/src/hooks/use-aggregated-library';
-import { SelectableTrackListItem } from '@/src/components/selectable-track-list-item';
-import { AlbumListItem } from '@/src/components/album-list-item';
-import { ArtistListItem } from '@/src/components/artist-list-item';
+import { SelectableTrackListItem } from '@/src/components/media-list/selectable-track-list-item';
+import { AlbumListItem } from '@/src/components/media-list/album-list-item';
+import { ArtistListItem } from '@/src/components/media-list/artist-list-item';
 import { PlaylistListItem } from '@/src/components/media-list';
-import { BatchActionBar } from '@/src/components/batch-action-bar';
-import { BatchPlaylistPicker } from '@/src/components/batch-playlist-picker';
+import { BatchActionBar } from '@/src/components/selection/batch-action-bar';
+import { BatchPlaylistPicker } from '@/src/components/playlist/batch-playlist-picker';
 import {
 	TrackListSkeleton,
 	PlaylistListSkeleton,

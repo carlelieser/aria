@@ -60,68 +60,7 @@ const keysResult = await asyncStorageRepository.getKeys('settings:');
 
 ### Playback
 
-#### ExpoAVPlaybackProvider
-
-Implementation of `PlaybackProvider` using Expo AV for audio playback.
-
-**Features:**
-
-- Streaming audio support
-- Background playback capability
-- Lock screen controls
-- Queue management
-- Position tracking (1-second intervals)
-- Auto-advance to next track
-- Volume control
-- Event emission for state changes
-
-**Events:**
-
-- `status-change` - Playback status changed
-- `track-change` - Current track changed
-- `position-change` - Playback position updated
-- `volume-change` - Volume changed
-- `queue-change` - Queue modified
-- `error` - Playback error occurred
-
-**Usage:**
-
-```typescript
-import { expoAVPlaybackProvider } from '@/infrastructure/playback';
-
-// Initialize
-await expoAVPlaybackProvider.initialize();
-
-// Listen to events
-const cleanup = expoAVPlaybackProvider.addEventListener((event) => {
-	switch (event.type) {
-		case 'status-change':
-			console.log('Status:', event.status);
-			break;
-		case 'track-change':
-			console.log('Now playing:', event.track?.title);
-			break;
-	}
-});
-
-// Play a track
-await expoAVPlaybackProvider.play(track, streamUrl);
-
-// Control playback
-await expoAVPlaybackProvider.pause();
-await expoAVPlaybackProvider.resume();
-await expoAVPlaybackProvider.seek(Duration.fromSeconds(30));
-await expoAVPlaybackProvider.setVolume(0.5);
-
-// Queue management
-await expoAVPlaybackProvider.setQueue([track1, track2, track3], 0);
-expoAVPlaybackProvider.addToQueue([track4]);
-await expoAVPlaybackProvider.skipToNext();
-
-// Cleanup
-cleanup();
-await expoAVPlaybackProvider.dispose();
-```
+Playback is handled by the plugin system using `react-native-track-player`. Plugins implement the `PlaybackProvider` interface and are registered dynamically via `DashPlaybackPluginModule.create()`.
 
 ### Dependency Injection
 

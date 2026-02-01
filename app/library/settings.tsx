@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { PageLayout } from '@/src/components/page-layout';
+import { PageLayout } from '@/src/components/ui/page-layout';
 import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
 import { SettingsSection } from '@/src/components/settings/settings-section';
 import { SettingsSelect } from '@/src/components/settings/settings-select';

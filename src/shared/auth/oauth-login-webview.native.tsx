@@ -13,7 +13,7 @@ import { XIcon, RefreshCwIcon, MoreVerticalIcon, CheckCircleIcon, ClockIcon } fr
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/lib/theme';
 import { Button } from '@/src/components/ui/button';
-import { EmptyState } from '@/src/components/empty-state';
+import { EmptyState } from '@/src/components/ui/empty-state';
 import { useCookiePolling } from './use-cookie-polling';
 
 export type { WebViewNavigation };

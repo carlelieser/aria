@@ -19,10 +19,10 @@ import {
 import { Text, IconButton, Button, Menu } from 'react-native-paper';
 import { Icon } from '@/src/components/ui/icon';
 import { DetailsPage } from '@/src/components/details-page';
-import { CollectionDownloadButton } from '@/src/components/collection-download-button';
-import { SelectableTrackListItem } from '@/src/components/selectable-track-list-item';
-import { BatchActionBar } from '@/src/components/batch-action-bar';
-import { EmptyState } from '@/src/components/empty-state';
+import { CollectionDownloadButton } from '@/src/components/downloads/collection-download-button';
+import { SelectableTrackListItem } from '@/src/components/media-list/selectable-track-list-item';
+import { BatchActionBar } from '@/src/components/selection/batch-action-bar';
+import { EmptyState } from '@/src/components/ui/empty-state';
 import { ConfirmationDialog } from '@/src/components/ui/confirmation-dialog';
 import { InputDialog } from '@/src/components/ui/input-dialog';
 import { usePlaylist, useLibraryStore } from '@/src/application/state/library-store';
@@ -215,17 +215,9 @@ export default function PlaylistScreen() {
 						]}
 						activeOpacity={0.7}
 					>
-						<IconButton
-							icon={() => (
-								<Icon
-									as={GripVerticalIcon}
-									size={20}
-									color={colors.onSurfaceVariant}
-								/>
-							)}
-							onPress={drag}
-							size={20}
-						/>
+						<Icon as={GripVerticalIcon} size={20} color={colors.onSurfaceVariant} style={{
+							paddingHorizontal: 24
+						}} />
 						<Image
 							source={{ uri: artwork?.url }}
 							style={styles.draggableArtwork}
@@ -397,16 +389,6 @@ export default function PlaylistScreen() {
 			return (
 				<View style={styles.editModeContainer}>
 					{ListHeaderComponent}
-					<View
-						style={[
-							styles.editModeHeader,
-							{ backgroundColor: colors.primaryContainer },
-						]}
-					>
-						<Text variant="bodyMedium" style={{ color: colors.onPrimaryContainer }}>
-							Drag tracks to reorder
-						</Text>
-					</View>
 					<DraggableFlatList
 						data={playlist.tracks}
 						keyExtractor={(item) => `${item.track.id.value}-${item.position}`}
@@ -468,11 +450,7 @@ const styles = StyleSheet.create({
 	},
 	editModeContainer: {
 		flex: 1,
-	},
-	editModeHeader: {
-		paddingHorizontal: 16,
-		paddingVertical: 12,
-		alignItems: 'center',
+		gap: 12,
 	},
 	draggableItem: {
 		flexDirection: 'row',

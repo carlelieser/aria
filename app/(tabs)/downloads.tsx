@@ -4,7 +4,7 @@ import { Text, IconButton, Portal, Dialog, Button } from 'react-native-paper';
 import { TabsProvider, Tabs, TabScreen } from 'react-native-paper-tabs';
 import { Icon } from '@/src/components/ui/icon';
 import { GenericListView } from '@/src/components/ui/generic-list-view';
-import { PageLayout } from '@/src/components/page-layout';
+import { PageLayout } from '@/src/components/ui/page-layout';
 import {
 	DownloadIcon,
 	TrashIcon,
@@ -12,9 +12,9 @@ import {
 	CheckCircle2Icon,
 	AlertCircleIcon,
 } from 'lucide-react-native';
-import { DownloadListItem } from '@/src/components/download-list-item';
-import { SelectableDownloadListItem } from '@/src/components/selectable-download-list-item';
-import { BatchActionBar } from '@/src/components/batch-action-bar';
+import { DownloadListItem } from '@/src/components/downloads/download-list-item';
+import { SelectableDownloadListItem } from '@/src/components/downloads/selectable-download-list-item';
+import { BatchActionBar } from '@/src/components/selection/batch-action-bar';
 import { useDownloadQueue, formatFileSize } from '@/src/hooks/use-download-queue';
 import { useDownloadActions } from '@/src/hooks/use-download-actions';
 import { useDownloadStore } from '@/src/application/state/download-store';

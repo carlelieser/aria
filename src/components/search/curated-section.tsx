@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
-import { TrackCard } from '@/src/components/track-card';
+import { TrackCard } from '@/src/components/media-list/track-card';
 import { getTrackIdString } from '@/src/domain/value-objects/track-id';
 import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';

@@ -1,7 +1,7 @@
 import { MusicIcon, DiscIcon, UsersIcon } from 'lucide-react-native';
-import { SelectableTrackListItem } from '@/src/components/selectable-track-list-item';
-import { AlbumListItem } from '@/src/components/album-list-item';
-import { ArtistListItem } from '@/src/components/artist-list-item';
+import { SelectableTrackListItem } from '@/src/components/media-list/selectable-track-list-item';
+import { AlbumListItem } from '@/src/components/media-list/album-list-item';
+import { ArtistListItem } from '@/src/components/media-list/artist-list-item';
 import { ResultSection } from './result-section';
 import type { Track } from '@/src/domain/entities/track';
 import type { Album } from '@/src/domain/entities/album';

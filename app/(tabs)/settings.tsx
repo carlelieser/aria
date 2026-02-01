@@ -4,13 +4,13 @@ import { router } from 'expo-router';
 import { ConfirmationDialog } from '@/src/components/ui/confirmation-dialog';
 import { VersionDialog } from '@/src/components/ui/version-dialog';
 import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
-import { PageLayout } from '@/src/components/page-layout';
+import { PageLayout } from '@/src/components/ui/page-layout';
 import { SettingsItem } from '@/src/components/settings/settings-item';
 import { SettingsSection } from '@/src/components/settings/settings-section';
 import { SettingsSelect } from '@/src/components/settings/settings-select';
 import { AccentColorPicker } from '@/src/components/settings/accent-color-picker';
 import { TabOrderSetting } from '@/src/components/settings/tab-order-setting';
-import { EqualizerSheet } from '@/src/components/equalizer-sheet';
+import { EqualizerSheet } from '@/src/components/settings/equalizer-sheet';
 import { Switch } from 'react-native-paper';
 import {
 	TrashIcon,

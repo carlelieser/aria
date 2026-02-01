@@ -13,7 +13,7 @@ import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import { formatArtistNames } from '@/src/domain/entities/artist';
 import type { Album } from '@/src/domain/entities/album';
 import { useAlbumStore } from '@/src/application/state/album-store';
-import { MediaListItem } from './media-list/media-list-item';
+import { MediaListItem } from './media-list-item';
 
 interface AlbumListItemBaseProps {
 	onPress?: () => void;

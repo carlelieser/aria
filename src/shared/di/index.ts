@@ -1,1 +1,1 @@
-export { container, DIContainer, ServiceKeys } from './container';
+export { container, ServiceKeys } from './container';

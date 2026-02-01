@@ -20,7 +20,7 @@ import {
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { TAB_CONFIG, TAB_BAR_HEIGHT } from '@/lib/tab-config';
 import { LottieTabIcon } from '@/src/components/ui/lottie-tab-icon';
-import { SearchFAB } from '@/src/components/search-fab';
+import { SearchFAB } from '@/src/components/search/search-fab';
 
 const TAB_WIDTH = 84;
 const TAB_GAP = 12;

@@ -8,7 +8,7 @@
 import { memo, useCallback, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 
-import { TrackListItem } from '@/src/components/track-list-item';
+import { TrackListItem } from '@/src/components/media-list/track-list-item';
 import { SelectableCheckbox } from '@/src/components/ui/selectable-checkbox';
 import type { Track } from '@/src/domain/entities/track';
 import type { DownloadInfo } from '@/src/domain/value-objects/download-state';

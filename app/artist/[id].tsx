@@ -6,7 +6,7 @@ import { DiscIcon, SearchIcon, UserIcon } from 'lucide-react-native';
 import { Text, Button, ActivityIndicator, IconButton } from 'react-native-paper';
 import { Icon } from '@/src/components/ui/icon';
 import { DetailsPage } from '@/src/components/details-page';
-import { TrackListItem } from '@/src/components/track-list-item';
+import { TrackListItem } from '@/src/components/media-list/track-list-item';
 import { useTracks } from '@/src/application/state/library-store';
 import {
 	useArtistDetail,

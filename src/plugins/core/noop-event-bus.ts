@@ -11,7 +11,7 @@ import type { PluginEventBus } from './interfaces/base-plugin';
  * No-operation event bus that silently ignores all event operations.
  * Useful for plugin initialization when event handling is not required.
  */
-export class NoOpEventBus implements PluginEventBus {
+class NoOpEventBus implements PluginEventBus {
 	emit<T = unknown>(_event: string, _data: T): void {
 		// Intentionally empty - no-op
 	}

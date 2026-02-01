@@ -17,7 +17,7 @@ import { usePlayer } from '@/src/hooks/use-player';
 import type { Track } from '@/src/domain/entities/track';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import { getArtistNames } from '@/src/domain/entities/track';
-import { DownloadIndicator } from '@/src/components/download-indicator';
+import { DownloadIndicator } from './download-indicator';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 
 interface TrackCardProps {

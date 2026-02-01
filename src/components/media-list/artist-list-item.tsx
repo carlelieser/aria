@@ -11,7 +11,7 @@ import { User } from 'lucide-react-native';
 
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import type { Artist } from '@/src/domain/entities/artist';
-import { MediaListItem } from './media-list/media-list-item';
+import { MediaListItem } from './media-list-item';
 
 interface ArtistListItemBaseProps {
 	onPress?: () => void;

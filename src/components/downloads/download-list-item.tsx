@@ -9,7 +9,7 @@
 import { memo, useMemo } from 'react';
 import type { Track } from '@/src/domain/entities/track';
 import type { DownloadInfo } from '@/src/domain/value-objects/download-state';
-import { TrackListItem } from '@/src/components/track-list-item';
+import { TrackListItem } from '@/src/components/media-list/track-list-item';
 import { createTrackFromDownloadInfo } from '@/src/domain/utils/create-track-from-download';
 import { useResolvedTrack } from '@/src/hooks/use-resolved-track';
 

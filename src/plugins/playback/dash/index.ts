@@ -428,6 +428,4 @@ export class DashPlaybackProvider implements PlaybackProvider {
 	}
 }
 
-export const dashPlaybackProvider = new DashPlaybackProvider();
-
 export { PLUGIN_MANIFEST as DASH_MANIFEST } from './config';
