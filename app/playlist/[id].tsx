@@ -174,6 +174,9 @@ export default function PlaylistScreen() {
 	const renderTrackItem = useCallback(
 		({ item, index }: { item: PlaylistTrack; index: number }) => (
 			<SelectableTrackListItem
+				style={{
+					paddingHorizontal: 24
+				}}
 				track={item.track}
 				source="playlist"
 				isSelectionMode={isSelectionMode}
@@ -461,7 +464,6 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 	},
 	scrollContent: {
-		paddingHorizontal: 16,
 		gap: 8,
 	},
 	editModeContainer: {

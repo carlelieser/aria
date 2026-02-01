@@ -55,7 +55,7 @@ interface AlbumCardProps {
 
 function AlbumCard({ album, onPress }: AlbumCardProps) {
 	const { colors } = useAppTheme();
-	const artwork = getBestArtwork(album.artwork, 160);
+	const artwork = getBestArtwork(album.artwork, 300);
 
 	return (
 		<Pressable

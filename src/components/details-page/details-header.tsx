@@ -76,16 +76,17 @@ export function DetailsHeader({ info, colors: colorsProp }: DetailsHeaderProps) 
 								{index > 0 && (
 									<Text
 										variant="bodySmall"
-										style={{ color: colors.onSurfaceVariant }}
+										style={{
+											textAlign: 'center',
+											color: colors.onSurfaceVariant,
+										}}
 									>
 										•
 									</Text>
 								)}
 								<Text
-									variant={
-										line.variant === 'primary' ? 'bodyMedium' : 'bodySmall'
-									}
-									style={{ color: colors.onSurfaceVariant }}
+									variant={'bodySmall'}
+									style={{ textAlign: 'center', color: colors.onSurfaceVariant }}
 								>
 									{line.text}
 								</Text>

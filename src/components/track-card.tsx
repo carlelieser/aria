@@ -51,7 +51,7 @@ export const TrackCard = memo(function TrackCard({
 		router.push('/player');
 	}, [onPress, track, play, playQueue, queue, queueIndex]);
 
-	const artwork = getBestArtwork(track.artwork, 120);
+	const artwork = getBestArtwork(track.artwork, 300);
 	const artworkUrl = artwork?.url;
 	const artistNames = getArtistNames(track);
 

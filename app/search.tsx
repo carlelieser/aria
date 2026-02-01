@@ -29,7 +29,7 @@ import {
 	ExploreResults,
 } from '@/src/components/search';
 import { useRecentlyPlayed, useHasHistory } from '@/src/application/state/history-store';
-import { useFavoriteTracks, useRecentlyAddedTracks } from '@/src/application/state/library-store';
+import { useFavoriteTracks, useRecentlyAddedTracks, useTracks } from '@/src/application/state/library-store';
 import { useUnifiedSearch } from '@/src/hooks/use-unified-search';
 import { useSelection } from '@/src/hooks/use-selection';
 import { useBatchHandlers } from '@/src/hooks/use-batch-handlers';
@@ -53,10 +53,16 @@ export default function SearchScreen() {
 		return () => clearTimeout(timeoutId);
 	}, []);
 
-	const recentlyPlayed = useRecentlyPlayed(10);
+	const recentlyPlayedHistory = useRecentlyPlayed(10);
+	const allTracks = useTracks();
 	const favoriteTracks = useFavoriteTracks();
 	const recentlyAdded = useRecentlyAddedTracks(10);
 	const hasHistory = useHasHistory();
+
+	const recentlyPlayed = useMemo(() => {
+		const trackMap = new Map(allTracks.map((t) => [t.id.value, t]));
+		return recentlyPlayedHistory.map((t) => trackMap.get(t.id.value) ?? t);
+	}, [recentlyPlayedHistory, allTracks]);
 
 	const hasCuratedContent = hasHistory || favoriteTracks.length > 0 || recentlyAdded.length > 0;
 

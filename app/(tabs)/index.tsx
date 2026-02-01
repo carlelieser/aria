@@ -2,9 +2,7 @@ import { View, StyleSheet, type NativeSyntheticEvent, type NativeScrollEvent } f
 import { TabsProvider, Tabs, TabScreen } from 'react-native-paper-tabs';
 import { GenericListView } from '@/src/components/ui/generic-list-view';
 import { PageLayout } from '@/src/components/page-layout';
-import { MusicIcon, ListMusicIcon, UsersIcon, DiscIcon, CassetteTapeIcon } from 'lucide-react-native';
-import { IconButton } from 'react-native-paper';
-import { Icon } from '@/src/components/ui/icon';
+import { MusicIcon, ListMusicIcon, UsersIcon, DiscIcon } from 'lucide-react-native';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
 	usePlaylists,
@@ -177,36 +175,12 @@ export default function HomeScreen() {
 		[selectedTracks, addSelectedToPlaylist, exitSelectionMode]
 	);
 
-	const offlineToggle = useMemo(
-		() => (
-			<IconButton
-				icon={() => (
-					<Icon
-						as={CassetteTapeIcon}
-						size={24}
-						color={
-							activeFilters.downloadedOnly ? colors.primary : colors.onSurfaceVariant
-						}
-					/>
-				)}
-				onPress={toggleDownloadedOnly}
-			/>
-		),
-		[
-			activeFilters.downloadedOnly,
-			colors.primary,
-			colors.onSurfaceVariant,
-			toggleDownloadedOnly,
-		]
-	);
-
 	return (
 		<PageLayout
 			header={{
 				icon: MusicIcon,
 				title: 'Library',
 				showBorder: false,
-				rightActions: offlineToggle,
 			}}
 		>
 			{/*{hasFilters && (*/}

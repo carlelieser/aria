@@ -1,7 +1,7 @@
 import { View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { router, usePathname } from 'expo-router';
 import { Text, IconButton } from 'react-native-paper';
 import { Icon } from '@/src/components/ui/icon';
@@ -22,8 +22,12 @@ export default function PlayerScreen() {
 	const { currentTrack, error } = usePlayer();
 	const { colors } = useAppTheme();
 	const showLyrics = useShowLyrics();
+	const [artworkLoaded, setArtworkLoaded] = useState(false);
 
 	useLyrics();
+
+	const artwork = currentTrack ? getLargestArtwork(currentTrack.artwork) : undefined;
+	const artworkUrl = artwork?.url;
 
 	useEffect(() => {
 		if (!currentTrack && pathname === '/player') {
@@ -31,12 +35,18 @@ export default function PlayerScreen() {
 		}
 	}, [currentTrack, pathname]);
 
+	useEffect(() => {
+		setArtworkLoaded(false);
+	}, [artworkUrl]);
+
+	const handleArtworkLoad = useCallback(() => {
+		setArtworkLoaded(true);
+	}, []);
+
 	if (!currentTrack) {
 		return null;
 	}
 
-	const artwork = getLargestArtwork(currentTrack.artwork);
-	const artworkUrl = artwork?.url;
 	const artistNames = getArtistNames(currentTrack);
 	const albumName = currentTrack.album?.name;
 
@@ -64,7 +74,7 @@ export default function PlayerScreen() {
 					{showLyrics ? (
 						<LyricsDisplay />
 					) : (
-						<View style={[styles.artworkWrapper, artworkUrl && styles.artworkShadow]}>
+						<View style={[styles.artworkWrapper, artworkLoaded && styles.artworkShadow]}>
 							{artworkUrl ? (
 								<Image
 									source={{ uri: artworkUrl }}
@@ -73,6 +83,7 @@ export default function PlayerScreen() {
 									transition={300}
 									cachePolicy="memory-disk"
 									recyclingKey={currentTrack.id.value}
+									onLoad={handleArtworkLoad}
 								/>
 							) : (
 								<View

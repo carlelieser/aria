@@ -1,5 +1,5 @@
 import { StyleSheet, Linking } from 'react-native';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { ConfirmationDialog } from '@/src/components/ui/confirmation-dialog';
 import { VersionDialog } from '@/src/components/ui/version-dialog';
@@ -11,6 +11,7 @@ import { SettingsSelect } from '@/src/components/settings/settings-select';
 import { AccentColorPicker } from '@/src/components/settings/accent-color-picker';
 import { TabOrderSetting } from '@/src/components/settings/tab-order-setting';
 import { EqualizerSheet } from '@/src/components/equalizer-sheet';
+import { Switch } from 'react-native-paper';
 import {
 	TrashIcon,
 	InfoIcon,
@@ -25,6 +26,7 @@ import {
 	MoonIcon,
 	MusicIcon,
 	DownloadIcon,
+	WifiOffIcon,
 	RotateCcwIcon,
 	CodeIcon,
 	GithubIcon,
@@ -32,6 +34,7 @@ import {
 	type LucideIcon,
 } from 'lucide-react-native';
 import { useLibraryStore } from '@application/state/library-store';
+import { useLibraryFilterStore } from '@application/state/library-filter-store';
 import { useDownloadStore } from '@application/state/download-store';
 import { useEqualizerStore } from '@application/state/equalizer-store';
 import { useHistoryStore } from '@application/state/history-store';
@@ -72,6 +75,13 @@ export default function SettingsScreen() {
 	} = useSettingsStore();
 	const { stats } = useDownloadQueue();
 	const { isEnabled: eqEnabled, currentPreset } = useEqualizer();
+	const offlineMode = useLibraryFilterStore((s) => s.activeFilters.downloadedOnly);
+	const toggleOfflineMode = useLibraryFilterStore((s) => s.toggleDownloadedOnly);
+
+	const offlineModeSwitch = useMemo(
+		() => <Switch value={offlineMode} onValueChange={toggleOfflineMode} />,
+		[offlineMode, toggleOfflineMode]
+	);
 	const { success, error } = useToast();
 	const [equalizerSheetOpen, setEqualizerSheetOpen] = useState(false);
 	const [clearLibraryDialogVisible, setClearLibraryDialogVisible] = useState(false);
@@ -233,6 +243,13 @@ export default function SettingsScreen() {
 				</SettingsSection>
 
 				<SettingsSection title="Playback">
+					<SettingsItem
+						icon={WifiOffIcon}
+						title="Offline mode"
+						subtitle="Show only downloaded songs"
+						rightElement={offlineModeSwitch}
+						onPress={toggleOfflineMode}
+					/>
 					<SettingsItem
 						icon={SlidersHorizontalIcon}
 						title="Equalizer"

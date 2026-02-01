@@ -96,8 +96,6 @@ export default function AlbumScreen() {
 		});
 	}, [displayTracks, albumInfo.artwork]);
 
-	const hasData = albumDetail.album !== null || libraryTracks.length > 0;
-
 	const handleSearchAlbum = () => {
 		router.push({
 			pathname: '/search',
@@ -153,10 +151,6 @@ export default function AlbumScreen() {
 	);
 
 	const renderContent = () => {
-		if (isLoading && !hasData) {
-			return <AlbumTrackListSkeleton />;
-		}
-
 		if (error) {
 			return (
 				<View style={styles.emptyState}>
@@ -168,6 +162,10 @@ export default function AlbumScreen() {
 					</Button>
 				</View>
 			);
+		}
+
+		if (isLoading) {
+			return <AlbumTrackListSkeleton />;
 		}
 
 		if (enrichedTracks.length === 0) {
@@ -214,7 +212,7 @@ export default function AlbumScreen() {
 
 const styles = StyleSheet.create({
 	content: {
-		paddingHorizontal: 16,
+		paddingHorizontal: 24,
 	},
 	trackList: {
 		gap: 8,
