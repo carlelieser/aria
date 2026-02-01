@@ -134,8 +134,8 @@ export class LocalLibraryProvider implements MetadataProvider, AudioSourceProvid
 		return metadataOps.getArtistAlbums(artistId, options);
 	}
 
-	async getStreamUrl(trackId: TrackId, options?: StreamOptions): AsyncResult<AudioStream, Error> {
-		return audioStreamOps.getStreamUrl(trackId, options);
+	async getStreamUrl(track: Track, options?: StreamOptions): AsyncResult<AudioStream, Error> {
+		return audioStreamOps.getStreamUrl(track.id, options);
 	}
 
 	getFolders(): FolderInfo[] {

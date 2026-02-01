@@ -1,16 +1,22 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Text, Switch, Chip } from 'react-native-paper';
+import CookieManager from '@react-native-cookies/cookies';
 import { Icon } from '@/src/components/ui/icon';
 import { PageLayout } from '@/src/components/page-layout';
 import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
 import { EmptyState } from '@/src/components/empty-state';
 import { SettingsSection } from '@/src/components/settings/settings-section';
+import { SettingsItem } from '@/src/components/settings/settings-item';
+import { ConfirmationDialog } from '@/src/components/ui/confirmation-dialog';
 import { PluginSettingsSection } from '@/src/components/plugin/plugin-settings-section';
-import { LockIcon } from 'lucide-react-native';
+import { LibraryImportSection } from '@/src/components/plugin/library-import-section';
+import { LockIcon, Trash2Icon } from 'lucide-react-native';
 import { togglePluginRuntime } from '@/src/application/services/plugin-lifecycle-service';
+import { getPluginRegistry } from '@/src/plugins/core/registry/plugin-registry';
 import { useAppTheme } from '@/lib/theme';
+import { useToast } from '@/src/hooks/use-toast';
 import {
 	categoryIcons,
 	categoryLabels,
@@ -25,11 +31,35 @@ export default function PluginDetailScreen() {
 	const plugin = usePluginById(id);
 	const { isEnabled, statusInfo, StatusIcon, statusColor } = usePluginDisplayStatus(plugin);
 
+	const { success: toastSuccess } = useToast();
+	const [clearCacheDialogVisible, setClearCacheDialogVisible] = useState(false);
+
 	const handleToggle = useCallback(() => {
 		if (plugin && !plugin.isRequired) {
 			togglePluginRuntime(plugin.id);
 		}
 	}, [plugin]);
+
+	const handleClearCache = useCallback(() => {
+		setClearCacheDialogVisible(true);
+	}, []);
+
+	const confirmClearCache = useCallback(async () => {
+		setClearCacheDialogVisible(false);
+		if (!plugin) return;
+
+		// Clear all browser cookies (shared cookie store)
+		await CookieManager.clearAll();
+
+		// Logout the plugin's auth manager if it exposes logout()
+		const registry = getPluginRegistry();
+		const instance = registry.getPlugin(plugin.id);
+		if (instance && 'logout' in instance && typeof instance.logout === 'function') {
+			await (instance as { logout: () => Promise<unknown> }).logout();
+		}
+
+		toastSuccess('Cache cleared', 'Cookies and auth credentials have been reset');
+	}, [plugin, toastSuccess]);
 
 	if (!plugin) {
 		return (
@@ -142,6 +172,29 @@ export default function PluginDetailScreen() {
 				)}
 
 				<PluginSettingsSection pluginId={plugin.id} />
+				<LibraryImportSection pluginId={plugin.id} />
+
+				{plugin.requiresAuth && (
+					<SettingsSection title="Troubleshooting">
+						<SettingsItem
+							icon={Trash2Icon}
+							title="Clear cache"
+							subtitle={`This will sign you out of ${plugin.name}`}
+							onPress={handleClearCache}
+							destructive
+						/>
+					</SettingsSection>
+				)}
+
+				<ConfirmationDialog
+					visible={clearCacheDialogVisible}
+					title="Clear cache?"
+					message="This will clear all browser cookies and sign you out. You will need to sign in again."
+					confirmLabel="Clear"
+					onConfirm={confirmClearCache}
+					onCancel={() => setClearCacheDialogVisible(false)}
+					destructive
+				/>
 			</PlayerAwareScrollView>
 		</PageLayout>
 	);

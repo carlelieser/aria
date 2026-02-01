@@ -1,22 +1,42 @@
+import { getRandomBytes, digestStringAsync, CryptoDigestAlgorithm, CryptoEncoding } from 'expo-crypto';
 import { BaseAuthManager, type BaseAuthState } from '@shared/auth';
 import type { Result } from '@shared/types/result';
 import { ok, err } from '@shared/types/result';
+import { getLogger } from '@shared/services/logger';
+import {
+	SPOTIFY_CLIENT_ID,
+	SPOTIFY_REDIRECT_URI,
+	SPOTIFY_TOKEN_URL,
+	SPOTIFY_AUTH_URL,
+	SPOTIFY_SCOPES,
+} from './config';
 
-const STORAGE_KEY = 'spotify_web_auth';
-const TOKEN_ENDPOINT =
-	'https://open.spotify.com/get_access_token?reason=transport&productType=web_player';
+const logger = getLogger('SpotifyAuth');
+
+const STORAGE_KEY = 'spotify_oauth';
+const TOKEN_BUFFER_MS = 60 * 1000;
+const PKCE_VERIFIER_BYTE_LENGTH = 64;
+
+function base64UrlEncode(bytes: Uint8Array): string {
+	let binary = '';
+	for (const byte of bytes) {
+		binary += String.fromCharCode(byte);
+	}
+	return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
 
 interface StoredAuth {
-	readonly spDcCookie: string;
+	readonly refreshToken: string;
 	readonly accessToken?: string;
 	readonly expiresAt?: number;
 }
 
-interface SpotifyWebTokenResponse {
-	readonly accessToken: string;
-	readonly accessTokenExpirationTimestampMs: number;
-	readonly isAnonymous: boolean;
-	readonly clientId: string;
+interface SpotifyTokenResponse {
+	readonly access_token: string;
+	readonly token_type: string;
+	readonly scope: string;
+	readonly expires_in: number;
+	readonly refresh_token?: string;
 }
 
 export interface AuthState extends BaseAuthState {
@@ -25,125 +45,174 @@ export interface AuthState extends BaseAuthState {
 }
 
 export class SpotifyAuthManager extends BaseAuthManager<StoredAuth, AuthState> {
-	private spDcCookie: string | null = null;
+	private refreshToken: string | null = null;
 	private accessToken: string | null = null;
 	private expiresAt: number | null = null;
+	private _codeVerifier: string | null = null;
 
 	constructor() {
 		super({
 			storageKey: STORAGE_KEY,
-			loginUrl: 'https://accounts.spotify.com/login',
+			loginUrl: 'https://accounts.spotify.com/authorize',
 		});
 	}
 
+	async generateAuthUrl(): Promise<string> {
+		const verifierBytes = getRandomBytes(PKCE_VERIFIER_BYTE_LENGTH);
+		this._codeVerifier = base64UrlEncode(verifierBytes);
+
+		const codeChallenge = await digestStringAsync(
+			CryptoDigestAlgorithm.SHA256,
+			this._codeVerifier,
+			{ encoding: CryptoEncoding.BASE64 },
+		);
+		const codeChallengeSafe = codeChallenge
+			.replace(/\+/g, '-')
+			.replace(/\//g, '_')
+			.replace(/=+$/, '');
+
+		const params = new URLSearchParams({
+			client_id: SPOTIFY_CLIENT_ID,
+			response_type: 'code',
+			redirect_uri: SPOTIFY_REDIRECT_URI,
+			scope: SPOTIFY_SCOPES,
+			show_dialog: 'true',
+			code_challenge_method: 'S256',
+			code_challenge: codeChallengeSafe,
+		});
+
+		return `${SPOTIFY_AUTH_URL}?${params.toString()}`;
+	}
+
 	isAuthenticated(): boolean {
-		return this.spDcCookie !== null;
+		return this.refreshToken !== null;
 	}
 
 	getAuthState(): AuthState {
 		return {
-			isAuthenticated: this.spDcCookie !== null,
+			isAuthenticated: this.refreshToken !== null,
 			accessToken: this.accessToken,
 			expiresAt: this.expiresAt,
 		};
 	}
 
 	protected clearCredentials(): void {
-		this.spDcCookie = null;
+		this.refreshToken = null;
 		this.accessToken = null;
 		this.expiresAt = null;
 	}
 
 	protected serializeForStorage(): StoredAuth | null {
-		if (!this.spDcCookie) return null;
+		if (!this.refreshToken) return null;
 		return {
-			spDcCookie: this.spDcCookie,
+			refreshToken: this.refreshToken,
 			accessToken: this.accessToken ?? undefined,
 			expiresAt: this.expiresAt ?? undefined,
 		};
 	}
 
 	protected deserializeFromStorage(stored: StoredAuth): void {
-		this.spDcCookie = stored.spDcCookie;
+		this.refreshToken = stored.refreshToken;
 		this.accessToken = stored.accessToken ?? null;
 		this.expiresAt = stored.expiresAt ?? null;
 	}
 
-	async setSpDcCookie(cookie: string): Promise<Result<void, Error>> {
+	async exchangeAuthCode(code: string): Promise<Result<void, Error>> {
+		if (!this._codeVerifier) {
+			return err(new Error('No PKCE code verifier — call generateAuthUrl() first'));
+		}
+
 		try {
-			this.spDcCookie = cookie;
+			const result = await this._tokenRequest({
+				grant_type: 'authorization_code',
+				code,
+				redirect_uri: SPOTIFY_REDIRECT_URI,
+				code_verifier: this._codeVerifier,
+			});
 
-			// Immediately try to get an access token to validate the cookie
-			const tokenResult = await this._fetchAccessToken();
-			if (!tokenResult.success) {
-				this.spDcCookie = null;
-				return err(tokenResult.error);
-			}
+			this._codeVerifier = null;
 
-			// Store the cookie
+			if (!result.success) return result;
+
 			await this.persistCredentials();
-
 			return ok(undefined);
 		} catch (error) {
-			this.spDcCookie = null;
+			this._codeVerifier = null;
+			this.clearCredentials();
 			return err(this.wrapError(error));
 		}
 	}
 
 	async getAccessToken(): Promise<Result<string, Error>> {
-		// Try to load stored auth if not already loaded
-		if (!this.spDcCookie) {
+		if (!this.refreshToken) {
 			const loadResult = await this._loadStoredAuth();
 			if (!loadResult.success || !loadResult.data) {
 				return err(new Error('Not authenticated'));
 			}
 		}
 
-		if (!this.spDcCookie) {
+		if (!this.refreshToken) {
 			return err(new Error('Not authenticated'));
 		}
 
-		// Check if we have a valid cached token
-		const bufferMs = 60 * 1000;
-		if (this.accessToken && this.expiresAt && Date.now() + bufferMs < this.expiresAt) {
+		if (this.accessToken && this.expiresAt && Date.now() + TOKEN_BUFFER_MS < this.expiresAt) {
 			return ok(this.accessToken);
 		}
 
-		// Fetch a new access token
-		return this._fetchAccessToken();
+		return this._refreshAccessToken();
 	}
 
-	private async _fetchAccessToken(): Promise<Result<string, Error>> {
-		if (!this.spDcCookie) {
-			return err(new Error('No sp_dc cookie available'));
+	private async _refreshAccessToken(): Promise<Result<string, Error>> {
+		if (!this.refreshToken) {
+			return err(new Error('No refresh token available'));
 		}
 
+		const result = await this._tokenRequest({
+			grant_type: 'refresh_token',
+			refresh_token: this.refreshToken,
+		});
+
+		if (!result.success) return err(result.error);
+
+		this.persistCredentials().catch((e) =>
+			logger.error('Failed to persist credentials', e instanceof Error ? e : undefined),
+		);
+
+		return ok(this.accessToken!);
+	}
+
+	private async _tokenRequest(
+		params: Record<string, string>,
+	): Promise<Result<void, Error>> {
 		try {
-			const response = await fetch(TOKEN_ENDPOINT, {
+			const body = new URLSearchParams({
+				...params,
+				client_id: SPOTIFY_CLIENT_ID,
+			}).toString();
+
+			const response = await fetch(SPOTIFY_TOKEN_URL, {
+				method: 'POST',
 				headers: {
-					Cookie: `sp_dc=${this.spDcCookie}`,
-					'User-Agent':
-						'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+					'Content-Type': 'application/x-www-form-urlencoded',
 				},
+				body,
 			});
 
 			if (!response.ok) {
-				return err(new Error(`Failed to get access token: ${response.status}`));
+				const errorBody = await response.text();
+				logger.error(`Token request failed: ${response.status} - ${errorBody}`);
+				return err(new Error(`Token request failed: ${response.status}`));
 			}
 
-			const data: SpotifyWebTokenResponse = await response.json();
+			const data: SpotifyTokenResponse = await response.json();
+			this.accessToken = data.access_token;
+			this.expiresAt = Date.now() + data.expires_in * 1000;
 
-			if (data.isAnonymous) {
-				return err(new Error('Session expired. Please log in again.'));
+			if (data.refresh_token) {
+				this.refreshToken = data.refresh_token;
 			}
 
-			this.accessToken = data.accessToken;
-			this.expiresAt = data.accessTokenExpirationTimestampMs;
-
-			// Update stored auth with new token
-			await this.persistCredentials();
-
-			return ok(this.accessToken);
+			return ok(undefined);
 		} catch (error) {
 			return err(this.wrapError(error));
 		}

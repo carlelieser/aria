@@ -6,6 +6,7 @@ import type {
 	SearchOptions,
 	SearchResults,
 } from '@plugins/core/interfaces/metadata-provider';
+import type { OAuthCapablePlugin } from '@plugins/core/interfaces/oauth-capable-plugin';
 import type { PluginInitContext, PluginStatus } from '@plugins/core/interfaces/base-plugin';
 import type { Track } from '@domain/entities/track';
 import type { Album } from '@domain/entities/album';
@@ -21,21 +22,13 @@ import { createSearchOperations, type SearchOperations } from './search';
 import { createInfoOperations, type InfoOperations } from './info';
 import { createLibraryOperations, type LibraryOperations } from './library';
 import { createRecommendationOperations, type RecommendationOperations } from './recommendations';
+import { createImportOperations, type ImportOperations } from './import-operations';
 
-export interface SpotifyLibraryProvider extends MetadataProvider {
+export interface SpotifyLibraryProvider extends MetadataProvider, OAuthCapablePlugin {
 	readonly library: LibraryOperations;
+	readonly import: ImportOperations;
 
 	getClient(): SpotifyClient;
-
-	isAuthenticated(): boolean;
-
-	checkAuthentication(): Promise<boolean>;
-
-	getLoginUrl(): string;
-
-	setSpDcCookie(cookie: string): Promise<Result<void, Error>>;
-
-	logout(): Promise<Result<void, Error>>;
 }
 
 export class SpotifyProvider implements SpotifyLibraryProvider {
@@ -51,6 +44,7 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 	private infoOps: InfoOperations | null = null;
 	private libraryOps: LibraryOperations | null = null;
 	private recommendationOps: RecommendationOperations | null = null;
+	private importOps: ImportOperations | null = null;
 
 	constructor(config: SpotifyClientConfig = {}) {
 		this.config = config;
@@ -61,6 +55,13 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 			throw new Error('Plugin not initialized');
 		}
 		return this.libraryOps;
+	}
+
+	get import(): ImportOperations {
+		if (!this.importOps) {
+			throw new Error('Plugin not initialized');
+		}
+		return this.importOps;
 	}
 
 	async onInit(context: PluginInitContext): Promise<Result<void, Error>> {
@@ -76,6 +77,7 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 			this.infoOps = createInfoOperations(this.client);
 			this.libraryOps = createLibraryOperations(this.client);
 			this.recommendationOps = createRecommendationOperations(this.client);
+			this.importOps = createImportOperations(this.libraryOps, this.infoOps!);
 
 			await this.client.initialize();
 
@@ -108,6 +110,7 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 		this.infoOps = null;
 		this.libraryOps = null;
 		this.recommendationOps = null;
+		this.importOps = null;
 		this.status = 'uninitialized';
 		return ok(undefined);
 	}
@@ -141,11 +144,11 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 		return this.client.getAuthManager().getLoginUrl();
 	}
 
-	async setSpDcCookie(cookie: string): Promise<Result<void, Error>> {
+	async setCredential(credential: string): Promise<Result<void, Error>> {
 		if (!this.client) {
 			return err(new Error('Plugin not initialized'));
 		}
-		return this.client.getAuthManager().setSpDcCookie(cookie);
+		return this.client.getAuthManager().exchangeAuthCode(credential);
 	}
 
 	async logout(): Promise<Result<void, Error>> {

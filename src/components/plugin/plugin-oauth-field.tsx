@@ -2,6 +2,7 @@
  * Plugin OAuth Field Component
  *
  * Handles OAuth authentication flow for plugins using a WebView-based login.
+ * Fully generic — uses OAuthCapablePlugin interface and login component registry.
  */
 
 import { memo, useCallback, useState, useEffect, useMemo } from 'react';
@@ -11,17 +12,11 @@ import * as LucideIcons from 'lucide-react-native';
 import { LinkIcon, CheckCircleIcon, type LucideIcon } from 'lucide-react-native';
 import { SettingsItem } from '@/src/components/settings/settings-item';
 import { Button } from '@/src/components/ui/button';
-import { SpotifyLoginWebView } from '@/src/components/plugin/spotify-login-webview';
-import { YouTubeMusicLoginWebView } from '@/src/components/plugin/youtube-music-login-webview';
+import { getLoginWebView } from '@/src/components/plugin/login-webview-registry';
 import { useAppTheme } from '@/lib/theme';
 import { PluginRegistry } from '@/src/plugins/core/registry/plugin-registry';
-import type { SpotifyLibraryProvider } from '@/src/plugins/metadata/spotify';
-import type { YouTubeMusicLibraryProvider } from '@/src/plugins/metadata/youtube-music';
+import { isOAuthCapable, type OAuthCapablePlugin } from '@/src/plugins/core/interfaces/oauth-capable-plugin';
 import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plugin';
-
-type OAuthCapablePlugin = SpotifyLibraryProvider | YouTubeMusicLibraryProvider;
-
-const OAUTH_PLUGIN_IDS = ['spotify', 'youtube-music'] as const;
 
 const DEFAULT_OAUTH_ICON = LinkIcon;
 
@@ -49,18 +44,17 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 		return DEFAULT_OAUTH_ICON;
 	}, [schema.icon]);
 
+	const LoginComponent = useMemo(() => getLoginWebView(pluginId), [pluginId]);
+
 	const getPlugin = useCallback((): OAuthCapablePlugin | null => {
 		const registry = PluginRegistry.getInstance();
 		const plugin = registry.getPlugin(pluginId);
 
-		if (
-			!plugin ||
-			!OAUTH_PLUGIN_IDS.includes(plugin.manifest.id as (typeof OAUTH_PLUGIN_IDS)[number])
-		) {
+		if (!plugin || !isOAuthCapable(plugin)) {
 			return null;
 		}
 
-		return plugin as OAuthCapablePlugin;
+		return plugin;
 	}, [pluginId]);
 
 	useEffect(() => {
@@ -108,15 +102,7 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 			}
 
 			try {
-				let result;
-
-				if (plugin.manifest.id === 'spotify') {
-					result = await (plugin as SpotifyLibraryProvider).setSpDcCookie(credential);
-				} else if (plugin.manifest.id === 'youtube-music') {
-					result = await (plugin as YouTubeMusicLibraryProvider).setCookies(credential);
-				} else {
-					throw new Error('Unknown plugin type');
-				}
+				const result = await plugin.setCredential(credential);
 
 				if (result.success) {
 					setIsAuthenticated(true);
@@ -129,7 +115,7 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 				setIsLoading(false);
 			}
 		},
-		[getPlugin]
+		[getPlugin],
 	);
 
 	const handleLoginCancel = useCallback(() => {
@@ -193,14 +179,8 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 				presentationStyle="fullScreen"
 				onRequestClose={handleLoginCancel}
 			>
-				{pluginId === 'spotify' && (
-					<SpotifyLoginWebView
-						onSuccess={handleLoginSuccess}
-						onCancel={handleLoginCancel}
-					/>
-				)}
-				{pluginId === 'youtube-music' && (
-					<YouTubeMusicLoginWebView
+				{LoginComponent && (
+					<LoginComponent
 						onSuccess={handleLoginSuccess}
 						onCancel={handleLoginCancel}
 					/>

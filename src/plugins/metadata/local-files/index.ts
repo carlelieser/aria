@@ -191,12 +191,12 @@ export class LocalFilesProvider implements MetadataProvider, AudioSourceProvider
 		});
 	}
 
-	async getStreamUrl(trackId: TrackId): AsyncResult<AudioStream, Error> {
+	async getStreamUrl(track: Track): AsyncResult<AudioStream, Error> {
 		try {
-			const file = this.localFiles.get(trackId.sourceId);
+			const file = this.localFiles.get(track.id.sourceId);
 
 			if (!file) {
-				return err(new Error(`Track not found: ${trackId.value}`));
+				return err(new Error(`Track not found: ${track.id.value}`));
 			}
 
 			const fileType = this.getFileType(file.name, file.mimeType);

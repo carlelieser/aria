@@ -11,6 +11,7 @@ import type {
 	AudioSourceProvider,
 	StreamOptions,
 } from '@plugins/core/interfaces/audio-source-provider';
+import type { OAuthCapablePlugin } from '@plugins/core/interfaces/oauth-capable-plugin';
 import type { PluginInitContext, PluginStatus } from '@plugins/core/interfaces/base-plugin';
 import type { Track } from '@domain/entities/track';
 import type { Album } from '@domain/entities/album';
@@ -18,7 +19,9 @@ import type { Artist } from '@domain/entities/artist';
 import type { TrackId } from '@domain/value-objects/track-id';
 import type { AudioStream } from '@domain/value-objects/audio-stream';
 import type { Result } from '@shared/types/result';
-import { ok } from '@shared/types/result';
+import { ok, err } from '@shared/types/result';
+import { getLogger } from '@shared/services/logger';
+import { getArtistNames } from '@domain/entities/track';
 
 import { installEvaluator } from './evaluator';
 import { YouTubeMusicAuthManager } from './auth';
@@ -35,15 +38,15 @@ import { createSearchOperations, SearchOperations } from './search';
 import { createInfoOperations, InfoOperations } from './info';
 import { createStreamingOperations, StreamingOperations } from './streaming';
 import { createRecommendationOperations, RecommendationOperations } from './recommendations';
+import { createLibraryOperations as createYTLibraryOperations, type YouTubeMusicLibraryOperations } from './library';
+import { createImportOperations, type ImportOperations } from './import-operations';
 
 installEvaluator();
 
-export interface YouTubeMusicLibraryProvider extends MetadataProvider, AudioSourceProvider {
-	isAuthenticated(): boolean;
-	checkAuthentication(): Promise<boolean>;
-	getLoginUrl(): string;
-	setCookies(cookies: string): Promise<Result<void, Error>>;
-	logout(): Promise<Result<void, Error>>;
+const logger = getLogger('YouTubeMusic');
+
+export interface YouTubeMusicLibraryProvider extends MetadataProvider, AudioSourceProvider, OAuthCapablePlugin {
+	readonly import: ImportOperations;
 }
 
 export class YouTubeMusicProvider implements YouTubeMusicLibraryProvider {
@@ -60,6 +63,8 @@ export class YouTubeMusicProvider implements YouTubeMusicLibraryProvider {
 	private infoOps: InfoOperations | null = null;
 	private streamingOps: StreamingOperations | null = null;
 	private recommendationOps: RecommendationOperations | null = null;
+	private ytLibraryOps: YouTubeMusicLibraryOperations | null = null;
+	private importOps: ImportOperations | null = null;
 	private readonly _authManager: YouTubeMusicAuthManager;
 
 	constructor(config: YouTubeMusicConfig = DEFAULT_CONFIG) {
@@ -95,6 +100,13 @@ export class YouTubeMusicProvider implements YouTubeMusicLibraryProvider {
 		return this.recommendationOps;
 	}
 
+	get import(): ImportOperations {
+		if (!this.importOps) {
+			throw new Error('YouTube Music provider not initialized');
+		}
+		return this.importOps;
+	}
+
 	async onInit(context: PluginInitContext): Promise<Result<void, Error>> {
 		try {
 			this.status = 'initializing';
@@ -113,6 +125,8 @@ export class YouTubeMusicProvider implements YouTubeMusicLibraryProvider {
 			this.infoOps = createInfoOperations(this.clientManager);
 			this.streamingOps = createStreamingOperations(this.clientManager);
 			this.recommendationOps = createRecommendationOperations(this.clientManager);
+			this.ytLibraryOps = createYTLibraryOperations(this.clientManager);
+			this.importOps = createImportOperations(this.ytLibraryOps);
 
 			await this.clientManager.getClient();
 
@@ -147,6 +161,8 @@ export class YouTubeMusicProvider implements YouTubeMusicLibraryProvider {
 		this.infoOps = null;
 		this.streamingOps = null;
 		this.recommendationOps = null;
+		this.ytLibraryOps = null;
+		this.importOps = null;
 		this.status = 'uninitialized';
 		return ok(undefined);
 	}
@@ -160,7 +176,7 @@ export class YouTubeMusicProvider implements YouTubeMusicLibraryProvider {
 	}
 
 	supportsTrack(track: Track): boolean {
-		return track.source.type === 'streaming' && track.source.sourcePlugin === 'youtube-music';
+		return track.source.type === 'streaming';
 	}
 
 	searchTracks(
@@ -210,8 +226,23 @@ export class YouTubeMusicProvider implements YouTubeMusicLibraryProvider {
 		return this._getInfoOps().getArtistAlbums(artistId, options);
 	}
 
-	getStreamUrl(trackId: TrackId, options?: StreamOptions): Promise<Result<AudioStream, Error>> {
-		return this._getStreamingOps().getStreamUrl(trackId, options);
+	async getStreamUrl(track: Track, options?: StreamOptions): Promise<Result<AudioStream, Error>> {
+		if (track.id.sourceType === 'youtube-music') {
+			return this._getStreamingOps().getStreamUrl(track.id, options);
+		}
+
+		// Non-YouTube track: search by title + artist to find a matching video
+		const query = `${track.title} ${getArtistNames(track)}`;
+		logger.debug(`Resolving non-YouTube track via search: "${query}"`);
+
+		const searchResult = await this._getSearchOps().searchTracks(query, { limit: 1 });
+		if (!searchResult.success || searchResult.data.items.length === 0) {
+			return err(new Error(`Could not find "${track.title}" on YouTube Music`));
+		}
+
+		const matched = searchResult.data.items[0];
+		logger.debug(`Resolved to YouTube video: ${matched.id.sourceId}`);
+		return this._getStreamingOps().getStreamUrl(matched.id, options);
 	}
 
 	getRecommendations(
@@ -235,8 +266,8 @@ export class YouTubeMusicProvider implements YouTubeMusicLibraryProvider {
 		return this._authManager.getLoginUrl();
 	}
 
-	async setCookies(cookies: string): Promise<Result<void, Error>> {
-		const result = await this._authManager.setCookies(cookies);
+	async setCredential(credential: string): Promise<Result<void, Error>> {
+		const result = await this._authManager.setCookies(credential);
 		if (result.success && this.clientManager) {
 			// Refresh client with new authentication
 			await this.clientManager.refreshAuth();

@@ -20,6 +20,7 @@ export interface YouTubeMusicAuthState extends BaseAuthState {
 
 export class YouTubeMusicAuthManager extends BaseAuthManager<StoredAuth, YouTubeMusicAuthState> {
 	private _cookies: string | null = null;
+	private _storageChecked = false;
 
 	constructor() {
 		super({
@@ -41,6 +42,7 @@ export class YouTubeMusicAuthManager extends BaseAuthManager<StoredAuth, YouTube
 
 	protected clearCredentials(): void {
 		this._cookies = null;
+		this._storageChecked = false;
 	}
 
 	protected serializeForStorage(): StoredAuth | null {
@@ -63,6 +65,7 @@ export class YouTubeMusicAuthManager extends BaseAuthManager<StoredAuth, YouTube
 			}
 
 			this._cookies = cookies;
+			this._storageChecked = true;
 
 			const cookieNames = cookies
 				.split(';')
@@ -82,7 +85,8 @@ export class YouTubeMusicAuthManager extends BaseAuthManager<StoredAuth, YouTube
 	}
 
 	async getCookies(): Promise<Result<string, Error>> {
-		if (!this._cookies) {
+		if (!this._cookies && !this._storageChecked) {
+			this._storageChecked = true;
 			logger.debug('No cookies in memory, loading from storage');
 			const loadResult = await this._loadStoredAuth();
 			if (!loadResult.success || !loadResult.data) {

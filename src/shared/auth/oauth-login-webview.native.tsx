@@ -5,14 +5,15 @@
  * Handles cookie polling, navigation tracking, and common UI patterns.
  */
 
-import { memo, useCallback, useRef, useState } from 'react';
+import { memo, useCallback, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, Platform, Modal, Pressable } from 'react-native';
 import { Text, ActivityIndicator, IconButton } from 'react-native-paper';
 import { WebView, type WebViewNavigation } from 'react-native-webview';
-import { XIcon, RefreshCwIcon, MoreVerticalIcon, CheckCircleIcon } from 'lucide-react-native';
+import { XIcon, RefreshCwIcon, MoreVerticalIcon, CheckCircleIcon, ClockIcon } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/lib/theme';
 import { Button } from '@/src/components/ui/button';
+import { EmptyState } from '@/src/components/empty-state';
 import { useCookiePolling } from './use-cookie-polling';
 
 export type { WebViewNavigation };
@@ -32,6 +33,9 @@ export interface OAuthLoginConfig {
 	isLoginPage: (url: string) => boolean;
 	/** Determines if the current URL is on a success domain (post-login) */
 	isSuccessDomain: (url: string) => boolean;
+	/** Optional redirect URI for OAuth Authorization Code flow.
+	 *  When set, navigation to this URI is intercepted and the full URL is returned via onSuccess. */
+	redirectUri?: string;
 }
 
 export interface OAuthLoginWebViewProps {
@@ -58,15 +62,44 @@ export const OAuthLoginWebView = memo(function OAuthLoginWebView({
 	const [menuVisible, setMenuVisible] = useState(false);
 	const hasSeenLoginPage = useRef(false);
 
+	const redirectScheme = config.redirectUri?.split('://')[0];
+
+	const originWhitelist = useMemo(
+		() =>
+			redirectScheme
+				? ['https://*', 'http://*', `${redirectScheme}://*`]
+				: ['https://*', 'http://*'],
+		[redirectScheme],
+	);
+
 	const { isPolling, pollingTimedOut, startPolling, stopPolling, reset, manualCheck } =
 		useCookiePolling({
 			checkCookies: config.checkCookies,
 			onSuccess,
 		});
 
+	const handleShouldStartLoad = useCallback(
+		(event: { url: string }): boolean => {
+			if (config.redirectUri && event.url.startsWith(config.redirectUri)) {
+				stopPolling();
+				onSuccess(event.url);
+				return false;
+			}
+			return true;
+		},
+		[config.redirectUri, onSuccess, stopPolling],
+	);
+
 	const handleNavigationStateChange = useCallback(
 		(navState: WebViewNavigation) => {
 			const url = navState.url;
+
+			// Redirect-based OAuth: intercept the redirect URI
+			if (config.redirectUri && url.startsWith(config.redirectUri)) {
+				stopPolling();
+				onSuccess(url);
+				return;
+			}
 
 			onNavigate?.(navState);
 
@@ -75,16 +108,14 @@ export const OAuthLoginWebView = memo(function OAuthLoginWebView({
 				hasSeenLoginPage.current = true;
 			}
 
-			// Start polling when:
-			// 1. We've previously seen the login page
-			// 2. We're now on a success domain
-			const hasLeftLoginPage = hasSeenLoginPage.current && !config.isLoginPage(url);
+			// Start polling when we reach a success domain and are not on a login page.
+			const shouldPoll = config.isSuccessDomain(url) && !config.isLoginPage(url);
 
-			if (config.isSuccessDomain(url) && hasLeftLoginPage) {
+			if (shouldPoll) {
 				startPolling();
 			}
 		},
-		[onNavigate, config, startPolling]
+		[onNavigate, config, startPolling, stopPolling, onSuccess],
 	);
 
 	const handleLoadEnd = useCallback(() => {
@@ -114,6 +145,8 @@ export const OAuthLoginWebView = memo(function OAuthLoginWebView({
 		setMenuVisible(false);
 		webViewRef.current?.reload();
 	}, []);
+
+	const showOverlay = isLoading || isPolling || pollingTimedOut;
 
 	return (
 		<View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -202,6 +235,8 @@ export const OAuthLoginWebView = memo(function OAuthLoginWebView({
 				<WebView
 					ref={webViewRef}
 					source={{ uri: config.loginUrl }}
+					originWhitelist={originWhitelist}
+					onShouldStartLoadWithRequest={handleShouldStartLoad}
 					onNavigationStateChange={handleNavigationStateChange}
 					onLoadEnd={handleLoadEnd}
 					javaScriptEnabled
@@ -216,33 +251,19 @@ export const OAuthLoginWebView = memo(function OAuthLoginWebView({
 					}
 					style={styles.webview}
 				/>
-				{(isLoading || isPolling || pollingTimedOut) && (
+				{showOverlay && (
 					<View style={[styles.loadingOverlay, { backgroundColor: colors.background }]}>
 						{pollingTimedOut ? (
-							<>
-								<Text
-									variant="bodyLarge"
-									style={[styles.timeoutTitle, { color: colors.onSurface }]}
-								>
-									Sign in timed out
-								</Text>
-								<Text
-									variant="bodyMedium"
-									style={[styles.loadingText, { color: colors.onSurfaceVariant }]}
-								>
-									Please try signing in again
-								</Text>
-								<Button
-									variant="default"
-									onPress={handleRetry}
-									style={styles.retryButton}
-								>
-									<RefreshCwIcon size={16} color={colors.onPrimary} />
-									<Text style={{ color: colors.onPrimary, marginLeft: 8 }}>
+							<EmptyState
+								icon={ClockIcon}
+								title="Sign in timed out"
+								description="Please try signing in again"
+								action={
+									<Button variant="default" onPress={handleRetry}>
 										Try Again
-									</Text>
-								</Button>
-							</>
+									</Button>
+								}
+							/>
 						) : (
 							<>
 								<ActivityIndicator size="large" color={colors.primary} />
@@ -317,14 +338,5 @@ const styles = StyleSheet.create({
 	loadingText: {
 		marginTop: 8,
 		textAlign: 'center',
-	},
-	timeoutTitle: {
-		fontWeight: '600',
-		marginBottom: 4,
-	},
-	retryButton: {
-		marginTop: 16,
-		flexDirection: 'row',
-		alignItems: 'center',
 	},
 });

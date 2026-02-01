@@ -16,6 +16,7 @@ export interface OAuthLoginConfig {
 	checkCookies: () => Promise<string | null>;
 	isLoginPage: (url: string) => boolean;
 	isSuccessDomain: (url: string) => boolean;
+	redirectUri?: string;
 }
 
 export interface OAuthLoginWebViewProps {

@@ -1,21 +1,36 @@
 /**
  * Spotify Login WebView Component
  *
- * Displays a WebView for Spotify login and extracts the sp_dc cookie after authentication.
- * Uses native CookieManager to access HttpOnly cookies that JavaScript cannot read.
+ * Opens the Spotify OAuth authorize page (with PKCE) in a WebView.
+ * Intercepts the redirect to the custom URI scheme to extract the authorization code.
  */
 
-import { memo, useCallback, useMemo } from 'react';
-import CookieManager from '@react-native-cookies/cookies';
-import { OAuthLoginWebView, type OAuthLoginConfig, type WebViewNavigation } from '@shared/auth';
-import { SPOTIFY_LOGIN_URL } from '@/src/plugins/metadata/spotify/config';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import {
+	OAuthLoginWebView,
+	type OAuthLoginConfig,
+	type WebViewNavigation,
+} from '@shared/auth';
+import { SPOTIFY_REDIRECT_URI } from '@/src/plugins/metadata/spotify/config';
+import { PluginRegistry } from '@/src/plugins/core/registry/plugin-registry';
+import type { SpotifyLibraryProvider } from '@/src/plugins/metadata/spotify/spotify-provider';
+import { getLogger } from '@shared/services/logger';
+
+const logger = getLogger('SpotifyLogin');
 
 export type { WebViewNavigation };
 
 interface SpotifyLoginWebViewProps {
-	onSuccess: (spDcCookie: string) => void;
+	onSuccess: (authCode: string) => void;
 	onCancel: () => void;
 	onNavigate?: (navState: WebViewNavigation) => void;
+}
+
+function getSpotifyAuthManager() {
+	const registry = PluginRegistry.getInstance();
+	const plugin = registry.getPlugin('spotify') as SpotifyLibraryProvider | undefined;
+	return plugin?.getClient().getAuthManager();
 }
 
 export const SpotifyLoginWebView = memo(function SpotifyLoginWebView({
@@ -23,45 +38,112 @@ export const SpotifyLoginWebView = memo(function SpotifyLoginWebView({
 	onCancel,
 	onNavigate,
 }: SpotifyLoginWebViewProps) {
-	const checkCookies = useCallback(async (): Promise<string | null> => {
-		try {
-			const cookies = await CookieManager.get('https://open.spotify.com');
-			if (cookies.sp_dc?.value) {
-				return cookies.sp_dc.value;
+	const [authUrl, setAuthUrl] = useState<string | null>(null);
+
+	useEffect(() => {
+		let cancelled = false;
+
+		const loadAuthUrl = async () => {
+			const authManager = getSpotifyAuthManager();
+			if (!authManager) {
+				logger.error('Spotify auth manager not available');
+				onCancel();
+				return;
 			}
-		} catch {
-			// Cookie access failed, continue polling
-		}
+
+			const url = await authManager.generateAuthUrl();
+			if (!cancelled) {
+				setAuthUrl(url);
+			}
+		};
+
+		void loadAuthUrl();
+
+		return () => {
+			cancelled = true;
+		};
+	}, [onCancel]);
+
+	const handleRedirect = useCallback(
+		(callbackUrl: string) => {
+			try {
+				const url = new URL(callbackUrl);
+				const error = url.searchParams.get('error');
+
+				if (error) {
+					logger.error(`Authorization denied: ${error}`);
+					onCancel();
+					return;
+				}
+
+				const code = url.searchParams.get('code');
+				if (!code) {
+					logger.error('No authorization code in callback URL');
+					onCancel();
+					return;
+				}
+
+				onSuccess(code);
+			} catch (e) {
+				logger.error('Failed to parse callback URL', e instanceof Error ? e : undefined);
+				onCancel();
+			}
+		},
+		[onSuccess, onCancel],
+	);
+
+	const checkCookies = useCallback(async (): Promise<string | null> => {
 		return null;
 	}, []);
 
 	const isLoginPage = useCallback((url: string): boolean => {
-		return url.includes('/login') || url.includes('/authorize');
+		return (
+			url.includes('/login') ||
+			url.includes('/authorize') ||
+			url.includes('challenge.spotify.com')
+		);
 	}, []);
 
-	const isSuccessDomain = useCallback((url: string): boolean => {
-		return url.includes('spotify.com') || url.includes('spotify.net');
+	const isSuccessDomain = useCallback((_url: string): boolean => {
+		return false;
 	}, []);
 
-	const config: OAuthLoginConfig = useMemo(
-		() => ({
-			loginUrl: SPOTIFY_LOGIN_URL,
+	const config: OAuthLoginConfig | null = useMemo(() => {
+		if (!authUrl) return null;
+		return {
+			loginUrl: authUrl,
 			title: 'Sign in to Spotify',
 			loadingText: 'Loading Spotify...',
 			pollingText: 'Completing sign in...',
 			checkCookies,
 			isLoginPage,
 			isSuccessDomain,
-		}),
-		[checkCookies, isLoginPage, isSuccessDomain]
-	);
+			redirectUri: SPOTIFY_REDIRECT_URI,
+		};
+	}, [authUrl, checkCookies, isLoginPage, isSuccessDomain]);
+
+	if (!config) {
+		return (
+			<View style={styles.loading}>
+				<ActivityIndicator size="large" />
+			</View>
+		);
+	}
 
 	return (
 		<OAuthLoginWebView
 			config={config}
-			onSuccess={onSuccess}
+			onSuccess={handleRedirect}
 			onCancel={onCancel}
 			onNavigate={onNavigate}
 		/>
 	);
+});
+
+const styles = StyleSheet.create({
+	loading: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
 });
