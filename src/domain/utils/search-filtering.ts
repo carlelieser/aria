@@ -6,13 +6,9 @@
  */
 
 import type { Track } from '../entities/track';
-import type { ArtistReference } from '../entities/artist';
-import type { AlbumReference } from '../entities/album';
 import {
 	getPrimaryArtistName,
 	matchesBaseFilters,
-	extractUniqueArtistsFromItems,
-	extractUniqueAlbumsFromItems,
 	countBaseActiveFilters,
 	hasBaseActiveFilters,
 	type BaseFilters,
@@ -99,20 +95,6 @@ export function countActiveSearchFilters(filters: SearchFilters): number {
 	let count = countBaseActiveFilters(filters);
 	if (filters.contentType !== 'all') count += 1;
 	return count;
-}
-
-/**
- * Extracts unique artists from search results for filter options.
- */
-export function extractSearchArtists(tracks: readonly Track[]): ArtistReference[] {
-	return extractUniqueArtistsFromItems(tracks);
-}
-
-/**
- * Extracts unique albums from search results for filter options.
- */
-export function extractSearchAlbums(tracks: readonly Track[]): AlbumReference[] {
-	return extractUniqueAlbumsFromItems(tracks);
 }
 
 /**

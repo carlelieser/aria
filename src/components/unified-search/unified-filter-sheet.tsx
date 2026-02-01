@@ -6,7 +6,7 @@
  */
 
 import React, { useCallback, useMemo, useRef, useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Pressable, useWindowDimensions } from 'react-native';
+import { View, StyleSheet, Pressable, useWindowDimensions } from 'react-native';
 import BottomSheet, {
 	BottomSheetBackdrop,
 	BottomSheetScrollView,
@@ -14,12 +14,11 @@ import BottomSheet, {
 } from '@gorhom/bottom-sheet';
 import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { Portal } from '@rn-primitives/portal';
-import { Text, Button, Divider, Switch } from 'react-native-paper';
+import { Text, Button, Divider } from 'react-native-paper';
 import Animated, { useAnimatedStyle, withTiming, useSharedValue } from 'react-native-reanimated';
-import { SortSection } from '@/src/components/library/sort-section';
-import { ExploreSortSection } from '@/src/components/explore/explore-sort-section';
+import { SortSection, LIBRARY_SORT_OPTIONS, EXPLORE_SORT_OPTIONS } from '@/src/components/library/sort-section';
+import { FilterSection } from '@/src/components/library/filter-section';
 import { ContentTypeChips } from '@/src/components/explore/content-type-chips';
-import { FilterChip } from '@/src/components/library/filter-chip';
 import { useAppTheme } from '@/lib/theme';
 import type { SortField, SortDirection, LibraryFilters } from '@/src/domain/utils/track-filtering';
 import type {
@@ -84,7 +83,6 @@ export function UnifiedFilterSheet({
 	const [activeTab, setActiveTab] = useState<FilterTab>('library');
 	const indicatorPosition = useSharedValue(0);
 
-	// Calculate tab width (container width minus padding, divided by 2 tabs)
 	const tabContainerWidth = windowWidth - TAB_PADDING * 2;
 	const tabWidth = tabContainerWidth / 2;
 
@@ -132,6 +130,39 @@ export function UnifiedFilterSheet({
 	const indicatorStyle = useAnimatedStyle(() => ({
 		transform: [{ translateX: indicatorPosition.value }],
 	}));
+
+	const libraryToggles = useMemo(
+		() => [
+			{ label: 'Favorites only', value: libraryProps.activeFilters.favoritesOnly, onToggle: libraryProps.onToggleFavorites },
+			{ label: 'Downloaded only', value: libraryProps.activeFilters.downloadedOnly, onToggle: libraryProps.onToggleDownloaded },
+		],
+		[libraryProps.activeFilters.favoritesOnly, libraryProps.activeFilters.downloadedOnly, libraryProps.onToggleFavorites, libraryProps.onToggleDownloaded]
+	);
+
+	const exploreToggles = useMemo(
+		() => [
+			{ label: 'Favorites only', value: exploreProps.activeFilters.favoritesOnly, onToggle: exploreProps.onToggleFavorites },
+		],
+		[exploreProps.activeFilters.favoritesOnly, exploreProps.onToggleFavorites]
+	);
+
+	const exploreHeaderContent = useMemo(
+		() => (
+			<View style={styles.filterSection}>
+				<Text
+					variant="labelMedium"
+					style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}
+				>
+					CONTENT TYPE
+				</Text>
+				<ContentTypeChips
+					selected={exploreProps.activeFilters.contentType}
+					onChange={exploreProps.onContentTypeChange}
+				/>
+			</View>
+		),
+		[exploreProps.activeFilters.contentType, exploreProps.onContentTypeChange, colors.onSurfaceVariant]
+	);
 
 	if (!isOpen) {
 		return null;
@@ -220,201 +251,60 @@ export function UnifiedFilterSheet({
 					<Divider style={styles.divider} />
 
 					{activeTab === 'library' ? (
-						<LibraryFilterContent {...libraryProps} />
+						<>
+							<View style={styles.section}>
+								<SortSection
+									sortField={libraryProps.sortField}
+									sortDirection={libraryProps.sortDirection}
+									sortOptions={LIBRARY_SORT_OPTIONS}
+									onSortFieldChange={libraryProps.onSortFieldChange}
+									onToggleDirection={libraryProps.onToggleSortDirection}
+								/>
+							</View>
+							<Divider style={styles.divider} />
+							<View style={styles.section}>
+								<FilterSection
+									artists={libraryProps.artists}
+									albums={libraryProps.albums}
+									selectedArtistIds={libraryProps.activeFilters.artistIds}
+									selectedAlbumIds={libraryProps.activeFilters.albumIds}
+									onToggleArtist={libraryProps.onToggleArtist}
+									onToggleAlbum={libraryProps.onToggleAlbum}
+									toggles={libraryToggles}
+								/>
+							</View>
+						</>
 					) : (
-						<ExploreFilterContent {...exploreProps} />
+						<>
+							<View style={styles.section}>
+								<SortSection
+									sortField={exploreProps.sortField}
+									sortDirection={exploreProps.sortDirection}
+									sortOptions={EXPLORE_SORT_OPTIONS}
+									onSortFieldChange={exploreProps.onSortFieldChange}
+									onToggleDirection={exploreProps.onToggleSortDirection}
+								/>
+							</View>
+							<Divider style={styles.divider} />
+							<View style={styles.section}>
+								<FilterSection
+									artists={exploreProps.artists}
+									albums={exploreProps.albums}
+									selectedArtistIds={exploreProps.activeFilters.artistIds}
+									selectedAlbumIds={exploreProps.activeFilters.albumIds}
+									onToggleArtist={exploreProps.onToggleArtist}
+									onToggleAlbum={exploreProps.onToggleAlbum}
+									toggles={exploreToggles}
+									headerContent={exploreHeaderContent}
+								/>
+							</View>
+						</>
 					)}
 
 					<View style={styles.bottomPadding} />
 				</BottomSheetScrollView>
 			</BottomSheet>
 		</Portal>
-	);
-}
-
-function LibraryFilterContent({
-	sortField,
-	sortDirection,
-	activeFilters,
-	artists,
-	albums,
-	onSortFieldChange,
-	onToggleSortDirection,
-	onToggleArtist,
-	onToggleAlbum,
-	onToggleFavorites,
-	onToggleDownloaded,
-}: LibraryFilterProps) {
-	const { colors } = useAppTheme();
-
-	return (
-		<>
-			<View style={styles.section}>
-				<SortSection
-					sortField={sortField}
-					sortDirection={sortDirection}
-					onSortFieldChange={onSortFieldChange}
-					onToggleDirection={onToggleSortDirection}
-				/>
-			</View>
-
-			<Divider style={styles.divider} />
-
-			<View style={styles.section}>
-				<View style={styles.container}>
-					<View style={styles.switchRow}>
-						<Text variant="bodyMedium" style={{ color: colors.onSurface }}>
-							Favorites only
-						</Text>
-						<Switch
-							value={activeFilters.favoritesOnly}
-							onValueChange={onToggleFavorites}
-						/>
-					</View>
-
-					<View style={styles.switchRow}>
-						<Text variant="bodyMedium" style={{ color: colors.onSurface }}>
-							Downloaded only
-						</Text>
-						<Switch
-							value={activeFilters.downloadedOnly}
-							onValueChange={onToggleDownloaded}
-						/>
-					</View>
-
-					{artists.length > 0 && (
-						<FilterChipSection
-							label="ARTISTS"
-							items={artists}
-							selectedIds={activeFilters.artistIds}
-							onToggle={onToggleArtist}
-						/>
-					)}
-
-					{albums.length > 0 && (
-						<FilterChipSection
-							label="ALBUMS"
-							items={albums}
-							selectedIds={activeFilters.albumIds}
-							onToggle={onToggleAlbum}
-						/>
-					)}
-				</View>
-			</View>
-		</>
-	);
-}
-
-function ExploreFilterContent({
-	sortField,
-	sortDirection,
-	activeFilters,
-	artists,
-	albums,
-	onSortFieldChange,
-	onToggleSortDirection,
-	onContentTypeChange,
-	onToggleArtist,
-	onToggleAlbum,
-	onToggleFavorites,
-}: ExploreFilterProps) {
-	const { colors } = useAppTheme();
-
-	return (
-		<>
-			<View style={styles.section}>
-				<ExploreSortSection
-					sortField={sortField}
-					sortDirection={sortDirection}
-					onSortFieldChange={onSortFieldChange}
-					onToggleDirection={onToggleSortDirection}
-				/>
-			</View>
-
-			<Divider style={styles.divider} />
-
-			<View style={styles.section}>
-				<View style={styles.container}>
-					<View style={styles.filterSection}>
-						<Text
-							variant="labelMedium"
-							style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}
-						>
-							CONTENT TYPE
-						</Text>
-						<ContentTypeChips
-							selected={activeFilters.contentType}
-							onChange={onContentTypeChange}
-						/>
-					</View>
-
-					<View style={styles.switchRow}>
-						<Text variant="bodyMedium" style={{ color: colors.onSurface }}>
-							Favorites only
-						</Text>
-						<Switch
-							value={activeFilters.favoritesOnly}
-							onValueChange={onToggleFavorites}
-						/>
-					</View>
-
-					{artists.length > 0 && (
-						<FilterChipSection
-							label="ARTISTS"
-							items={artists}
-							selectedIds={activeFilters.artistIds}
-							onToggle={onToggleArtist}
-						/>
-					)}
-
-					{albums.length > 0 && (
-						<FilterChipSection
-							label="ALBUMS"
-							items={albums}
-							selectedIds={activeFilters.albumIds}
-							onToggle={onToggleAlbum}
-						/>
-					)}
-				</View>
-			</View>
-		</>
-	);
-}
-
-interface FilterChipSectionProps {
-	label: string;
-	items: { id: string; name: string }[];
-	selectedIds: readonly string[];
-	onToggle: (id: string) => void;
-}
-
-function FilterChipSection({ label, items, selectedIds, onToggle }: FilterChipSectionProps) {
-	const { colors } = useAppTheme();
-
-	return (
-		<View style={styles.filterSection}>
-			<Text
-				variant="labelMedium"
-				style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}
-			>
-				{label}
-			</Text>
-			<ScrollView
-				horizontal
-				showsHorizontalScrollIndicator={false}
-				style={styles.scrollView}
-				contentContainerStyle={styles.chipContainer}
-			>
-				{items.map((item) => (
-					<FilterChip
-						key={item.id}
-						label={item.name}
-						selected={selectedIds.includes(item.id)}
-						onPress={() => onToggle(item.id)}
-					/>
-				))}
-			</ScrollView>
-		</View>
 	);
 }
 
@@ -465,28 +355,11 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 16,
 		paddingVertical: 12,
 	},
-	container: {
-		gap: 16,
-	},
-	switchRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-		paddingVertical: 4,
-	},
 	filterSection: {
 		gap: 8,
 	},
 	sectionLabel: {
 		letterSpacing: 0.5,
-	},
-	scrollView: {
-		borderRadius: 12,
-		overflow: 'hidden',
-	},
-	chipContainer: {
-		gap: 8,
-		paddingRight: 16,
 	},
 	bottomPadding: {
 		height: 34,

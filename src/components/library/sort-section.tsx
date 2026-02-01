@@ -1,7 +1,7 @@
 /**
  * SortSection Component
  *
- * Sort options for library filtering.
+ * Generic sort options for filtering.
  * Uses M3 theming.
  */
 
@@ -11,35 +11,49 @@ import { Text } from 'react-native-paper';
 import { Icon } from '@/src/components/ui/icon';
 import { Check, ArrowUp, ArrowDown } from 'lucide-react-native';
 import { useAppTheme } from '@/lib/theme';
-import type { SortField, SortDirection } from '@/src/domain/utils/track-filtering';
+import type { SortField } from '@/src/domain/utils/track-filtering';
+import type { SearchSortField } from '@/src/domain/utils/search-filtering';
 
-interface SortSectionProps {
-	sortField: SortField;
-	sortDirection: SortDirection;
-	onSortFieldChange: (field: SortField) => void;
+interface SortOption<T extends string> {
+	readonly field: T;
+	readonly label: string;
+}
+
+interface SortSectionProps<T extends string> {
+	sortField: T;
+	sortDirection: 'asc' | 'desc';
+	sortOptions: readonly SortOption<T>[];
+	onSortFieldChange: (field: T) => void;
 	onToggleDirection: () => void;
 }
 
-const SORT_OPTIONS: { field: SortField; label: string }[] = [
+export const LIBRARY_SORT_OPTIONS: readonly SortOption<SortField>[] = [
 	{ field: 'title', label: 'Title' },
 	{ field: 'artist', label: 'Artist' },
 	{ field: 'dateAdded', label: 'Date Added' },
 	{ field: 'duration', label: 'Duration' },
-];
+] as const;
 
-interface SortOptionItemProps {
-	field: SortField;
+export const EXPLORE_SORT_OPTIONS: readonly SortOption<SearchSortField>[] = [
+	{ field: 'relevance', label: 'Relevance' },
+	{ field: 'title', label: 'Title' },
+	{ field: 'artist', label: 'Artist' },
+	{ field: 'duration', label: 'Duration' },
+] as const;
+
+interface SortOptionItemProps<T extends string> {
+	field: T;
 	label: string;
 	isSelected: boolean;
-	onSelect: (field: SortField) => void;
+	onSelect: (field: T) => void;
 }
 
-const SortOptionItem = memo(function SortOptionItem({
+const SortOptionItem = memo(function SortOptionItem<T extends string>({
 	field,
 	label,
 	isSelected,
 	onSelect,
-}: SortOptionItemProps) {
+}: SortOptionItemProps<T>) {
 	const { colors } = useAppTheme();
 
 	const handlePress = useCallback(() => {
@@ -60,14 +74,15 @@ const SortOptionItem = memo(function SortOptionItem({
 			{isSelected && <Icon as={Check} size={18} color={colors.primary} />}
 		</Pressable>
 	);
-});
+}) as <T extends string>(props: SortOptionItemProps<T>) => React.ReactElement;
 
-export function SortSection({
+export function SortSection<T extends string>({
 	sortField,
 	sortDirection,
+	sortOptions,
 	onSortFieldChange,
 	onToggleDirection,
-}: SortSectionProps) {
+}: SortSectionProps<T>) {
 	const { colors } = useAppTheme();
 
 	return (
@@ -91,7 +106,7 @@ export function SortSection({
 				</Pressable>
 			</View>
 			<View style={styles.options}>
-				{SORT_OPTIONS.map((option) => (
+				{sortOptions.map((option) => (
 					<SortOptionItem
 						key={option.field}
 						field={option.field}

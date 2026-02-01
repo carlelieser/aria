@@ -1,8 +1,8 @@
 /**
- * ExploreSortFilterSheet Component
+ * SortFilterBottomSheet Component
  *
- * Bottom sheet for explore sort and filter options.
- * Uses M3 theming.
+ * Shared bottom sheet wrapper for sort/filter UIs.
+ * Encapsulates BottomSheet boilerplate with M3 styling.
  */
 
 import React, { useCallback, useMemo, useRef, useEffect } from 'react';
@@ -14,52 +14,24 @@ import BottomSheet, {
 } from '@gorhom/bottom-sheet';
 import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { Portal } from '@rn-primitives/portal';
-import { Text, Button, Divider } from 'react-native-paper';
-import { ExploreSortSection } from './explore-sort-section';
-import { ExploreFilterSection } from './explore-filter-section';
+import { Text, Button } from 'react-native-paper';
 import { useAppTheme } from '@/lib/theme';
-import type {
-	SearchSortField,
-	SearchSortDirection,
-	SearchFilters,
-	SearchContentType,
-} from '@/src/domain/utils/search-filtering';
-import type { ArtistReference } from '@/src/domain/entities/artist';
-import type { AlbumReference } from '@/src/domain/entities/album';
 
-interface ExploreSortFilterSheetProps {
+interface SortFilterBottomSheetProps {
 	isOpen: boolean;
 	onClose: () => void;
-	sortField: SearchSortField;
-	sortDirection: SearchSortDirection;
-	activeFilters: SearchFilters;
-	artists: ArtistReference[];
-	albums: AlbumReference[];
-	onSortFieldChange: (field: SearchSortField) => void;
-	onToggleSortDirection: () => void;
-	onContentTypeChange: (type: SearchContentType) => void;
-	onToggleArtist: (artistId: string) => void;
-	onToggleAlbum: (albumId: string) => void;
-	onToggleFavorites: () => void;
 	onClearAll: () => void;
+	portalName: string;
+	children: React.ReactNode;
 }
 
-export function ExploreSortFilterSheet({
+export function SortFilterBottomSheet({
 	isOpen,
 	onClose,
-	sortField,
-	sortDirection,
-	activeFilters,
-	artists,
-	albums,
-	onSortFieldChange,
-	onToggleSortDirection,
-	onContentTypeChange,
-	onToggleArtist,
-	onToggleAlbum,
-	onToggleFavorites,
 	onClearAll,
-}: ExploreSortFilterSheetProps) {
+	portalName,
+	children,
+}: SortFilterBottomSheetProps) {
 	const { colors } = useAppTheme();
 	const sheetRef = useRef<BottomSheetMethods>(null);
 
@@ -98,7 +70,7 @@ export function ExploreSortFilterSheet({
 	}
 
 	return (
-		<Portal name="explore-sort-filter-sheet">
+		<Portal name={portalName}>
 			<BottomSheet
 				ref={sheetRef}
 				index={0}
@@ -129,30 +101,7 @@ export function ExploreSortFilterSheet({
 							Clear all
 						</Button>
 					</View>
-
-					<Divider style={styles.divider} />
-					<View style={styles.section}>
-						<ExploreSortSection
-							sortField={sortField}
-							sortDirection={sortDirection}
-							onSortFieldChange={onSortFieldChange}
-							onToggleDirection={onToggleSortDirection}
-						/>
-					</View>
-
-					<Divider style={styles.divider} />
-					<View style={styles.section}>
-						<ExploreFilterSection
-							artists={artists}
-							albums={albums}
-							activeFilters={activeFilters}
-							onContentTypeChange={onContentTypeChange}
-							onToggleArtist={onToggleArtist}
-							onToggleAlbum={onToggleAlbum}
-							onToggleFavorites={onToggleFavorites}
-						/>
-					</View>
-
+					{children}
 					<View style={styles.bottomPadding} />
 				</BottomSheetScrollView>
 			</BottomSheet>
@@ -178,13 +127,6 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 		paddingHorizontal: 16,
 		paddingBottom: 8,
-	},
-	divider: {
-		marginVertical: 4,
-	},
-	section: {
-		paddingHorizontal: 16,
-		paddingVertical: 12,
 	},
 	bottomPadding: {
 		height: 34,

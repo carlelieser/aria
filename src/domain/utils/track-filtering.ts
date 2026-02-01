@@ -1,11 +1,7 @@
 import type { Track } from '../entities/track';
-import type { ArtistReference } from '../entities/artist';
-import type { AlbumReference } from '../entities/album';
 import {
 	getPrimaryArtistName,
 	matchesBaseFilters,
-	extractUniqueArtistsFromItems,
-	extractUniqueAlbumsFromItems,
 	countBaseActiveFilters,
 	hasBaseActiveFilters,
 	type BaseFilters,
@@ -106,12 +102,4 @@ export function countActiveFilters(filters: LibraryFilters): number {
 	let count = countBaseActiveFilters(filters);
 	if (filters.downloadedOnly) count += 1;
 	return count;
-}
-
-export function extractUniqueArtists(tracks: readonly Track[]): ArtistReference[] {
-	return extractUniqueArtistsFromItems(tracks);
-}
-
-export function extractUniqueAlbums(tracks: readonly Track[]): AlbumReference[] {
-	return extractUniqueAlbumsFromItems(tracks);
 }

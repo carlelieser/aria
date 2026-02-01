@@ -23,10 +23,12 @@ import {
 	sortSearchResults,
 	hasActiveSearchFilters,
 	countActiveSearchFilters,
-	extractSearchArtists,
-	extractSearchAlbums,
 	createRelevanceOrderMap,
 } from '@/src/domain/utils/search-filtering';
+import {
+	extractUniqueArtistsFromItems,
+	extractUniqueAlbumsFromItems,
+} from '@/src/domain/utils/core-filtering';
 import { filterPlaylists, filterAlbums, filterArtists } from '@/src/domain/utils/library-filtering';
 import { createTrackFromDownloadedMetadata } from '@/src/domain/utils/create-track-from-download';
 
@@ -269,11 +271,11 @@ export function useUnifiedSearch() {
 	}, [libraryBaseTracks]);
 
 	const exploreFilterArtists = useMemo(() => {
-		return extractSearchArtists(searchResults.tracks);
+		return extractUniqueArtistsFromItems(searchResults.tracks);
 	}, [searchResults.tracks]);
 
 	const exploreFilterAlbums = useMemo(() => {
-		return extractSearchAlbums(searchResults.tracks);
+		return extractUniqueAlbumsFromItems(searchResults.tracks);
 	}, [searchResults.tracks]);
 
 	const search = useCallback((newQuery: string) => {
