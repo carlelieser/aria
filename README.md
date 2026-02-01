@@ -17,15 +17,13 @@
 
 ---
 
-## Why Aria?
+## Features
 
-- **Unified library** — Manage music from multiple sources in one place
-- **Plugin architecture** — Extend functionality with community-built plugins
-- **Offline support** — Save tracks for offline listening
-- **Privacy-first** — No ads, no tracking, fully open source
-- **Synced lyrics** — Line-by-line lyrics with timing
-- **10-band equalizer** — Fine-tune your sound with presets or custom settings
-- **Beautiful UI** — Material Design 3 with dynamic theming and custom accent colors
+- **Library Management** — Organize your collection across songs, artists, albums, and playlists.
+- **Plugin Architecture** — Extend functionality with first-class metadata and playback providers.
+- **Offline Playback** — Listen anywhere, no connection required.
+- **Theming** — Light and dark mode with dynamic accent colors.
+- **Material 3** — Modern, adaptive UI built on Material You principles.
 
 ## Download
 
@@ -40,39 +38,6 @@ Get the latest release from the [Releases](https://github.com/carlelieser/aria/r
   <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/08_settings.png" width="19%" />
   <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/09_player_dark.png" width="19%" />
 </p>
-
-## Features
-
-### Library
-
-- Play local files or connect sources via plugins
-- Unified library with songs, albums, artists, and playlists
-- Search across multiple sources simultaneously
-- Recently played history and favorites
-
-### Offline
-
-- Download tracks for offline listening
-- Queue management with progress tracking
-- Automatic retry for failed downloads
-
-### Audio
-
-- **10-band equalizer** with presets (Bass Boost, Treble Boost, Vocal, Rock, Electronic, and more)
-- Gapless playback for seamless transitions
-- Sleep timer with presets, custom duration, and end-of-track mode
-
-### Lyrics
-
-- Synced lyrics with line-by-line timing
-- Plain text fallback when timing unavailable
-- Multiple lyrics providers
-
-### Customization
-
-- Light, dark, and system theme modes
-- Custom accent colors with Material Design 3 dynamic theming
-- Configurable tabs and default views
 
 ## Setup
 
@@ -128,9 +93,9 @@ npm run build:ios
 
 ```
 app/                   # Screens & navigation (Expo Router)
-components/            # UI components
-hooks/                 # React hooks
 src/
+├── components/        # UI components (organized by domain)
+├── hooks/             # React hooks
 ├── domain/            # Entities & repository contracts
 ├── application/       # Services & Zustand stores
 ├── infrastructure/    # Storage & DI
