@@ -74,7 +74,9 @@ export default function PlayerScreen() {
 					{showLyrics ? (
 						<LyricsDisplay />
 					) : (
-						<View style={[styles.artworkWrapper, artworkLoaded && styles.artworkShadow]}>
+						<View
+							style={[styles.artworkWrapper, artworkLoaded && styles.artworkShadow]}
+						>
 							{artworkUrl ? (
 								<Image
 									source={{ uri: artworkUrl }}

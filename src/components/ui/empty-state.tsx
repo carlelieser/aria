@@ -23,12 +23,7 @@ interface EmptyStateProps {
 	action?: ReactNode;
 }
 
-export function EmptyState({
-	icon: IconComponent,
-	title,
-	description,
-	action,
-}: EmptyStateProps) {
+export function EmptyState({ icon: IconComponent, title, description, action }: EmptyStateProps) {
 	const { colors } = useAppTheme();
 
 	return (

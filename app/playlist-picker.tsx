@@ -116,10 +116,7 @@ export default function PlaylistPickerScreen() {
 				),
 				belowTitle: track ? (
 					<View
-						style={[
-							styles.trackPreview,
-							{ backgroundColor: `${colors.background}80` },
-						]}
+						style={[styles.trackPreview, { backgroundColor: `${colors.background}80` }]}
 					>
 						<Text
 							variant="bodyMedium"

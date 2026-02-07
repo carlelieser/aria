@@ -63,11 +63,12 @@ export function ResultGroup({
 		<View style={styles.container}>
 			<View>
 				<Pressable onPress={handleToggle} style={styles.header}>
-					{IconComponent && (
-						<Icon as={IconComponent} size={20} color={colors.primary} />
-					)}
+					{IconComponent && <Icon as={IconComponent} size={20} color={colors.primary} />}
 					<View style={styles.headerText}>
-						<Text variant="titleMedium" style={[styles.title, { color: colors.onSurface }]}>
+						<Text
+							variant="titleMedium"
+							style={[styles.title, { color: colors.onSurface }]}
+						>
 							{title}
 						</Text>
 						{subtitle && (

@@ -87,13 +87,22 @@ function PluginItem({
 			title={plugin.name}
 			description={`v${plugin.version}`}
 			left={() => (
-				<View style={[styles.iconContainer, { backgroundColor: colors.surfaceContainerHighest }]}>
+				<View
+					style={[
+						styles.iconContainer,
+						{ backgroundColor: colors.surfaceContainerHighest },
+					]}
+				>
 					<Icon as={PluginIcon} size={20} color={colors.onSurface} />
 				</View>
 			)}
 			right={() => (
 				<View style={styles.actions}>
-					<Switch value={isEnabled} onValueChange={onToggle} disabled={plugin.isRequired} />
+					<Switch
+						value={isEnabled}
+						onValueChange={onToggle}
+						disabled={plugin.isRequired}
+					/>
 					<Icon as={ChevronRightIcon} size={20} color={colors.onSurfaceVariant} />
 				</View>
 			)}

@@ -63,7 +63,7 @@ function PageHeader({
 	showBack = false,
 	onBack,
 	rightActions,
-	showBorder = true,
+	showBorder = false,
 	backgroundColor,
 	borderRadius,
 	belowTitle,
@@ -112,9 +112,8 @@ function PageHeader({
 					)}
 					{title && (
 						<Text
-							variant="headlineSmall"
+							variant={'headlineMedium'}
 							style={{
-								color: colors.onSurface,
 								fontWeight: '700',
 								flex: showBack ? 1 : undefined,
 							}}

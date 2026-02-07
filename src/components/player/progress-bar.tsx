@@ -66,11 +66,7 @@ const TWO_PI_OVER_WAVELENGTH = (2 * Math.PI) / WAVELENGTH;
  * Phase shifts the wave pattern. strokeLinecap="round" on the Path
  * naturally rounds both endpoints.
  */
-function buildAnimatedWavePath(
-	width: number,
-	amp: number,
-	phaseValue: number
-): string {
+function buildAnimatedWavePath(width: number, amp: number, phaseValue: number): string {
 	'worklet';
 	const cy = TRACK_HEIGHT / 2;
 	const startX = CAP_INSET;
@@ -249,11 +245,7 @@ export function ProgressBar({ seekable = true }: ProgressBarProps) {
 			<GestureDetector gesture={composedGesture}>
 				<View onLayout={handleLayout} style={styles.trackContainer}>
 					{trackWidth > 0 && (
-						<Svg
-							width={trackWidth}
-							height={TRACK_HEIGHT}
-							style={styles.trackSvg}
-						>
+						<Svg width={trackWidth} height={TRACK_HEIGHT} style={styles.trackSvg}>
 							{/* Inactive track */}
 							{inactiveStart < inactiveEnd && (
 								<Line
@@ -268,12 +260,7 @@ export function ProgressBar({ seekable = true }: ProgressBarProps) {
 							)}
 
 							{/* Stop indicator */}
-							<Circle
-								cx={stopCx}
-								cy={cy}
-								r={STOP_RADIUS}
-								fill={colors.primary}
-							/>
+							<Circle cx={stopCx} cy={cy} r={STOP_RADIUS} fill={colors.primary} />
 
 							{/* Active indicator: animated wave */}
 							{activeWidth > ACTIVE_THICKNESS && (

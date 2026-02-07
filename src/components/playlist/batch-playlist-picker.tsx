@@ -85,10 +85,7 @@ export function BatchPlaylistPicker({
 				snapPoints={['60%']}
 			>
 				<View style={styles.header}>
-					<Text
-						variant="titleMedium"
-						style={[styles.title, { color: colors.onSurface }]}
-					>
+					<Text variant="titleMedium" style={[styles.title, { color: colors.onSurface }]}>
 						Add {selectedCount} tracks to playlist
 					</Text>
 					<Button
@@ -109,10 +106,7 @@ export function BatchPlaylistPicker({
 							icon={ListMusicIcon}
 							title="No playlists yet"
 							action={
-								<Button
-									mode="text"
-									onPress={() => setIsCreateSheetOpen(true)}
-								>
+								<Button mode="text" onPress={() => setIsCreateSheetOpen(true)}>
 									Create your first playlist
 								</Button>
 							}

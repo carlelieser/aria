@@ -31,22 +31,13 @@ import { useToast } from '@/src/hooks/use-toast';
 import { useSelection } from '@/src/hooks/use-selection';
 import { useBatchActions } from '@/src/hooks/use-batch-actions';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
+import { formatDuration } from '@/src/domain/utils/formatting';
 import { getPlaylistDuration, type PlaylistTrack } from '@/src/domain/entities/playlist';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import { getArtistNames, type Track } from '@/src/domain/entities/track';
 import type { DetailsHeaderInfo, MetadataLine } from '@/src/components/details-page';
 import type { ReactNode } from 'react';
 
-function formatDuration(ms: number): string {
-	const totalMinutes = Math.floor(ms / 60000);
-	const hours = Math.floor(totalMinutes / 60);
-	const minutes = totalMinutes % 60;
-
-	if (hours > 0) {
-		return `${hours} hr ${minutes} min`;
-	}
-	return `${minutes} min`;
-}
 
 export default function PlaylistScreen() {
 	const insets = useSafeAreaInsets();
@@ -175,7 +166,7 @@ export default function PlaylistScreen() {
 		({ item, index }: { item: PlaylistTrack; index: number }) => (
 			<SelectableTrackListItem
 				style={{
-					paddingHorizontal: 24
+					paddingHorizontal: 24,
 				}}
 				track={item.track}
 				source="playlist"
@@ -215,9 +206,14 @@ export default function PlaylistScreen() {
 						]}
 						activeOpacity={0.7}
 					>
-						<Icon as={GripVerticalIcon} size={20} color={colors.onSurfaceVariant} style={{
-							paddingHorizontal: 24
-						}} />
+						<Icon
+							as={GripVerticalIcon}
+							size={20}
+							color={colors.onSurfaceVariant}
+							style={{
+								paddingHorizontal: 24,
+							}}
+						/>
 						<Image
 							source={{ uri: artwork?.url }}
 							style={styles.draggableArtwork}
