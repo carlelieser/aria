@@ -13,51 +13,16 @@ import {
 	AlbumHeaderSkeleton,
 	AlbumTrackListSkeleton,
 } from '@/src/components/skeletons/album-screen-skeleton';
-import { useTracks } from '@/src/application/state/library-store';
+import { useLibraryAlbumTracks } from '@/src/hooks/use-library-album-tracks';
+import { enrichTracksWithAlbumArtwork, getAlbumInfo } from '@/src/domain/utils/album-utils';
 import {
 	useAlbumDetail,
 	useAlbumLoading,
 	useAlbumError,
 } from '@/src/application/state/album-store';
 import { albumService } from '@/src/application/services/album-service';
-import { getArtworkUrl, getArtistNames } from '@/src/domain/entities/track';
 import { useAppTheme } from '@/lib/theme';
-import type { Track } from '@/src/domain/entities/track';
-import type { Artwork } from '@/src/domain/value-objects/artwork';
 import type { DetailsHeaderInfo, MetadataLine } from '@/src/components/details-page';
-
-function enrichTracksWithAlbumArtwork(tracks: Track[], albumArtworkUrl?: string): Track[] {
-	if (!albumArtworkUrl) return tracks;
-
-	const fallbackArtwork: Artwork[] = [{ url: albumArtworkUrl }];
-
-	return tracks.map((track) => {
-		if (track.artwork && track.artwork.length > 0) {
-			return track;
-		}
-		return { ...track, artwork: fallbackArtwork };
-	});
-}
-
-function useLibraryAlbumTracks(albumId: string): Track[] {
-	const tracks = useTracks();
-	return tracks
-		.filter((track) => track.album?.id === albumId)
-		.sort((a, b) => {
-			const trackNumA = a.metadata.trackNumber ?? 0;
-			const trackNumB = b.metadata.trackNumber ?? 0;
-			return trackNumA - trackNumB;
-		});
-}
-
-function getAlbumInfo(tracks: Track[], albumId: string, fallbackName?: string) {
-	const trackWithAlbum = tracks.find((t) => t.album?.id === albumId);
-	return {
-		name: trackWithAlbum?.album?.name ?? fallbackName ?? 'Unknown Album',
-		artists: trackWithAlbum ? getArtistNames(trackWithAlbum) : 'Unknown Artist',
-		artwork: trackWithAlbum ? getArtworkUrl(trackWithAlbum, 300) : undefined,
-	};
-}
 
 export default function AlbumScreen() {
 	const insets = useSafeAreaInsets();

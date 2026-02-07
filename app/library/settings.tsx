@@ -1,27 +1,14 @@
 import { StyleSheet } from 'react-native';
+import { MusicIcon } from 'lucide-react-native';
 import { PageLayout } from '@/src/components/ui/page-layout';
 import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
 import { SettingsSection } from '@/src/components/settings/settings-section';
 import { SettingsSelect } from '@/src/components/settings/settings-select';
-import {
-	MusicIcon,
-	ListMusicIcon,
-	UsersIcon,
-	DiscIcon,
-	type LucideIcon,
-} from 'lucide-react-native';
+import { LIBRARY_TAB_OPTIONS } from '@/lib/settings-config';
 import {
 	useDefaultLibraryTab,
 	useSetDefaultLibraryTab,
-	type LibraryTabId,
 } from '@/src/application/state/settings-store';
-
-const LIBRARY_TAB_OPTIONS: { value: LibraryTabId; label: string; icon: LucideIcon }[] = [
-	{ value: 'songs', label: 'Songs', icon: MusicIcon },
-	{ value: 'playlists', label: 'Playlists', icon: ListMusicIcon },
-	{ value: 'artists', label: 'Artists', icon: UsersIcon },
-	{ value: 'albums', label: 'Albums', icon: DiscIcon },
-];
 
 export default function LibrarySettingsScreen() {
 	const defaultLibraryTab = useDefaultLibraryTab();

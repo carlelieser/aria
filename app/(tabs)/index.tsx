@@ -1,60 +1,27 @@
-import { View, StyleSheet, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { TabsProvider, Tabs, TabScreen } from 'react-native-paper-tabs';
-import { GenericListView } from '@/src/components/ui/generic-list-view';
 import { PageLayout } from '@/src/components/ui/page-layout';
-import { MusicIcon, ListMusicIcon, UsersIcon, DiscIcon } from 'lucide-react-native';
-import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import {
-	usePlaylists,
-	useIsLibraryLoading,
-	type UniqueArtist,
-	type UniqueAlbum,
-} from '@/src/application/state/library-store';
+import { useState, useEffect, useRef } from 'react';
+import { usePlaylists, useIsLibraryLoading } from '@/src/application/state/library-store';
 import { useDefaultLibraryTab, useSettingsStore } from '@/src/application/state/settings-store';
+import { useAggregatedArtists, useAggregatedAlbums } from '@/src/hooks/use-aggregated-library';
 import {
-	useAggregatedTracks,
-	useAggregatedArtists,
-	useAggregatedAlbums,
-} from '@/src/hooks/use-aggregated-library';
-import { SelectableTrackListItem } from '@/src/components/media-list/selectable-track-list-item';
-import { AlbumListItem } from '@/src/components/media-list/album-list-item';
-import { ArtistListItem } from '@/src/components/media-list/artist-list-item';
-import { PlaylistListItem } from '@/src/components/media-list';
-import { BatchActionBar } from '@/src/components/selection/batch-action-bar';
-import { BatchPlaylistPicker } from '@/src/components/playlist/batch-playlist-picker';
-import {
-	TrackListSkeleton,
-	PlaylistListSkeleton,
-	ArtistListSkeleton,
-	AlbumListSkeleton,
-} from '@/src/components/skeletons';
-import { ActiveFiltersBar, LibrarySortFilterSheet } from '@/src/components/library';
+	SongsTab,
+	PlaylistList,
+	ArtistList,
+	AlbumList,
+	LibrarySortFilterSheet,
+} from '@/src/components/library';
 import { useLibraryFilter } from '@/src/hooks/use-library-filter';
-import { useUniqueFilterOptions } from '@/src/hooks/use-unique-filter-options';
-import { useSelection } from '@/src/hooks/use-selection';
-import { useBatchActions } from '@/src/hooks/use-batch-actions';
 import { useTabShadow } from '@/src/hooks/use-tab-shadow';
 import { useAppTheme } from '@/lib/theme';
-import type { Track } from '@/src/domain/entities/track';
-import type { Playlist } from '@/src/domain/entities/playlist';
-
-type LibraryTabId = 'playlists' | 'albums' | 'artists' | 'songs';
-
-const TAB_INDEX_MAP: Record<LibraryTabId, number> = {
-	songs: 0,
-	artists: 1,
-	albums: 2,
-	playlists: 3,
-};
-
-const INDEX_TAB_MAP: LibraryTabId[] = ['songs', 'artists', 'albums', 'playlists'];
+import { MusicIcon } from 'lucide-react-native';
+import { TAB_INDEX_MAP } from '@/lib/settings-config';
 
 export default function HomeScreen() {
 	const { colors } = useAppTheme();
 	const defaultLibraryTab = useDefaultLibraryTab();
 	const [tabIndex, setTabIndex] = useState(TAB_INDEX_MAP[defaultLibraryTab]);
-	const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
-	const [isPlaylistPickerOpen, setIsPlaylistPickerOpen] = useState(false);
 	const hasAppliedDefaultRef = useRef(false);
 
 	useEffect(() => {
@@ -62,7 +29,7 @@ export default function HomeScreen() {
 
 		if (useSettingsStore.persist.hasHydrated()) {
 			hasAppliedDefaultRef.current = true;
-			setTabIndex(TAB_INDEX_MAP[defaultLibraryTab]);
+			setTabIndex(TAB_INDEX_MAP[useSettingsStore.getState().defaultLibraryTab]);
 			return;
 		}
 
@@ -73,9 +40,8 @@ export default function HomeScreen() {
 		});
 
 		return unsubscribe;
-	}, [defaultLibraryTab]);
+	}, []);
 
-	const allTracks = useAggregatedTracks();
 	const playlists = usePlaylists();
 	const artists = useAggregatedArtists();
 	const albums = useAggregatedAlbums();
@@ -83,97 +49,12 @@ export default function HomeScreen() {
 
 	const {
 		tracks: filteredTracks,
-		sortField,
-		sortDirection,
-		setSortField,
-		toggleSortDirection,
-		activeFilters,
 		hasFilters,
-		toggleArtistFilter,
-		toggleAlbumFilter,
-		toggleFavoritesOnly,
-		toggleDownloadedOnly,
-		clearFilters,
-		clearAll,
+		isFilterSheetOpen,
+		closeFilterSheet,
 	} = useLibraryFilter();
 
-	const { artists: filterArtists, albums: filterAlbums } = useUniqueFilterOptions(allTracks);
-
-	const {
-		isSelectionMode,
-		selectedTrackIds,
-		selectedCount,
-		enterSelectionMode,
-		exitSelectionMode,
-		toggleTrackSelection,
-	} = useSelection();
-
-	const {
-		addSelectedToQueue,
-		addSelectedToPlaylist,
-		removeSelectedFromLibrary,
-		toggleSelectedFavorites,
-		isDeleting,
-	} = useBatchActions();
-
 	const { handleScroll, shadowStyle } = useTabShadow({ tabIndex });
-
-	const selectedTracks = useMemo(
-		() => filteredTracks.filter((t) => selectedTrackIds.has(t.id.value)),
-		[filteredTracks, selectedTrackIds]
-	);
-
-	const handleCloseFilterSheet = useCallback(() => {
-		setIsFilterSheetOpen(false);
-	}, []);
-
-	const handleLongPress = useCallback(
-		(track: Track) => {
-			enterSelectionMode(track.id.value);
-		},
-		[enterSelectionMode]
-	);
-
-	const handleSelectionToggle = useCallback(
-		(track: Track) => {
-			toggleTrackSelection(track.id.value);
-		},
-		[toggleTrackSelection]
-	);
-
-	const handleBatchAddToQueue = useCallback(() => {
-		addSelectedToQueue(selectedTracks);
-		exitSelectionMode();
-	}, [selectedTracks, addSelectedToQueue, exitSelectionMode]);
-
-	const handleBatchToggleFavorites = useCallback(() => {
-		const trackIds = Array.from(selectedTrackIds);
-		toggleSelectedFavorites(trackIds);
-		exitSelectionMode();
-	}, [selectedTrackIds, toggleSelectedFavorites, exitSelectionMode]);
-
-	const handleBatchRemoveFromLibrary = useCallback(() => {
-		const trackIds = Array.from(selectedTrackIds);
-		removeSelectedFromLibrary(trackIds);
-		exitSelectionMode();
-	}, [selectedTrackIds, removeSelectedFromLibrary, exitSelectionMode]);
-
-	const handleOpenPlaylistPicker = useCallback(() => {
-		setIsPlaylistPickerOpen(true);
-	}, []);
-
-	const handleClosePlaylistPicker = useCallback(() => {
-		setIsPlaylistPickerOpen(false);
-	}, []);
-
-	const handleSelectPlaylist = useCallback(
-		(playlistId: string) => {
-			addSelectedToPlaylist(playlistId, selectedTracks);
-			setIsPlaylistPickerOpen(false);
-			exitSelectionMode();
-		},
-		[selectedTracks, addSelectedToPlaylist, exitSelectionMode]
-	);
 
 	return (
 		<PageLayout
@@ -183,20 +64,6 @@ export default function HomeScreen() {
 				showBorder: false,
 			}}
 		>
-			{/*{hasFilters && (*/}
-			{/*	<View style={styles.filtersBar}>*/}
-			{/*		<ActiveFiltersBar*/}
-			{/*			activeFilters={activeFilters}*/}
-			{/*			artists={filterArtists}*/}
-			{/*			albums={filterAlbums}*/}
-			{/*			onToggleArtist={toggleArtistFilter}*/}
-			{/*			onToggleAlbum={toggleAlbumFilter}*/}
-			{/*			onToggleFavorites={toggleFavoritesOnly}*/}
-			{/*			onToggleDownloaded={toggleDownloadedOnly}*/}
-			{/*			onClearAll={clearFilters}*/}
-			{/*		/>*/}
-			{/*	</View>*/}
-			{/*)}*/}
 			<View style={styles.content}>
 				<TabsProvider defaultIndex={tabIndex} onChangeIndex={setTabIndex}>
 					<Tabs
@@ -207,21 +74,17 @@ export default function HomeScreen() {
 					>
 						<TabScreen label="Songs" icon="music-note">
 							<View style={styles.tabContent}>
-								<SongsList
+								<SongsTab
 									tracks={filteredTracks}
 									isLoading={isLoading}
 									hasFilters={hasFilters}
-									isSelectionMode={isSelectionMode}
-									selectedTrackIds={selectedTrackIds}
-									onLongPress={handleLongPress}
-									onSelectionToggle={handleSelectionToggle}
 									onScroll={handleScroll}
 								/>
 							</View>
 						</TabScreen>
 						<TabScreen label="Artists" icon="account-music">
 							<View style={styles.tabContent}>
-								<ArtistsList
+								<ArtistList
 									artists={artists}
 									isLoading={isLoading}
 									onScroll={handleScroll}
@@ -230,7 +93,7 @@ export default function HomeScreen() {
 						</TabScreen>
 						<TabScreen label="Albums" icon="album">
 							<View style={styles.tabContent}>
-								<AlbumsList
+								<AlbumList
 									albums={albums}
 									isLoading={isLoading}
 									onScroll={handleScroll}
@@ -239,7 +102,7 @@ export default function HomeScreen() {
 						</TabScreen>
 						<TabScreen label="Playlists" icon="playlist-music">
 							<View style={styles.tabContent}>
-								<PlaylistsList
+								<PlaylistList
 									playlists={playlists}
 									isLoading={isLoading}
 									onScroll={handleScroll}
@@ -250,193 +113,12 @@ export default function HomeScreen() {
 				</TabsProvider>
 			</View>
 
-			<LibrarySortFilterSheet
-				isOpen={isFilterSheetOpen}
-				onClose={handleCloseFilterSheet}
-				sortField={sortField}
-				sortDirection={sortDirection}
-				activeFilters={activeFilters}
-				artists={filterArtists}
-				albums={filterAlbums}
-				onSortFieldChange={setSortField}
-				onToggleSortDirection={toggleSortDirection}
-				onToggleArtist={toggleArtistFilter}
-				onToggleAlbum={toggleAlbumFilter}
-				onToggleFavorites={toggleFavoritesOnly}
-				onToggleDownloaded={toggleDownloadedOnly}
-				onClearAll={clearAll}
-			/>
-
-			<BatchActionBar
-				context="library"
-				selectedCount={selectedCount}
-				onCancel={exitSelectionMode}
-				onAddToQueue={handleBatchAddToQueue}
-				onAddToPlaylist={handleOpenPlaylistPicker}
-				onToggleFavorites={handleBatchToggleFavorites}
-				onRemoveFromLibrary={handleBatchRemoveFromLibrary}
-				isProcessing={isDeleting}
-			/>
-
-			<BatchPlaylistPicker
-				isOpen={isPlaylistPickerOpen}
-				onClose={handleClosePlaylistPicker}
-				onSelectPlaylist={handleSelectPlaylist}
-				selectedCount={selectedCount}
-			/>
+			<LibrarySortFilterSheet isOpen={isFilterSheetOpen} onClose={closeFilterSheet} />
 		</PageLayout>
 	);
 }
 
-type ScrollHandler = (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-
-interface SongsListProps {
-	tracks: Track[];
-	isLoading: boolean;
-	hasFilters: boolean;
-	isSelectionMode: boolean;
-	selectedTrackIds: Set<string>;
-	onLongPress: (track: Track) => void;
-	onSelectionToggle: (track: Track) => void;
-	onScroll?: ScrollHandler;
-}
-
-function SongsList({
-	tracks,
-	isLoading,
-	hasFilters,
-	isSelectionMode,
-	selectedTrackIds,
-	onLongPress,
-	onSelectionToggle,
-	onScroll,
-}: SongsListProps) {
-	return (
-		<GenericListView
-			data={tracks}
-			isLoading={isLoading}
-			keyExtractor={(item) => item.id.value}
-			renderItem={({ item, index }) => (
-				<SelectableTrackListItem
-					track={item}
-					source="library"
-					isSelectionMode={isSelectionMode}
-					isSelected={selectedTrackIds.has(item.id.value)}
-					onLongPress={onLongPress}
-					onSelectionToggle={onSelectionToggle}
-					queue={tracks}
-					queueIndex={index}
-				/>
-			)}
-			loadingSkeleton={<TrackListSkeleton count={8} />}
-			emptyState={{
-				icon: MusicIcon,
-				title: 'No songs yet',
-				description: 'Search for music or add local files to build your library',
-			}}
-			filteredEmptyState={{
-				icon: MusicIcon,
-				title: 'No matches',
-				description: 'Try adjusting your filters',
-			}}
-			hasFilters={hasFilters}
-			extraData={isSelectionMode ? selectedTrackIds : undefined}
-			onScroll={onScroll}
-		/>
-	);
-}
-
-interface PlaylistsListProps {
-	playlists: Playlist[];
-	isLoading: boolean;
-	onScroll?: ScrollHandler;
-}
-
-function PlaylistsList({ playlists, isLoading, onScroll }: PlaylistsListProps) {
-	return (
-		<GenericListView
-			data={playlists}
-			isLoading={isLoading}
-			keyExtractor={(item) => item.id}
-			renderItem={({ item }) => <PlaylistListItem playlist={item} />}
-			loadingSkeleton={<PlaylistListSkeleton count={6} />}
-			emptyState={{
-				icon: ListMusicIcon,
-				title: 'No playlists yet',
-				description: 'Create a playlist to organize your favorite tracks',
-			}}
-			onScroll={onScroll}
-		/>
-	);
-}
-
-interface ArtistsListProps {
-	artists: UniqueArtist[];
-	isLoading: boolean;
-	onScroll?: ScrollHandler;
-}
-
-function ArtistsList({ artists, isLoading, onScroll }: ArtistsListProps) {
-	return (
-		<GenericListView
-			data={artists}
-			isLoading={isLoading}
-			keyExtractor={(item) => item.id}
-			renderItem={({ item }) => (
-				<ArtistListItem
-					id={item.id}
-					name={item.name}
-					artworkUrl={item.artworkUrl}
-					trackCount={item.trackCount}
-				/>
-			)}
-			loadingSkeleton={<ArtistListSkeleton count={6} />}
-			emptyState={{
-				icon: UsersIcon,
-				title: 'No artists yet',
-				description: 'Add some music to see your favorite artists here',
-			}}
-			onScroll={onScroll}
-		/>
-	);
-}
-
-interface AlbumsListProps {
-	albums: UniqueAlbum[];
-	isLoading: boolean;
-	onScroll?: ScrollHandler;
-}
-
-function AlbumsList({ albums, isLoading, onScroll }: AlbumsListProps) {
-	return (
-		<GenericListView
-			data={albums}
-			isLoading={isLoading}
-			keyExtractor={(item) => item.id}
-			renderItem={({ item }) => (
-				<AlbumListItem
-					id={item.id}
-					name={item.name}
-					artistName={item.artistName}
-					artworkUrl={item.artworkUrl}
-					trackCount={item.trackCount}
-				/>
-			)}
-			loadingSkeleton={<AlbumListSkeleton count={6} />}
-			emptyState={{
-				icon: DiscIcon,
-				title: 'No albums yet',
-				description: 'Add some music to see your albums here',
-			}}
-			onScroll={onScroll}
-		/>
-	);
-}
-
 const styles = StyleSheet.create({
-	filtersBar: {
-		marginBottom: 8,
-	},
 	content: {
 		flex: 1,
 	},

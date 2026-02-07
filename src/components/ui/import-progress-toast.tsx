@@ -6,6 +6,7 @@
 
 import { memo } from 'react';
 import { useIsImporting, useImportProgress } from '@/src/application/state/library-import-store';
+import { truncateText } from '@/src/domain/utils/formatting';
 import { ProgressToast } from './progress-toast';
 
 function getPhaseMessage(phase: string): string {
@@ -25,12 +26,6 @@ function getPhaseMessage(phase: string): string {
 	}
 }
 
-function truncateItemName(name: string | null, maxLength: number = 35): string {
-	if (!name) return '';
-	if (name.length <= maxLength) return name;
-	return `${name.slice(0, maxLength - 3)}...`;
-}
-
 export const ImportProgressToast = memo(function ImportProgressToast() {
 	const isImporting = useIsImporting();
 	const importProgress = useImportProgress();
@@ -41,11 +36,9 @@ export const ImportProgressToast = memo(function ImportProgressToast() {
 			: 0;
 
 	const progressText =
-		importProgress.total > 0
-			? `${importProgress.current}/${importProgress.total}`
-			: '';
+		importProgress.total > 0 ? `${importProgress.current}/${importProgress.total}` : '';
 
-	const currentItemLabel = truncateItemName(importProgress.currentItem) || null;
+	const currentItemLabel = truncateText(importProgress.currentItem) || null;
 	const phaseMessage = getPhaseMessage(importProgress.phase);
 
 	return (

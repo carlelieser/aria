@@ -10,6 +10,7 @@ import {
 	useScanProgress,
 } from '@/src/plugins/metadata/local-library/storage/local-library-store';
 import type { ScanProgress } from '@/src/plugins/metadata/local-library/types';
+import { truncateFilename } from '@/src/domain/utils/formatting';
 import { ProgressToast } from './progress-toast';
 
 function getPhaseMessage(phase: ScanProgress['phase']): string {
@@ -25,15 +26,6 @@ function getPhaseMessage(phase: ScanProgress['phase']): string {
 		default:
 			return 'Scanning...';
 	}
-}
-
-function truncateFilename(filename: string | undefined, maxLength: number = 35): string {
-	if (!filename) return '';
-	if (filename.length <= maxLength) return filename;
-	const extension = filename.split('.').pop() || '';
-	const nameWithoutExt = filename.slice(0, filename.length - extension.length - 1);
-	const truncatedName = nameWithoutExt.slice(0, maxLength - extension.length - 4);
-	return `${truncatedName}...${extension}`;
 }
 
 export const ScanProgressToast = memo(function ScanProgressToast() {

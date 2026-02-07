@@ -18,6 +18,7 @@ import type { Track } from '@/src/domain/entities/track';
 import type { TrackActionSource } from '@/src/domain/actions/track-action';
 import type { DownloadInfo } from '@/src/domain/value-objects/download-state';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
+import { formatDate } from '@/src/domain/utils/formatting';
 import { getArtistNames } from '@/src/domain/entities/track';
 import { TrackOptionsMenu } from '@/src/components/track-options-menu';
 import { DownloadIndicator } from './download-indicator';
@@ -99,15 +100,6 @@ export const TrackListItem = memo(function TrackListItem({
 		downloadInfo?.status === 'pending' || downloadInfo?.status === 'downloading';
 	const isDownloadCompleted = downloadInfo?.status === 'completed';
 	const isDownloadFailed = downloadInfo?.status === 'failed';
-
-	const formatDate = (timestamp: number) => {
-		const date = new Date(timestamp);
-		return date.toLocaleDateString(undefined, {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric',
-		});
-	};
 
 	const renderDownloadStatus = () => {
 		if (!downloadInfo) return null;

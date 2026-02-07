@@ -3,64 +3,67 @@
  *
  * Bottom sheet for library sort and filter options.
  * Composes SortFilterBottomSheet + SortSection + FilterSection.
+ * Self-contained: consumes useLibraryFilter() and useUniqueFilterOptions() internally.
  */
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Divider } from 'react-native-paper';
 import { SortFilterBottomSheet } from '@/src/components/ui/sort-filter-bottom-sheet';
-import { SortSection, LIBRARY_SORT_OPTIONS } from './sort-section';
-import { FilterSection } from './filter-section';
-import type { SortField, SortDirection, LibraryFilters } from '@/src/domain/utils/track-filtering';
-import type { ArtistReference } from '@/src/domain/entities/artist';
-import type { AlbumReference } from '@/src/domain/entities/album';
+import { SortSection, LIBRARY_SORT_OPTIONS } from '@/src/components/sort-filter/sort-section';
+import { FilterSection } from '@/src/components/sort-filter/filter-section';
+import { useLibraryFilter } from '@/src/hooks/use-library-filter';
+import { useUniqueFilterOptions } from '@/src/hooks/use-unique-filter-options';
+import { useAggregatedTracks } from '@/src/hooks/use-aggregated-library';
 
 interface LibrarySortFilterSheetProps {
-	isOpen: boolean;
-	onClose: () => void;
-	sortField: SortField;
-	sortDirection: SortDirection;
-	activeFilters: LibraryFilters;
-	artists: ArtistReference[];
-	albums: AlbumReference[];
-	onSortFieldChange: (field: SortField) => void;
-	onToggleSortDirection: () => void;
-	onToggleArtist: (artistId: string) => void;
-	onToggleAlbum: (albumId: string) => void;
-	onToggleFavorites: () => void;
-	onToggleDownloaded: () => void;
-	onClearAll: () => void;
+	readonly isOpen: boolean;
+	readonly onClose: () => void;
 }
 
-export function LibrarySortFilterSheet({
-	isOpen,
-	onClose,
-	sortField,
-	sortDirection,
-	activeFilters,
-	artists,
-	albums,
-	onSortFieldChange,
-	onToggleSortDirection,
-	onToggleArtist,
-	onToggleAlbum,
-	onToggleFavorites,
-	onToggleDownloaded,
-	onClearAll,
-}: LibrarySortFilterSheetProps) {
+export function LibrarySortFilterSheet({ isOpen, onClose }: LibrarySortFilterSheetProps) {
+	const allTracks = useAggregatedTracks();
+	const { artists, albums } = useUniqueFilterOptions(allTracks);
+
+	const {
+		sortField,
+		sortDirection,
+		activeFilters,
+		setSortField,
+		toggleSortDirection,
+		toggleArtistFilter,
+		toggleAlbumFilter,
+		toggleFavoritesOnly,
+		toggleDownloadedOnly,
+		clearAll,
+	} = useLibraryFilter();
+
 	const toggles = useMemo(
 		() => [
-			{ label: 'Favorites only', value: activeFilters.favoritesOnly, onToggle: onToggleFavorites },
-			{ label: 'Downloaded only', value: activeFilters.downloadedOnly, onToggle: onToggleDownloaded },
+			{
+				label: 'Favorites only',
+				value: activeFilters.favoritesOnly,
+				onToggle: toggleFavoritesOnly,
+			},
+			{
+				label: 'Downloaded only',
+				value: activeFilters.downloadedOnly,
+				onToggle: toggleDownloadedOnly,
+			},
 		],
-		[activeFilters.favoritesOnly, activeFilters.downloadedOnly, onToggleFavorites, onToggleDownloaded]
+		[
+			activeFilters.favoritesOnly,
+			activeFilters.downloadedOnly,
+			toggleFavoritesOnly,
+			toggleDownloadedOnly,
+		]
 	);
 
 	return (
 		<SortFilterBottomSheet
 			isOpen={isOpen}
 			onClose={onClose}
-			onClearAll={onClearAll}
+			onClearAll={clearAll}
 			portalName="library-sort-filter-sheet"
 		>
 			<Divider style={styles.divider} />
@@ -69,8 +72,8 @@ export function LibrarySortFilterSheet({
 					sortField={sortField}
 					sortDirection={sortDirection}
 					sortOptions={LIBRARY_SORT_OPTIONS}
-					onSortFieldChange={onSortFieldChange}
-					onToggleDirection={onToggleSortDirection}
+					onSortFieldChange={setSortField}
+					onToggleDirection={toggleSortDirection}
 				/>
 			</View>
 
@@ -81,8 +84,8 @@ export function LibrarySortFilterSheet({
 					albums={albums}
 					selectedArtistIds={activeFilters.artistIds}
 					selectedAlbumIds={activeFilters.albumIds}
-					onToggleArtist={onToggleArtist}
-					onToggleAlbum={onToggleAlbum}
+					onToggleArtist={toggleArtistFilter}
+					onToggleAlbum={toggleAlbumFilter}
 					toggles={toggles}
 				/>
 			</View>

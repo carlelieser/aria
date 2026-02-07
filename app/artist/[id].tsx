@@ -1,13 +1,14 @@
 import { useEffect, useMemo } from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
-import { Image } from 'expo-image';
+import { View, StyleSheet } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { DiscIcon, SearchIcon, UserIcon } from 'lucide-react-native';
+import { SearchIcon, UserIcon } from 'lucide-react-native';
 import { Text, Button, ActivityIndicator, IconButton } from 'react-native-paper';
 import { Icon } from '@/src/components/ui/icon';
 import { DetailsPage } from '@/src/components/details-page';
 import { TrackListItem } from '@/src/components/media-list/track-list-item';
-import { useTracks } from '@/src/application/state/library-store';
+import { AlbumCard } from '@/src/components/media-list/album-card';
+import { useLibraryArtistTracks } from '@/src/hooks/use-library-artist-tracks';
+import { getArtistName } from '@/src/domain/utils/artist-utils';
 import {
 	useArtistDetail,
 	useArtistLoading,
@@ -16,84 +17,14 @@ import {
 import { useAlbumStore } from '@/src/application/state/album-store';
 import { artistService } from '@/src/application/services/artist-service';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
-import { useAppTheme, M3Shapes } from '@/lib/theme';
-import type { Track } from '@/src/domain/entities/track';
+import { useAppTheme } from '@/lib/theme';
+import { formatListeners } from '@/src/domain/utils/formatting';
 import type { Album } from '@/src/domain/entities/album';
 import type {
 	DetailsHeaderInfo,
 	MetadataLine,
 	DetailsPageSection,
 } from '@/src/components/details-page';
-
-function useLibraryArtistTracks(artistId: string): Track[] {
-	const tracks = useTracks();
-	return tracks.filter((track) => track.artists.some((artist) => artist.id === artistId));
-}
-
-function getArtistName(tracks: Track[], artistId: string, fallbackName?: string): string {
-	for (const track of tracks) {
-		const artist = track.artists.find((a) => a.id === artistId);
-		if (artist) return artist.name;
-	}
-	return fallbackName ?? 'Unknown Artist';
-}
-
-function formatListeners(count: number): string {
-	if (count >= 1000000) {
-		return `${(count / 1000000).toFixed(1)}M monthly listeners`;
-	}
-	if (count >= 1000) {
-		return `${(count / 1000).toFixed(0)}K monthly listeners`;
-	}
-	return `${count} monthly listeners`;
-}
-
-interface AlbumCardProps {
-	readonly album: Album;
-	readonly onPress: () => void;
-}
-
-function AlbumCard({ album, onPress }: AlbumCardProps) {
-	const { colors } = useAppTheme();
-	const artwork = getBestArtwork(album.artwork, 300);
-
-	return (
-		<Pressable
-			onPress={onPress}
-			style={({ pressed }) => [styles.albumCard, pressed && styles.pressed]}
-		>
-			{artwork?.url ? (
-				<Image
-					source={{ uri: artwork.url }}
-					style={styles.albumArtwork}
-					contentFit="cover"
-					transition={200}
-				/>
-			) : (
-				<View
-					style={[
-						styles.albumArtwork,
-						{ backgroundColor: colors.surfaceContainerHighest },
-					]}
-				>
-					<Icon as={DiscIcon} size={32} color={colors.onSurfaceVariant} />
-				</View>
-			)}
-			<Text
-				variant="bodyMedium"
-				numberOfLines={2}
-				style={[styles.albumTitle, { color: colors.onSurface }]}
-			>
-				{album.name}
-			</Text>
-			{album.releaseDate && (
-				<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
-					{new Date(album.releaseDate).getFullYear()}
-				</Text>
-			)}
-		</Pressable>
-	);
-}
 
 export default function ArtistScreen() {
 	const { id, name } = useLocalSearchParams<{ id: string; name?: string }>();
@@ -148,7 +79,7 @@ export default function ArtistScreen() {
 	const metadata: MetadataLine[] = useMemo(() => {
 		const lines: MetadataLine[] = [];
 		if (artistInfo.monthlyListeners) {
-			lines.push({ text: formatListeners(artistInfo.monthlyListeners), variant: 'primary' });
+			lines.push({ text: formatListeners(artistInfo.monthlyListeners, 'monthly listeners')!, variant: 'primary' });
 		}
 		if (libraryTracks.length > 0) {
 			lines.push({
@@ -266,26 +197,9 @@ export default function ArtistScreen() {
 }
 
 const styles = StyleSheet.create({
-	albumCard: {
-		width: 140,
-	},
-	pressed: {
-		opacity: 0.7,
-	},
-	albumArtwork: {
-		width: 140,
-		height: 140,
-		borderRadius: M3Shapes.medium,
-		alignItems: 'center',
-		justifyContent: 'center',
-		marginBottom: 8,
-	},
-	albumTitle: {
-		fontWeight: '500',
-	},
 	trackList: {
 		gap: 8,
-		paddingHorizontal: 24
+		paddingHorizontal: 24,
 	},
 	loadingState: {
 		paddingVertical: 48,

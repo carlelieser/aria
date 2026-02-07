@@ -10,6 +10,7 @@ import { router } from 'expo-router';
 import { User } from 'lucide-react-native';
 
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
+import { formatListeners } from '@/src/domain/utils/formatting';
 import type { Artist } from '@/src/domain/entities/artist';
 import { MediaListItem } from './media-list-item';
 
@@ -34,17 +35,6 @@ interface ArtistListItemWithProps extends ArtistListItemBaseProps {
 }
 
 export type ArtistListItemProps = ArtistListItemWithArtist | ArtistListItemWithProps;
-
-function formatListeners(count: number | undefined): string | null {
-	if (!count) return null;
-	if (count >= 1_000_000) {
-		return `${(count / 1_000_000).toFixed(1)}M listeners`;
-	}
-	if (count >= 1_000) {
-		return `${(count / 1_000).toFixed(0)}K listeners`;
-	}
-	return `${count} listeners`;
-}
 
 export const ArtistListItem = memo(function ArtistListItem(props: ArtistListItemProps) {
 	const isArtistObject = 'artist' in props && props.artist !== undefined;
