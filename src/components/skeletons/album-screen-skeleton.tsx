@@ -12,12 +12,8 @@ import { TrackListItemSkeleton } from './track-list-item-skeleton';
 export function AlbumHeaderSkeleton() {
 	return (
 		<View style={styles.headerContent}>
-			<Skeleton width={160} height={160} rounded="lg" />
-
-			<View style={styles.textContainer}>
-				<Skeleton width={120} height={24} rounded="md" />
-				<Skeleton width={80} height={16} rounded="sm" />
-			</View>
+			<Skeleton width={120} height={24} rounded="md" />
+			<Skeleton width={80} height={16} rounded="md" />
 		</View>
 	);
 }
@@ -39,8 +35,10 @@ export function AlbumTrackListSkeleton({ count = 8 }: AlbumTrackListSkeletonProp
 
 const styles = StyleSheet.create({
 	headerContent: {
-		alignItems: 'center',
+		height: 300,
 		gap: 16,
+		padding: 24,
+		justifyContent: "flex-end"
 	},
 	textContainer: {
 		alignItems: 'center',

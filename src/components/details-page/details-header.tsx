@@ -15,9 +15,6 @@ import { useAppTheme } from '@/lib/theme';
 import type { M3ColorScheme } from '@/lib/theme/colors';
 import type { DetailsHeaderInfo } from './types';
 
-const DEFAULT_ARTWORK_SIZE = 160;
-const CIRCULAR_ARTWORK_SIZE = 120;
-
 interface DetailsHeaderProps {
 	readonly info: DetailsHeaderInfo;
 	readonly colors?: M3ColorScheme;
@@ -27,23 +24,13 @@ export function DetailsHeader({ info, colors: colorsProp }: DetailsHeaderProps) 
 	const { colors: appColors } = useAppTheme();
 	const colors = colorsProp ?? appColors;
 
-	const isCircular = info.artworkShape === 'circular';
-	const artworkSize =
-		info.artworkSize ?? (isCircular ? CIRCULAR_ARTWORK_SIZE : DEFAULT_ARTWORK_SIZE);
-	const borderRadius = isCircular ? artworkSize / 2 : 12;
-
-	const artworkStyle = {
-		width: artworkSize,
-		height: artworkSize,
-		borderRadius,
-	};
 
 	return (
 		<View style={styles.container}>
 			{info.artworkUrl ? (
 				<Image
 					source={{ uri: info.artworkUrl }}
-					style={[styles.artwork, artworkStyle]}
+					style={[styles.artwork]}
 					contentFit="cover"
 					transition={200}
 				/>
@@ -52,20 +39,15 @@ export function DetailsHeader({ info, colors: colorsProp }: DetailsHeaderProps) 
 					style={[
 						styles.artwork,
 						styles.placeholder,
-						artworkStyle,
 						{ backgroundColor: colors.surfaceContainerHighest },
 					]}
 				>
-					<Icon
-						as={info.placeholderIcon}
-						size={isCircular ? 48 : 64}
-						color={colors.onSurfaceVariant}
-					/>
+					<Icon as={info.placeholderIcon} size={48} color={colors.onSurfaceVariant} />
 				</View>
 			)}
 
-			<View style={styles.textContainer}>
-				<Text variant="headlineSmall" style={[styles.title, { color: colors.onSurface }]}>
+			<View style={[styles.textContainer, {backgroundColor: `${colors.surfaceContainerLow}80`}]}>
+				<Text variant="displayLarge" style={[styles.title, { color: colors.onSurface }]}>
 					{info.title}
 				</Text>
 
@@ -103,11 +85,15 @@ export function DetailsHeader({ info, colors: colorsProp }: DetailsHeaderProps) 
 
 const styles = StyleSheet.create({
 	container: {
-		alignItems: 'center',
+		height: 300,
+		alignItems: 'flex-start',
+		justifyContent: 'flex-end',
 		gap: 16,
-		paddingHorizontal: 16,
 	},
 	artwork: {
+		width: '100%',
+		height: '100%',
+		position: 'absolute',
 		alignItems: 'center',
 		justifyContent: 'center',
 	},
@@ -116,12 +102,15 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 	},
 	textContainer: {
-		alignItems: 'center',
+		width: "100%",
+		height: "100%",
+		alignItems: 'flex-start',
+		justifyContent: 'flex-end',
+		padding: 24,
 		gap: 4,
 	},
 	title: {
 		fontWeight: '700',
-		textAlign: 'center',
 	},
 	metadataContainer: {
 		flexDirection: 'row',

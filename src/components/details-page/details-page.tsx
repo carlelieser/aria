@@ -80,7 +80,15 @@ export function DetailsPage({
 	const showHeaderSkeleton = isLoading && loadingContent;
 
 	const scrollableHeader = (
-		<View style={[styles.scrollableHeader, { backgroundColor: colors.surfaceContainerHigh }]}>
+		<View
+			style={[
+				styles.scrollableHeader,
+				{
+					backgroundColor: colors.surfaceContainerHigh,
+					paddingBottom: showHeaderSkeleton ? 24 : 0,
+				},
+			]}
+		>
 			{showHeaderSkeleton ? (
 				loadingContent
 			) : (
@@ -172,7 +180,6 @@ export function DetailsPage({
 
 const styles = StyleSheet.create({
 	scrollableHeader: {
-		paddingBottom: 24,
 		borderBottomLeftRadius: 24,
 		borderBottomRightRadius: 24,
 	},
@@ -193,8 +200,7 @@ const styles = StyleSheet.create({
 		marginBottom: 12,
 		paddingHorizontal: 24,
 	},
-	horizontalScrollView: {
-	},
+	horizontalScrollView: {},
 	horizontalContent: {
 		paddingHorizontal: 24,
 		gap: 12,
