@@ -27,6 +27,7 @@ interface LibraryState {
 	renamePlaylist: (playlistId: string, name: string) => void;
 	reorderPlaylistTracks: (playlistId: string, fromIndex: number, toIndex: number) => void;
 
+	clearLibrary: () => void;
 	setLoading: (isLoading: boolean) => void;
 	setSyncedAt: (date: Date) => void;
 
@@ -225,6 +226,14 @@ export const useLibraryStore = create<LibraryState>()(
 						};
 					}),
 				}));
+			},
+
+			clearLibrary: () => {
+				set({
+					tracks: [],
+					playlists: [],
+					favorites: new Set(),
+				});
 			},
 
 			setLoading: (isLoading: boolean) => {

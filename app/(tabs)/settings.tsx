@@ -17,51 +17,28 @@ import {
 	InfoIcon,
 	PlugIcon,
 	HardDriveIcon,
-	SettingsIcon,
 	SunMoonIcon,
 	LayoutGridIcon,
 	SlidersHorizontalIcon,
-	MonitorSmartphoneIcon,
-	SunIcon,
-	MoonIcon,
 	MusicIcon,
-	DownloadIcon,
 	WifiOffIcon,
 	RotateCcwIcon,
 	CodeIcon,
 	GithubIcon,
 	CameraIcon,
-	type LucideIcon,
 } from 'lucide-react-native';
+import { THEME_OPTIONS, DEFAULT_TAB_OPTIONS } from '@/lib/settings-config';
 import { useLibraryStore } from '@application/state/library-store';
 import { useLibraryFilterStore } from '@application/state/library-filter-store';
-import { useDownloadStore } from '@application/state/download-store';
 import { useEqualizerStore } from '@application/state/equalizer-store';
-import { useHistoryStore } from '@application/state/history-store';
-import { useSearchStore } from '@application/state/search-store';
-import { useExploreFilterStore } from '@application/state/explore-filter-store';
-import {
-	useSettingsStore,
-	type ThemePreference,
-	type DefaultTab,
-} from '@application/state/settings-store';
+import { useSettingsStore } from '@application/state/settings-store';
 import { useDownloadQueue, formatFileSize } from '@/src/hooks/use-download-queue';
 import { useEqualizer } from '@/src/hooks/use-equalizer';
-import { clearAllDownloads } from '@infrastructure/filesystem/download-manager';
+import { useClearDownloads } from '@/src/hooks/use-clear-downloads';
+import { useFactoryReset } from '@/src/hooks/use-factory-reset';
 import { useToast } from '@/src/hooks/use-toast';
 import { loadMockData, clearMockData, isMockDataLoaded } from '@/src/dev/load-mock-data';
 import Constants from 'expo-constants';
-
-const THEME_OPTIONS: { value: ThemePreference; label: string; icon: LucideIcon }[] = [
-	{ value: 'system', label: 'System', icon: MonitorSmartphoneIcon },
-	{ value: 'light', label: 'Light', icon: SunIcon },
-	{ value: 'dark', label: 'Dark', icon: MoonIcon },
-];
-
-const DEFAULT_TAB_OPTIONS: { value: DefaultTab; label: string; icon: LucideIcon }[] = [
-	{ value: 'index', label: 'Library', icon: MusicIcon },
-	{ value: 'downloads', label: 'Downloads', icon: DownloadIcon },
-];
 
 export default function SettingsScreen() {
 	const { tracks, playlists, favorites } = useLibraryStore();
@@ -75,6 +52,8 @@ export default function SettingsScreen() {
 	} = useSettingsStore();
 	const { stats } = useDownloadQueue();
 	const { isEnabled: eqEnabled, currentPreset } = useEqualizer();
+	const { clearDownloads } = useClearDownloads();
+	const { factoryReset } = useFactoryReset();
 	const offlineMode = useLibraryFilterStore((s) => s.activeFilters.downloadedOnly);
 	const toggleOfflineMode = useLibraryFilterStore((s) => s.toggleDownloadedOnly);
 
@@ -82,7 +61,7 @@ export default function SettingsScreen() {
 		() => <Switch value={offlineMode} onValueChange={toggleOfflineMode} />,
 		[offlineMode, toggleOfflineMode]
 	);
-	const { success, error } = useToast();
+	const { success } = useToast();
 	const [equalizerSheetOpen, setEqualizerSheetOpen] = useState(false);
 	const [clearLibraryDialogVisible, setClearLibraryDialogVisible] = useState(false);
 	const [clearDownloadsDialogVisible, setClearDownloadsDialogVisible] = useState(false);
@@ -105,11 +84,7 @@ export default function SettingsScreen() {
 	};
 
 	const confirmClearLibrary = () => {
-		useLibraryStore.setState({
-			tracks: [],
-			playlists: [],
-			favorites: new Set(),
-		});
+		useLibraryStore.getState().clearLibrary();
 		setClearLibraryDialogVisible(false);
 		success('Library cleared', 'All tracks, playlists, and favorites have been removed');
 	};
@@ -119,18 +94,8 @@ export default function SettingsScreen() {
 	};
 
 	const confirmClearDownloads = async () => {
-		const result = await clearAllDownloads();
-		if (result.success) {
-			useDownloadStore.setState({
-				downloads: new Map(),
-				downloadedTracks: new Map(),
-			});
-			setClearDownloadsDialogVisible(false);
-			success('Downloads cleared', 'All downloaded files have been removed');
-		} else {
-			setClearDownloadsDialogVisible(false);
-			error('Failed to clear downloads', result.error.message);
-		}
+		await clearDownloads();
+		setClearDownloadsDialogVisible(false);
 	};
 
 	const handleResetSettings = () => {
@@ -170,31 +135,8 @@ export default function SettingsScreen() {
 	};
 
 	const confirmFactoryReset = async () => {
-		await clearAllDownloads();
-		useDownloadStore.setState({
-			downloads: new Map(),
-			downloadedTracks: new Map(),
-		});
-
-		useLibraryStore.setState({
-			tracks: [],
-			playlists: [],
-			favorites: new Set(),
-		});
-
-		useHistoryStore.getState().clearHistory();
-
-		useSearchStore.getState().clearResults();
-		useSearchStore.getState().clearRecentSearches();
-
-		useExploreFilterStore.getState().clearAll();
-
-		useEqualizerStore.getState().resetEqualizer();
-
-		useSettingsStore.getState().resetAllSettings();
-
+		await factoryReset();
 		setFactoryResetDialogVisible(false);
-		success('Factory reset complete', 'All data has been cleared and settings reset');
 	};
 
 	const appVersion = Constants.expoConfig?.version ?? '1.0.0';
@@ -202,7 +144,6 @@ export default function SettingsScreen() {
 	return (
 		<PageLayout
 			header={{
-				icon: SettingsIcon,
 				title: 'Settings',
 				showBack: true,
 			}}

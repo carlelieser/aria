@@ -87,7 +87,7 @@ export function TabOrderSetting() {
 	const isDefault = isDefaultOrder && isDefaultEnabled;
 
 	const enabledTabsInOrder = tabOrder.filter((id) => enabledTabs.includes(id) && TAB_CONFIG[id]);
-	const orderSummary = enabledTabsInOrder.map((id) => TAB_CONFIG[id]?.label ?? id).join(', ');
+	const orderSummary = enabledTabsInOrder.map((id) => TAB_CONFIG[id]?.title ?? id).join(', ');
 
 	return (
 		<>
@@ -142,7 +142,7 @@ export function TabOrderSetting() {
 											},
 										]}
 									>
-										{config.label}
+										{config.title}
 									</Text>
 								</View>
 								<View style={styles.tabActions}>

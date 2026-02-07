@@ -1,0 +1,30 @@
+import { useCallback } from 'react';
+import { useLibraryStore } from '@/src/application/state/library-store';
+import { useDownloadStore } from '@/src/application/state/download-store';
+import { useHistoryStore } from '@/src/application/state/history-store';
+import { useSearchStore } from '@/src/application/state/search-store';
+import { useExploreFilterStore } from '@/src/application/state/explore-filter-store';
+import { useEqualizerStore } from '@/src/application/state/equalizer-store';
+import { useSettingsStore } from '@/src/application/state/settings-store';
+import { clearAllDownloads } from '@/src/infrastructure/filesystem/download-manager';
+import { useToast } from '@/src/hooks/use-toast';
+
+export function useFactoryReset() {
+	const { success } = useToast();
+
+	const factoryReset = useCallback(async () => {
+		await clearAllDownloads();
+		useDownloadStore.getState().clearAll();
+		useLibraryStore.getState().clearLibrary();
+		useHistoryStore.getState().clearHistory();
+		useSearchStore.getState().clearResults();
+		useSearchStore.getState().clearRecentSearches();
+		useExploreFilterStore.getState().clearAll();
+		useEqualizerStore.getState().resetEqualizer();
+		useSettingsStore.getState().resetAllSettings();
+
+		success('Factory reset complete', 'All data has been cleared and settings reset');
+	}, [success]);
+
+	return { factoryReset };
+}

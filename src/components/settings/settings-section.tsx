@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
 		letterSpacing: 0.5,
 	},
 	content: {
-		borderRadius: 16,
+		borderRadius: 24,
 		overflow: 'hidden',
 	},
 });

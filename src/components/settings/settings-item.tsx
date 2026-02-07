@@ -59,9 +59,7 @@ export const SettingsItem = memo(function SettingsItem({
 		);
 	}, [rightElement, showChevron, colors.onSurfaceVariant]);
 
-	const renderDescription = subtitleElement
-		? () => subtitleElement
-		: subtitle || undefined;
+	const renderDescription = subtitleElement ? () => subtitleElement : subtitle || undefined;
 
 	return (
 		<List.Item
