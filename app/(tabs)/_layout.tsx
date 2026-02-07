@@ -2,11 +2,7 @@ import { useEffect, useRef, useCallback, useMemo, useState, memo } from 'react';
 import { Tabs, router } from 'expo-router';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, {
-	useAnimatedStyle,
-	useSharedValue,
-	withSpring,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useAppTheme } from '@/lib/theme';
 import { useDownloadQueue } from '@/src/hooks/use-download-queue';
 import {
@@ -20,7 +16,7 @@ import {
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { TAB_CONFIG, TAB_BAR_HEIGHT } from '@/lib/tab-config';
 import { LottieTabIcon } from '@/src/components/ui/lottie-tab-icon';
-import { SearchFAB } from '@/src/components/search/search-fab';
+import { StaticTabIcon } from '@/src/components/ui/static-tab-icon';
 
 const TAB_WIDTH = 84;
 const TAB_GAP = 12;
@@ -85,7 +81,7 @@ export default function TabLayout() {
 			const config = TAB_CONFIG[targetTab];
 			if (config) {
 				const timeoutId = setTimeout(() => {
-					router.replace(config.route as '/' | '/downloads' | '/settings');
+					router.replace(config.route as '/' | '/downloads' | '/search' | '/settings');
 				}, 50);
 				return () => clearTimeout(timeoutId);
 			}
@@ -103,29 +99,18 @@ export default function TabLayout() {
 	);
 
 	return (
-		<>
-			<Tabs
-				screenOptions={screenOptions}
-				tabBar={(props) => <CustomTabBar {...props} tabOrder={validTabOrder} />}
-			>
-				{validTabOrder.map((tabId) => {
-					const config = TAB_CONFIG[tabId];
-					if (!config) return null;
+		<Tabs
+			screenOptions={screenOptions}
+			tabBar={(props) => <CustomTabBar {...props} tabOrder={validTabOrder} />}
+		>
+			{validTabOrder.map((tabId) => {
+				const config = TAB_CONFIG[tabId];
 
-					return (
-						<Tabs.Screen
-							key={tabId}
-							name={tabId}
-							options={{
-								title: config.label,
-								href: config.route as '/' | '/downloads' | '/settings',
-							}}
-						/>
-					);
-				})}
-			</Tabs>
-			<SearchFAB />
-		</>
+				if (!config) return null;
+
+				return <Tabs.Screen key={tabId} name={tabId} options={config} />;
+			})}
+		</Tabs>
 	);
 }
 
@@ -149,8 +134,7 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 	useEffect(() => {
 		const newVisualIndex = tabOrder.indexOf(currentRouteName);
 		if (newVisualIndex >= 0) {
-			const newX =
-				newVisualIndex * (TAB_WIDTH + TAB_GAP) + (TAB_WIDTH - INDICATOR_WIDTH) / 2;
+			const newX = newVisualIndex * (TAB_WIDTH + TAB_GAP) + (TAB_WIDTH - INDICATOR_WIDTH) / 2;
 			indicatorX.value = withSpring(newX, {
 				damping: 25,
 				stiffness: 180,
@@ -167,8 +151,7 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 
 	const handleTabPress = useCallback(
 		(visualIdx: number, routeIndex: number, routeName: string) => {
-			const newX =
-				visualIdx * (TAB_WIDTH + TAB_GAP) + (TAB_WIDTH - INDICATOR_WIDTH) / 2;
+			const newX = visualIdx * (TAB_WIDTH + TAB_GAP) + (TAB_WIDTH - INDICATOR_WIDTH) / 2;
 			indicatorX.value = withSpring(newX, {
 				damping: 25,
 				stiffness: 180,
@@ -211,7 +194,7 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 
 					{tabOrder.map((tabId, visualIdx) => {
 						const config = TAB_CONFIG[tabId];
-						if (!config?.lottieSource) return null;
+						if (!config) return null;
 						const route = state.routes.find((r) => r.name === tabId);
 						if (!route) return null;
 						const routeIndex = state.routes.indexOf(route);
@@ -225,18 +208,27 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 								onPress={() => handleTabPress(visualIdx, routeIndex, tabId)}
 								style={styles.tabButton}
 								accessibilityRole="tab"
-								accessibilityLabel={config.label}
+								accessibilityLabel={config.title}
 								accessibilityState={{ selected: isFocused }}
 							>
-								<LottieTabIcon
-									source={config.lottieSource}
-									isFocused={isFocused}
-									focusedColor={colors.primary}
-									inactiveColor={colors.onSurfaceVariant}
-									badgeCount={downloadBadgeCount}
-								/>
+								{config.lottieSource ? (
+									<LottieTabIcon
+										source={config.lottieSource}
+										isFocused={isFocused}
+										focusedColor={colors.primary}
+										inactiveColor={colors.onSurfaceVariant}
+										badgeCount={downloadBadgeCount}
+									/>
+								) : (
+									<StaticTabIcon
+										icon={config.icon}
+										isFocused={isFocused}
+										focusedColor={colors.primary}
+										inactiveColor={colors.onSurfaceVariant}
+									/>
+								)}
 								<TabLabel
-									label={config.label}
+									label={config.title ?? ''}
 									isFocused={isFocused}
 									color={colors.primary}
 								/>

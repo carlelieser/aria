@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
+import { useCallback, useMemo, useState, useRef } from 'react';
 import { View, StyleSheet, TextInput, Pressable } from 'react-native';
 import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
 import { PageLayout } from '@/src/components/ui/page-layout';
@@ -20,16 +20,11 @@ import { Icon } from '@/src/components/ui/icon';
 import { EmptyState } from '@/src/components/ui/empty-state';
 import { TrackListSkeleton } from '@/src/components/skeletons';
 import { ResultGroup, UnifiedFilterSheet } from '@/src/components/unified-search';
-import { SortFilterFAB } from '@/src/components/library/sort-filter-fab';
+import { SortFilterFAB } from '@/src/components/sort-filter/sort-filter-fab';
 import { BatchActionBar } from '@/src/components/selection/batch-action-bar';
 import { BatchPlaylistPicker } from '@/src/components/playlist/batch-playlist-picker';
-import {
-	CuratedSection,
-	LibraryResults,
-	ExploreResults,
-} from '@/src/components/search';
-import { useRecentlyPlayed, useHasHistory } from '@/src/application/state/history-store';
-import { useFavoriteTracks, useRecentlyAddedTracks, useTracks } from '@/src/application/state/library-store';
+import { CuratedSection, LibraryResults, ExploreResults } from '@/src/components/search';
+import { useCuratedContent } from '@/src/hooks/use-curated-content';
 import { useUnifiedSearch } from '@/src/hooks/use-unified-search';
 import { useSelection } from '@/src/hooks/use-selection';
 import { useBatchHandlers } from '@/src/hooks/use-batch-handlers';
@@ -46,25 +41,7 @@ export default function SearchScreen() {
 	const [selectionSource, setSelectionSource] = useState<'library' | 'explore'>('library');
 	const searchInputRef = useRef<TextInput>(null);
 
-	useEffect(() => {
-		const timeoutId = setTimeout(() => {
-			searchInputRef.current?.focus();
-		}, 100);
-		return () => clearTimeout(timeoutId);
-	}, []);
-
-	const recentlyPlayedHistory = useRecentlyPlayed(10);
-	const allTracks = useTracks();
-	const favoriteTracks = useFavoriteTracks();
-	const recentlyAdded = useRecentlyAddedTracks(10);
-	const hasHistory = useHasHistory();
-
-	const recentlyPlayed = useMemo(() => {
-		const trackMap = new Map(allTracks.map((t) => [t.id.value, t]));
-		return recentlyPlayedHistory.map((t) => trackMap.get(t.id.value) ?? t);
-	}, [recentlyPlayedHistory, allTracks]);
-
-	const hasCuratedContent = hasHistory || favoriteTracks.length > 0 || recentlyAdded.length > 0;
+	const { recentlyPlayed, favoriteTracks, recentlyAdded, hasCuratedContent } = useCuratedContent(10);
 
 	const {
 		query,
@@ -178,7 +155,6 @@ export default function SearchScreen() {
 				icon: SearchIcon,
 				title: 'Search',
 				showBorder: false,
-				showBack: true,
 			}}
 		>
 			<View style={styles.searchContainer}>
@@ -312,11 +288,25 @@ export default function SearchScreen() {
 											}
 										>
 											<LibraryResults
-												tracks={libraryTracks.slice(0, MAX_RESULTS_PER_SECTION)}
-												playlists={libraryPlaylists.slice(0, MAX_RESULTS_PER_SECTION)}
-												albums={libraryAlbums.slice(0, MAX_RESULTS_PER_SECTION)}
-												artists={libraryArtists.slice(0, MAX_RESULTS_PER_SECTION)}
-												isSelectionMode={isSelectionMode && selectionSource === 'library'}
+												tracks={libraryTracks.slice(
+													0,
+													MAX_RESULTS_PER_SECTION
+												)}
+												playlists={libraryPlaylists.slice(
+													0,
+													MAX_RESULTS_PER_SECTION
+												)}
+												albums={libraryAlbums.slice(
+													0,
+													MAX_RESULTS_PER_SECTION
+												)}
+												artists={libraryArtists.slice(
+													0,
+													MAX_RESULTS_PER_SECTION
+												)}
+												isSelectionMode={
+													isSelectionMode && selectionSource === 'library'
+												}
 												selectedTrackIds={selectedTrackIds}
 												onLongPress={handleLibraryLongPress}
 												onSelectionToggle={handleLibrarySelectionToggle}
@@ -347,11 +337,16 @@ export default function SearchScreen() {
 															track={track}
 															source="library"
 															isSelectionMode={
-																isSelectionMode && selectionSource === 'library'
+																isSelectionMode &&
+																selectionSource === 'library'
 															}
-															isSelected={selectedTrackIds.has(track.id.value)}
+															isSelected={selectedTrackIds.has(
+																track.id.value
+															)}
 															onLongPress={handleLibraryLongPress}
-															onSelectionToggle={handleLibrarySelectionToggle}
+															onSelectionToggle={
+																handleLibrarySelectionToggle
+															}
 															queue={downloadsTracks}
 															queueIndex={index}
 														/>
@@ -378,11 +373,21 @@ export default function SearchScreen() {
 												<TrackListSkeleton count={3} />
 											) : (
 												<ExploreResults
-													tracks={exploreTracks.slice(0, MAX_RESULTS_PER_SECTION)}
-													albums={exploreAlbums.slice(0, MAX_RESULTS_PER_SECTION)}
-													artists={exploreArtists.slice(0, MAX_RESULTS_PER_SECTION)}
+													tracks={exploreTracks.slice(
+														0,
+														MAX_RESULTS_PER_SECTION
+													)}
+													albums={exploreAlbums.slice(
+														0,
+														MAX_RESULTS_PER_SECTION
+													)}
+													artists={exploreArtists.slice(
+														0,
+														MAX_RESULTS_PER_SECTION
+													)}
 													isSelectionMode={
-														isSelectionMode && selectionSource === 'explore'
+														isSelectionMode &&
+														selectionSource === 'explore'
 													}
 													selectedTrackIds={selectedTrackIds}
 													onLongPress={handleExploreLongPress}

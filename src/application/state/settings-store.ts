@@ -3,20 +3,20 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
-export type TabId = 'index' | 'downloads' | 'settings';
+export type TabId = 'index' | 'downloads' | 'search' | 'settings';
 export type DefaultTab = TabId;
 export type LibraryTabId = 'songs' | 'playlists' | 'artists' | 'albums';
 
-export const DEFAULT_TAB_ORDER: TabId[] = ['downloads', 'index', 'settings'];
-export const DEFAULT_ENABLED_TABS: TabId[] = ['downloads', 'index', 'settings'];
+export const DEFAULT_TAB_ORDER: TabId[] = ['index', 'search', 'downloads', 'settings'];
+export const DEFAULT_ENABLED_TABS: TabId[] = ['index', 'search', 'downloads', 'settings'];
 export const REQUIRED_TABS: TabId[] = ['settings'];
 
 /**
  * Migrates legacy tab IDs for existing users.
- * Removes 'explore' and 'search' tabs that no longer exist.
+ * Removes 'explore' tab that no longer exists.
  */
 function migrateTabId(tabId: string): TabId | null {
-	if (tabId === 'explore' || tabId === 'search') return null;
+	if (tabId === 'explore') return null;
 	return tabId as TabId;
 }
 
@@ -120,24 +120,38 @@ export const useSettingsStore = create<SettingsState>()(
 		{
 			name: 'aria-settings-storage',
 			storage: createJSONStorage(() => customStorage),
-			version: 2,
+			version: 3,
 			migrate: (persistedState, version) => {
 				const state = persistedState as Partial<SettingsState>;
-				// Version 0/1 -> 2: Remove 'explore' and 'search' tabs (now a modal)
+				// Version 0/1 -> 2: Remove 'explore' tab
 				if (version < 2) {
 					const migratedDefaultTab = state.defaultTab
 						? migrateTabId(state.defaultTab)
 						: null;
-					return {
-						...state,
-						defaultTab: migratedDefaultTab ?? 'index',
-						tabOrder: state.tabOrder
-							? migrateTabIds(state.tabOrder)
-							: DEFAULT_TAB_ORDER,
-						enabledTabs: state.enabledTabs
-							? migrateTabIds(state.enabledTabs)
-							: DEFAULT_ENABLED_TABS,
-					};
+					state.defaultTab = (migratedDefaultTab ?? 'index') as DefaultTab;
+					state.tabOrder = state.tabOrder
+						? migrateTabIds(state.tabOrder)
+						: DEFAULT_TAB_ORDER;
+					state.enabledTabs = state.enabledTabs
+						? migrateTabIds(state.enabledTabs)
+						: DEFAULT_ENABLED_TABS;
+				}
+				// Version 2 -> 3: Add 'search' tab for existing users
+				if (version < 3) {
+					const tabOrder = state.tabOrder ?? DEFAULT_TAB_ORDER;
+					const enabledTabs = state.enabledTabs ?? DEFAULT_ENABLED_TABS;
+					if (!tabOrder.includes('search')) {
+						const settingsIdx = tabOrder.indexOf('settings');
+						const insertIdx = settingsIdx >= 0 ? settingsIdx : tabOrder.length;
+						state.tabOrder = [
+							...tabOrder.slice(0, insertIdx),
+							'search',
+							...tabOrder.slice(insertIdx),
+						];
+					}
+					if (!enabledTabs.includes('search')) {
+						state.enabledTabs = [...enabledTabs, 'search'];
+					}
 				}
 				return state as SettingsState;
 			},

@@ -28,12 +28,11 @@ import { useCurrentTrack, usePlaybackStatus } from '@/src/application/state/play
 import { getArtistNames } from '@/src/domain/entities/track';
 import { getLargestArtwork } from '@/src/domain/value-objects/artwork';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
-import { TAB_BAR_HEIGHT } from '@/lib/tab-config';
+import { TAB_BAR_HEIGHT, TAB_ROUTES } from '@/lib/tab-config';
 
 const AnimatedSurface = Animated.createAnimatedComponent(Surface);
 
 export const FLOATING_PLAYER_HEIGHT = 64;
-const TAB_ROUTES = ['/', '/explore', '/downloads', '/settings'];
 
 export function FloatingPlayer() {
 	const pathname = usePathname();
@@ -94,11 +93,7 @@ export function FloatingPlayer() {
 	}, [togglePlayPause]);
 
 	const containerStyle = useMemo(
-		() => [
-			styles.container,
-			{ bottom: bottomOffset },
-			animatedStyle,
-		],
+		() => [styles.container, { bottom: bottomOffset }, animatedStyle],
 		[bottomOffset, animatedStyle]
 	);
 
