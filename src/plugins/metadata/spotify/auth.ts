@@ -1,4 +1,9 @@
-import { getRandomBytes, digestStringAsync, CryptoDigestAlgorithm, CryptoEncoding } from 'expo-crypto';
+import {
+	getRandomBytes,
+	digestStringAsync,
+	CryptoDigestAlgorithm,
+	CryptoEncoding,
+} from 'expo-crypto';
 import { BaseAuthManager, type BaseAuthState } from '@shared/auth';
 import type { Result } from '@shared/types/result';
 import { ok, err } from '@shared/types/result';
@@ -64,7 +69,7 @@ export class SpotifyAuthManager extends BaseAuthManager<StoredAuth, AuthState> {
 		const codeChallenge = await digestStringAsync(
 			CryptoDigestAlgorithm.SHA256,
 			this._codeVerifier,
-			{ encoding: CryptoEncoding.BASE64 },
+			{ encoding: CryptoEncoding.BASE64 }
 		);
 		const codeChallengeSafe = codeChallenge
 			.replace(/\+/g, '-')
@@ -175,15 +180,13 @@ export class SpotifyAuthManager extends BaseAuthManager<StoredAuth, AuthState> {
 		if (!result.success) return err(result.error);
 
 		this.persistCredentials().catch((e) =>
-			logger.error('Failed to persist credentials', e instanceof Error ? e : undefined),
+			logger.error('Failed to persist credentials', e instanceof Error ? e : undefined)
 		);
 
 		return ok(this.accessToken!);
 	}
 
-	private async _tokenRequest(
-		params: Record<string, string>,
-	): Promise<Result<void, Error>> {
+	private async _tokenRequest(params: Record<string, string>): Promise<Result<void, Error>> {
 		try {
 			const body = new URLSearchParams({
 				...params,

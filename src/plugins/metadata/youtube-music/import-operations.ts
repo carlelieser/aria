@@ -23,9 +23,7 @@ export interface ImportOperations {
 	cancelImport(): void;
 }
 
-export function createImportOperations(
-	library: YouTubeMusicLibraryOperations
-): ImportOperations {
+export function createImportOperations(library: YouTubeMusicLibraryOperations): ImportOperations {
 	let cancelled = false;
 
 	return {

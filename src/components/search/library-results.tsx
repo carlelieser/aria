@@ -1,9 +1,4 @@
-import {
-	MusicIcon,
-	ListMusicIcon,
-	DiscIcon,
-	UsersIcon,
-} from 'lucide-react-native';
+import { MusicIcon, ListMusicIcon, DiscIcon, UsersIcon } from 'lucide-react-native';
 import { SelectableTrackListItem } from '@/src/components/media-list/selectable-track-list-item';
 import { AlbumListItem } from '@/src/components/media-list/album-list-item';
 import { ArtistListItem } from '@/src/components/media-list/artist-list-item';

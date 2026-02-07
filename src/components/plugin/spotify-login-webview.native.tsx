@@ -7,11 +7,7 @@
 
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import {
-	OAuthLoginWebView,
-	type OAuthLoginConfig,
-	type WebViewNavigation,
-} from '@shared/auth';
+import { OAuthLoginWebView, type OAuthLoginConfig, type WebViewNavigation } from '@shared/auth';
 import { SPOTIFY_REDIRECT_URI } from '@/src/plugins/metadata/spotify/config';
 import { PluginRegistry } from '@/src/plugins/core/registry/plugin-registry';
 import type { SpotifyLibraryProvider } from '@/src/plugins/metadata/spotify/spotify-provider';
@@ -89,7 +85,7 @@ export const SpotifyLoginWebView = memo(function SpotifyLoginWebView({
 				onCancel();
 			}
 		},
-		[onSuccess, onCancel],
+		[onSuccess, onCancel]
 	);
 
 	const checkCookies = useCallback(async (): Promise<string | null> => {

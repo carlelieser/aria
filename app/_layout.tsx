@@ -30,7 +30,6 @@ SplashScreen.hide();
 lazyBootstrap();
 enableFreeze(true);
 
-
 function AppContent() {
 	const { colors, isDark } = useAppTheme();
 	const [isReady, setIsReady] = useState(false);

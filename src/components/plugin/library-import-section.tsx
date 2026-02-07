@@ -11,10 +11,7 @@ import { Text, Button } from 'react-native-paper';
 import { SettingsSection } from '@/src/components/settings/settings-section';
 import { useAppTheme } from '@/lib/theme';
 import { useIsPluginEnabled } from '@/src/application/state/plugin-settings-store';
-import {
-	useIsImporting,
-	useLastImportedAt,
-} from '@/src/application/state/library-import-store';
+import { useIsImporting, useLastImportedAt } from '@/src/application/state/library-import-store';
 import { PluginRegistry } from '@/src/plugins/core/registry/plugin-registry';
 
 interface LibraryImportSectionProps {

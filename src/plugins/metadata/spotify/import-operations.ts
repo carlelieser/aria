@@ -63,7 +63,11 @@ export function createImportOperations(
 
 						const { items, total } = result.data;
 						const totalCount = total ?? 0;
-						store.updateProgress('tracks', Math.min(offset + items.length, totalCount), totalCount);
+						store.updateProgress(
+							'tracks',
+							Math.min(offset + items.length, totalCount),
+							totalCount
+						);
 						libraryService.addTracks(items);
 						tracksImported += items.length;
 						hasMore = result.data.hasMore;
@@ -98,7 +102,9 @@ export function createImportOperations(
 								album.name
 							);
 
-							const tracksResult = await info.getAlbumTracks(album.id.value, { limit: 50 });
+							const tracksResult = await info.getAlbumTracks(album.id.value, {
+								limit: 50,
+							});
 							if (tracksResult.success) {
 								libraryService.addTracks(tracksResult.data.items);
 								albumsImported++;
@@ -121,7 +127,10 @@ export function createImportOperations(
 					while (hasMore && !cancelled) {
 						const playlistsResult = await library.getUserPlaylists({ limit, offset });
 						if (!playlistsResult.success) {
-							store.addError(`Playlists page ${offset}`, playlistsResult.error.message);
+							store.addError(
+								`Playlists page ${offset}`,
+								playlistsResult.error.message
+							);
 							logger.error('Failed to fetch user playlists', playlistsResult.error);
 							break;
 						}

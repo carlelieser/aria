@@ -9,7 +9,13 @@ import { memo, useCallback, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, Platform, Modal, Pressable } from 'react-native';
 import { Text, ActivityIndicator, IconButton } from 'react-native-paper';
 import { WebView, type WebViewNavigation } from 'react-native-webview';
-import { XIcon, RefreshCwIcon, MoreVerticalIcon, CheckCircleIcon, ClockIcon } from 'lucide-react-native';
+import {
+	XIcon,
+	RefreshCwIcon,
+	MoreVerticalIcon,
+	CheckCircleIcon,
+	ClockIcon,
+} from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/lib/theme';
 import { Button } from '@/src/components/ui/button';
@@ -69,7 +75,7 @@ export const OAuthLoginWebView = memo(function OAuthLoginWebView({
 			redirectScheme
 				? ['https://*', 'http://*', `${redirectScheme}://*`]
 				: ['https://*', 'http://*'],
-		[redirectScheme],
+		[redirectScheme]
 	);
 
 	const { isPolling, pollingTimedOut, startPolling, stopPolling, reset, manualCheck } =
@@ -87,7 +93,7 @@ export const OAuthLoginWebView = memo(function OAuthLoginWebView({
 			}
 			return true;
 		},
-		[config.redirectUri, onSuccess, stopPolling],
+		[config.redirectUri, onSuccess, stopPolling]
 	);
 
 	const handleNavigationStateChange = useCallback(
@@ -115,7 +121,7 @@ export const OAuthLoginWebView = memo(function OAuthLoginWebView({
 				startPolling();
 			}
 		},
-		[onNavigate, config, startPolling, stopPolling, onSuccess],
+		[onNavigate, config, startPolling, stopPolling, onSuccess]
 	);
 
 	const handleLoadEnd = useCallback(() => {

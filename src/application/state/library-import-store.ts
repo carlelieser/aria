@@ -28,7 +28,12 @@ interface LibraryImportState {
 	lastImportedAt: Record<string, number>;
 
 	startImport: (pluginId: string) => void;
-	updateProgress: (phase: ImportPhase, current: number, total: number, currentItem?: string) => void;
+	updateProgress: (
+		phase: ImportPhase,
+		current: number,
+		total: number,
+		currentItem?: string
+	) => void;
 	addError: (item: string, error: string) => void;
 	completeImport: () => void;
 	resetImport: () => void;

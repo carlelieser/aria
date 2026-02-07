@@ -61,12 +61,16 @@ export function createLibraryOperations(
 				const allTracks: Track[] = [];
 
 				const libraryObj = library as unknown as Continuable;
-				allTracks.push(...extractTracksFromShelves(libraryObj.contents as unknown[] | undefined));
+				allTracks.push(
+					...extractTracksFromShelves(libraryObj.contents as unknown[] | undefined)
+				);
 
 				let continuation: Continuable = libraryObj;
 				while (continuation.has_continuation) {
 					const next = await continuation.getContinuation();
-					allTracks.push(...extractTracksFromShelves(next.contents as unknown[] | undefined));
+					allTracks.push(
+						...extractTracksFromShelves(next.contents as unknown[] | undefined)
+					);
 					continuation = next;
 				}
 

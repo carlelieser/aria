@@ -10,7 +10,7 @@ export interface LoginWebViewProps {
 type LoginWebViewComponent = ComponentType<LoginWebViewProps>;
 
 const LOGIN_WEBVIEWS: Record<string, LoginWebViewComponent> = {
-	'spotify': SpotifyLoginWebView,
+	spotify: SpotifyLoginWebView,
 	'youtube-music': YouTubeMusicLoginWebView,
 };
 

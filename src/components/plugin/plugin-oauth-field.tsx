@@ -15,7 +15,10 @@ import { Button } from '@/src/components/ui/button';
 import { getLoginWebView } from '@/src/components/plugin/login-webview-registry';
 import { useAppTheme } from '@/lib/theme';
 import { PluginRegistry } from '@/src/plugins/core/registry/plugin-registry';
-import { isOAuthCapable, type OAuthCapablePlugin } from '@/src/plugins/core/interfaces/oauth-capable-plugin';
+import {
+	isOAuthCapable,
+	type OAuthCapablePlugin,
+} from '@/src/plugins/core/interfaces/oauth-capable-plugin';
 import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plugin';
 
 const DEFAULT_OAUTH_ICON = LinkIcon;
@@ -115,7 +118,7 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 				setIsLoading(false);
 			}
 		},
-		[getPlugin],
+		[getPlugin]
 	);
 
 	const handleLoginCancel = useCallback(() => {
@@ -180,10 +183,7 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 				onRequestClose={handleLoginCancel}
 			>
 				{LoginComponent && (
-					<LoginComponent
-						onSuccess={handleLoginSuccess}
-						onCancel={handleLoginCancel}
-					/>
+					<LoginComponent onSuccess={handleLoginSuccess} onCancel={handleLoginCancel} />
 				)}
 			</Modal>
 		</View>

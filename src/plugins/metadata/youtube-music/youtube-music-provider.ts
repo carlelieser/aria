@@ -38,14 +38,18 @@ import { createSearchOperations, SearchOperations } from './search';
 import { createInfoOperations, InfoOperations } from './info';
 import { createStreamingOperations, StreamingOperations } from './streaming';
 import { createRecommendationOperations, RecommendationOperations } from './recommendations';
-import { createLibraryOperations as createYTLibraryOperations, type YouTubeMusicLibraryOperations } from './library';
+import {
+	createLibraryOperations as createYTLibraryOperations,
+	type YouTubeMusicLibraryOperations,
+} from './library';
 import { createImportOperations, type ImportOperations } from './import-operations';
 
 installEvaluator();
 
 const logger = getLogger('YouTubeMusic');
 
-export interface YouTubeMusicLibraryProvider extends MetadataProvider, AudioSourceProvider, OAuthCapablePlugin {
+export interface YouTubeMusicLibraryProvider
+	extends MetadataProvider, AudioSourceProvider, OAuthCapablePlugin {
 	readonly import: ImportOperations;
 }
 

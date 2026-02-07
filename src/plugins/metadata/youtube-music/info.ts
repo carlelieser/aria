@@ -121,8 +121,10 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 					| undefined;
 
 				// Helper to extract browseId from various endpoint structures
-				const getBrowseId = (endpoint?: { browseId?: string; payload?: { browseId?: string } }) =>
-					endpoint?.browseId || endpoint?.payload?.browseId;
+				const getBrowseId = (endpoint?: {
+					browseId?: string;
+					payload?: { browseId?: string };
+				}) => endpoint?.browseId || endpoint?.payload?.browseId;
 
 				// Try header.strapline_text_one.runs first (this is where artist info typically lives)
 				if ((!artists || artists.length === 0) && info.header?.strapline_text_one?.runs) {
@@ -241,10 +243,16 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 					thumbnails?: import('./types').YouTubeThumbnail[];
 					header?: {
 						subtitle?: {
-							runs?: { text?: string; endpoint?: { browseId?: string; payload?: { browseId?: string } } }[];
+							runs?: {
+								text?: string;
+								endpoint?: { browseId?: string; payload?: { browseId?: string } };
+							}[];
 						};
 						strapline_text_one?: {
-							runs?: { text?: string; endpoint?: { browseId?: string; payload?: { browseId?: string } } }[];
+							runs?: {
+								text?: string;
+								endpoint?: { browseId?: string; payload?: { browseId?: string } };
+							}[];
 						};
 						thumbnails?: import('./types').YouTubeThumbnail[];
 					};
@@ -255,8 +263,10 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 				}
 
 				// Helper to extract browseId from various endpoint structures
-				const getBrowseId = (endpoint?: { browseId?: string; payload?: { browseId?: string } }) =>
-					endpoint?.browseId || endpoint?.payload?.browseId;
+				const getBrowseId = (endpoint?: {
+					browseId?: string;
+					payload?: { browseId?: string };
+				}) => endpoint?.browseId || endpoint?.payload?.browseId;
 
 				// Extract album-level artists to use as fallback for tracks
 				let albumArtists: import('./types').YouTubeArtist[] | undefined = info.artists;
@@ -311,7 +321,9 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 			try {
 				const client = await clientManager.getClient();
 				const artistInfo = await client.music.getArtist(artistId);
-				const info = artistInfo as { sections?: { contents?: unknown[]; title?: { text?: string } }[] };
+				const info = artistInfo as {
+					sections?: { contents?: unknown[]; title?: { text?: string } }[];
+				};
 
 				if (!artistInfo || !info.sections) {
 					return ok(emptySearchResults());

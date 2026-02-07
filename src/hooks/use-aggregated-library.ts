@@ -171,11 +171,7 @@ export function useAggregatedArtists(): UniqueArtist[] {
 
 	const totalCount = libraryTracks.length + Object.keys(localArtists).length;
 
-	return useDeferredArtists(
-		computeFn,
-		[libraryTracks, localArtists, localTracks],
-		totalCount
-	);
+	return useDeferredArtists(computeFn, [libraryTracks, localArtists, localTracks], totalCount);
 }
 
 function computeAggregatedAlbums(

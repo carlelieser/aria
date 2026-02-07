@@ -1,6 +1,9 @@
 import { useMemo } from 'react';
 import type { Track } from '@/src/domain/entities/track';
-import { extractUniqueArtistsFromItems, extractUniqueAlbumsFromItems } from '@/src/domain/utils/core-filtering';
+import {
+	extractUniqueArtistsFromItems,
+	extractUniqueAlbumsFromItems,
+} from '@/src/domain/utils/core-filtering';
 
 export function useUniqueFilterOptions(tracks: readonly Track[]) {
 	const artists = useMemo(() => {
