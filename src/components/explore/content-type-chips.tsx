@@ -6,7 +6,7 @@
  */
 
 import { View, StyleSheet } from 'react-native';
-import { FilterChip } from '@/src/components/library/filter-chip';
+import { FilterChip } from '@/src/components/sort-filter/filter-chip';
 import type { SearchContentType } from '@/src/domain/utils/search-filtering';
 
 interface ContentTypeChipsProps {

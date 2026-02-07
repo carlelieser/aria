@@ -8,7 +8,7 @@
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
 import { Button } from 'react-native-paper';
-import { FilterChip } from './filter-chip';
+import { FilterChip } from '@/src/components/sort-filter/filter-chip';
 import { useAppTheme } from '@/lib/theme';
 import type { ArtistReference } from '@/src/domain/entities/artist';
 import type { AlbumReference } from '@/src/domain/entities/album';

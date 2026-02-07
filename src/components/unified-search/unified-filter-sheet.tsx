@@ -16,8 +16,12 @@ import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/typ
 import { Portal } from '@rn-primitives/portal';
 import { Text, Button, Divider } from 'react-native-paper';
 import Animated, { useAnimatedStyle, withTiming, useSharedValue } from 'react-native-reanimated';
-import { SortSection, LIBRARY_SORT_OPTIONS, EXPLORE_SORT_OPTIONS } from '@/src/components/library/sort-section';
-import { FilterSection } from '@/src/components/library/filter-section';
+import {
+	SortSection,
+	LIBRARY_SORT_OPTIONS,
+	EXPLORE_SORT_OPTIONS,
+} from '@/src/components/sort-filter/sort-section';
+import { FilterSection } from '@/src/components/sort-filter/filter-section';
 import { ContentTypeChips } from '@/src/components/explore/content-type-chips';
 import { useAppTheme } from '@/lib/theme';
 import type { SortField, SortDirection, LibraryFilters } from '@/src/domain/utils/track-filtering';
@@ -133,15 +137,32 @@ export function UnifiedFilterSheet({
 
 	const libraryToggles = useMemo(
 		() => [
-			{ label: 'Favorites only', value: libraryProps.activeFilters.favoritesOnly, onToggle: libraryProps.onToggleFavorites },
-			{ label: 'Downloaded only', value: libraryProps.activeFilters.downloadedOnly, onToggle: libraryProps.onToggleDownloaded },
+			{
+				label: 'Favorites only',
+				value: libraryProps.activeFilters.favoritesOnly,
+				onToggle: libraryProps.onToggleFavorites,
+			},
+			{
+				label: 'Downloaded only',
+				value: libraryProps.activeFilters.downloadedOnly,
+				onToggle: libraryProps.onToggleDownloaded,
+			},
 		],
-		[libraryProps.activeFilters.favoritesOnly, libraryProps.activeFilters.downloadedOnly, libraryProps.onToggleFavorites, libraryProps.onToggleDownloaded]
+		[
+			libraryProps.activeFilters.favoritesOnly,
+			libraryProps.activeFilters.downloadedOnly,
+			libraryProps.onToggleFavorites,
+			libraryProps.onToggleDownloaded,
+		]
 	);
 
 	const exploreToggles = useMemo(
 		() => [
-			{ label: 'Favorites only', value: exploreProps.activeFilters.favoritesOnly, onToggle: exploreProps.onToggleFavorites },
+			{
+				label: 'Favorites only',
+				value: exploreProps.activeFilters.favoritesOnly,
+				onToggle: exploreProps.onToggleFavorites,
+			},
 		],
 		[exploreProps.activeFilters.favoritesOnly, exploreProps.onToggleFavorites]
 	);
@@ -161,7 +182,11 @@ export function UnifiedFilterSheet({
 				/>
 			</View>
 		),
-		[exploreProps.activeFilters.contentType, exploreProps.onContentTypeChange, colors.onSurfaceVariant]
+		[
+			exploreProps.activeFilters.contentType,
+			exploreProps.onContentTypeChange,
+			colors.onSurfaceVariant,
+		]
 	);
 
 	if (!isOpen) {
