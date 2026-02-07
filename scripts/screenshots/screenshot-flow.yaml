@@ -42,7 +42,7 @@ appId: com.aria.music.app
 
 # Tap Screenshot Mode to load mock data
 - tapOn:
-      text: 'Screenshot Mode'
+      text: 'Screenshot mode'
       optional: true
 
 # Wait a moment for data to load
@@ -97,31 +97,23 @@ appId: com.aria.music.app
 - back
 
 # -----------------------------------------------------------------------------
-# Step 7: Explore Screen
-# -----------------------------------------------------------------------------
-
-- tapOn: 'Explore'
-- waitForAnimationToEnd
-- takeScreenshot: '06_explore'
-
-# -----------------------------------------------------------------------------
-# Step 8: Downloads Screen
+# Step 7: Downloads Screen
 # -----------------------------------------------------------------------------
 
 - tapOn: 'Downloads'
 - waitForAnimationToEnd
-- takeScreenshot: '07_downloads'
+- takeScreenshot: '06_downloads'
 
 # -----------------------------------------------------------------------------
-# Step 9: Settings Screen
+# Step 8: Settings Screen
 # -----------------------------------------------------------------------------
 
 - tapOn: 'Settings'
 - waitForAnimationToEnd
-- takeScreenshot: '08_settings'
+- takeScreenshot: '07_settings'
 
 # -----------------------------------------------------------------------------
-# Step 10: Player Screen - Play a track first
+# Step 9: Player Screen - Play a track first
 # -----------------------------------------------------------------------------
 
 - tapOn: 'Library'
@@ -135,14 +127,14 @@ appId: com.aria.music.app
       optional: true
 - waitForAnimationToEnd
 
-- takeScreenshot: '09_player'
+- takeScreenshot: '08_player'
 
 # Close player
 - back
 - waitForAnimationToEnd
 
 # -----------------------------------------------------------------------------
-# Step 11: Album Detail Screen
+# Step 10: Album Detail Screen
 # -----------------------------------------------------------------------------
 
 - tapOn:
@@ -152,11 +144,11 @@ appId: com.aria.music.app
       text: 'Neon Nights'
       optional: true
 - waitForAnimationToEnd
-- takeScreenshot: '10_album_detail'
+- takeScreenshot: '09_album_detail'
 - back
 
 # -----------------------------------------------------------------------------
-# Step 12: Artist Detail Screen
+# Step 11: Artist Detail Screen
 # -----------------------------------------------------------------------------
 
 - tapOn:
@@ -166,4 +158,4 @@ appId: com.aria.music.app
       text: 'The Midnight Echo'
       optional: true
 - waitForAnimationToEnd
-- takeScreenshot: '11_artist_detail'
+- takeScreenshot: '10_artist_detail'

@@ -71,13 +71,12 @@ fastlane/metadata/android/en-US/images/phoneScreenshots/
 | `02_library_albums.png`    | Library - Albums tab    |
 | `03_library_artists.png`   | Library - Artists tab   |
 | `04_library_playlists.png` | Library - Playlists tab |
-| `05_explore.png`           | Explore screen          |
+| `05_playlist_detail.png`   | Playlist detail view    |
 | `06_downloads.png`         | Downloads screen        |
 | `07_settings.png`          | Settings screen         |
 | `08_player.png`            | Full-screen player      |
 | `09_album_detail.png`      | Album detail view       |
 | `10_artist_detail.png`     | Artist detail view      |
-| `11_playlist_detail.png`   | Playlist detail view    |
 
 Dark mode variants have `_dark` suffix (e.g., `01_library_songs_dark.png`).
 
