@@ -8,18 +8,15 @@ import { PageLayout } from '@/src/components/ui/page-layout';
 import {
 	DownloadIcon,
 	TrashIcon,
-	HardDriveIcon,
 	CheckCircle2Icon,
 	AlertCircleIcon,
 } from 'lucide-react-native';
 import { DownloadListItem } from '@/src/components/downloads/download-list-item';
 import { SelectableDownloadListItem } from '@/src/components/downloads/selectable-download-list-item';
 import { BatchActionBar } from '@/src/components/selection/batch-action-bar';
-import { useDownloadQueue, formatFileSize } from '@/src/hooks/use-download-queue';
+import { useDownloadQueue } from '@/src/hooks/use-download-queue';
 import { useDownloadActions } from '@/src/hooks/use-download-actions';
-import { useDownloadStore } from '@/src/application/state/download-store';
-import { clearAllDownloads } from '@/src/infrastructure/filesystem/download-manager';
-import { useToast } from '@/src/hooks/use-toast';
+import { useClearDownloads } from '@/src/hooks/use-clear-downloads';
 import { useSelection } from '@/src/hooks/use-selection';
 import { useBatchActions } from '@/src/hooks/use-batch-actions';
 import { useResolvedTracks } from '@/src/hooks/use-resolved-track';
@@ -35,8 +32,8 @@ const DEFAULT_CONTENT_PADDING = 20;
 export default function DownloadsScreen() {
 	const [tabIndex, setTabIndex] = useState(0);
 	const [clearDialogVisible, setClearDialogVisible] = useState(false);
-	const { success, error } = useToast();
 	const { colors } = useAppTheme();
+	const { clearDownloads } = useClearDownloads();
 
 	const { activeDownloads, completedDownloads, failedDownloads, stats } = useDownloadQueue();
 	const { retryDownload } = useDownloadActions();
@@ -54,18 +51,10 @@ export default function DownloadsScreen() {
 
 	const { handleScroll, shadowStyle } = useTabShadow({ tabIndex });
 
-	const clearAll = useDownloadStore((state) => state.clearAll);
-
 	const handleClearAllDownloads = useCallback(async () => {
 		setClearDialogVisible(false);
-		const result = await clearAllDownloads();
-		if (result.success) {
-			clearAll();
-			success('Downloads cleared', 'All downloaded files have been removed');
-		} else {
-			error('Failed to clear downloads', result.error.message);
-		}
-	}, [clearAll, success, error]);
+		await clearDownloads();
+	}, [clearDownloads]);
 
 	const completedTrackIds = useMemo(
 		() => completedDownloads.map((d) => d.trackId),
@@ -143,13 +132,6 @@ export default function DownloadsScreen() {
 				rightActions: headerRightActions,
 			}}
 		>
-			<View style={[styles.statsRow, { borderBottomColor: colors.outlineVariant }]}>
-				<Icon as={HardDriveIcon} size={16} color={colors.onSurfaceVariant} />
-				<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
-					{formatFileSize(stats.totalSize)} used · {stats.completedCount} files
-				</Text>
-			</View>
-
 			<View style={styles.content}>
 				<TabsProvider defaultIndex={tabIndex} onChangeIndex={setTabIndex}>
 					<Tabs
@@ -336,14 +318,6 @@ function FailedDownloadsList({ downloads, onRetry, onScroll }: FailedDownloadsLi
 }
 
 const styles = StyleSheet.create({
-	statsRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 8,
-		paddingHorizontal: 16,
-		paddingVertical: 12,
-		borderBottomWidth: 1,
-	},
 	content: {
 		flex: 1,
 	},

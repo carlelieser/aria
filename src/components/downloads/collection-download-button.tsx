@@ -9,24 +9,18 @@
  * - Fully downloaded: Shows checkmark icon
  */
 
-import { memo, useMemo, useEffect } from 'react';
+import { memo, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
-import Animated, {
-	useSharedValue,
-	withTiming,
-	useAnimatedProps,
-} from 'react-native-reanimated';
-import { Svg, Circle } from 'react-native-svg';
 import { DownloadIcon, CheckIcon, PauseIcon } from 'lucide-react-native';
 import { IconButton, ActivityIndicator } from 'react-native-paper';
 import { Icon } from '@/src/components/ui/icon';
-import { useDownloadStore } from '@/src/application/state/download-store';
+import { ProgressRing } from '@/src/components/ui/progress-ring';
+import {
+	useCollectionDownloadState,
+	type DownloadState,
+} from '@/src/hooks/use-collection-download-state';
 import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
-
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-
-type DownloadState = 'none' | 'partial' | 'downloading' | 'complete';
 
 interface CollectionDownloadButtonProps {
 	readonly tracks: readonly Track[];
@@ -35,52 +29,6 @@ interface CollectionDownloadButtonProps {
 	readonly onDownload: () => void;
 	readonly onCancel?: () => void;
 	readonly size?: number;
-}
-
-function useCollectionDownloadState(tracks: readonly Track[]): {
-	state: DownloadState;
-	downloadedCount: number;
-	totalCount: number;
-} {
-	const downloadedTracks = useDownloadStore((s) => s.downloadedTracks);
-	const downloads = useDownloadStore((s) => s.downloads);
-
-	return useMemo(() => {
-		if (tracks.length === 0) {
-			return { state: 'none', downloadedCount: 0, totalCount: 0 };
-		}
-
-		let downloadedCount = 0;
-		let downloadingCount = 0;
-
-		for (const track of tracks) {
-			const trackId = track.id.value;
-			if (downloadedTracks.has(trackId)) {
-				downloadedCount++;
-			} else {
-				const info = downloads.get(trackId);
-				if (info && (info.status === 'pending' || info.status === 'downloading')) {
-					downloadingCount++;
-				}
-			}
-		}
-
-		const totalCount = tracks.length;
-
-		if (downloadingCount > 0) {
-			return { state: 'downloading', downloadedCount, totalCount };
-		}
-
-		if (downloadedCount === totalCount) {
-			return { state: 'complete', downloadedCount, totalCount };
-		}
-
-		if (downloadedCount > 0) {
-			return { state: 'partial', downloadedCount, totalCount };
-		}
-
-		return { state: 'none', downloadedCount, totalCount };
-	}, [tracks, downloadedTracks, downloads]);
 }
 
 export const CollectionDownloadButton = memo(function CollectionDownloadButton({
@@ -186,61 +134,6 @@ export const CollectionDownloadButton = memo(function CollectionDownloadButton({
 	);
 });
 
-interface ProgressRingProps {
-	progress: number;
-	size: number;
-	strokeWidth: number;
-	color: string;
-	backgroundColor: string;
-}
-
-const ProgressRing = memo(function ProgressRing({
-	progress,
-	size,
-	strokeWidth,
-	color,
-	backgroundColor,
-}: ProgressRingProps) {
-	const radius = (size - strokeWidth) / 2;
-	const circumference = 2 * Math.PI * radius;
-
-	const animatedProgress = useSharedValue(progress);
-
-	useEffect(() => {
-		animatedProgress.value = withTiming(progress, { duration: 300 });
-	}, [progress, animatedProgress]);
-
-	const animatedProps = useAnimatedProps(() => ({
-		strokeDashoffset: circumference * (1 - animatedProgress.value),
-	}));
-
-	return (
-		<Svg width={size} height={size} style={styles.progressRing}>
-			<Circle
-				cx={size / 2}
-				cy={size / 2}
-				r={radius}
-				stroke={backgroundColor}
-				strokeWidth={strokeWidth}
-				fill="none"
-			/>
-			<AnimatedCircle
-				cx={size / 2}
-				cy={size / 2}
-				r={radius}
-				stroke={color}
-				strokeWidth={strokeWidth}
-				fill="none"
-				strokeDasharray={circumference}
-				animatedProps={animatedProps}
-				strokeLinecap="round"
-				rotation={-90}
-				origin={`${size / 2}, ${size / 2}`}
-			/>
-		</Svg>
-	);
-});
-
 const styles = StyleSheet.create({
 	button: {
 		margin: 0,
@@ -258,9 +151,6 @@ const styles = StyleSheet.create({
 	partialContainer: {
 		alignItems: 'center',
 		justifyContent: 'center',
-	},
-	progressRing: {
-		position: 'absolute',
 	},
 	centerIcon: {
 		position: 'absolute',
