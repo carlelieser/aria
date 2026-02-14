@@ -23,13 +23,19 @@ async function handleDownloadableStream(
 	videoId: string,
 	quality: StreamQuality
 ): Promise<Result<AudioStream, Error>> {
-	const client = await clientManager.createFreshClient();
+	const client = await clientManager.getClient();
 	const cookies = await clientManager.getCookies();
 
 	logger.debug('Preferring downloadable format...');
 
 	const clientTypes = ['TV', 'ANDROID', 'IOS'] as const;
-	const adaptiveResult = await tryMultipleClientTypes(client, videoId, quality, clientTypes, cookies);
+	const adaptiveResult = await tryMultipleClientTypes(
+		client,
+		videoId,
+		quality,
+		clientTypes,
+		cookies
+	);
 
 	if (adaptiveResult) {
 		const { stream: adaptiveStream, contentLength } = adaptiveResult;
@@ -88,22 +94,33 @@ async function handleStreamingPlayback(
 	videoId: string,
 	quality: StreamQuality
 ): Promise<Result<AudioStream, Error>> {
-	const client = await clientManager.createFreshClient();
+	const client = await clientManager.getClient();
 	const cookies = await clientManager.getCookies();
 
 	logger.debug('Streaming playback: trying adaptive formats first...');
 
 	const playbackClients = ['TV', 'ANDROID', 'IOS'] as const;
-	const adaptiveResult = await tryMultipleClientTypes(client, videoId, quality, playbackClients, cookies);
+	const adaptiveResult = await tryMultipleClientTypes(
+		client,
+		videoId,
+		quality,
+		playbackClients,
+		cookies
+	);
 
 	if (adaptiveResult) {
 		const { stream: adaptiveStream, contentLength } = adaptiveResult;
 
+		// Return the adaptive URL directly for immediate playback.
+		// The native player (ExoPlayer/AVPlayer) handles HTTP streaming
+		// with headers natively, eliminating the need to download first.
 		logger.debug(
-			`Got adaptive stream, caching (expected: ${contentLength ?? 'unknown'} bytes)...`
+			`Returning adaptive stream directly for native playback ` +
+				`(expected: ${contentLength ?? 'unknown'} bytes)`
 		);
 
-		const cachedFile = await downloadToCache({
+		// Fire-and-forget background cache for subsequent plays
+		backgroundCacheStream({
 			url: adaptiveStream.url,
 			videoId,
 			headers: adaptiveStream.headers,
@@ -111,18 +128,7 @@ async function handleStreamingPlayback(
 			expectedSize: contentLength,
 		});
 
-		if (cachedFile) {
-			logger.debug('Audio cached successfully for playback');
-			return ok(
-				createAudioStream({
-					url: cachedFile,
-					format: adaptiveStream.format,
-					quality,
-				})
-			);
-		}
-
-		logger.debug('Caching failed, will try HLS fallback...');
+		return ok(adaptiveStream);
 	}
 
 	logger.debug('Adaptive formats failed, trying HLS...');
@@ -177,6 +183,31 @@ async function handleStreamingPlayback(
 	return err(new Error('No streaming data available - all format attempts failed'));
 }
 
+/**
+ * Background cache for audio streams. Runs asynchronously without
+ * blocking playback. Errors are logged but do not affect playback.
+ */
+function backgroundCacheStream(options: {
+	readonly url: string;
+	readonly videoId: string;
+	readonly headers?: Record<string, string>;
+	readonly cookies?: string;
+	readonly expectedSize?: number;
+}): void {
+	downloadToCache(options)
+		.then((cachedFile) => {
+			if (cachedFile) {
+				logger.debug(`Background cache complete: ${options.videoId}`);
+			}
+		})
+		.catch((error) => {
+			logger.debug(
+				`Background cache failed for ${options.videoId}: ` +
+					`${error instanceof Error ? error.message : String(error)}`
+			);
+		});
+}
+
 export function createStreamingOperations(clientManager: ClientManager): StreamingOperations {
 	return {
 		async getStreamUrl(
@@ -190,20 +221,19 @@ export function createStreamingOperations(clientManager: ClientManager): Streami
 
 				logger.debug('Getting stream URL for video:', videoId);
 
-				// Only use cache for downloads (preferDownloadable), not for streaming
-				// Cached files from HLS downloads are fMP4 which don't support seeking
-				// For streaming, we use HLS directly which supports seeking natively
-				if (preferDownloadable) {
-					const cachedPath = await checkCache(videoId);
-					if (cachedPath) {
-						return ok(
-							createAudioStream({
-								url: cachedPath,
-								format: 'm4a',
-								quality,
-							})
-						);
-					}
+				// Check file cache for both streaming and download paths.
+				// Background caching from previous plays means the file is
+				// already on-disk and can be served instantly.
+				const cachedPath = await checkCache(videoId);
+				if (cachedPath) {
+					logger.debug('Using cached audio file for playback');
+					return ok(
+						createAudioStream({
+							url: cachedPath,
+							format: 'm4a',
+							quality,
+						})
+					);
 				}
 
 				const cookies = await clientManager.getCookies();
