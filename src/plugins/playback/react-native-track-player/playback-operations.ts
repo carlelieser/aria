@@ -72,11 +72,6 @@ export class PlaybackOperations {
 				await TrackPlayer.play();
 				logger.debug('TrackPlayer.play() returned');
 
-				const state = await TrackPlayer.getPlaybackState();
-				logger.debug('Actual playback state after play():', state.state);
-				const activeTrack = await TrackPlayer.getActiveTrack();
-				logger.debug('Active track:', activeTrack?.id, activeTrack?.url?.substring(0, 50));
-
 				this.updateStatus('playing');
 				this.emitEvent({ type: 'track-change', track, timestamp: Date.now() });
 				this.emitEvent({

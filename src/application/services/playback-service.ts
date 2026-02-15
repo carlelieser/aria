@@ -9,10 +9,18 @@ import type {
 import { usePlayerStore } from '@/src/application';
 import { err, ok, type Result } from '@/src/shared';
 import { getLogger } from '@shared/services/logger';
+import { playbackTimer } from '@shared/services/playback-timer';
 import { downloadService } from './download-service';
 import { getFileInfo } from '@infrastructure/filesystem';
 
 const logger = getLogger('PlaybackService');
+
+const STREAM_CACHE_TTL_MS = 5 * 60 * 1000;
+
+interface CachedStream {
+	readonly stream: AudioStream;
+	readonly cachedAt: number;
+}
 
 export class PlaybackService {
 	private playbackProviders: PlaybackProvider[] = [];
@@ -20,6 +28,7 @@ export class PlaybackService {
 	private audioSourceProviders: AudioSourceProvider[] = [];
 	private eventListener: PlaybackEventListener | null = null;
 	private playLock: Promise<void> = Promise.resolve();
+	private readonly _streamCache = new Map<string, CachedStream>();
 
 	constructor() {
 		this.setupEventListener();
@@ -120,40 +129,43 @@ export class PlaybackService {
 
 	async play(track: Track): Promise<Result<void, Error>> {
 		return this.withPlayLock(async () => {
-			// Stop current playback FIRST to ensure clean transition
-			if (this.activeProvider) {
-				logger.debug('Stopping current playback before starting new track...');
-				try {
-					await this.activeProvider.stop();
-				} catch (e) {
-					logger.warn(
-						'Error stopping previous playback:',
-						e instanceof Error ? e : undefined
-					);
-				}
-			}
+			playbackTimer.start(track.title);
 
-			// Now update UI state with new track
+			// Update UI state immediately so the user sees loading state
 			usePlayerStore.getState().play(track);
 
+			// Run stop and stream resolution in parallel to reduce latency.
+			// Stream resolution is the slowest part; overlapping it with
+			// stopping the previous track saves significant time.
+			playbackTimer.beginPhase('stop+resolve');
+
+			const stopPromise = this._stopActiveProvider();
+			const streamPromise = this.getAudioStream(track);
+
+			const [, streamResult] = await Promise.all([stopPromise, streamPromise]);
+
+			playbackTimer.endPhase();
+
+			if (!streamResult.success) {
+				playbackTimer.cancel();
+				usePlayerStore.getState()._setError(streamResult.error.message);
+				return err(streamResult.error);
+			}
+
 			try {
-				const streamResult = await this.getAudioStream(track);
-
-				if (!streamResult.success) {
-					usePlayerStore.getState()._setError(streamResult.error.message);
-					return err(streamResult.error);
-				}
-
 				const audioStream = streamResult.data;
 				const provider = this.getProviderForUrl(audioStream.url);
 
 				if (!provider) {
+					playbackTimer.cancel();
 					const error = new Error('No playback provider available for this stream type');
 					usePlayerStore.getState()._setError(error.message);
 					return err(error);
 				}
 
 				this.activeProvider = provider;
+
+				playbackTimer.beginPhase('provider-play');
 
 				const playResult = await provider.play(
 					track,
@@ -162,13 +174,22 @@ export class PlaybackService {
 					audioStream.headers
 				);
 
+				playbackTimer.endPhase();
+
 				if (!playResult.success) {
+					playbackTimer.cancel();
 					usePlayerStore.getState()._setError(playResult.error.message);
 					return err(playResult.error);
 				}
 
+				playbackTimer.finish();
+
+				// Preload next track's stream URL in background
+				this._preloadNextTrackStream();
+
 				return ok(undefined);
 			} catch (error) {
+				playbackTimer.cancel();
 				const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 				usePlayerStore.getState()._setError(errorMessage);
 				return err(error instanceof Error ? error : new Error(errorMessage));
@@ -250,10 +271,49 @@ export class PlaybackService {
 		return this.activeProvider.setVolume(volume);
 	}
 
+	private _getCachedStream(trackId: string): AudioStream | null {
+		const cached = this._streamCache.get(trackId);
+		if (!cached) return null;
+
+		const age = Date.now() - cached.cachedAt;
+		if (age > STREAM_CACHE_TTL_MS) {
+			this._streamCache.delete(trackId);
+			return null;
+		}
+
+		logger.debug(`Stream cache hit for track: ${trackId}`);
+		return cached.stream;
+	}
+
+	private _cacheStream(trackId: string, stream: AudioStream): void {
+		this._streamCache.set(trackId, {
+			stream,
+			cachedAt: Date.now(),
+		});
+
+		// Evict stale entries when cache grows beyond reasonable size
+		if (this._streamCache.size > 50) {
+			this._evictStaleEntries();
+		}
+	}
+
+	private _evictStaleEntries(): void {
+		const now = Date.now();
+		for (const [key, value] of this._streamCache) {
+			if (now - value.cachedAt > STREAM_CACHE_TTL_MS) {
+				this._streamCache.delete(key);
+			}
+		}
+	}
+
 	private async getAudioStream(track: Track): Promise<Result<AudioStream, Error>> {
 		logger.debug('getAudioStream called for track:', track.title);
-		logger.debug('Track source:', JSON.stringify(track.source));
-		logger.debug('Available providers:', this.audioSourceProviders.length);
+
+		// Check stream cache first for instant resolution
+		const cachedStream = this._getCachedStream(track.id.value);
+		if (cachedStream) {
+			return ok(cachedStream);
+		}
 
 		const resolvedSource = downloadService.resolveTrackSource(track);
 		logger.debug('Resolved source type:', resolvedSource.type);
@@ -270,13 +330,12 @@ export class PlaybackService {
 					} else if (resolvedSource.type === 'local' && resolvedSource.fileType) {
 						format = resolvedSource.fileType as AudioFormat;
 					}
-					return ok(
-						createAudioStream({
-							url: filePath,
-							format,
-							quality: 'high',
-						})
-					);
+					const stream = createAudioStream({
+						url: filePath,
+						format,
+						quality: 'high',
+					});
+					return ok(stream);
 				} else if (resolvedSource.type === 'downloaded') {
 					logger.warn(`Downloaded file missing, removing: ${filePath}`);
 					await downloadService.removeDownload(track.id.value);
@@ -295,6 +354,7 @@ export class PlaybackService {
 			const result = await supportingProvider.getStreamUrl(track.id);
 			if (result.success) {
 				logger.debug('Got audio stream successfully');
+				this._cacheStream(track.id.value, result.data);
 				return ok(result.data);
 			} else {
 				logger.debug('getStreamUrl failed:', result.error);
@@ -309,6 +369,7 @@ export class PlaybackService {
 				if (provider.supportsTrack(track)) {
 					const result = await provider.getStreamUrl(track.id);
 					if (result.success) {
+						this._cacheStream(track.id.value, result.data);
 						return ok(result.data);
 					}
 				}
@@ -316,6 +377,45 @@ export class PlaybackService {
 		}
 
 		return err(new Error(`No audio source available for track: ${track.title}`));
+	}
+
+	private async _stopActiveProvider(): Promise<void> {
+		if (!this.activeProvider) return;
+
+		logger.debug('Stopping current playback before starting new track...');
+		try {
+			await this.activeProvider.stop();
+		} catch (e) {
+			logger.warn('Error stopping previous playback:', e instanceof Error ? e : undefined);
+		}
+	}
+
+	/**
+	 * Preload the next track's stream URL in the background so that
+	 * skipping to it is near-instant.
+	 */
+	private _preloadNextTrackStream(): void {
+		const state = usePlayerStore.getState();
+		const nextIndex = state.queueIndex + 1;
+
+		if (nextIndex >= state.queue.length) return;
+
+		const nextTrack = state.queue[nextIndex];
+		if (!nextTrack) return;
+
+		// Skip if already cached
+		if (this._getCachedStream(nextTrack.id.value)) return;
+
+		// Resolve in background without blocking current playback
+		this.getAudioStream(nextTrack)
+			.then((result) => {
+				if (result.success) {
+					logger.debug(`Preloaded stream for next track: ${nextTrack.title}`);
+				}
+			})
+			.catch(() => {
+				// Preload failures are non-critical
+			});
 	}
 
 	private setupEventListener(): void {
@@ -357,6 +457,7 @@ export class PlaybackService {
 	}
 
 	async dispose(): Promise<void> {
+		this._streamCache.clear();
 		if (this.activeProvider) {
 			if (this.eventListener) {
 				this.activeProvider.removeEventListener(this.eventListener);
