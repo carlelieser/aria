@@ -29,10 +29,11 @@ const BLUR_INTENSITY = 80;
 interface DetailsHeaderProps {
 	readonly info: DetailsHeaderInfo;
 	readonly colors?: M3ColorScheme;
+	readonly topFadeColor?: string;
 	readonly fadeColor?: string;
 }
 
-export function DetailsHeader({ info, colors: colorsProp, fadeColor }: DetailsHeaderProps) {
+export function DetailsHeader({ info, colors: colorsProp, topFadeColor, fadeColor }: DetailsHeaderProps) {
 	const { colors: appColors } = useAppTheme();
 	const colors = colorsProp ?? appColors;
 	const insets = useSafeAreaInsets();
@@ -62,7 +63,14 @@ export function DetailsHeader({ info, colors: colorsProp, fadeColor }: DetailsHe
 				</View>
 			)}
 
-			{/* Gradient layer: transitions blur into page background */}
+			{/* Gradient layers: top-down from artwork color, bottom-up into page background */}
+			{topFadeColor && (
+				<LinearGradient
+					colors={[topFadeColor, 'transparent']}
+					style={StyleSheet.absoluteFill}
+					locations={[0, 0.5]}
+				/>
+			)}
 			{fadeColor && (
 				<LinearGradient
 					colors={['transparent', fadeColor]}
@@ -152,9 +160,9 @@ const styles = StyleSheet.create({
 	},
 	foreground: {
 		alignItems: 'center',
-		paddingBottom: 24,
+		paddingVertical: 24,
 		paddingHorizontal: 24,
-		gap: 4,
+		gap: 12,
 	},
 	textContent: {
 		marginTop: 12,

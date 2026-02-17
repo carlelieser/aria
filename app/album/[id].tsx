@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DiscIcon, SearchIcon } from 'lucide-react-native';
 import { Text, Button, IconButton } from 'react-native-paper';
 import { Icon } from '@/src/components/ui/icon';
-import { DetailsPage, useDetailsPageColors } from '@/src/components/details-page';
+import { DetailsPage, useDetailsPageHeaderColors } from '@/src/components/details-page';
 import { CollectionDownloadButton } from '@/src/components/downloads/collection-download-button';
 import { useBatchActions } from '@/src/hooks/use-batch-actions';
 import { TrackListItem } from '@/src/components/media-list/track-list-item';
@@ -173,7 +173,7 @@ export default function AlbumScreen() {
 }
 
 function SearchAction({ onPress }: { readonly onPress: () => void }) {
-	const colors = useDetailsPageColors();
+	const colors = useDetailsPageHeaderColors();
 	return (
 		<IconButton
 			icon={() => <Icon as={SearchIcon} size={22} color={colors.onSurface} />}

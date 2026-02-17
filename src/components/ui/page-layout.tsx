@@ -17,6 +17,8 @@ interface PageHeaderProps {
 	backgroundColor?: string;
 	tintColor?: string;
 	transparent?: boolean;
+	/** Element rendered behind the header when transparent (e.g. animated background) */
+	transparentBackground?: ReactNode;
 	borderRadius?: number;
 	belowTitle?: ReactNode;
 	extended?: boolean;
@@ -60,6 +62,7 @@ export function PageLayout({
 			</View>
 			{header && isTransparent && (
 				<View style={styles.transparentHeaderOverlay} pointerEvents="box-none">
+					{header.transparentBackground}
 					<PageHeader {...header} topInset={isExtended ? insets.top : 0} />
 				</View>
 			)}

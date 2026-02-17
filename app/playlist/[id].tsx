@@ -18,7 +18,7 @@ import {
 } from 'lucide-react-native';
 import { Text, IconButton, Button, Menu } from 'react-native-paper';
 import { Icon } from '@/src/components/ui/icon';
-import { DetailsPage, useDetailsPageColors } from '@/src/components/details-page';
+import { DetailsPage, useDetailsPageHeaderColors } from '@/src/components/details-page';
 import { CollectionDownloadButton } from '@/src/components/downloads/collection-download-button';
 import { SelectableTrackListItem } from '@/src/components/media-list/selectable-track-list-item';
 import { BatchActionBar } from '@/src/components/selection/batch-action-bar';
@@ -344,7 +344,7 @@ export default function PlaylistScreen() {
 		</>
 	);
 
-	const renderContent = ({ ListHeaderComponent }: { ListHeaderComponent: ReactNode }) => {
+	const renderContent = ({ ListHeaderComponent, onScroll }: { ListHeaderComponent: ReactNode; onScroll: (e: any) => void }) => {
 		if (isEditMode) {
 			return (
 				<View style={styles.editModeContainer}>
@@ -379,6 +379,8 @@ export default function PlaylistScreen() {
 						description="Add tracks to this playlist from the track options menu"
 					/>
 				}
+				onScroll={onScroll}
+				scrollEventThrottle={16}
 				removeClippedSubviews
 				maxToRenderPerBatch={10}
 				windowSize={5}
@@ -390,7 +392,7 @@ export default function PlaylistScreen() {
 
 	return (
 		<DetailsPage
-			pageTitle="Playlist"
+			pageTitle=""
 			headerInfo={headerInfo}
 			headerRightActions={headerRightActions}
 			bottomContent={bottomContent}
@@ -431,7 +433,7 @@ function PlaylistHeaderActions({
 	onRename,
 	onDelete,
 }: PlaylistHeaderActionsProps) {
-	const colors = useDetailsPageColors();
+	const colors = useDetailsPageHeaderColors();
 
 	if (isEditMode) {
 		return (

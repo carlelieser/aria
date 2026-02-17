@@ -4,7 +4,7 @@
  * Unified detail page component for albums, artists, and playlists.
  */
 
-export { DetailsPage, useDetailsPageColors } from './details-page';
+export { DetailsPage, useDetailsPageColors, useDetailsPageHeaderColors } from './details-page';
 export { DetailsHeader } from './details-header';
 export type {
 	DetailsPageProps,

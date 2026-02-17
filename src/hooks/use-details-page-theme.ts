@@ -6,6 +6,8 @@ import type { M3ColorScheme } from '@/lib/theme/colors';
 
 export interface DetailsPageTheme {
 	readonly colors: M3ColorScheme;
+	/** Dark-variant colors for text overlaying the dark-tinted blur header */
+	readonly headerColors: M3ColorScheme;
 	readonly isLoading: boolean;
 	readonly hasCustomColors: boolean;
 	readonly sourceColor: string | null;
@@ -37,6 +39,7 @@ export function useDetailsPageTheme(artworkUrl: string | undefined): DetailsPage
 		if (artworkColors.isLoading) {
 			return {
 				colors: appColors,
+				headerColors: appColors,
 				isLoading: true,
 				hasCustomColors: false,
 				sourceColor: null,
@@ -46,6 +49,7 @@ export function useDetailsPageTheme(artworkUrl: string | undefined): DetailsPage
 		if (!artworkColors.dominant) {
 			return {
 				colors: appColors,
+				headerColors: appColors,
 				isLoading: false,
 				hasCustomColors: false,
 				sourceColor: null,
@@ -53,9 +57,11 @@ export function useDetailsPageTheme(artworkUrl: string | undefined): DetailsPage
 		}
 
 		const scopedColors = generateScopedTheme(artworkColors.dominant, isDark, appColors);
+		const darkColors = generateScopedTheme(artworkColors.dominant, true, appColors);
 
 		return {
 			colors: scopedColors,
+			headerColors: darkColors,
 			isLoading: false,
 			hasCustomColors: true,
 			sourceColor: artworkColors.dominant,

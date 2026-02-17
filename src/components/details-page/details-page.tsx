@@ -17,10 +17,16 @@
  * to receive the scrollable header component for use as ListHeaderComponent.
  */
 
-import { createContext, useContext, type ReactNode } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { createContext, useContext, useCallback, useState, type ReactNode } from 'react';
+import { View, StyleSheet, ScrollView, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, {
+	useSharedValue,
+	useAnimatedStyle,
+	interpolate,
+	Extrapolation,
+} from 'react-native-reanimated';
 import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
 import { PageLayout } from '@/src/components/ui/page-layout';
 import { DetailsHeader } from './details-header';
@@ -29,8 +35,13 @@ import { useDetailsPageTheme } from '@/src/hooks/use-details-page-theme';
 import type { M3ColorScheme } from '@/lib/theme/colors';
 import type { DetailsPageProps, DetailsPageSection } from './types';
 
+/** Scroll distance over which the header background transitions from transparent to solid */
+const HEADER_SCROLL_THRESHOLD = 200;
+
 interface DetailsPageContextValue {
 	readonly colors: M3ColorScheme;
+	readonly headerColors: M3ColorScheme;
+	readonly headerSolid: boolean;
 	readonly hasCustomColors: boolean;
 }
 
@@ -46,9 +57,22 @@ export function useDetailsPageColors(): M3ColorScheme {
 	return context?.colors ?? colors;
 }
 
+/**
+ * Hook to access the dark-variant colors for elements overlaying
+ * the dark-tinted blur header (nav bar icons, action buttons).
+ */
+export function useDetailsPageHeaderColors(): M3ColorScheme {
+	const context = useContext(DetailsPageContext);
+	const { colors } = useAppTheme();
+	if (!context) return colors;
+	return context.headerSolid ? context.colors : context.headerColors;
+}
+
 interface RenderContentProps {
 	/** Scrollable header component to use as ListHeaderComponent in FlatList */
 	readonly ListHeaderComponent: ReactNode;
+	/** Scroll handler to wire up for header background animation */
+	readonly onScroll: (e: NativeSyntheticEvent<NativeScrollEvent>) => void;
 }
 
 interface ExtendedDetailsPageProps extends Omit<DetailsPageProps, 'sections'> {
@@ -79,7 +103,31 @@ export function DetailsPage({
 	const pageTheme = useDetailsPageTheme(headerInfo.artworkUrl);
 
 	const colors = pageTheme.colors;
+	const headerColors = pageTheme.headerColors;
 	const showHeaderSkeleton = Boolean(isLoading && loadingContent);
+
+	const scrollY = useSharedValue(0);
+	const [headerSolid, setHeaderSolid] = useState(false);
+	const handleScroll = useCallback(
+		(e: NativeSyntheticEvent<NativeScrollEvent>) => {
+			const y = e.nativeEvent.contentOffset.y;
+			scrollY.value = y;
+			const solid = y > HEADER_SCROLL_THRESHOLD * 0.8;
+			setHeaderSolid((prev) => (prev !== solid ? solid : prev));
+		},
+		[scrollY]
+	);
+
+	const headerBgStyle = useAnimatedStyle(() => ({
+		opacity: interpolate(
+			scrollY.value,
+			[0, HEADER_SCROLL_THRESHOLD],
+			[0, 1],
+			Extrapolation.CLAMP
+		),
+	}));
+
+	const tintColor = headerSolid ? colors.onSurface : headerColors.onSurface;
 
 	const scrollableHeader = (
 		<View
@@ -98,6 +146,7 @@ export function DetailsPage({
 				<DetailsHeader
 					info={headerInfo}
 					colors={colors}
+					topFadeColor={headerColors.background}
 					fadeColor={colors.background}
 				/>
 			)}
@@ -138,13 +187,15 @@ export function DetailsPage({
 
 	const contextValue: DetailsPageContextValue = {
 		colors,
+		headerColors,
+		headerSolid,
 		hasCustomColors: pageTheme.hasCustomColors,
 	};
 
 	const renderMainContent = () => {
 		if (disableScroll) {
 			if (renderContent) {
-				return renderContent({ ListHeaderComponent: scrollableHeader });
+				return renderContent({ ListHeaderComponent: scrollableHeader, onScroll: handleScroll });
 			}
 			return (
 				<View style={styles.disabledScrollContainer}>
@@ -159,6 +210,8 @@ export function DetailsPage({
 		return (
 			<PlayerAwareScrollView
 				contentContainerStyle={[styles.scrollContent, scrollContentStyle]}
+				onScroll={handleScroll}
+				scrollEventThrottle={16}
 			>
 				{scrollableHeader}
 				<View style={styles.contentSection}>{content}</View>
@@ -174,7 +227,16 @@ export function DetailsPage({
 					title: pageTitle,
 					showBack: true,
 					transparent: true,
-					tintColor: colors.onSurface,
+					transparentBackground: (
+						<Animated.View
+							style={[
+								StyleSheet.absoluteFill,
+								{ backgroundColor: colors.background },
+								headerBgStyle,
+							]}
+						/>
+					),
+					tintColor,
 					rightActions: headerRightActions,
 					extended: true,
 					showBorder: false,
