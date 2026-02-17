@@ -15,6 +15,8 @@ interface PageHeaderProps {
 	rightActions?: ReactNode;
 	showBorder?: boolean;
 	backgroundColor?: string;
+	tintColor?: string;
+	transparent?: boolean;
 	borderRadius?: number;
 	belowTitle?: ReactNode;
 	extended?: boolean;
@@ -42,6 +44,7 @@ export function PageLayout({
 	const insets = useSafeAreaInsets();
 
 	const isExtended = header?.extended ?? false;
+	const isTransparent = header?.transparent ?? false;
 	const effectiveEdges = isExtended ? edges.filter((e) => e !== 'top') : edges;
 
 	return (
@@ -49,10 +52,17 @@ export function PageLayout({
 			style={[styles.container, { backgroundColor: colors.background }, style]}
 			edges={effectiveEdges}
 		>
-			{header && <PageHeader {...header} topInset={isExtended ? insets.top : 0} />}
+			{header && !isTransparent && (
+				<PageHeader {...header} topInset={isExtended ? insets.top : 0} />
+			)}
 			<View style={[styles.content, contentPadding && styles.contentPadding, contentStyle]}>
 				{children}
 			</View>
+			{header && isTransparent && (
+				<View style={styles.transparentHeaderOverlay} pointerEvents="box-none">
+					<PageHeader {...header} topInset={isExtended ? insets.top : 0} />
+				</View>
+			)}
 		</SafeAreaView>
 	);
 }
@@ -65,12 +75,16 @@ function PageHeader({
 	rightActions,
 	showBorder = false,
 	backgroundColor,
+	tintColor,
+	transparent = false,
 	borderRadius,
 	belowTitle,
 	extended = false,
 	topInset = 0,
 }: PageHeaderProps) {
 	const { colors } = useAppTheme();
+	const iconColor = tintColor ?? colors.primary;
+	const titleColor = tintColor ?? colors.onSurface;
 
 	const handleBack = () => {
 		if (onBack) {
@@ -80,24 +94,26 @@ function PageHeader({
 		}
 	};
 
+	const effectiveBg = transparent ? undefined : backgroundColor;
+
 	const headerContainerStyle: StyleProp<ViewStyle> = [
 		styles.headerContainer,
-		backgroundColor ? { backgroundColor } : undefined,
+		effectiveBg ? { backgroundColor: effectiveBg } : undefined,
 		borderRadius
 			? { borderBottomLeftRadius: borderRadius, borderBottomRightRadius: borderRadius }
 			: undefined,
-		!backgroundColor && showBorder
+		!effectiveBg && showBorder
 			? { borderBottomWidth: 1, borderBottomColor: colors.outlineVariant }
 			: undefined,
 		extended ? { paddingTop: topInset } : undefined,
 	];
 
 	return (
-		<View style={[headerContainerStyle, { backgroundColor }]}>
+		<View style={[headerContainerStyle, effectiveBg ? { backgroundColor: effectiveBg } : undefined]}>
 			<View style={styles.header}>
 				{showBack && (
 					<IconButton
-						icon={() => <Icon as={ChevronLeftIcon} size={24} color={colors.primary} />}
+						icon={() => <Icon as={ChevronLeftIcon} size={24} color={iconColor} />}
 						onPress={handleBack}
 						style={styles.iconButtonCircle}
 					/>
@@ -116,6 +132,7 @@ function PageHeader({
 							style={{
 								fontWeight: '700',
 								flex: showBack ? 1 : undefined,
+								color: titleColor,
 							}}
 						>
 							{title}
@@ -163,6 +180,13 @@ const styles = StyleSheet.create({
 	rightActions: {
 		flexDirection: 'row',
 		alignItems: 'center',
+	},
+	transparentHeaderOverlay: {
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		right: 0,
+		zIndex: 1,
 	},
 	content: {
 		flex: 1,

@@ -18,7 +18,7 @@ import {
 } from 'lucide-react-native';
 import { Text, IconButton, Button, Menu } from 'react-native-paper';
 import { Icon } from '@/src/components/ui/icon';
-import { DetailsPage } from '@/src/components/details-page';
+import { DetailsPage, useDetailsPageColors } from '@/src/components/details-page';
 import { CollectionDownloadButton } from '@/src/components/downloads/collection-download-button';
 import { SelectableTrackListItem } from '@/src/components/media-list/selectable-track-list-item';
 import { BatchActionBar } from '@/src/components/selection/batch-action-bar';
@@ -260,64 +260,28 @@ export default function PlaylistScreen() {
 		);
 	}
 
-	const headerRightActions = isEditMode ? (
-		<IconButton
-			icon={() => <Icon as={CheckIcon} size={22} color={colors.primary} />}
-			onPress={toggleEditMode}
+	const headerRightActions = (
+		<PlaylistHeaderActions
+			isEditMode={isEditMode}
+			menuVisible={menuVisible}
+			trackCount={tracks.length}
+			isDownloading={isDownloading}
+			downloadProgress={downloadProgress}
+			tracks={tracks}
+			onToggleEditMode={toggleEditMode}
+			onShowMenu={() => setMenuVisible(true)}
+			onDismissMenu={() => setMenuVisible(false)}
+			onDownloadAll={handleDownloadAll}
+			onCancelDownload={cancelDownload}
+			onRename={() => {
+				setMenuVisible(false);
+				setRenameDialogVisible(true);
+			}}
+			onDelete={() => {
+				setMenuVisible(false);
+				setDeleteDialogVisible(true);
+			}}
 		/>
-	) : (
-		<View style={styles.headerActions}>
-			{tracks.length > 0 && (
-				<CollectionDownloadButton
-					tracks={tracks}
-					isDownloading={isDownloading}
-					progress={downloadProgress}
-					onDownload={handleDownloadAll}
-					onCancel={cancelDownload}
-				/>
-			)}
-			<Menu
-				visible={menuVisible}
-				onDismiss={() => setMenuVisible(false)}
-				anchor={
-					<IconButton
-						icon={() => (
-							<Icon as={MoreVerticalIcon} size={22} color={colors.onSurface} />
-						)}
-						onPress={() => setMenuVisible(true)}
-					/>
-				}
-				contentStyle={{ backgroundColor: colors.surfaceContainerHigh }}
-			>
-				<Menu.Item
-					leadingIcon={() => (
-						<Icon as={GripVerticalIcon} size={20} color={colors.onSurface} />
-					)}
-					onPress={toggleEditMode}
-					title="Reorder tracks"
-					titleStyle={{ color: colors.onSurface }}
-					disabled={tracks.length < 2}
-				/>
-				<Menu.Item
-					leadingIcon={() => <Icon as={PencilIcon} size={20} color={colors.onSurface} />}
-					onPress={() => {
-						setMenuVisible(false);
-						setRenameDialogVisible(true);
-					}}
-					title="Rename playlist"
-					titleStyle={{ color: colors.onSurface }}
-				/>
-				<Menu.Item
-					leadingIcon={() => <Icon as={Trash2Icon} size={20} color={colors.error} />}
-					onPress={() => {
-						setMenuVisible(false);
-						setDeleteDialogVisible(true);
-					}}
-					title="Delete playlist"
-					titleStyle={{ color: colors.error }}
-				/>
-			</Menu>
-		</View>
 	);
 
 	const metadata: MetadataLine[] = [
@@ -433,6 +397,98 @@ export default function PlaylistScreen() {
 			disableScroll
 			renderContent={renderContent}
 		/>
+	);
+}
+
+interface PlaylistHeaderActionsProps {
+	readonly isEditMode: boolean;
+	readonly menuVisible: boolean;
+	readonly trackCount: number;
+	readonly isDownloading: boolean;
+	readonly downloadProgress: { completed: number; total: number };
+	readonly tracks: readonly Track[];
+	readonly onToggleEditMode: () => void;
+	readonly onShowMenu: () => void;
+	readonly onDismissMenu: () => void;
+	readonly onDownloadAll: () => void;
+	readonly onCancelDownload: () => void;
+	readonly onRename: () => void;
+	readonly onDelete: () => void;
+}
+
+function PlaylistHeaderActions({
+	isEditMode,
+	menuVisible,
+	trackCount,
+	isDownloading,
+	downloadProgress,
+	tracks,
+	onToggleEditMode,
+	onShowMenu,
+	onDismissMenu,
+	onDownloadAll,
+	onCancelDownload,
+	onRename,
+	onDelete,
+}: PlaylistHeaderActionsProps) {
+	const colors = useDetailsPageColors();
+
+	if (isEditMode) {
+		return (
+			<IconButton
+				icon={() => <Icon as={CheckIcon} size={22} color={colors.primary} />}
+				onPress={onToggleEditMode}
+			/>
+		);
+	}
+
+	return (
+		<View style={styles.headerActions}>
+			{trackCount > 0 && (
+				<CollectionDownloadButton
+					tracks={tracks}
+					isDownloading={isDownloading}
+					progress={downloadProgress}
+					onDownload={onDownloadAll}
+					onCancel={onCancelDownload}
+				/>
+			)}
+			<Menu
+				visible={menuVisible}
+				onDismiss={onDismissMenu}
+				anchor={
+					<IconButton
+						icon={() => (
+							<Icon as={MoreVerticalIcon} size={22} color={colors.onSurface} />
+						)}
+						onPress={onShowMenu}
+					/>
+				}
+				contentStyle={{ backgroundColor: colors.surfaceContainerHigh }}
+			>
+				<Menu.Item
+					leadingIcon={() => (
+						<Icon as={GripVerticalIcon} size={20} color={colors.onSurface} />
+					)}
+					onPress={onToggleEditMode}
+					title="Reorder tracks"
+					titleStyle={{ color: colors.onSurface }}
+					disabled={trackCount < 2}
+				/>
+				<Menu.Item
+					leadingIcon={() => <Icon as={PencilIcon} size={20} color={colors.onSurface} />}
+					onPress={onRename}
+					title="Rename playlist"
+					titleStyle={{ color: colors.onSurface }}
+				/>
+				<Menu.Item
+					leadingIcon={() => <Icon as={Trash2Icon} size={20} color={colors.error} />}
+					onPress={onDelete}
+					title="Delete playlist"
+					titleStyle={{ color: colors.error }}
+				/>
+			</Menu>
+		</View>
 	);
 }
 

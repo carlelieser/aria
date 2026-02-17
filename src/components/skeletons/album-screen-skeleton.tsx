@@ -2,18 +2,25 @@
  * AlbumScreenSkeleton Component
  *
  * Skeleton loading state for album screen header and track list.
- * Uses M3 theming.
+ * Mirrors the centered vertical stack layout of DetailsHeader.
  */
 
 import { View, StyleSheet } from 'react-native';
 import { Skeleton } from '@/src/components/ui/skeleton';
 import { TrackListItemSkeleton } from './track-list-item-skeleton';
 
+const ARTWORK_SKELETON_SIZE = 200;
+
 export function AlbumHeaderSkeleton() {
 	return (
 		<View style={styles.headerContent}>
-			<Skeleton width={120} height={24} rounded="md" />
-			<Skeleton width={80} height={16} rounded="md" />
+			<Skeleton
+				width={ARTWORK_SKELETON_SIZE}
+				height={ARTWORK_SKELETON_SIZE}
+				rounded="lg"
+			/>
+			<Skeleton width={160} height={24} rounded="md" />
+			<Skeleton width={100} height={14} rounded="md" />
 		</View>
 	);
 }
@@ -35,13 +42,8 @@ export function AlbumTrackListSkeleton({ count = 8 }: AlbumTrackListSkeletonProp
 
 const styles = StyleSheet.create({
 	headerContent: {
-		height: 300,
-		gap: 16,
-		padding: 24,
-		justifyContent: "flex-end"
-	},
-	textContainer: {
 		alignItems: 'center',
+		paddingVertical: 48,
 		gap: 8,
 	},
 	trackList: {

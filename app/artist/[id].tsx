@@ -4,7 +4,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { SearchIcon, UserIcon } from 'lucide-react-native';
 import { Text, Button, ActivityIndicator, IconButton } from 'react-native-paper';
 import { Icon } from '@/src/components/ui/icon';
-import { DetailsPage } from '@/src/components/details-page';
+import { DetailsPage, useDetailsPageColors } from '@/src/components/details-page';
 import { TrackListItem } from '@/src/components/media-list/track-list-item';
 import { AlbumCard } from '@/src/components/media-list/album-card';
 import { useLibraryArtistTracks } from '@/src/hooks/use-library-artist-tracks';
@@ -70,10 +70,7 @@ export default function ArtistScreen() {
 	};
 
 	const headerRightActions = (
-		<IconButton
-			icon={() => <Icon as={SearchIcon} size={22} color={colors.onSurface} />}
-			onPress={handleSearchArtist}
-		/>
+		<SearchAction onPress={handleSearchArtist} />
 	);
 
 	const metadata: MetadataLine[] = useMemo(() => {
@@ -192,6 +189,16 @@ export default function ArtistScreen() {
 			headerRightActions={headerRightActions}
 			sections={loadingOrError ? [] : sections}
 			emptyContent={loadingOrError}
+		/>
+	);
+}
+
+function SearchAction({ onPress }: { readonly onPress: () => void }) {
+	const colors = useDetailsPageColors();
+	return (
+		<IconButton
+			icon={() => <Icon as={SearchIcon} size={22} color={colors.onSurface} />}
+			onPress={onPress}
 		/>
 	);
 }

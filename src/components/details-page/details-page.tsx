@@ -20,6 +20,7 @@
 import { createContext, useContext, type ReactNode } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
 import { PageLayout } from '@/src/components/ui/page-layout';
 import { DetailsHeader } from './details-header';
@@ -74,25 +75,31 @@ export function DetailsPage({
 	disableScroll = false,
 }: ExtendedDetailsPageProps) {
 	const { colors: appColors } = useAppTheme();
+	const insets = useSafeAreaInsets();
 	const pageTheme = useDetailsPageTheme(headerInfo.artworkUrl);
 
 	const colors = pageTheme.colors;
-	const showHeaderSkeleton = isLoading && loadingContent;
+	const showHeaderSkeleton = Boolean(isLoading && loadingContent);
 
 	const scrollableHeader = (
 		<View
 			style={[
 				styles.scrollableHeader,
-				{
+				showHeaderSkeleton && {
 					backgroundColor: colors.surfaceContainerHigh,
-					paddingBottom: showHeaderSkeleton ? 24 : 0,
+					paddingTop: insets.top + 84,
+					paddingBottom: 24,
 				},
 			]}
 		>
 			{showHeaderSkeleton ? (
 				loadingContent
 			) : (
-				<DetailsHeader info={headerInfo} colors={colors} />
+				<DetailsHeader
+					info={headerInfo}
+					colors={colors}
+					fadeColor={colors.background}
+				/>
 			)}
 		</View>
 	);
@@ -108,7 +115,7 @@ export function DetailsPage({
 				{section.title && (
 					<Text
 						variant="titleMedium"
-						style={[styles.sectionTitle, { color: appColors.onSurface }]}
+						style={[styles.sectionTitle, { color: colors.onSurface }]}
 					>
 						{section.title}
 					</Text>
@@ -162,10 +169,12 @@ export function DetailsPage({
 	return (
 		<DetailsPageContext.Provider value={contextValue}>
 			<PageLayout
+				style={{ backgroundColor: colors.background }}
 				header={{
 					title: pageTitle,
 					showBack: true,
-					backgroundColor: colors.surfaceContainerHigh,
+					transparent: true,
+					tintColor: colors.onSurface,
 					rightActions: headerRightActions,
 					extended: true,
 					showBorder: false,
@@ -180,8 +189,7 @@ export function DetailsPage({
 
 const styles = StyleSheet.create({
 	scrollableHeader: {
-		borderBottomLeftRadius: 24,
-		borderBottomRightRadius: 24,
+		overflow: 'hidden',
 	},
 	scrollContent: {
 		flexGrow: 1,
