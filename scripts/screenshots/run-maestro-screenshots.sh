@@ -7,7 +7,8 @@
 #
 # Prerequisites:
 #   - Install Maestro: curl -Ls "https://get.maestro.mobile.dev" | bash
-#   - Android emulator running with app installed
+#   - Android emulator running
+#   - Release APK at out/aria.apk (auto-installed if present)
 #
 # Usage:
 #   ./scripts/screenshots/run-maestro-screenshots.sh [options]
@@ -174,6 +175,18 @@ main() {
     log_info "Device: $device"
     log_info "Output: $OUTPUT_DIR"
     log_info "Mode: $MODE"
+
+    # Install latest release APK if available
+    local apk_path="${PROJECT_DIR}/out/aria.apk"
+    if [ -f "$apk_path" ]; then
+        log_info "Installing latest APK..."
+        adb -s "$device" uninstall com.aria.music.app 2>/dev/null || true
+        adb -s "$device" install "$apk_path" || {
+            log_error "Failed to install APK"
+            exit 1
+        }
+        log_success "APK installed"
+    fi
 
     # Run screenshot flows
     case $MODE in
