@@ -97,41 +97,45 @@ async function handleStreamingPlayback(
 ): Promise<Result<AudioStream, Error>> {
 	const client = await clientManager.getClient();
 
-	logger.debug('Streaming playback: trying adaptive formats first...');
+	if (cookies) {
+		logger.debug('Streaming playback: trying adaptive formats first...');
 
-	const playbackClients = ['TV', 'ANDROID', 'IOS'] as const;
-	const adaptiveResult = await tryMultipleClientTypes(
-		client,
-		videoId,
-		quality,
-		playbackClients,
-		cookies
-	);
-
-	if (adaptiveResult) {
-		const { stream: adaptiveStream, contentLength } = adaptiveResult;
-
-		// Return the adaptive URL directly for immediate playback.
-		// The native player (ExoPlayer/AVPlayer) handles HTTP streaming
-		// with headers natively, eliminating the need to download first.
-		logger.debug(
-			`Returning adaptive stream directly for native playback ` +
-				`(expected: ${contentLength ?? 'unknown'} bytes)`
+		const playbackClients = ['TV', 'ANDROID', 'IOS'] as const;
+		const adaptiveResult = await tryMultipleClientTypes(
+			client,
+			videoId,
+			quality,
+			playbackClients,
+			cookies
 		);
 
-		// Fire-and-forget background cache for subsequent plays
-		backgroundCacheStream({
-			url: adaptiveStream.url,
-			videoId,
-			headers: adaptiveStream.headers,
-			cookies,
-			expectedSize: contentLength,
-		});
+		if (adaptiveResult) {
+			const { stream: adaptiveStream, contentLength } = adaptiveResult;
 
-		return ok(adaptiveStream);
+			// Return the adaptive URL directly for immediate playback.
+			// The native player (ExoPlayer/AVPlayer) handles HTTP streaming
+			// with headers natively, eliminating the need to download first.
+			logger.debug(
+				`Returning adaptive stream directly for native playback ` +
+					`(expected: ${contentLength ?? 'unknown'} bytes)`
+			);
+
+			// Fire-and-forget background cache for subsequent plays
+			backgroundCacheStream({
+				url: adaptiveStream.url,
+				videoId,
+				headers: adaptiveStream.headers,
+				cookies,
+				expectedSize: contentLength,
+			});
+
+			return ok(adaptiveStream);
+		}
+
+		logger.debug('Adaptive formats unavailable, trying HLS...');
+	} else {
+		logger.debug('Unauthenticated: skipping adaptive formats, trying HLS directly...');
 	}
-
-	logger.debug('Adaptive formats unavailable, trying HLS...');
 
 	// Try HLS streaming
 	const hlsUrl =
