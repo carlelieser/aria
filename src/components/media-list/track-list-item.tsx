@@ -2,7 +2,8 @@
  * TrackListItem Component
  *
  * Displays a track in a list format with artwork, info, and actions.
- * Uses M3 theming.
+ * Uses M3 theming. Reflects live playback state: waveform overlay on artwork,
+ * primary-colored title, and live position instead of static duration.
  */
 
 import { memo, useCallback } from 'react';
@@ -13,6 +14,7 @@ import { CheckCircle, AlertCircle, X, Trash2, Music, RotateCcw } from 'lucide-re
 import { Text, IconButton, ProgressBar } from 'react-native-paper';
 
 import { Icon } from '@/src/components/ui/icon';
+import { AudioWaveform } from '@/src/components/ui/audio-waveform';
 import { usePlayer } from '@/src/hooks/use-player';
 import type { Track } from '@/src/domain/entities/track';
 import type { TrackActionSource } from '@/src/domain/actions/track-action';
@@ -20,6 +22,11 @@ import type { DownloadInfo } from '@/src/domain/value-objects/download-state';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import { formatDate } from '@/src/domain/utils/formatting';
 import { getArtistNames } from '@/src/domain/entities/track';
+import {
+	useCurrentTrack,
+	useIsPlaying,
+	usePlaybackProgress,
+} from '@/src/application/state/player-store';
 import { TrackOptionsMenu } from '@/src/components/track-options-menu';
 import { DownloadIndicator } from './download-indicator';
 import { useDownloadActions } from '@/src/hooks/use-download-actions';
@@ -66,6 +73,12 @@ export const TrackListItem = memo(function TrackListItem({
 	const { play, playQueue } = usePlayer();
 	const { removeDownload } = useDownloadActions();
 	const { colors } = useAppTheme();
+	const currentTrack = useCurrentTrack();
+	const isPlaying = useIsPlaying();
+	const { position } = usePlaybackProgress();
+
+	const isActiveTrack = currentTrack !== null && currentTrack.id.value === track.id.value;
+	const isCurrentlyPlaying = isActiveTrack && isPlaying;
 
 	const handlePress = useCallback(() => {
 		if (onPress) {
@@ -95,6 +108,7 @@ export const TrackListItem = memo(function TrackListItem({
 	const artistNames = getArtistNames(track);
 	const albumName = track.album?.name;
 	const duration = track.duration.format();
+	const displayTime = isActiveTrack ? position.format() : duration;
 
 	const isDownloading =
 		downloadInfo?.status === 'pending' || downloadInfo?.status === 'downloading';
@@ -210,12 +224,17 @@ export const TrackListItem = memo(function TrackListItem({
 					) : (
 						<Icon as={Music} size={24} color={colors.onSurfaceVariant} />
 					)}
+					{isCurrentlyPlaying && <AudioWaveform />}
 				</View>
 				{!downloadInfo && <DownloadIndicator trackId={track.id.value} size="sm" />}
 			</View>
 
 			<View style={styles.infoContainer}>
-				<Text variant="bodyLarge" numberOfLines={1} style={{ color: colors.onSurface }}>
+				<Text
+					variant="bodyLarge"
+					numberOfLines={1}
+					style={{ color: isActiveTrack ? colors.primary : colors.onSurface }}
+				>
 					{track.title}
 				</Text>
 				<Text
@@ -247,9 +266,15 @@ export const TrackListItem = memo(function TrackListItem({
 					{!track.duration.isZero() && (
 						<Text
 							variant="bodySmall"
-							style={[styles.duration, { color: colors.onSurfaceVariant }]}
+							style={[
+								styles.duration,
+								{
+									color: isActiveTrack ? colors.primary : colors.onSurfaceVariant,
+									fontVariant: isActiveTrack ? ['tabular-nums'] : [],
+								},
+							]}
 						>
-							{duration}
+							{displayTime}
 						</Text>
 					)}
 					{!hideOptionsMenu && (
