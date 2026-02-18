@@ -6,6 +6,21 @@ import { getLogger } from '@shared/services/logger';
 
 const logger = getLogger('InnertubeClient');
 const CACHE_DIR = 'innertube/';
+const CLIENT_CREATION_TIMEOUT_MS = 15_000;
+
+async function createWithTimeout(
+	options: Parameters<typeof InnertubeClient.create>[0]
+): Promise<InnertubeClient> {
+	return Promise.race([
+		InnertubeClient.create(options),
+		new Promise<never>((_, reject) =>
+			setTimeout(
+				() => reject(new Error('Innertube client creation timed out')),
+				CLIENT_CREATION_TIMEOUT_MS
+			)
+		),
+	]);
+}
 
 class InnertubeCache {
 	private readonly _cacheDir: string;
@@ -97,7 +112,7 @@ export function preloadInnertubeClient(config?: Partial<YouTubeMusicConfig>): vo
 
 	preloadPromise = (async () => {
 		try {
-			preloadedClient = await InnertubeClient.create({
+			preloadedClient = await createWithTimeout({
 				lang: config?.lang ?? 'en',
 				location: config?.location,
 				cache: innertubeCache,
@@ -166,7 +181,7 @@ export function createClientManager(
 			logger.info('Creating unauthenticated client (no auth manager)');
 		}
 
-		const client = await InnertubeClient.create({
+		const client = await createWithTimeout({
 			lang: config.lang,
 			location: config.location,
 			cache: innertubeCache,

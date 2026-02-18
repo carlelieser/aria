@@ -13,6 +13,7 @@ import { useAppTheme } from '@/lib/theme';
 import { useIsPluginEnabled } from '@/src/application/state/plugin-settings-store';
 import { useIsImporting, useLastImportedAt } from '@/src/application/state/library-import-store';
 import { PluginRegistry } from '@/src/plugins/core/registry/plugin-registry';
+import { PluginManifestRegistry } from '@/src/plugins/core/registry/plugin-manifest-registry';
 
 interface LibraryImportSectionProps {
 	pluginId: string;
@@ -33,10 +34,8 @@ export const LibraryImportSection = memo(function LibraryImportSection({
 	const lastImportedAt = useLastImportedAt(pluginId);
 
 	const hasImportCapability = useMemo(() => {
-		const registry = PluginRegistry.getInstance();
-		const plugin = registry.getPlugin(pluginId);
-		if (!plugin) return false;
-		return 'import' in plugin;
+		const manifest = PluginManifestRegistry.getInstance().getManifest(pluginId);
+		return manifest?.capabilities?.includes('library-import') ?? false;
 	}, [pluginId]);
 
 	const handleImport = useCallback(async () => {

@@ -5,6 +5,7 @@ import { libraryService } from '@/src/application/services/library-service';
 import { useLibraryImportStore } from '@/src/application/state/library-import-store';
 import type { LibraryOperations } from './library';
 import type { InfoOperations } from './info';
+import type { SpotifyClient } from './client';
 
 const logger = getLogger('Spotify:Import');
 
@@ -28,7 +29,8 @@ export interface ImportOperations {
 
 export function createImportOperations(
 	library: LibraryOperations,
-	info: InfoOperations
+	info: InfoOperations,
+	client: SpotifyClient
 ): ImportOperations {
 	let cancelled = false;
 
@@ -38,6 +40,13 @@ export function createImportOperations(
 			const includeAlbums = options?.includeAlbums ?? true;
 			const includePlaylists = options?.includePlaylists ?? true;
 			const store = useLibraryImportStore.getState();
+
+			if (!client.isAuthenticated()) {
+				store.startImport('spotify');
+				store.updateProgress('error', 0, 0);
+				store.completeImport();
+				return err(new Error('Not authenticated with Spotify. Please log in first.'));
+			}
 
 			cancelled = false;
 			store.startImport('spotify');
@@ -163,6 +172,15 @@ export function createImportOperations(
 				}
 
 				store.completeImport();
+
+				const errorCount = useLibraryImportStore.getState().errors.length;
+				const totalImported = tracksImported + albumsImported + playlistsImported;
+
+				if (totalImported === 0 && errorCount > 0) {
+					logger.error(`Import failed: all ${errorCount} operations errored`);
+					return err(new Error('Import failed — could not fetch any data from Spotify'));
+				}
+
 				logger.info(
 					`Import complete: ${tracksImported} tracks, ${albumsImported} albums, ${playlistsImported} playlists`
 				);
@@ -171,7 +189,7 @@ export function createImportOperations(
 					tracksImported,
 					albumsImported,
 					playlistsImported,
-					errors: useLibraryImportStore.getState().errors.length,
+					errors: errorCount,
 				});
 			} catch (error) {
 				const importError = error instanceof Error ? error : new Error(String(error));

@@ -91,14 +91,16 @@ export const useLibraryImportStore = create<LibraryImportState>()(
 			},
 
 			completeImport: () => {
-				const { pluginId, lastImportedAt } = get();
+				const { pluginId, phase, lastImportedAt } = get();
+				const isError = phase === 'error';
 				set({
 					isImporting: false,
-					phase: 'complete',
+					phase: isError ? 'error' : 'complete',
 					currentItem: null,
-					lastImportedAt: pluginId
-						? { ...lastImportedAt, [pluginId]: Date.now() }
-						: lastImportedAt,
+					lastImportedAt:
+						pluginId && !isError
+							? { ...lastImportedAt, [pluginId]: Date.now() }
+							: lastImportedAt,
 				});
 			},
 

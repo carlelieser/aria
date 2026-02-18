@@ -45,7 +45,7 @@ export const ImportProgressToast = memo(function ImportProgressToast() {
 		<ProgressToast
 			portalName="import-progress-toast"
 			isActive={isImporting}
-			isComplete={importProgress.phase === 'complete'}
+			isComplete={importProgress.phase === 'complete' || importProgress.phase === 'error'}
 			phaseMessage={phaseMessage}
 			percentage={percentage}
 			progressText={progressText}

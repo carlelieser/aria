@@ -77,7 +77,7 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 			this.infoOps = createInfoOperations(this.client);
 			this.libraryOps = createLibraryOperations(this.client);
 			this.recommendationOps = createRecommendationOperations(this.client);
-			this.importOps = createImportOperations(this.libraryOps, this.infoOps!);
+			this.importOps = createImportOperations(this.libraryOps, this.infoOps!, this.client);
 
 			await this.client.initialize();
 

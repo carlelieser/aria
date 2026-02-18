@@ -33,6 +33,7 @@ export const PLUGIN_MANIFEST: PluginManifest = {
 		'get-album-tracks',
 		'get-artist-albums',
 		'get-recommendations',
+		'library-import',
 	],
 };
 

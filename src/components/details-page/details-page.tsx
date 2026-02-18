@@ -98,7 +98,6 @@ export function DetailsPage({
 	scrollContentStyle,
 	disableScroll = false,
 }: ExtendedDetailsPageProps) {
-	const { colors: appColors } = useAppTheme();
 	const insets = useSafeAreaInsets();
 	const pageTheme = useDetailsPageTheme(headerInfo.artworkUrl);
 
