@@ -19,6 +19,7 @@ import { ToastContainer } from '@/src/components/ui/toast';
 import { ScanProgressToast } from '@/src/components/ui/scan-progress-toast';
 import { ImportProgressToast } from '@/src/components/ui/import-progress-toast';
 import { AnimatedSplash } from '@/src/components/ui/animated-splash';
+import { AudioLevelsProvider } from '@/src/components/ui/audio-levels-provider';
 import { AppThemeProvider, useAppTheme } from '@/lib/theme';
 import { ErrorBoundary, useGlobalErrorHandlers } from '@/lib/error-capture';
 import { useSleepTimerSheetOpen, usePlayerUIStore } from '@/src/application/state/player-ui-store';
@@ -60,43 +61,45 @@ function AppContent() {
 	}, []);
 
 	return (
-		<View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]}>
-			<Stack
-				screenOptions={{
-					headerShown: false,
-					animation: 'simple_push',
-					contentStyle: { backgroundColor: colors.background },
-				}}
-			>
-				<Stack.Screen name="(tabs)" />
-				<Stack.Screen name="player" />
-				<Stack.Screen name="plugins" />
-				<Stack.Screen name="plugin/[id]" />
-				<Stack.Screen name="search" options={{ presentation: 'modal' }} />
-				<Stack.Screen name="library/settings" />
-				<Stack.Screen name="artist/[id]" />
-				<Stack.Screen name="album/[id]" />
-				<Stack.Screen name="playlist/[id]" />
-				<Stack.Screen name="playlist-picker" options={{ presentation: 'modal' }} />
-			</Stack>
-			<FloatingPlayer />
-			<SleepTimerSheet isOpen={sleepTimerSheetOpen} onClose={closeSleepTimerSheet} />
-			<TrackOptionsSheet />
-			<ToastContainer />
-			<ScanProgressToast />
-			<ImportProgressToast />
-			<StatusBar style={isDark ? 'light' : 'dark'} />
-			<View style={styles.portalHost} pointerEvents="box-none">
-				<PortalHost />
+		<AudioLevelsProvider>
+			<View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]}>
+				<Stack
+					screenOptions={{
+						headerShown: false,
+						animation: 'simple_push',
+						contentStyle: { backgroundColor: colors.background },
+					}}
+				>
+					<Stack.Screen name="(tabs)" />
+					<Stack.Screen name="player" />
+					<Stack.Screen name="plugins" />
+					<Stack.Screen name="plugin/[id]" />
+					<Stack.Screen name="search" options={{ presentation: 'modal' }} />
+					<Stack.Screen name="library/settings" />
+					<Stack.Screen name="artist/[id]" />
+					<Stack.Screen name="album/[id]" />
+					<Stack.Screen name="playlist/[id]" />
+					<Stack.Screen name="playlist-picker" options={{ presentation: 'modal' }} />
+				</Stack>
+				<FloatingPlayer />
+				<SleepTimerSheet isOpen={sleepTimerSheetOpen} onClose={closeSleepTimerSheet} />
+				<TrackOptionsSheet />
+				<ToastContainer />
+				<ScanProgressToast />
+				<ImportProgressToast />
+				<StatusBar style={isDark ? 'light' : 'dark'} />
+				<View style={styles.portalHost} pointerEvents="box-none">
+					<PortalHost />
+				</View>
+				{showSplash && (
+					<AnimatedSplash
+						isReady={isReady}
+						onAnimationComplete={handleSplashComplete}
+						isDark={isDark}
+					/>
+				)}
 			</View>
-			{showSplash && (
-				<AnimatedSplash
-					isReady={isReady}
-					onAnimationComplete={handleSplashComplete}
-					isDark={isDark}
-				/>
-			)}
-		</View>
+		</AudioLevelsProvider>
 	);
 }
 

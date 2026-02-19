@@ -51,6 +51,7 @@
     "@shopify/flash-list": "^2.2.0",
     "audio-equalizer": "file:./modules/audio-equalizer",
     "audio-metadata": "file:./modules/audio-metadata",
+    "audio-visualizer": "file:./modules/audio-visualizer",
     "babel-plugin-transform-import-meta": "^2.3.3",
     "buffer": "^6.0.3",
     "event-target-shim": "^6.0.2",
@@ -139,7 +140,8 @@
           "@react-native-cookies/cookies",
           "react-native-track-player",
           "audio-metadata",
-          "audio-equalizer"
+          "audio-equalizer",
+          "audio-visualizer"
         ]
       }
     }
