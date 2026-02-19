@@ -15,6 +15,7 @@ import { Text, IconButton, ProgressBar } from 'react-native-paper';
 
 import { Icon } from '@/src/components/ui/icon';
 import { AudioWaveform } from '@/src/components/ui/audio-waveform';
+import { useAudioLevelsContext } from '@/src/components/ui/audio-levels-provider';
 import { usePlayer } from '@/src/hooks/use-player';
 import type { Track } from '@/src/domain/entities/track';
 import type { TrackActionSource } from '@/src/domain/actions/track-action';
@@ -76,6 +77,7 @@ export const TrackListItem = memo(function TrackListItem({
 	const currentTrack = useCurrentTrack();
 	const isPlaying = useIsPlaying();
 	const { position } = usePlaybackProgress();
+	const audioLevels = useAudioLevelsContext();
 
 	const isActiveTrack = currentTrack !== null && currentTrack.id.value === track.id.value;
 	const isCurrentlyPlaying = isActiveTrack && isPlaying;
@@ -224,7 +226,7 @@ export const TrackListItem = memo(function TrackListItem({
 					) : (
 						<Icon as={Music} size={24} color={colors.onSurfaceVariant} />
 					)}
-					{isCurrentlyPlaying && <AudioWaveform />}
+					{isCurrentlyPlaying && <AudioWaveform levels={audioLevels?.levels} />}
 				</View>
 				{!downloadInfo && <DownloadIndicator trackId={track.id.value} size="sm" />}
 			</View>
