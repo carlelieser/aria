@@ -34,6 +34,7 @@ class AudioVisualizerModule : Module() {
         private const val BAND_COUNT = 4
         private const val CAPTURE_SIZE = 128
         private const val TARGET_CAPTURE_RATE = 20000
+        private const val START_DELAY_MS = 300L
 
         private val BAND_EDGES = floatArrayOf(20f, 250f, 2000f, 6000f, 20000f)
 
@@ -58,7 +59,7 @@ class AudioVisualizerModule : Module() {
                 try {
                     startCaptureInternal()
                 } catch (e: Exception) {
-                    Log.e(TAG, "startCapture failed", e)
+                    Log.w(TAG, "startCapture failed", e)
                 }
                 promise.resolve(null)
             }
@@ -82,16 +83,27 @@ class AudioVisualizerModule : Module() {
     }
 
     private fun startCaptureInternal() {
-        if (!hasRecordPermission()) return
+        if (!hasRecordPermission()) {
+            Log.w(TAG, "RECORD_AUDIO permission not granted")
+            return
+        }
 
         // Always recreate — handles session changes after play/pause/seek
         releaseVisualizer()
         isCapturing = true
-        createVisualizer()
+
+        // Delay Visualizer creation to let the audio session stabilize.
+        // Creating immediately after playback starts can attach to a
+        // stale session and miss audio data.
+        handler.postDelayed({
+            if (!isCapturing) return@postDelayed
+            createVisualizer()
+        }, START_DELAY_MS)
     }
 
     private fun stopCaptureInternal() {
         isCapturing = false
+        handler.removeCallbacksAndMessages(null)
         releaseVisualizer()
     }
 
@@ -124,14 +136,13 @@ class AudioVisualizerModule : Module() {
                 true
             )
             if (result != Visualizer.SUCCESS) {
-                Log.e(TAG, "setDataCaptureListener failed: $result")
+                Log.w(TAG, "setDataCaptureListener failed: $result")
                 return
             }
             viz.enabled = true
             visualizer = viz
-            Log.d(TAG, "Visualizer started on global output mix")
         } catch (e: Exception) {
-            Log.e(TAG, "Visualizer creation failed", e)
+            Log.w(TAG, "Visualizer creation failed", e)
             visualizer = null
         }
     }
@@ -201,6 +212,7 @@ class AudioVisualizerModule : Module() {
 
     private fun releaseInternal() {
         isCapturing = false
+        handler.removeCallbacksAndMessages(null)
         releaseVisualizer()
     }
 }

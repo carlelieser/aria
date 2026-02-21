@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react';
-import { RefreshControl, StyleSheet, View, type NativeScrollEvent } from 'react-native';
+import { RefreshControl, StyleSheet, View } from 'react-native';
 import { HomeIcon, AlertCircleIcon } from 'lucide-react-native';
 import { PageLayout } from '@/src/components/ui/page-layout';
 import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
@@ -26,14 +26,15 @@ export default function HomeScreen() {
 		handleLoadMore,
 	} = useHomeFeed();
 
-	const scrollMetrics = useRef<NativeScrollEvent | null>(null);
+	const viewportHeight = useRef(0);
+	const scrollOffset = useRef(0);
 
-	const checkLoadMore = useCallback(
-		(metrics: NativeScrollEvent) => {
-			const { layoutMeasurement, contentOffset, contentSize } = metrics;
+	const checkPrefetch = useCallback(
+		(contentHeight: number) => {
+			if (viewportHeight.current <= 0) return;
 			const distanceFromEnd =
-				contentSize.height - layoutMeasurement.height - contentOffset.y;
-			if (distanceFromEnd < layoutMeasurement.height * PREFETCH_VIEWPORTS) {
+				contentHeight - viewportHeight.current - scrollOffset.current;
+			if (distanceFromEnd < viewportHeight.current * PREFETCH_VIEWPORTS) {
 				handleLoadMore();
 			}
 		},
@@ -62,17 +63,15 @@ export default function HomeScreen() {
 					/>
 				}
 				showsVerticalScrollIndicator={false}
-				onScroll={({ nativeEvent }) => {
-					scrollMetrics.current = nativeEvent;
-					checkLoadMore(nativeEvent);
+				onLayout={(e) => {
+					viewportHeight.current = e.nativeEvent.layout.height;
 				}}
-				onContentSizeChange={(w, h) => {
-					if (scrollMetrics.current) {
-						checkLoadMore({
-							...scrollMetrics.current,
-							contentSize: { width: w, height: h },
-						});
-					}
+				onScroll={({ nativeEvent }) => {
+					scrollOffset.current = nativeEvent.contentOffset.y;
+					checkPrefetch(nativeEvent.contentSize.height);
+				}}
+				onContentSizeChange={(_w, h) => {
+					checkPrefetch(h);
 				}}
 				scrollEventThrottle={200}
 			>
@@ -96,9 +95,11 @@ export default function HomeScreen() {
 								onDeselect={handleClearFilter}
 							/>
 						)}
-						{sections.map((section) => (
-							<FeedCarousel key={section.id} section={section} />
-						))}
+						{sections
+							.filter((section) => section.items.length > 0)
+							.map((section) => (
+								<FeedCarousel key={section.id} section={section} />
+							))}
 					</View>
 				)}
 			</PlayerAwareScrollView>

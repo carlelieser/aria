@@ -33,15 +33,24 @@ export interface AudioLevelsResult {
 	];
 }
 
-async function requestRecordPermission(): Promise<boolean> {
+async function ensureRecordPermission(): Promise<boolean> {
 	if (Platform.OS !== 'android') return true;
 
-	const result = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO, {
-		title: 'Audio Visualizer',
-		message: 'Aria needs microphone access to visualize audio playback in real time.',
-		buttonPositive: 'Allow',
-		buttonNegative: 'Deny',
-	});
+	// Check if already granted — avoids showing the dialog again
+	const already = await PermissionsAndroid.check(
+		PermissionsAndroid.PERMISSIONS.RECORD_AUDIO
+	);
+	if (already) return true;
+
+	const result = await PermissionsAndroid.request(
+		PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+		{
+			title: 'Audio Visualizer',
+			message: 'Aria needs microphone access to visualize audio playback in real time.',
+			buttonPositive: 'Allow',
+			buttonNegative: 'Deny',
+		}
+	);
 
 	return result === PermissionsAndroid.RESULTS.GRANTED;
 }
@@ -81,18 +90,22 @@ export function useAudioLevels(): AudioLevelsResult {
 		});
 
 		const start = async () => {
-			if (Platform.OS === 'android') {
-				const granted = await requestRecordPermission();
-				if (!granted) {
-					permissionDeniedRef.current = true;
-					return;
+			try {
+				if (Platform.OS === 'android') {
+					const granted = await ensureRecordPermission();
+					if (!granted) {
+						permissionDeniedRef.current = true;
+						return;
+					}
 				}
+				if (cancelled) return;
+				await startCapture();
+			} catch {
+				// Native module failed — waveform falls back to synthetic animation
 			}
-			if (cancelled) return;
-			await startCapture();
 		};
 
-		start().catch(() => {});
+		start();
 
 		return () => {
 			cancelled = true;

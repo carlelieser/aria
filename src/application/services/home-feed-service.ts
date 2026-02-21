@@ -7,6 +7,7 @@ import { getLogger } from '@shared/services/logger';
 const logger = getLogger('HomeFeedService');
 
 const STALENESS_THRESHOLD_MS = 10 * 60 * 1000;
+const MIN_SECTIONS = 5;
 
 export class HomeFeedService {
 	private _operations: HomeFeedOperations | null = null;
@@ -58,12 +59,22 @@ export class HomeFeedService {
 		const result = await this._operations.getHomeFeed();
 
 		if (result.success) {
-			store.setSections(result.data.sections);
+			const allSections = [...result.data.sections];
+			let continuation = result.data.hasContinuation;
+
+			while (allSections.length < MIN_SECTIONS && continuation) {
+				const more = await this._operations.loadMore();
+				if (!more.success) break;
+				allSections.push(...more.data.sections);
+				continuation = more.data.hasContinuation;
+			}
+
+			store.setSections(allSections);
 			store.setFilterChips(result.data.filterChips);
-			store.setHasContinuation(result.data.hasContinuation);
+			store.setHasContinuation(continuation);
 			store.setLastFetchedAt(Date.now());
 			store.setActiveFilterIndex(null);
-			logger.info(`Home feed fetched: ${result.data.sections.length} sections`);
+			logger.info(`Home feed fetched: ${allSections.length} sections`);
 		} else {
 			store.setError(result.error.message);
 			logger.error('Failed to fetch home feed', result.error);
@@ -81,9 +92,19 @@ export class HomeFeedService {
 		const result = await this._operations.getHomeFeed();
 
 		if (result.success) {
-			store.setSections(result.data.sections);
+			const allSections = [...result.data.sections];
+			let continuation = result.data.hasContinuation;
+
+			while (allSections.length < MIN_SECTIONS && continuation) {
+				const more = await this._operations.loadMore();
+				if (!more.success) break;
+				allSections.push(...more.data.sections);
+				continuation = more.data.hasContinuation;
+			}
+
+			store.setSections(allSections);
 			store.setFilterChips(result.data.filterChips);
-			store.setHasContinuation(result.data.hasContinuation);
+			store.setHasContinuation(continuation);
 			store.setLastFetchedAt(Date.now());
 			store.setActiveFilterIndex(null);
 		} else {
