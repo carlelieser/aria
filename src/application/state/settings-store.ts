@@ -3,20 +3,22 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
-export type TabId = 'home' | 'index' | 'downloads' | 'search' | 'settings';
+export type TabId = 'home' | 'index' | 'downloads' | 'search';
 export type DefaultTab = TabId;
 export type LibraryTabId = 'songs' | 'playlists' | 'artists' | 'albums';
 
-export const DEFAULT_TAB_ORDER: TabId[] = ['home', 'index', 'search', 'downloads', 'settings'];
-export const DEFAULT_ENABLED_TABS: TabId[] = ['home', 'index', 'search', 'downloads', 'settings'];
-export const REQUIRED_TABS: TabId[] = ['settings'];
+export const DEFAULT_TAB_ORDER: TabId[] = ['home', 'index', 'search', 'downloads'];
+export const DEFAULT_ENABLED_TABS: TabId[] = ['home', 'index', 'search', 'downloads'];
+export const REQUIRED_TABS: TabId[] = [];
 
 /**
  * Migrates legacy tab IDs for existing users.
  * Removes 'explore' tab that no longer exists.
  */
+const REMOVED_TABS = new Set(['explore', 'settings']);
+
 function migrateTabId(tabId: string): TabId | null {
-	if (tabId === 'explore') return null;
+	if (REMOVED_TABS.has(tabId)) return null;
 	return tabId as TabId;
 }
 
@@ -120,7 +122,7 @@ export const useSettingsStore = create<SettingsState>()(
 		{
 			name: 'aria-settings-storage',
 			storage: createJSONStorage(() => customStorage),
-			version: 4,
+			version: 5,
 			migrate: (persistedState, version) => {
 				const state = persistedState as Partial<SettingsState>;
 				// Version 0/1 -> 2: Remove 'explore' tab
@@ -141,7 +143,7 @@ export const useSettingsStore = create<SettingsState>()(
 					const tabOrder = state.tabOrder ?? DEFAULT_TAB_ORDER;
 					const enabledTabs = state.enabledTabs ?? DEFAULT_ENABLED_TABS;
 					if (!tabOrder.includes('search')) {
-						const settingsIdx = tabOrder.indexOf('settings');
+						const settingsIdx = (tabOrder as string[]).indexOf('settings');
 						const insertIdx = settingsIdx >= 0 ? settingsIdx : tabOrder.length;
 						state.tabOrder = [
 							...tabOrder.slice(0, insertIdx),
@@ -164,6 +166,18 @@ export const useSettingsStore = create<SettingsState>()(
 						state.enabledTabs = ['home', ...enabledTabs];
 					}
 					if (state.defaultTab === 'index') {
+						state.defaultTab = 'home';
+					}
+				}
+				// Version 4 -> 5: Remove 'settings' tab (now a modal)
+				if (version < 5) {
+					state.tabOrder = state.tabOrder
+						? migrateTabIds(state.tabOrder)
+						: DEFAULT_TAB_ORDER;
+					state.enabledTabs = state.enabledTabs
+						? migrateTabIds(state.enabledTabs)
+						: DEFAULT_ENABLED_TABS;
+					if (state.defaultTab === ('settings' as DefaultTab)) {
 						state.defaultTab = 'home';
 					}
 				}

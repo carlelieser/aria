@@ -6,7 +6,7 @@ import { TAB_BAR_HEIGHT } from '@/lib/tab-config';
 const FLOATING_PLAYER_HEIGHT = 64;
 const FLOATING_PLAYER_MARGIN = 8;
 const TOAST_GAP = 8;
-const TAB_ROUTES = ['/', '/explore', '/downloads', '/settings'];
+const TAB_ROUTES = ['/', '/home', '/search', '/downloads'];
 
 export function useToastPosition(): number {
 	const insets = useSafeAreaInsets();

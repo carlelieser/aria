@@ -1,9 +1,12 @@
 import { useCallback, useRef } from 'react';
 import { RefreshControl, StyleSheet, View } from 'react-native';
-import { HomeIcon, AlertCircleIcon } from 'lucide-react-native';
+import { HomeIcon, AlertCircleIcon, SettingsIcon } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { IconButton } from 'react-native-paper';
 import { PageLayout } from '@/src/components/ui/page-layout';
 import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
 import { EmptyState } from '@/src/components/ui/empty-state';
+import { Icon } from '@/src/components/ui/icon';
 import { FeedCarousel, FeedFilterChips, HomeFeedSkeleton } from '@/src/components/home';
 import { useHomeFeed } from '@/src/hooks/use-home-feed';
 import { useHomeFeedStore } from '@/src/application/state/home-feed-store';
@@ -51,6 +54,14 @@ export default function HomeScreen() {
 				icon: HomeIcon,
 				title: 'Home',
 				showBorder: false,
+				rightActions: (
+					<IconButton
+						icon={() => (
+							<Icon as={SettingsIcon} size={22} color={colors.onSurfaceVariant} />
+						)}
+						onPress={() => router.push('/settings')}
+					/>
+				),
 			}}
 		>
 			<PlayerAwareScrollView

@@ -84,7 +84,7 @@ export default function TabLayout() {
 		if (config) {
 			const timeoutId = setTimeout(() => {
 				router.replace(
-					config.route as '/home' | '/' | '/downloads' | '/search' | '/settings'
+					config.route as '/home' | '/' | '/downloads' | '/search'
 				);
 			}, 50);
 			return () => clearTimeout(timeoutId);
