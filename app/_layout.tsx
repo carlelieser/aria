@@ -111,6 +111,10 @@ export default function RootLayout() {
 		'GoogleSans-SemiBold': require('@/assets/fonts/GoogleSans-SemiBold.ttf'),
 		'GoogleSans-Bold': require('@/assets/fonts/GoogleSans-Bold.ttf'),
 		'GoogleSans-Italic': require('@/assets/fonts/GoogleSans-Italic.ttf'),
+		'Oswald-Regular': require('@/assets/fonts/Oswald-Regular.ttf'),
+		'Oswald-Medium': require('@/assets/fonts/Oswald-Medium.ttf'),
+		'Oswald-SemiBold': require('@/assets/fonts/Oswald-SemiBold.ttf'),
+		'Oswald-Bold': require('@/assets/fonts/Oswald-Bold.ttf'),
 	});
 
 	if (!fontsLoaded) {

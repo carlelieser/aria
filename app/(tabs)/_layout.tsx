@@ -1,5 +1,5 @@
-import { useEffect, useRef, useCallback, useMemo, useState, memo } from 'react';
-import { Tabs, router } from 'expo-router';
+import { useEffect, useCallback, useMemo, memo } from 'react';
+import { Tabs, usePathname } from 'expo-router';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
@@ -9,7 +9,6 @@ import {
 	useDefaultTab,
 	useTabOrder,
 	useEnabledTabs,
-	useSettingsStore,
 	type TabId,
 	DEFAULT_TAB_ORDER,
 } from '@/src/application/state/settings-store';
@@ -17,6 +16,8 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { TAB_CONFIG, TAB_BAR_HEIGHT } from '@/lib/tab-config';
 import { LottieTabIcon } from '@/src/components/ui/lottie-tab-icon';
 import { StaticTabIcon } from '@/src/components/ui/static-tab-icon';
+import { HeaderActionsProvider } from '@/src/contexts/header-actions-context';
+import { SettingsHeaderAction } from '@/src/components/settings-header-action';
 
 const TAB_WIDTH = 68;
 const TAB_GAP = 12;
@@ -30,32 +31,6 @@ export default function TabLayout() {
 	const defaultTab = useDefaultTab();
 	const tabOrder = useTabOrder();
 	const enabledTabs = useEnabledTabs();
-	const hasNavigatedRef = useRef(false);
-	const [isHydrated, setIsHydrated] = useState(useSettingsStore.persist.hasHydrated());
-	const [isLayoutReady, setIsLayoutReady] = useState(false);
-
-	useEffect(() => {
-		if (useSettingsStore.persist.hasHydrated()) {
-			setIsHydrated(true);
-			return;
-		}
-
-		const unsubscribe = useSettingsStore.persist.onFinishHydration(() => {
-			const timeoutId = setTimeout(() => {
-				setIsHydrated(true);
-			}, 0);
-			return () => clearTimeout(timeoutId);
-		});
-
-		return unsubscribe;
-	}, []);
-
-	useEffect(() => {
-		const timeoutId = requestAnimationFrame(() => {
-			setIsLayoutReady(true);
-		});
-		return () => cancelAnimationFrame(timeoutId);
-	}, []);
 
 	const validTabOrder = useMemo(() => {
 		const safeTabOrder =
@@ -72,25 +47,6 @@ export default function TabLayout() {
 		return filtered.length > 0 ? filtered : DEFAULT_TAB_ORDER;
 	}, [tabOrder, enabledTabs]);
 
-	useEffect(() => {
-		if (!isHydrated || !isLayoutReady || hasNavigatedRef.current) return;
-
-		// Expo Router always starts on index (Library). Navigate if that's not the default.
-		const targetTab = enabledTabs.includes(defaultTab) ? defaultTab : validTabOrder[0];
-		if (targetTab === 'index') return;
-
-		hasNavigatedRef.current = true;
-		const config = TAB_CONFIG[targetTab];
-		if (config) {
-			const timeoutId = setTimeout(() => {
-				router.replace(
-					config.route as '/home' | '/' | '/downloads' | '/search'
-				);
-			}, 50);
-			return () => clearTimeout(timeoutId);
-		}
-	}, [isHydrated, isLayoutReady, defaultTab, validTabOrder, enabledTabs]);
-
 	const screenOptions = useMemo(
 		() => ({
 			headerShown: false,
@@ -101,19 +57,31 @@ export default function TabLayout() {
 		[]
 	);
 
+	const pathname = usePathname();
+	const defaultTabRoute = `/${enabledTabs.includes(defaultTab) ? defaultTab : validTabOrder[0]}`;
+	const headerActions = useMemo(
+		() => ({
+			extraActions: pathname === defaultTabRoute ? <SettingsHeaderAction /> : undefined,
+		}),
+		[pathname, defaultTabRoute]
+	);
+
 	return (
-		<Tabs
-			screenOptions={screenOptions}
-			tabBar={(props) => <CustomTabBar {...props} tabOrder={validTabOrder} />}
-		>
-			{validTabOrder.map((tabId) => {
-				const config = TAB_CONFIG[tabId];
+		<HeaderActionsProvider value={headerActions}>
+			<Tabs
+				screenOptions={screenOptions}
+				tabBar={(props) => <CustomTabBar {...props} tabOrder={validTabOrder} />}
+			>
+				<Tabs.Screen name="index" options={{ href: null }} />
+				{validTabOrder.map((tabId) => {
+					const config = TAB_CONFIG[tabId];
 
-				if (!config) return null;
+					if (!config) return null;
 
-				return <Tabs.Screen key={tabId} name={tabId} options={config} />;
-			})}
-		</Tabs>
+					return <Tabs.Screen key={tabId} name={tabId} options={config} />;
+				})}
+			</Tabs>
+		</HeaderActionsProvider>
 	);
 }
 

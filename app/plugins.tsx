@@ -1,16 +1,14 @@
 import { View, StyleSheet } from 'react-native';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { router, type Href } from 'expo-router';
-import { Switch, List } from 'react-native-paper';
-import { Icon } from '@/src/components/ui/icon';
+import { Switch } from 'react-native-paper';
 import { PageLayout } from '@/src/components/ui/page-layout';
 import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
 import { EmptyState } from '@/src/components/ui/empty-state';
 import { SettingsSection } from '@/src/components/settings/settings-section';
-import { ChevronRightIcon } from 'lucide-react-native';
+import { SettingsItem } from '@/src/components/settings/settings-item';
 import { togglePluginRuntime } from '@/src/application/services/plugin-lifecycle-service';
 import { PluginListSkeleton } from '@/src/components/skeletons';
-import { useAppTheme } from '@/lib/theme';
 import {
 	type PluginDisplayInfo,
 	type PluginCategory,
@@ -78,36 +76,28 @@ function PluginItem({
 	onPress: () => void;
 	onToggle: () => void;
 }) {
-	const { colors } = useAppTheme();
 	const { isEnabled } = usePluginDisplayStatus(plugin);
 	const PluginIcon = categoryIcons[plugin.category] || DEFAULT_PLUGIN_ICON;
 
+	const toggle = useMemo(
+		() => (
+			<Switch
+				value={isEnabled}
+				onValueChange={onToggle}
+				disabled={plugin.isRequired}
+			/>
+		),
+		[isEnabled, onToggle, plugin.isRequired]
+	);
+
 	return (
-		<List.Item
+		<SettingsItem
+			icon={PluginIcon}
 			title={plugin.name}
-			description={`v${plugin.version}`}
-			left={() => (
-				<View
-					style={[
-						styles.iconContainer,
-						{ backgroundColor: colors.surfaceContainerHighest },
-					]}
-				>
-					<Icon as={PluginIcon} size={20} color={colors.onSurface} />
-				</View>
-			)}
-			right={() => (
-				<View style={styles.actions}>
-					<Switch
-						value={isEnabled}
-						onValueChange={onToggle}
-						disabled={plugin.isRequired}
-					/>
-					<Icon as={ChevronRightIcon} size={20} color={colors.onSurfaceVariant} />
-				</View>
-			)}
+			subtitle={`v${plugin.version}`}
+			rightElement={toggle}
+			showChevron
 			onPress={onPress}
-			style={styles.pluginItem}
 		/>
 	);
 }
@@ -123,21 +113,5 @@ const styles = StyleSheet.create({
 	loadingContainer: {
 		marginTop: 24,
 		marginHorizontal: 8,
-	},
-	pluginItem: {
-		paddingVertical: 6,
-		paddingHorizontal: 16,
-	},
-	iconContainer: {
-		width: 40,
-		height: 40,
-		borderRadius: 20,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	actions: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 8,
 	},
 });

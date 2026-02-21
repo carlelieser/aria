@@ -8,6 +8,7 @@ import {
 	DefaultTheme as NavigationDefaultTheme,
 } from '@react-navigation/native';
 import { M3Colors, M3ColorScheme, SEED_COLOR } from './colors';
+import { M3Typography, FontFamily } from './typography';
 
 export type AppTheme = typeof MD3LightTheme & {
 	colors: typeof MD3LightTheme.colors & M3ColorScheme;
@@ -18,6 +19,14 @@ function createPaperTheme(colors: M3ColorScheme, isDark: boolean) {
 
 	return {
 		...baseTheme,
+		fonts: {
+			default: {
+				fontFamily: FontFamily.regular,
+				fontWeight: '400' as const,
+				letterSpacing: 0,
+			},
+			...M3Typography,
+		},
 		colors: {
 			...baseTheme.colors,
 			...colors,

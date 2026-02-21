@@ -101,8 +101,8 @@ async function bootstrapAsync(): Promise<BootstrapResult> {
 	const manifestRegistry = PluginManifestRegistry.getInstance();
 
 	await hydrateSettings(pluginRegistry, manifestRegistry);
-	const loader = await loadPlugins(pluginRegistry, manifestRegistry);
-	await wireAllServices(pluginRegistry, loader, manifestRegistry);
+	await loadPlugins(pluginRegistry, manifestRegistry);
+	await wireAllServices(pluginRegistry);
 
 	logger.info('Application initialized successfully');
 
@@ -133,30 +133,31 @@ async function _clearExistingPlugins(
 async function loadPlugins(
 	pluginRegistry: PluginRegistry,
 	manifestRegistry: PluginManifestRegistry
-): Promise<PluginLoader> {
+): Promise<void> {
 	const enabledPlugins = new Set([...CORE_PLUGINS, ...getEnabledPluginsSet()]);
 	logger.info(`Enabled plugins: ${Array.from(enabledPlugins).join(', ')}`);
 
 	const loader = new PluginLoader(pluginRegistry, manifestRegistry);
-	const loadResult = await loader.loadEnabledPlugins(enabledPlugins, {
-		configs: getPluginConfigs(),
-		autoActivate: true,
-	});
+	const configs = getPluginConfigs();
 
-	for (const failure of loadResult.failed) {
-		logger.error(`Failed to load plugin "${failure.pluginId}":`, failure.error);
+	// Register ALL plugins so config/metadata is always accessible.
+	// Only auto-activate enabled ones.
+	const available = manifestRegistry.getAvailablePlugins();
+	for (const manifest of available) {
+		const isEnabled = enabledPlugins.has(manifest.id);
+		const result = await loader.loadPlugin(manifest.id, {
+			configs,
+			autoActivate: isEnabled,
+		});
+		if (!result.success && result.error) {
+			logger.error(`Failed to load plugin "${manifest.id}":`, result.error);
+		}
 	}
-
-	return loader;
 }
 
-async function wireAllServices(
-	pluginRegistry: PluginRegistry,
-	loader: PluginLoader,
-	manifestRegistry: PluginManifestRegistry
-): Promise<void> {
+async function wireAllServices(pluginRegistry: PluginRegistry): Promise<void> {
 	await wireServices(pluginRegistry);
-	pluginLifecycleService.initialize(pluginRegistry, loader, manifestRegistry, {
+	pluginLifecycleService.initialize(pluginRegistry, {
 		searchService,
 		albumService,
 		artistService,

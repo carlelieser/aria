@@ -28,7 +28,7 @@ import { useCuratedContent } from '@/src/hooks/use-curated-content';
 import { useUnifiedSearch } from '@/src/hooks/use-unified-search';
 import { useSelection } from '@/src/hooks/use-selection';
 import { useBatchHandlers } from '@/src/hooks/use-batch-handlers';
-import { useAppTheme } from '@/lib/theme';
+import { useAppTheme, FontFamily } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
 
 const BATCH_ACTION_BAR_PADDING = 120;
@@ -181,6 +181,7 @@ export default function SearchScreen() {
 						autoCapitalize="none"
 						autoCorrect={false}
 						returnKeyType="search"
+						textAlignVertical="center"
 					/>
 					{query.length > 0 && (
 						<Pressable onPress={clearSearch} hitSlop={8} style={styles.clearButton}>
@@ -485,8 +486,8 @@ const styles = StyleSheet.create({
 	searchInputWrapper: {
 		flexDirection: 'row',
 		alignItems: 'center',
+		height: 48,
 		paddingHorizontal: 16,
-		paddingVertical: 4,
 		borderRadius: 28,
 	},
 	searchIcon: {
@@ -494,8 +495,10 @@ const styles = StyleSheet.create({
 	},
 	searchInput: {
 		flex: 1,
+		height: 48,
 		fontSize: 16,
-		paddingVertical: 12,
+		fontFamily: FontFamily.regular,
+		includeFontPadding: false,
 	},
 	clearButton: {
 		padding: 4,

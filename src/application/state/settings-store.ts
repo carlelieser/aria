@@ -3,12 +3,12 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
-export type TabId = 'home' | 'index' | 'downloads' | 'search';
+export type TabId = 'home' | 'library' | 'downloads' | 'search';
 export type DefaultTab = TabId;
 export type LibraryTabId = 'songs' | 'playlists' | 'artists' | 'albums';
 
-export const DEFAULT_TAB_ORDER: TabId[] = ['home', 'index', 'search', 'downloads'];
-export const DEFAULT_ENABLED_TABS: TabId[] = ['home', 'index', 'search', 'downloads'];
+export const DEFAULT_TAB_ORDER: TabId[] = ['home', 'library', 'search', 'downloads'];
+export const DEFAULT_ENABLED_TABS: TabId[] = ['home', 'library', 'search', 'downloads'];
 export const REQUIRED_TABS: TabId[] = [];
 
 /**
@@ -18,6 +18,7 @@ export const REQUIRED_TABS: TabId[] = [];
 const REMOVED_TABS = new Set(['explore', 'settings']);
 
 function migrateTabId(tabId: string): TabId | null {
+	if (tabId === 'index') return 'library';
 	if (REMOVED_TABS.has(tabId)) return null;
 	return tabId as TabId;
 }
@@ -122,7 +123,7 @@ export const useSettingsStore = create<SettingsState>()(
 		{
 			name: 'aria-settings-storage',
 			storage: createJSONStorage(() => customStorage),
-			version: 5,
+			version: 6,
 			migrate: (persistedState, version) => {
 				const state = persistedState as Partial<SettingsState>;
 				// Version 0/1 -> 2: Remove 'explore' tab
@@ -165,7 +166,7 @@ export const useSettingsStore = create<SettingsState>()(
 					if (!enabledTabs.includes('home')) {
 						state.enabledTabs = ['home', ...enabledTabs];
 					}
-					if (state.defaultTab === 'index') {
+					if (state.defaultTab === ('index' as DefaultTab)) {
 						state.defaultTab = 'home';
 					}
 				}
@@ -180,6 +181,18 @@ export const useSettingsStore = create<SettingsState>()(
 					if (state.defaultTab === ('settings' as DefaultTab)) {
 						state.defaultTab = 'home';
 					}
+				}
+				// Version 5 -> 6: Rename 'index' tab to 'library'
+				if (version < 6) {
+					if (state.defaultTab === ('index' as DefaultTab)) {
+						state.defaultTab = 'library';
+					}
+					state.tabOrder = state.tabOrder
+						? migrateTabIds(state.tabOrder)
+						: DEFAULT_TAB_ORDER;
+					state.enabledTabs = state.enabledTabs
+						? migrateTabIds(state.enabledTabs)
+						: DEFAULT_ENABLED_TABS;
 				}
 				return state as SettingsState;
 			},

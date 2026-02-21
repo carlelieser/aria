@@ -12,8 +12,6 @@ import type {
 	PluginRegistry,
 	PluginRegistryEvent,
 } from '../../plugins/core/registry/plugin-registry';
-import type { PluginLoader } from '../../plugins/core/registry/plugin-loader';
-import type { PluginManifestRegistry } from '../../plugins/core/registry/plugin-manifest-registry';
 import { usePluginSettingsStore, REQUIRED_PLUGINS } from '../state/plugin-settings-store';
 import type { HomeFeedOperations } from '../../plugins/metadata/youtube-music/home-feed-operations';
 import { getLogger } from '../../shared/services/logger';
@@ -57,8 +55,6 @@ export class PluginLifecycleService {
 	private static instance: PluginLifecycleService | null = null;
 
 	private pluginRegistry: PluginRegistry | null = null;
-	private pluginLoader: PluginLoader | null = null;
-	private manifestRegistry: PluginManifestRegistry | null = null;
 	private services: ServiceRefs | null = null;
 	private unsubscribe: (() => void) | null = null;
 
@@ -74,15 +70,8 @@ export class PluginLifecycleService {
 	/**
 	 * Initialize the lifecycle service with required dependencies
 	 */
-	initialize(
-		pluginRegistry: PluginRegistry,
-		pluginLoader: PluginLoader,
-		manifestRegistry: PluginManifestRegistry,
-		services: ServiceRefs
-	): void {
+	initialize(pluginRegistry: PluginRegistry, services: ServiceRefs): void {
 		this.pluginRegistry = pluginRegistry;
-		this.pluginLoader = pluginLoader;
-		this.manifestRegistry = manifestRegistry;
 		this.services = services;
 
 		this.unsubscribe = pluginRegistry.on(this._handleRegistryEvent.bind(this));
@@ -109,42 +98,33 @@ export class PluginLifecycleService {
 	}
 
 	/**
-	 * Disable and unload a plugin
+	 * Disable a plugin (deactivate but keep registered)
 	 */
 	private async _disablePlugin(pluginId: string): Promise<void> {
 		logger.info(`Disabling plugin: ${pluginId}`);
 
-		// Update store first
 		usePluginSettingsStore.getState().disablePlugin(pluginId);
 
-		// Unload the plugin (this triggers registry events)
-		if (this.pluginLoader) {
-			const result = await this.pluginLoader.unloadPlugin(pluginId);
+		if (this.pluginRegistry) {
+			const result = await this.pluginRegistry.deactivate(pluginId);
 			if (!result.success) {
-				logger.error(`Failed to unload plugin: ${pluginId}`, result.error);
+				logger.error(`Failed to deactivate plugin: ${pluginId}`, result.error);
 			}
 		}
 	}
 
 	/**
-	 * Enable and load a plugin
+	 * Enable a plugin (activate an already-registered plugin)
 	 */
 	private async _enablePlugin(pluginId: string): Promise<void> {
 		logger.info(`Enabling plugin: ${pluginId}`);
 
-		// Update store first
 		usePluginSettingsStore.getState().enablePlugin(pluginId);
 
-		// Load the plugin (this triggers registry events)
-		if (this.pluginLoader) {
-			const configs = usePluginSettingsStore.getState().pluginConfigs;
-			const result = await this.pluginLoader.loadPlugin(pluginId, {
-				configs,
-				autoActivate: true,
-			});
+		if (this.pluginRegistry) {
+			const result = await this.pluginRegistry.activate(pluginId);
 			if (!result.success) {
-				logger.error(`Failed to load plugin: ${pluginId}`, result.error);
-				// Revert store state on failure
+				logger.error(`Failed to activate plugin: ${pluginId}`, result.error);
 				usePluginSettingsStore.getState().disablePlugin(pluginId);
 			}
 		}
@@ -157,10 +137,10 @@ export class PluginLifecycleService {
 		if (!this.services || !this.pluginRegistry) return;
 
 		switch (event.type) {
-			case 'plugin-unregistered':
+			case 'plugin-deactivated':
 				this._removeProviderFromServices(event.pluginId);
 				break;
-			case 'plugin-initialized':
+			case 'plugin-activated':
 				this._addProviderToServices(event.pluginId);
 				break;
 		}
@@ -250,8 +230,6 @@ export class PluginLifecycleService {
 			this.unsubscribe = null;
 		}
 		this.pluginRegistry = null;
-		this.pluginLoader = null;
-		this.manifestRegistry = null;
 		this.services = null;
 	}
 }

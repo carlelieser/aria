@@ -11,7 +11,6 @@ import SearchLottie from '@/assets/animation/system-solid-42-search-hover-pinch.
 export type TabConfig = BottomTabNavigationOptions & {
 	readonly icon: LucideIcon;
 	readonly lottieSource?: AnimationObject;
-	readonly route: string;
 };
 
 export const TAB_CONFIG: Record<TabId, TabConfig> = {
@@ -19,28 +18,24 @@ export const TAB_CONFIG: Record<TabId, TabConfig> = {
 		title: 'Home',
 		icon: HomeIcon,
 		lottieSource: HomeLottie,
-		route: '/home',
 	},
-	index: {
+	library: {
 		title: 'Library',
 		icon: MusicIcon,
 		lottieSource: LibraryLottie,
-		route: '/',
 	},
 	downloads: {
 		title: 'Downloads',
 		icon: DownloadIcon,
 		lottieSource: DownloadsLottie,
-		route: '/downloads',
 	},
 	search: {
 		title: 'Search',
 		icon: SearchIcon,
 		lottieSource: SearchLottie,
-		route: '/search',
 	},
 };
 
-export const TAB_ROUTES = Object.values(TAB_CONFIG).map((c) => c.route);
+export const TAB_ROUTES = ['/library', '/home', '/downloads', '/search'];
 
 export const TAB_BAR_HEIGHT = 75;

@@ -68,8 +68,8 @@ export const SettingsItem = memo(function SettingsItem({
 			left={renderLeft}
 			right={renderRight}
 			onPress={onPress}
-			titleStyle={[styles.title, { color: textColor }]}
-			descriptionStyle={{ color: colors.onSurfaceVariant }}
+			titleStyle={[styles.title, { color: textColor, includeFontPadding: false }]}
+			descriptionStyle={{ color: colors.onSurfaceVariant, includeFontPadding: false }}
 			descriptionNumberOfLines={1}
 			style={styles.item}
 		/>
