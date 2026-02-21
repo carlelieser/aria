@@ -92,11 +92,25 @@ function RealTimeBar({ level, color }: { level: SharedValue<number>; color: stri
 	return <Animated.View style={[styles.bar, animatedStyle, { backgroundColor: color }]} />;
 }
 
+const FADE_IN_DURATION = 250;
+
 export function AudioWaveform({ color = '#FFFFFF', levels }: AudioWaveformProps) {
 	const useRealTime = levels !== undefined;
+	const opacity = useSharedValue(0);
+
+	useEffect(() => {
+		opacity.value = withTiming(1, {
+			duration: FADE_IN_DURATION,
+			easing: Easing.out(Easing.cubic),
+		});
+	}, [opacity]);
+
+	const fadeStyle = useAnimatedStyle(() => ({
+		opacity: opacity.value,
+	}));
 
 	return (
-		<View style={styles.container}>
+		<Animated.View style={[styles.container, fadeStyle]}>
 			<View style={styles.scrim} />
 			<View style={styles.barsContainer}>
 				{useRealTime
@@ -112,7 +126,7 @@ export function AudioWaveform({ color = '#FFFFFF', levels }: AudioWaveformProps)
 							/>
 						))}
 			</View>
-		</View>
+		</Animated.View>
 	);
 }
 

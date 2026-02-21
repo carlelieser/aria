@@ -3,12 +3,12 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
-export type TabId = 'index' | 'downloads' | 'search' | 'settings';
+export type TabId = 'home' | 'index' | 'downloads' | 'search' | 'settings';
 export type DefaultTab = TabId;
 export type LibraryTabId = 'songs' | 'playlists' | 'artists' | 'albums';
 
-export const DEFAULT_TAB_ORDER: TabId[] = ['index', 'search', 'downloads', 'settings'];
-export const DEFAULT_ENABLED_TABS: TabId[] = ['index', 'search', 'downloads', 'settings'];
+export const DEFAULT_TAB_ORDER: TabId[] = ['home', 'index', 'search', 'downloads', 'settings'];
+export const DEFAULT_ENABLED_TABS: TabId[] = ['home', 'index', 'search', 'downloads', 'settings'];
 export const REQUIRED_TABS: TabId[] = ['settings'];
 
 /**
@@ -60,7 +60,7 @@ export const useSettingsStore = create<SettingsState>()(
 	persist(
 		(set, get) => ({
 			themePreference: 'system',
-			defaultTab: 'index',
+			defaultTab: 'home',
 			defaultLibraryTab: 'songs',
 			accentColor: null,
 			tabOrder: DEFAULT_TAB_ORDER,
@@ -109,7 +109,7 @@ export const useSettingsStore = create<SettingsState>()(
 			resetAllSettings: () => {
 				set({
 					themePreference: 'system',
-					defaultTab: 'index',
+					defaultTab: 'home',
 					defaultLibraryTab: 'songs',
 					accentColor: null,
 					tabOrder: DEFAULT_TAB_ORDER,
@@ -120,7 +120,7 @@ export const useSettingsStore = create<SettingsState>()(
 		{
 			name: 'aria-settings-storage',
 			storage: createJSONStorage(() => customStorage),
-			version: 3,
+			version: 4,
 			migrate: (persistedState, version) => {
 				const state = persistedState as Partial<SettingsState>;
 				// Version 0/1 -> 2: Remove 'explore' tab
@@ -128,7 +128,7 @@ export const useSettingsStore = create<SettingsState>()(
 					const migratedDefaultTab = state.defaultTab
 						? migrateTabId(state.defaultTab)
 						: null;
-					state.defaultTab = (migratedDefaultTab ?? 'index') as DefaultTab;
+					state.defaultTab = (migratedDefaultTab ?? 'home') as DefaultTab;
 					state.tabOrder = state.tabOrder
 						? migrateTabIds(state.tabOrder)
 						: DEFAULT_TAB_ORDER;
@@ -151,6 +151,20 @@ export const useSettingsStore = create<SettingsState>()(
 					}
 					if (!enabledTabs.includes('search')) {
 						state.enabledTabs = [...enabledTabs, 'search'];
+					}
+				}
+				// Version 3 -> 4: Add 'home' tab for existing users
+				if (version < 4) {
+					const tabOrder = state.tabOrder ?? DEFAULT_TAB_ORDER;
+					const enabledTabs = state.enabledTabs ?? DEFAULT_ENABLED_TABS;
+					if (!tabOrder.includes('home')) {
+						state.tabOrder = ['home', ...tabOrder];
+					}
+					if (!enabledTabs.includes('home')) {
+						state.enabledTabs = ['home', ...enabledTabs];
+					}
+					if (state.defaultTab === 'index') {
+						state.defaultTab = 'home';
 					}
 				}
 				return state as SettingsState;

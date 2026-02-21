@@ -28,6 +28,8 @@ export interface YouTubeMusicItem {
 	id?: string;
 	title?: string;
 	artists?: YouTubeArtist[];
+	/** Authors field used by playlist items instead of artists */
+	authors?: YouTubeArtist[];
 	album?: YouTubeAlbum;
 	duration?: YouTubeDuration | string | number;
 	thumbnails?: YouTubeThumbnail[];

@@ -147,8 +147,6 @@ export class DashPlaybackProvider implements PlaybackProvider {
 			}
 			this.player.play();
 
-			logger.debug('Playback started');
-			this.updateStatus('playing');
 			this.startPositionUpdates();
 			this.emitEvent({ type: 'track-change', track, timestamp: Date.now() });
 
@@ -176,7 +174,9 @@ export class DashPlaybackProvider implements PlaybackProvider {
 						});
 					}
 				}
-				this.updateStatus('playing');
+				if (this.playbackStatus !== 'paused') {
+					this.updateStatus('playing');
+				}
 				break;
 			case 'loading':
 				this.updateStatus('loading');

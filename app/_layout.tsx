@@ -74,11 +74,11 @@ function AppContent() {
 					<Stack.Screen name="player" />
 					<Stack.Screen name="plugins" />
 					<Stack.Screen name="plugin/[id]" />
-					<Stack.Screen name="search" options={{ presentation: 'modal' }} />
 					<Stack.Screen name="library/settings" />
 					<Stack.Screen name="artist/[id]" />
 					<Stack.Screen name="album/[id]" />
 					<Stack.Screen name="playlist/[id]" />
+					<Stack.Screen name="remote-playlist/[id]" />
 					<Stack.Screen name="playlist-picker" options={{ presentation: 'modal' }} />
 				</Stack>
 				<FloatingPlayer />

@@ -15,6 +15,7 @@ import type {
 import type { PluginLoader } from '../../plugins/core/registry/plugin-loader';
 import type { PluginManifestRegistry } from '../../plugins/core/registry/plugin-manifest-registry';
 import { usePluginSettingsStore, REQUIRED_PLUGINS } from '../state/plugin-settings-store';
+import type { HomeFeedOperations } from '../../plugins/metadata/youtube-music/home-feed-operations';
 import { getLogger } from '../../shared/services/logger';
 
 const logger = getLogger('PluginLifecycleService');
@@ -45,6 +46,10 @@ interface ServiceRefs {
 	downloadService: {
 		addAudioSourceProvider: (p: AudioSourceProvider) => void;
 		removeAudioSourceProvider: (id: string) => void;
+	};
+	homeFeedService: {
+		setHomeFeedOperations: (ops: HomeFeedOperations) => void;
+		clearOperations: () => void;
 	};
 }
 
@@ -175,6 +180,9 @@ export class PluginLifecycleService {
 		this.services.artistService.removeMetadataProvider(pluginId);
 		this.services.lyricsService.removeMetadataProvider(pluginId);
 
+		// Clear home feed operations
+		this.services.homeFeedService.clearOperations();
+
 		// Remove from audio source services
 		this.services.playbackService.removeAudioSourceProvider(pluginId);
 		this.services.downloadService.removeAudioSourceProvider(pluginId);
@@ -203,6 +211,12 @@ export class PluginLifecycleService {
 			this.services.albumService.addMetadataProvider(metadataProvider);
 			this.services.artistService.addMetadataProvider(metadataProvider);
 			this.services.lyricsService.addMetadataProvider(metadataProvider);
+
+			// Wire home feed operations if the provider supports it
+			if ('homeFeed' in metadataProvider) {
+				const providerWithFeed = metadataProvider as MetadataProvider & { homeFeed: HomeFeedOperations };
+				this.services.homeFeedService.setHomeFeedOperations(providerWithFeed.homeFeed);
+			}
 
 			// Check if it also has audio source capability
 			const audioSourceProviders = this.pluginRegistry.getAllAudioSourceProviders();

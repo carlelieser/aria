@@ -60,20 +60,20 @@ export function mapImagesToArtwork<T extends ImageLike>(
 	const result: Artwork[] = [];
 	const urlTransformer = options?.urlTransformer;
 	const primarySize = options?.primarySize;
+	const seenUrls = new Set<string>();
 
-	for (let i = 0; i < sortedImages.length; i++) {
-		const img = sortedImages[i];
-		// Convert null to undefined for createArtwork compatibility
-		const width = img.width ?? undefined;
-		const height = img.height ?? undefined;
+	for (const img of sortedImages) {
+		const url = urlTransformer ? urlTransformer(img.url) : img.url;
 
-		// For the first image, optionally apply URL transformation and custom size
-		if (i === 0 && urlTransformer && primarySize) {
-			const transformedUrl = urlTransformer(img.url);
-			result.push(createArtwork(transformedUrl, primarySize, primarySize));
-		}
+		if (seenUrls.has(url)) continue;
+		seenUrls.add(url);
 
-		result.push(createArtwork(img.url, width, height));
+		// When transformer upgrades the URL resolution, use primarySize as dimensions
+		const useTransformedSize = urlTransformer && primarySize && url !== img.url;
+		const width = useTransformedSize ? primarySize : (img.width ?? undefined);
+		const height = useTransformedSize ? primarySize : (img.height ?? undefined);
+
+		result.push(createArtwork(url, width, height));
 	}
 
 	return result;

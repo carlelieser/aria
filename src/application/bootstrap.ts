@@ -27,6 +27,7 @@ import { albumService } from './services/album-service';
 import { artistService } from './services/artist-service';
 import { lyricsService } from './services/lyrics-service';
 import { pluginLifecycleService } from './services/plugin-lifecycle-service';
+import { homeFeedService } from './services/home-feed-service';
 import { getLogger } from '@shared/services/logger';
 
 const logger = getLogger('Bootstrap');
@@ -162,6 +163,7 @@ async function wireAllServices(
 		lyricsService,
 		playbackService,
 		downloadService,
+		homeFeedService,
 	});
 }
 
@@ -203,6 +205,16 @@ function wireMetadataProviders(registry: PluginRegistry): void {
 	albumService.setMetadataProviders(providers);
 	artistService.setMetadataProviders(providers);
 	lyricsService.setMetadataProviders(providers);
+
+	// Wire home feed operations from providers that support it
+	for (const provider of providers) {
+		if ('homeFeed' in provider) {
+			homeFeedService.setHomeFeedOperations(
+				(provider as MetadataProvider & { homeFeed: Parameters<typeof homeFeedService.setHomeFeedOperations>[0] }).homeFeed
+			);
+			break;
+		}
+	}
 
 	const audioSources = providers.filter(
 		hasAudioSourceCapability

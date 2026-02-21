@@ -28,3 +28,10 @@ export {
 	getPlaylistDuration,
 	getPlaylistTrackCount,
 } from './playlist';
+export {
+	type FeedItem,
+	type FeedPlaylist,
+	type FeedSection,
+	type FeedFilterChip,
+	type HomeFeedData,
+} from './feed-section';

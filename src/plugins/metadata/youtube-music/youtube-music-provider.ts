@@ -43,6 +43,7 @@ import {
 	type YouTubeMusicLibraryOperations,
 } from './library';
 import { createImportOperations, type ImportOperations } from './import-operations';
+import { createHomeFeedOperations, type HomeFeedOperations } from './home-feed-operations';
 
 installEvaluator();
 
@@ -69,6 +70,7 @@ export class YouTubeMusicProvider implements YouTubeMusicLibraryProvider {
 	private recommendationOps: RecommendationOperations | null = null;
 	private ytLibraryOps: YouTubeMusicLibraryOperations | null = null;
 	private importOps: ImportOperations | null = null;
+	private homeFeedOps: HomeFeedOperations | null = null;
 	private readonly _authManager: YouTubeMusicAuthManager;
 
 	constructor(config: YouTubeMusicConfig = DEFAULT_CONFIG) {
@@ -111,6 +113,13 @@ export class YouTubeMusicProvider implements YouTubeMusicLibraryProvider {
 		return this.importOps;
 	}
 
+	get homeFeed(): HomeFeedOperations {
+		if (!this.homeFeedOps) {
+			throw new Error('YouTube Music provider not initialized');
+		}
+		return this.homeFeedOps;
+	}
+
 	async onInit(context: PluginInitContext): Promise<Result<void, Error>> {
 		try {
 			this.status = 'initializing';
@@ -131,6 +140,7 @@ export class YouTubeMusicProvider implements YouTubeMusicLibraryProvider {
 			this.recommendationOps = createRecommendationOperations(this.clientManager);
 			this.ytLibraryOps = createYTLibraryOperations(this.clientManager);
 			this.importOps = createImportOperations(this.ytLibraryOps);
+			this.homeFeedOps = createHomeFeedOperations(this.clientManager);
 
 			await this.clientManager.getClient();
 
@@ -167,6 +177,7 @@ export class YouTubeMusicProvider implements YouTubeMusicLibraryProvider {
 		this.recommendationOps = null;
 		this.ytLibraryOps = null;
 		this.importOps = null;
+		this.homeFeedOps = null;
 		this.status = 'uninitialized';
 		return ok(undefined);
 	}

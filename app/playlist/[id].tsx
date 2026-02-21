@@ -38,7 +38,6 @@ import { getArtistNames, type Track } from '@/src/domain/entities/track';
 import type { DetailsHeaderInfo, MetadataLine } from '@/src/components/details-page';
 import type { ReactNode } from 'react';
 
-
 export default function PlaylistScreen() {
 	const insets = useSafeAreaInsets();
 	const { id } = useLocalSearchParams<{ id: string }>();
@@ -250,7 +249,7 @@ export default function PlaylistScreen() {
 		};
 
 		return (
-			<DetailsPage pageTitle="Playlist" headerInfo={emptyHeaderInfo}>
+			<DetailsPage headerInfo={emptyHeaderInfo}>
 				<EmptyState
 					icon={ListMusicIcon}
 					title="Playlist not found"
@@ -344,7 +343,13 @@ export default function PlaylistScreen() {
 		</>
 	);
 
-	const renderContent = ({ ListHeaderComponent, onScroll }: { ListHeaderComponent: ReactNode; onScroll: (e: any) => void }) => {
+	const renderContent = ({
+		ListHeaderComponent,
+		onScroll,
+	}: {
+		ListHeaderComponent: ReactNode;
+		onScroll: (e: any) => void;
+	}) => {
 		if (isEditMode) {
 			return (
 				<View style={styles.editModeContainer}>
@@ -392,7 +397,6 @@ export default function PlaylistScreen() {
 
 	return (
 		<DetailsPage
-			pageTitle=""
 			headerInfo={headerInfo}
 			headerRightActions={headerRightActions}
 			bottomContent={bottomContent}

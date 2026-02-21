@@ -27,6 +27,8 @@ import { usePlayer } from '@/src/hooks/use-player';
 import { useCurrentTrack, usePlaybackStatus } from '@/src/application/state/player-store';
 import { getArtistNames } from '@/src/domain/entities/track';
 import { getLargestArtwork } from '@/src/domain/value-objects/artwork';
+import { AudioWaveform } from '@/src/components/ui/audio-waveform';
+import { useAudioLevelsContext } from '@/src/components/ui/audio-levels-provider';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 import { TAB_BAR_HEIGHT, TAB_ROUTES } from '@/lib/tab-config';
 
@@ -41,6 +43,7 @@ export function FloatingPlayer() {
 	const status = usePlaybackStatus();
 	const { togglePlayPause, isLoading, isBuffering } = usePlayer();
 	const { colors } = useAppTheme();
+	const audioLevels = useAudioLevelsContext();
 
 	const shouldShow = pathname !== '/player' && currentTrack !== null;
 	const isTabRoute = TAB_ROUTES.includes(pathname);
@@ -134,6 +137,7 @@ export function FloatingPlayer() {
 							cachePolicy="memory-disk"
 							recyclingKey={currentTrack?.id.value}
 						/>
+						{isPlaying && <AudioWaveform levels={audioLevels?.levels} />}
 						{showLoadingIndicator && (
 							<View style={styles.loadingOverlay}>
 								<ActivityIndicator size="small" color="white" />
@@ -206,6 +210,8 @@ const styles = StyleSheet.create({
 	},
 	artworkContainer: {
 		position: 'relative',
+		overflow: 'hidden',
+		borderRadius: M3Shapes.small,
 	},
 	artwork: {
 		width: 48,

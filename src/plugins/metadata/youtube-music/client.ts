@@ -146,7 +146,7 @@ export function getPreloadPromise(): Promise<InnertubeClient> | null {
 
 export interface ClientManager {
 	getClient(): Promise<InnertubeClient>;
-	createFreshClient(): Promise<InnertubeClient>;
+	createFreshClient(options?: { readonly skipAuth?: boolean }): Promise<InnertubeClient>;
 	refreshAuth(): Promise<void>;
 	destroy(): void;
 	isInitialized(): boolean;
@@ -245,7 +245,25 @@ export function createClientManager(
 			}
 		},
 
-		async createFreshClient(): Promise<InnertubeClient> {
+		async createFreshClient(options?: {
+			readonly skipAuth?: boolean;
+		}): Promise<InnertubeClient> {
+			if (options?.skipAuth) {
+				if (preloadedClient) {
+					logger.debug('Reusing preloaded unauthenticated client');
+					return preloadedClient;
+				}
+				if (preloadPromise) {
+					logger.debug('Waiting for preloaded unauthenticated client');
+					return preloadPromise;
+				}
+				logger.info('Creating unauthenticated client');
+				return createWithTimeout({
+					lang: config.lang,
+					location: config.location,
+					cache: innertubeCache,
+				});
+			}
 			return createClient();
 		},
 

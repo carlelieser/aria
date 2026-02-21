@@ -85,7 +85,6 @@ interface ExtendedDetailsPageProps extends Omit<DetailsPageProps, 'sections'> {
 }
 
 export function DetailsPage({
-	pageTitle,
 	headerInfo,
 	headerRightActions,
 	sections,
@@ -97,6 +96,7 @@ export function DetailsPage({
 	bottomContent,
 	scrollContentStyle,
 	disableScroll = false,
+	pageTitle = '',
 }: ExtendedDetailsPageProps) {
 	const insets = useSafeAreaInsets();
 	const pageTheme = useDetailsPageTheme(headerInfo.artworkUrl);
@@ -194,7 +194,10 @@ export function DetailsPage({
 	const renderMainContent = () => {
 		if (disableScroll) {
 			if (renderContent) {
-				return renderContent({ ListHeaderComponent: scrollableHeader, onScroll: handleScroll });
+				return renderContent({
+					ListHeaderComponent: scrollableHeader,
+					onScroll: handleScroll,
+				});
 			}
 			return (
 				<View style={styles.disabledScrollContainer}>

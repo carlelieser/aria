@@ -18,7 +18,7 @@ import { TAB_CONFIG, TAB_BAR_HEIGHT } from '@/lib/tab-config';
 import { LottieTabIcon } from '@/src/components/ui/lottie-tab-icon';
 import { StaticTabIcon } from '@/src/components/ui/static-tab-icon';
 
-const TAB_WIDTH = 84;
+const TAB_WIDTH = 68;
 const TAB_GAP = 12;
 const INDICATOR_WIDTH = 64;
 const INDICATOR_HEIGHT = 32;
@@ -75,16 +75,17 @@ export default function TabLayout() {
 	useEffect(() => {
 		if (!isHydrated || !isLayoutReady || hasNavigatedRef.current) return;
 
-		if (defaultTab !== validTabOrder[0]) {
-			hasNavigatedRef.current = true;
-			const targetTab = enabledTabs.includes(defaultTab) ? defaultTab : validTabOrder[0];
-			const config = TAB_CONFIG[targetTab];
-			if (config) {
-				const timeoutId = setTimeout(() => {
-					router.replace(config.route as '/' | '/downloads' | '/search' | '/settings');
-				}, 50);
-				return () => clearTimeout(timeoutId);
-			}
+		// Expo Router always starts on index (Library). Navigate if that's not the default.
+		const targetTab = enabledTabs.includes(defaultTab) ? defaultTab : validTabOrder[0];
+		if (targetTab === 'index') return;
+
+		hasNavigatedRef.current = true;
+		const config = TAB_CONFIG[targetTab];
+		if (config) {
+			const timeoutId = setTimeout(() => {
+				router.replace(config.route as '/home' | '/' | '/downloads' | '/search' | '/settings');
+			}, 50);
+			return () => clearTimeout(timeoutId);
 		}
 	}, [isHydrated, isLayoutReady, defaultTab, validTabOrder, enabledTabs]);
 

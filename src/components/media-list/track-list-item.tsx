@@ -9,7 +9,6 @@
 import { memo, useCallback } from 'react';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
-import { router } from 'expo-router';
 import { CheckCircle, AlertCircle, X, Trash2, Music, RotateCcw } from 'lucide-react-native';
 import { Text, IconButton, ProgressBar } from 'react-native-paper';
 
@@ -91,7 +90,6 @@ export const TrackListItem = memo(function TrackListItem({
 			} else {
 				play(track);
 			}
-			router.push('/player');
 		}
 	}, [onPress, track, play, playQueue, queue, queueIndex]);
 

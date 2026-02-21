@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.media.audiofx.Visualizer
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.Promise
@@ -17,14 +18,11 @@ import kotlin.math.sqrt
 /**
  * Native Audio Visualizer Module for Android
  *
- * Uses android.media.audiofx.Visualizer on the global output mix (session 0) to
- * capture real-time FFT data. Processes FFT into 4 frequency bands and emits
- * normalized levels at ~30 Hz for smooth visualization.
+ * Uses android.media.audiofx.Visualizer on session 0 (global output mix)
+ * to capture real-time FFT data. Processes FFT into 4 frequency bands
+ * and emits normalized levels at ~20 Hz for smooth visualization.
  *
- * Uses session 0 (global output mix) to avoid interfering with the media player's
- * audio session. This approach is read-only and does not modify the audio pipeline.
- *
- * Requires RECORD_AUDIO permission.
+ * Requires RECORD_AUDIO and MODIFY_AUDIO_SETTINGS permissions.
  */
 class AudioVisualizerModule : Module() {
     private var visualizer: Visualizer? = null
@@ -32,16 +30,15 @@ class AudioVisualizerModule : Module() {
     private val handler = Handler(Looper.getMainLooper())
 
     companion object {
+        private const val TAG = "AudioVisualizer"
         private const val BAND_COUNT = 4
         private const val CAPTURE_SIZE = 128
-        private const val CAPTURE_RATE = 30000 // ~30 Hz in milliHz
-        private const val START_DELAY_MS = 500L
+        private const val TARGET_CAPTURE_RATE = 20000
 
-        // Frequency band boundaries in Hz
         private val BAND_EDGES = floatArrayOf(20f, 250f, 2000f, 6000f, 20000f)
 
-        private const val MIN_DB = -60f
-        private const val MAX_DB = 0f
+        private const val MIN_DB = 0f
+        private const val MAX_DB = 45f
     }
 
     private val context: Context
@@ -53,38 +50,30 @@ class AudioVisualizerModule : Module() {
         Events("onAudioLevels")
 
         Function("isAvailable") {
-            return@Function hasRecordPermission()
+            return@Function true
         }
 
         AsyncFunction("startCapture") { promise: Promise ->
-            runOnBackgroundThread {
+            handler.post {
                 try {
                     startCaptureInternal()
-                    promise.resolve(null)
                 } catch (e: Exception) {
-                    promise.resolve(null)
+                    Log.e(TAG, "startCapture failed", e)
                 }
+                promise.resolve(null)
             }
         }
 
         AsyncFunction("stopCapture") { promise: Promise ->
-            runOnBackgroundThread {
-                try {
-                    stopCaptureInternal()
-                    promise.resolve(null)
-                } catch (e: Exception) {
-                    promise.resolve(null)
-                }
+            handler.post {
+                stopCaptureInternal()
+                promise.resolve(null)
             }
         }
 
         OnDestroy {
-            releaseInternal()
+            handler.post { releaseInternal() }
         }
-    }
-
-    private fun runOnBackgroundThread(action: () -> Unit) {
-        Thread { action() }.start()
     }
 
     private fun hasRecordPermission(): Boolean {
@@ -92,46 +81,34 @@ class AudioVisualizerModule : Module() {
             PackageManager.PERMISSION_GRANTED
     }
 
-    @Synchronized
     private fun startCaptureInternal() {
-        if (isCapturing) return
         if (!hasRecordPermission()) return
 
+        // Always recreate — handles session changes after play/pause/seek
+        releaseVisualizer()
         isCapturing = true
-
-        // Delay Visualizer creation to let the audio session stabilize after
-        // playback starts. Creating it immediately can disrupt the audio pipeline.
-        handler.postDelayed({
-            synchronized(this) {
-                if (!isCapturing) return@postDelayed
-                createVisualizerSafe()
-            }
-        }, START_DELAY_MS)
+        createVisualizer()
     }
 
-    @Synchronized
     private fun stopCaptureInternal() {
         isCapturing = false
-        handler.removeCallbacksAndMessages(null)
         releaseVisualizer()
     }
 
-    private fun createVisualizerSafe() {
+    private fun createVisualizer() {
         try {
-            // Session 0 = global output mix. This is a read-only capture that
-            // does NOT attach to any specific audio session, so it won't
-            // interfere with the media player's pipeline.
             val viz = Visualizer(0)
+            viz.enabled = false
             viz.captureSize = CAPTURE_SIZE
-            viz.setDataCaptureListener(
+
+            val captureRate = min(TARGET_CAPTURE_RATE, Visualizer.getMaxCaptureRate())
+            val result = viz.setDataCaptureListener(
                 object : Visualizer.OnDataCaptureListener {
                     override fun onWaveFormDataCapture(
                         visualizer: Visualizer?,
                         waveform: ByteArray?,
                         samplingRate: Int
-                    ) {
-                        // Not used — we rely on FFT data
-                    }
+                    ) {}
 
                     override fun onFftDataCapture(
                         visualizer: Visualizer?,
@@ -142,16 +119,19 @@ class AudioVisualizerModule : Module() {
                         processFFT(fft, samplingRate)
                     }
                 },
-                CAPTURE_RATE,
+                captureRate,
                 false,
                 true
             )
+            if (result != Visualizer.SUCCESS) {
+                Log.e(TAG, "setDataCaptureListener failed: $result")
+                return
+            }
             viz.enabled = true
             visualizer = viz
-        } catch (_: Exception) {
-            // Visualizer creation failed (device doesn't support it, permission
-            // revoked mid-flight, etc.). Silently degrade — the JS side will
-            // keep showing the synthetic animation as fallback.
+            Log.d(TAG, "Visualizer started on global output mix")
+        } catch (e: Exception) {
+            Log.e(TAG, "Visualizer creation failed", e)
             visualizer = null
         }
     }
@@ -211,22 +191,16 @@ class AudioVisualizerModule : Module() {
         return -1
     }
 
-    @Synchronized
     private fun releaseVisualizer() {
         try {
             visualizer?.enabled = false
             visualizer?.release()
-        } catch (_: Exception) {
-            // Ignore release errors
-        }
+        } catch (_: Exception) {}
         visualizer = null
     }
 
-    @Synchronized
     private fun releaseInternal() {
         isCapturing = false
-        handler.removeCallbacksAndMessages(null)
-
         releaseVisualizer()
     }
 }

@@ -160,7 +160,6 @@ export default function AlbumScreen() {
 
 	return (
 		<DetailsPage
-			pageTitle="Album"
 			headerInfo={headerInfo}
 			headerRightActions={headerRightActions}
 			isLoading={isLoading}

@@ -33,7 +33,7 @@ export interface DetailsPageSection {
 }
 
 export interface DetailsPageProps {
-	readonly pageTitle: string;
+	readonly pageTitle?: string;
 	readonly headerInfo: DetailsHeaderInfo;
 	readonly headerRightActions?: ReactNode;
 	readonly sections: readonly DetailsPageSection[];

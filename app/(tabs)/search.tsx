@@ -41,7 +41,8 @@ export default function SearchScreen() {
 	const [selectionSource, setSelectionSource] = useState<'library' | 'explore'>('library');
 	const searchInputRef = useRef<TextInput>(null);
 
-	const { recentlyPlayed, favoriteTracks, recentlyAdded, hasCuratedContent } = useCuratedContent(10);
+	const { recentlyPlayed, favoriteTracks, recentlyAdded, hasCuratedContent } =
+		useCuratedContent(10);
 
 	const {
 		query,
@@ -370,7 +371,9 @@ export default function SearchScreen() {
 											}
 										>
 											{isSearching && !hasExploreResults ? (
-												<TrackListSkeleton count={3} />
+												<View style={{ paddingHorizontal: 16 }}>
+													<TrackListSkeleton count={3} />
+												</View>
 											) : (
 												<ExploreResults
 													tracks={exploreTracks.slice(

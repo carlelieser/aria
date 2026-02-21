@@ -19,7 +19,6 @@ export function TrackListItemSkeleton() {
 			</View>
 
 			<Skeleton width={36} height={14} rounded="sm" />
-			<Skeleton width={24} height={24} rounded="full" />
 		</View>
 	);
 }

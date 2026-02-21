@@ -168,12 +168,25 @@ export function mapYouTubeTrack(
 	const trackId = TrackId.create('youtube-music', videoId);
 	// Check multiple possible duration field locations
 	const duration = mapYouTubeDuration(item.duration ?? item.length ?? item.length_seconds);
-	// Use track artists if available, otherwise fall back to album/provided artists
-	const trackArtists = item.artists && item.artists.length > 0 ? item.artists : fallbackArtists;
-	const artists = mapYouTubeArtistReferences(trackArtists);
-	// Use track thumbnails if available, otherwise fall back to album thumbnails
+	// Check artists, then authors (playlist items use this field name), then fallbacks
+	const itemArtists = item.artists && item.artists.length > 0
+		? item.artists
+		: item.authors && item.authors.length > 0
+			? item.authors
+			: undefined;
+	const artists = itemArtists
+		? mapYouTubeArtistReferences(itemArtists)
+		: fallbackArtists && fallbackArtists.length > 0
+			? mapYouTubeArtistReferences(fallbackArtists)
+			: extractArtistsFromItem(item);
+	// Use track thumbnails if available, check singular field (used by playlist items),
+	// then fall back to provided thumbnails
 	const trackThumbnails =
-		item.thumbnails && item.thumbnails.length > 0 ? item.thumbnails : fallbackThumbnails;
+		item.thumbnails && item.thumbnails.length > 0
+			? item.thumbnails
+			: item.thumbnail && item.thumbnail.length > 0
+				? item.thumbnail
+				: fallbackThumbnails;
 	const artwork = mapThumbnailsToArtwork(trackThumbnails);
 
 	const params: CreateTrackParams = {
@@ -223,9 +236,14 @@ export function mapYouTubeTrack(
  * 3. item.flex_columns - Only when browseId is present (ensures it's a real entity reference)
  */
 function extractArtistsFromItem(item: YouTubeMusicItem): ArtistReference[] {
-	// 1. Primary: artists array (most reliable)
-	if (item.artists && item.artists.length > 0) {
-		const mapped = item.artists
+	// 1. Primary: artists or authors array (playlist items use "authors")
+	const artistArray = item.artists && item.artists.length > 0
+		? item.artists
+		: item.authors && item.authors.length > 0
+			? item.authors
+			: undefined;
+	if (artistArray) {
+		const mapped = artistArray
 			.filter((artist) => artist.name)
 			.map((artist) => ({
 				id: artist.id || artist.channel_id || artist.name,

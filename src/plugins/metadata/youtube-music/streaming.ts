@@ -11,8 +11,11 @@ import { checkCache } from './cache-operations';
 import { downloadToCache } from './download-operations';
 import { tryHlsStream, downloadHlsToCache } from './hls-operations';
 import { tryMultipleClientTypes } from './adaptive-format-operations';
+import type { InnertubeClientType } from './adaptive-format-operations';
 
 const logger = getLogger('YouTubeMusic:Streaming');
+
+const ADAPTIVE_CLIENT_TYPES: readonly InnertubeClientType[] = ['TV', 'ANDROID', 'IOS'];
 
 export interface StreamingOperations {
 	getStreamUrl(trackId: TrackId, options?: StreamOptions): Promise<Result<AudioStream, Error>>;
@@ -24,18 +27,30 @@ async function handleDownloadableStream(
 	quality: StreamQuality,
 	cookies: string | undefined
 ): Promise<Result<AudioStream, Error>> {
-	const client = await clientManager.getClient();
+	let client = await clientManager.getClient();
 
 	logger.debug('Preferring downloadable format...');
 
-	const clientTypes = ['TV', 'ANDROID', 'IOS'] as const;
-	const adaptiveResult = await tryMultipleClientTypes(
+	let { result: adaptiveResult, loginRequired } = await tryMultipleClientTypes(
 		client,
 		videoId,
 		quality,
-		clientTypes,
+		ADAPTIVE_CLIENT_TYPES,
 		cookies
 	);
+
+	if (loginRequired && !adaptiveResult) {
+		logger.warn('Cookies are bot-flagged — retrying with unauthenticated client');
+		await clientManager.refreshAuth();
+		client = await clientManager.createFreshClient({ skipAuth: true });
+
+		({ result: adaptiveResult } = await tryMultipleClientTypes(
+			client,
+			videoId,
+			quality,
+			ADAPTIVE_CLIENT_TYPES
+		));
+	}
 
 	if (adaptiveResult) {
 		const { stream: adaptiveStream, contentLength } = adaptiveResult;
@@ -97,73 +112,13 @@ async function handleStreamingPlayback(
 ): Promise<Result<AudioStream, Error>> {
 	const client = await clientManager.getClient();
 
-	if (cookies) {
-		logger.debug('Streaming playback: trying adaptive formats first...');
-
-		const playbackClients = ['TV', 'ANDROID', 'IOS'] as const;
-		const adaptiveResult = await tryMultipleClientTypes(
-			client,
-			videoId,
-			quality,
-			playbackClients,
-			cookies
-		);
-
-		if (adaptiveResult) {
-			const { stream: adaptiveStream, contentLength } = adaptiveResult;
-
-			// Return the adaptive URL directly for immediate playback.
-			// The native player (ExoPlayer/AVPlayer) handles HTTP streaming
-			// with headers natively, eliminating the need to download first.
-			logger.debug(
-				`Returning adaptive stream directly for native playback ` +
-					`(expected: ${contentLength ?? 'unknown'} bytes)`
-			);
-
-			// Fire-and-forget background cache for subsequent plays
-			backgroundCacheStream({
-				url: adaptiveStream.url,
-				videoId,
-				headers: adaptiveStream.headers,
-				cookies,
-				expectedSize: contentLength,
-			});
-
-			return ok(adaptiveStream);
-		}
-
-		logger.debug('Adaptive formats unavailable, trying HLS...');
-	} else {
-		logger.debug('Unauthenticated: skipping adaptive formats, trying HLS directly...');
-	}
-
-	// Try HLS streaming
+	// Try HLS streaming — works for both authenticated and unauthenticated users.
+	// dash-player handles HLS natively with seeking support.
 	const hlsUrl =
 		(await tryHlsStream(client, videoId, 'IOS')) || (await tryHlsStream(client, videoId, 'TV'));
 
 	if (hlsUrl) {
-		// When authenticated, HLS segments require cookies but RNTP can't forward
-		// headers to segment requests. Cache the audio for reliable playback.
-		if (cookies) {
-			logger.debug('Authenticated user: caching HLS for reliable playback...');
-			const cachedFile = await downloadHlsToCache(hlsUrl, videoId, cookies);
-
-			if (cachedFile) {
-				logger.debug('HLS cached successfully for playback');
-				return ok(
-					createAudioStream({
-						url: cachedFile,
-						format: 'm4a',
-						quality,
-					})
-				);
-			}
-			logger.debug('HLS caching failed, trying direct HLS as fallback...');
-		}
-
-		// Unauthenticated or caching failed: try direct HLS
-		// Native player handles HLS natively with seeking support
-		logger.debug('Using direct HLS streaming (native player support)');
+		logger.debug('Using direct HLS streaming');
 
 		const playbackHeaders: Record<string, string> = {
 			Accept: '*/*',
@@ -171,6 +126,7 @@ async function handleStreamingPlayback(
 			Referer: 'https://www.youtube.com/',
 			'User-Agent': 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version',
 		};
+
 		if (cookies) {
 			playbackHeaders['Cookie'] = cookies;
 		}
@@ -187,31 +143,6 @@ async function handleStreamingPlayback(
 
 	// Nothing worked
 	return err(new Error('No streaming data available - all format attempts failed'));
-}
-
-/**
- * Background cache for audio streams. Runs asynchronously without
- * blocking playback. Errors are logged but do not affect playback.
- */
-function backgroundCacheStream(options: {
-	readonly url: string;
-	readonly videoId: string;
-	readonly headers?: Record<string, string>;
-	readonly cookies?: string;
-	readonly expectedSize?: number;
-}): void {
-	downloadToCache(options)
-		.then((cachedFile) => {
-			if (cachedFile) {
-				logger.debug(`Background cache complete: ${options.videoId}`);
-			}
-		})
-		.catch((error) => {
-			logger.debug(
-				`Background cache failed for ${options.videoId}: ` +
-					`${error instanceof Error ? error.message : String(error)}`
-			);
-		});
 }
 
 export function createStreamingOperations(clientManager: ClientManager): StreamingOperations {
@@ -253,8 +184,6 @@ export function createStreamingOperations(clientManager: ClientManager): Streami
 					return handleDownloadableStream(clientManager, videoId, quality, cookies);
 				}
 
-				// For streaming playback, try adaptive formats first (better quality, seekable)
-				// When authenticated, we cache to local file since RNTP can't forward cookies
 				return handleStreamingPlayback(clientManager, videoId, quality, cookies);
 			} catch (error) {
 				logger.error('getStreamUrl error', error instanceof Error ? error : undefined);

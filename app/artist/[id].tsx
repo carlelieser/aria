@@ -184,7 +184,6 @@ export default function ArtistScreen() {
 
 	return (
 		<DetailsPage
-			pageTitle="Artist"
 			headerInfo={headerInfo}
 			headerRightActions={headerRightActions}
 			sections={loadingOrError ? [] : sections}

@@ -8,7 +8,6 @@
 import { memo, useCallback } from 'react';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
-import { router } from 'expo-router';
 import { Text } from 'react-native-paper';
 import { Music } from 'lucide-react-native';
 
@@ -48,7 +47,6 @@ export const TrackCard = memo(function TrackCard({
 		} else {
 			play(track);
 		}
-		router.push('/player');
 	}, [onPress, track, play, playQueue, queue, queueIndex]);
 
 	const artwork = getBestArtwork(track.artwork, 300);

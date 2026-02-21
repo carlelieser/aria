@@ -7,19 +7,20 @@
 
 import { useCallback, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { IconButton, FAB } from 'react-native-paper';
-import { Play, Pause, SkipBack, SkipForward, Repeat, Repeat1, Shuffle } from 'lucide-react-native';
+import { IconButton } from 'react-native-paper';
+import { SkipBack, SkipForward, Repeat, Repeat1, Shuffle } from 'lucide-react-native';
 import { usePlayer } from '@/src/hooks/use-player';
 import { useAppTheme } from '@/lib/theme';
+import { WavyPlayButton } from '@/src/components/player/wavy-play-button';
 
 interface PlayerControlsProps {
 	size?: 'sm' | 'md' | 'lg';
 }
 
 const ICON_SIZES = {
-	sm: { main: 32, secondary: 24, fab: 'small' as const },
-	md: { main: 48, secondary: 28, fab: 'medium' as const },
-	lg: { main: 64, secondary: 32, fab: 'large' as const },
+	sm: { secondary: 24 },
+	md: { secondary: 28 },
+	lg: { secondary: 32 },
 } as const;
 
 export function PlayerControls({ size = 'md' }: PlayerControlsProps) {
@@ -36,10 +37,9 @@ export function PlayerControls({ size = 'md' }: PlayerControlsProps) {
 	} = usePlayer();
 	const { colors } = useAppTheme();
 
-	const { secondary: secondaryIconSize, fab: fabSize } = ICON_SIZES[size];
+	const { secondary: secondaryIconSize } = ICON_SIZES[size];
 
 	const surfaceColor = colors.onSurface;
-	const primaryColor = colors.onPrimary;
 
 	const shuffleIcon = useCallback(
 		() => <Shuffle size={secondaryIconSize} color={surfaceColor} />,
@@ -54,16 +54,6 @@ export function PlayerControls({ size = 'md' }: PlayerControlsProps) {
 	const skipForwardIcon = useCallback(
 		() => <SkipForward size={secondaryIconSize} color={surfaceColor} fill={surfaceColor} />,
 		[secondaryIconSize, surfaceColor]
-	);
-
-	const playPauseIcon = useCallback(
-		() =>
-			isPlaying ? (
-				<Pause size={32} color={primaryColor} fill={primaryColor} />
-			) : (
-				<Play size={32} color={primaryColor} fill={primaryColor} />
-			),
-		[isPlaying, primaryColor]
 	);
 
 	const repeatIcon = useCallback(
@@ -86,11 +76,6 @@ export function PlayerControls({ size = 'md' }: PlayerControlsProps) {
 		[repeatMode]
 	);
 
-	const fabStyle = useMemo(
-		() => [styles.fab, { backgroundColor: colors.primary }],
-		[colors.primary]
-	);
-
 	return (
 		<View style={styles.container}>
 			{/* Shuffle */}
@@ -104,14 +89,17 @@ export function PlayerControls({ size = 'md' }: PlayerControlsProps) {
 			{/* Previous */}
 			<IconButton icon={skipBackIcon} size={secondaryIconSize} onPress={skipToPrevious} />
 
-			{/* Play/Pause FAB */}
-			<FAB
-				icon={playPauseIcon}
-				size={fabSize}
-				onPress={togglePlayPause}
-				disabled={isLoading}
-				style={fabStyle}
-			/>
+			{/* Play/Pause */}
+			<View style={styles.fabWrapper}>
+				<WavyPlayButton
+					isLoading={isLoading}
+					isPlaying={isPlaying}
+					onPress={togglePlayPause}
+					color={colors.primary}
+					iconColor={colors.onPrimary}
+					size={size}
+				/>
+			</View>
 
 			{/* Next */}
 			<IconButton icon={skipForwardIcon} size={secondaryIconSize} onPress={skipToNext} />
@@ -137,7 +125,9 @@ const styles = StyleSheet.create({
 	secondaryButton: {
 		margin: 0,
 	},
-	fab: {
+	fabWrapper: {
 		marginHorizontal: 16,
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
 });
