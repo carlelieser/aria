@@ -169,11 +169,12 @@ export function mapYouTubeTrack(
 	// Check multiple possible duration field locations
 	const duration = mapYouTubeDuration(item.duration ?? item.length ?? item.length_seconds);
 	// Check artists, then authors (playlist items use this field name), then fallbacks
-	const itemArtists = item.artists && item.artists.length > 0
-		? item.artists
-		: item.authors && item.authors.length > 0
-			? item.authors
-			: undefined;
+	const itemArtists =
+		item.artists && item.artists.length > 0
+			? item.artists
+			: item.authors && item.authors.length > 0
+				? item.authors
+				: undefined;
 	const artists = itemArtists
 		? mapYouTubeArtistReferences(itemArtists)
 		: fallbackArtists && fallbackArtists.length > 0
@@ -237,11 +238,12 @@ export function mapYouTubeTrack(
  */
 function extractArtistsFromItem(item: YouTubeMusicItem): ArtistReference[] {
 	// 1. Primary: artists or authors array (playlist items use "authors")
-	const artistArray = item.artists && item.artists.length > 0
-		? item.artists
-		: item.authors && item.authors.length > 0
-			? item.authors
-			: undefined;
+	const artistArray =
+		item.artists && item.artists.length > 0
+			? item.artists
+			: item.authors && item.authors.length > 0
+				? item.authors
+				: undefined;
 	if (artistArray) {
 		const mapped = artistArray
 			.filter((artist) => artist.name)

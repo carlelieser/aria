@@ -149,7 +149,14 @@ export const IndeterminateProgressRing = memo(function IndeterminateProgressRing
 	}, [active, phase, ampScale, schedulePeakChange]);
 
 	const animatedProps = useAnimatedProps(() => ({
-		d: buildWavyCirclePath(cx, cy, baseRadius, amplitude * ampScale.value, peaks.value, phase.value),
+		d: buildWavyCirclePath(
+			cx,
+			cy,
+			baseRadius,
+			amplitude * ampScale.value,
+			peaks.value,
+			phase.value
+		),
 	}));
 
 	return (

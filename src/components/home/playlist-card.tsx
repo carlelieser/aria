@@ -30,9 +30,7 @@ export const PlaylistCard = memo(function PlaylistCard({ playlist, onPress }: Pl
 					transition={200}
 				/>
 			) : (
-				<View
-					style={[styles.artwork, { backgroundColor: colors.surfaceContainerHighest }]}
-				>
+				<View style={[styles.artwork, { backgroundColor: colors.surfaceContainerHighest }]}>
 					<Icon as={ListMusicIcon} size={32} color={colors.onSurfaceVariant} />
 				</View>
 			)}

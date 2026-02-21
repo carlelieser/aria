@@ -8,10 +8,7 @@ const DATE_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
 	year: 'numeric',
 };
 
-export function formatListeners(
-	count: number | undefined,
-	suffix = 'listeners'
-): string | null {
+export function formatListeners(count: number | undefined, suffix = 'listeners'): string | null {
 	if (!count) return null;
 	if (count >= 1_000_000) {
 		return `${(count / 1_000_000).toFixed(1)}M ${suffix}`;

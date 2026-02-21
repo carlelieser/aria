@@ -69,14 +69,15 @@ export default function ArtistScreen() {
 		});
 	};
 
-	const headerRightActions = (
-		<SearchAction onPress={handleSearchArtist} />
-	);
+	const headerRightActions = <SearchAction onPress={handleSearchArtist} />;
 
 	const metadata: MetadataLine[] = useMemo(() => {
 		const lines: MetadataLine[] = [];
 		if (artistInfo.monthlyListeners) {
-			lines.push({ text: formatListeners(artistInfo.monthlyListeners, 'monthly listeners')!, variant: 'primary' });
+			lines.push({
+				text: formatListeners(artistInfo.monthlyListeners, 'monthly listeners')!,
+				variant: 'primary',
+			});
 		}
 		if (libraryTracks.length > 0) {
 			lines.push({

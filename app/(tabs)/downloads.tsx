@@ -5,12 +5,7 @@ import { TabsProvider, Tabs, TabScreen } from 'react-native-paper-tabs';
 import { Icon } from '@/src/components/ui/icon';
 import { GenericListView } from '@/src/components/ui/generic-list-view';
 import { PageLayout } from '@/src/components/ui/page-layout';
-import {
-	DownloadIcon,
-	TrashIcon,
-	CheckCircle2Icon,
-	AlertCircleIcon,
-} from 'lucide-react-native';
+import { DownloadIcon, TrashIcon, CheckCircle2Icon, AlertCircleIcon } from 'lucide-react-native';
 import { DownloadListItem } from '@/src/components/downloads/download-list-item';
 import { SelectableDownloadListItem } from '@/src/components/downloads/selectable-download-list-item';
 import { BatchActionBar } from '@/src/components/selection/batch-action-bar';

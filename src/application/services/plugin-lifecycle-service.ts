@@ -214,7 +214,9 @@ export class PluginLifecycleService {
 
 			// Wire home feed operations if the provider supports it
 			if ('homeFeed' in metadataProvider) {
-				const providerWithFeed = metadataProvider as MetadataProvider & { homeFeed: HomeFeedOperations };
+				const providerWithFeed = metadataProvider as MetadataProvider & {
+					homeFeed: HomeFeedOperations;
+				};
 				this.services.homeFeedService.setHomeFeedOperations(providerWithFeed.homeFeed);
 			}
 

@@ -1,4 +1,5 @@
-import { RefreshControl, StyleSheet, View } from 'react-native';
+import { useCallback, useRef } from 'react';
+import { RefreshControl, StyleSheet, View, type NativeScrollEvent } from 'react-native';
 import { HomeIcon, AlertCircleIcon } from 'lucide-react-native';
 import { PageLayout } from '@/src/components/ui/page-layout';
 import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
@@ -7,6 +8,8 @@ import { FeedCarousel, FeedFilterChips, HomeFeedSkeleton } from '@/src/component
 import { useHomeFeed } from '@/src/hooks/use-home-feed';
 import { useHomeFeedStore } from '@/src/application/state/home-feed-store';
 import { useAppTheme } from '@/lib/theme';
+
+const PREFETCH_VIEWPORTS = 3;
 
 export default function HomeScreen() {
 	const { colors } = useAppTheme();
@@ -22,6 +25,20 @@ export default function HomeScreen() {
 		handleClearFilter,
 		handleLoadMore,
 	} = useHomeFeed();
+
+	const scrollMetrics = useRef<NativeScrollEvent | null>(null);
+
+	const checkLoadMore = useCallback(
+		(metrics: NativeScrollEvent) => {
+			const { layoutMeasurement, contentOffset, contentSize } = metrics;
+			const distanceFromEnd =
+				contentSize.height - layoutMeasurement.height - contentOffset.y;
+			if (distanceFromEnd < layoutMeasurement.height * PREFETCH_VIEWPORTS) {
+				handleLoadMore();
+			}
+		},
+		[handleLoadMore]
+	);
 
 	const hasData = sections.length > 0;
 	const showSkeleton = isLoading && !hasData;
@@ -44,15 +61,20 @@ export default function HomeScreen() {
 						colors={[colors.primary]}
 					/>
 				}
+				showsVerticalScrollIndicator={false}
 				onScroll={({ nativeEvent }) => {
-					const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
-					const distanceFromEnd =
-						contentSize.height - layoutMeasurement.height - contentOffset.y;
-					if (distanceFromEnd < layoutMeasurement.height * 2) {
-						handleLoadMore();
+					scrollMetrics.current = nativeEvent;
+					checkLoadMore(nativeEvent);
+				}}
+				onContentSizeChange={(w, h) => {
+					if (scrollMetrics.current) {
+						checkLoadMore({
+							...scrollMetrics.current,
+							contentSize: { width: w, height: h },
+						});
 					}
 				}}
-				scrollEventThrottle={400}
+				scrollEventThrottle={200}
 			>
 				{showSkeleton && <HomeFeedSkeleton />}
 

@@ -63,7 +63,7 @@ function buildWavyCirclePath(
 	baseRadius: number,
 	amplitude: number,
 	peaks: number,
-	phase: number,
+	phase: number
 ): string {
 	'worklet';
 
@@ -168,7 +168,7 @@ export const WavyPlayButton = memo(function WavyPlayButton({
 					easing: Easing.linear,
 				}),
 				-1,
-				false,
+				false
 			);
 
 			schedulePeakChange();
@@ -192,7 +192,24 @@ export const WavyPlayButton = memo(function WavyPlayButton({
 			cancelAnimation(phase);
 			cancelAnimation(ampScale);
 		};
-	}, [ampScale, canvasSize, containerSize, fabSize, idleAmplitude, idleBaseRadius, isLoading, isPlaying, loadingAmplitude, loadingRadius, peaks, phase, schedulePeakChange, strokeAnim, targetAmplitude, targetRadius]);
+	}, [
+		ampScale,
+		canvasSize,
+		containerSize,
+		fabSize,
+		idleAmplitude,
+		idleBaseRadius,
+		isLoading,
+		isPlaying,
+		loadingAmplitude,
+		loadingRadius,
+		peaks,
+		phase,
+		schedulePeakChange,
+		strokeAnim,
+		targetAmplitude,
+		targetRadius,
+	]);
 
 	const animatedProps = useAnimatedProps(() => ({
 		d: buildWavyCirclePath(
@@ -201,7 +218,7 @@ export const WavyPlayButton = memo(function WavyPlayButton({
 			targetRadius.value,
 			targetAmplitude.value * ampScale.value,
 			peaks.value,
-			phase.value,
+			phase.value
 		),
 		strokeWidth: strokeAnim.value,
 	}));

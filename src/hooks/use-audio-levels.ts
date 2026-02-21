@@ -8,12 +8,7 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { Platform, PermissionsAndroid } from 'react-native';
-import {
-	useSharedValue,
-	withTiming,
-	Easing,
-	type SharedValue,
-} from 'react-native-reanimated';
+import { useSharedValue, withTiming, Easing, type SharedValue } from 'react-native-reanimated';
 import { startCapture, stopCapture, isAvailable, addAudioLevelsListener } from 'audio-visualizer';
 import { useIsPlaying } from '@/src/application/state/player-store';
 

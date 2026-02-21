@@ -34,9 +34,7 @@ export const ArtistCard = memo(function ArtistCard({ artist }: ArtistCardProps) 
 					transition={200}
 				/>
 			) : (
-				<View
-					style={[styles.artwork, { backgroundColor: colors.surfaceContainerHighest }]}
-				>
+				<View style={[styles.artwork, { backgroundColor: colors.surfaceContainerHighest }]}>
 					<Icon as={UserIcon} size={40} color={colors.onSurfaceVariant} />
 				</View>
 			)}

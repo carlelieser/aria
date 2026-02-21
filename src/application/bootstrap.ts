@@ -210,7 +210,11 @@ function wireMetadataProviders(registry: PluginRegistry): void {
 	for (const provider of providers) {
 		if ('homeFeed' in provider) {
 			homeFeedService.setHomeFeedOperations(
-				(provider as MetadataProvider & { homeFeed: Parameters<typeof homeFeedService.setHomeFeedOperations>[0] }).homeFeed
+				(
+					provider as MetadataProvider & {
+						homeFeed: Parameters<typeof homeFeedService.setHomeFeedOperations>[0];
+					}
+				).homeFeed
 			);
 			break;
 		}

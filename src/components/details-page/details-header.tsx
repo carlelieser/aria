@@ -33,7 +33,12 @@ interface DetailsHeaderProps {
 	readonly fadeColor?: string;
 }
 
-export function DetailsHeader({ info, colors: colorsProp, topFadeColor, fadeColor }: DetailsHeaderProps) {
+export function DetailsHeader({
+	info,
+	colors: colorsProp,
+	topFadeColor,
+	fadeColor,
+}: DetailsHeaderProps) {
 	const { colors: appColors } = useAppTheme();
 	const colors = colorsProp ?? appColors;
 	const insets = useSafeAreaInsets();
@@ -85,9 +90,7 @@ export function DetailsHeader({ info, colors: colorsProp, topFadeColor, fadeColo
 						source={{ uri: info.artworkUrl }}
 						style={[
 							{ width: artworkSize, height: artworkSize },
-							isCircular
-								? { borderRadius: artworkSize / 2 }
-								: styles.squareArtwork,
+							isCircular ? { borderRadius: artworkSize / 2 } : styles.squareArtwork,
 						]}
 						contentFit="cover"
 						transition={200}
@@ -96,18 +99,12 @@ export function DetailsHeader({ info, colors: colorsProp, topFadeColor, fadeColo
 					<View
 						style={[
 							{ width: artworkSize, height: artworkSize },
-							isCircular
-								? { borderRadius: artworkSize / 2 }
-								: styles.squareArtwork,
+							isCircular ? { borderRadius: artworkSize / 2 } : styles.squareArtwork,
 							styles.placeholder,
 							{ backgroundColor: colors.surfaceContainerHighest },
 						]}
 					>
-						<Icon
-							as={info.placeholderIcon}
-							size={48}
-							color={colors.onSurfaceVariant}
-						/>
+						<Icon as={info.placeholderIcon} size={48} color={colors.onSurfaceVariant} />
 					</View>
 				)}
 

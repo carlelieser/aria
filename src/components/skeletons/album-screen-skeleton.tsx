@@ -14,11 +14,7 @@ const ARTWORK_SKELETON_SIZE = 200;
 export function AlbumHeaderSkeleton() {
 	return (
 		<View style={styles.headerContent}>
-			<Skeleton
-				width={ARTWORK_SKELETON_SIZE}
-				height={ARTWORK_SKELETON_SIZE}
-				rounded="lg"
-			/>
+			<Skeleton width={ARTWORK_SKELETON_SIZE} height={ARTWORK_SKELETON_SIZE} rounded="lg" />
 			<Skeleton width={160} height={24} rounded="md" />
 			<Skeleton width={100} height={14} rounded="md" />
 		</View>

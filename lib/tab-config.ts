@@ -1,4 +1,11 @@
-import { HomeIcon, MusicIcon, DownloadIcon, SearchIcon, SettingsIcon, type LucideIcon } from 'lucide-react-native';
+import {
+	HomeIcon,
+	MusicIcon,
+	DownloadIcon,
+	SearchIcon,
+	SettingsIcon,
+	type LucideIcon,
+} from 'lucide-react-native';
 import type { BottomTabNavigationOptions } from '@react-navigation/bottom-tabs';
 import type { AnimationObject } from 'lottie-react-native';
 import type { TabId } from '@/src/application/state/settings-store';

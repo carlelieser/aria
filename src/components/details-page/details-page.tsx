@@ -18,7 +18,13 @@
  */
 
 import { createContext, useContext, useCallback, useState, type ReactNode } from 'react';
-import { View, StyleSheet, ScrollView, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
+import {
+	View,
+	StyleSheet,
+	ScrollView,
+	type NativeSyntheticEvent,
+	type NativeScrollEvent,
+} from 'react-native';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {

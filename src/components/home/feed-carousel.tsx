@@ -24,10 +24,7 @@ export const FeedCarousel = memo(function FeedCarousel({ section }: FeedCarousel
 	return (
 		<View style={styles.container}>
 			<View style={styles.header}>
-				<Text
-					variant="titleMedium"
-					style={[styles.title, { color: colors.onSurface }]}
-				>
+				<Text variant="titleMedium" style={[styles.title, { color: colors.onSurface }]}>
 					{section.title}
 				</Text>
 				{section.subtitle && (
@@ -90,13 +87,7 @@ const FeedCarouselItem = memo(function FeedCarouselItem({
 
 	switch (item.type) {
 		case 'track':
-			return (
-				<TrackCard
-					track={item.data}
-					queue={trackQueue}
-					queueIndex={trackQueueIndex}
-				/>
-			);
+			return <TrackCard track={item.data} queue={trackQueue} queueIndex={trackQueueIndex} />;
 		case 'album':
 			return <AlbumCard album={item.data} onPress={handleAlbumPress} />;
 		case 'artist':

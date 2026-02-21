@@ -112,7 +112,12 @@ function PageHeader({
 	];
 
 	return (
-		<View style={[headerContainerStyle, effectiveBg ? { backgroundColor: effectiveBg } : undefined]}>
+		<View
+			style={[
+				headerContainerStyle,
+				effectiveBg ? { backgroundColor: effectiveBg } : undefined,
+			]}
+		>
 			<View style={styles.header}>
 				{showBack && (
 					<IconButton

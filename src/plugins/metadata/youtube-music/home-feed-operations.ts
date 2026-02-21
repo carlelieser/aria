@@ -1,8 +1,19 @@
 import type { Track } from '@domain/entities/track';
-import type { FeedSection, FeedItem, FeedPlaylist, FeedFilterChip, HomeFeedData } from '@domain/entities/feed-section';
+import type {
+	FeedSection,
+	FeedItem,
+	FeedPlaylist,
+	FeedFilterChip,
+	HomeFeedData,
+} from '@domain/entities/feed-section';
 import type { Result } from '@shared/types/result';
 import { ok, err } from '@shared/types/result';
-import { mapYouTubeTrack, mapYouTubeAlbum, mapYouTubeArtist, mapThumbnailsToArtwork } from './mappers';
+import {
+	mapYouTubeTrack,
+	mapYouTubeAlbum,
+	mapYouTubeArtist,
+	mapThumbnailsToArtwork,
+} from './mappers';
 import type { ClientManager } from './client';
 import type { YouTubeMusicItem } from './types';
 import { getLogger } from '@shared/services/logger';
@@ -23,12 +34,15 @@ interface Continuable {
 }
 
 interface HomeFeedInstance {
-	sections?: { header?: { title?: { text?: string }; strapline?: { text?: string } }; contents?: unknown[] }[];
+	sections?: {
+		header?: { title?: { text?: string }; strapline?: { text?: string } };
+		contents?: unknown[];
+	}[];
 	header?: { chips?: { as: (type: unknown) => { text?: string; is_selected?: boolean }[] } };
 	has_continuation: boolean;
 	getContinuation(): Promise<HomeFeedInstance>;
 	applyFilter(target: string): Promise<HomeFeedInstance>;
-	filters: string[];
+	filters?: string[];
 }
 
 function extractTitle(item: YouTubeMusicItem): string | undefined {
@@ -138,6 +152,7 @@ function mapHomeFeedSections(feedSections: HomeFeedInstance['sections']): FeedSe
 const HIDDEN_FILTERS = new Set(['podcasts']);
 
 function extractFilterChips(feed: HomeFeedInstance): FeedFilterChip[] {
+	if (!feed.filters) return [];
 	return feed.filters
 		.filter((text) => !HIDDEN_FILTERS.has(text.toLowerCase()))
 		.map((text) => ({ text, isSelected: false }));

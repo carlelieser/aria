@@ -49,7 +49,9 @@ export default function RemotePlaylistScreen() {
 		}
 
 		load();
-		return () => { cancelled = true; };
+		return () => {
+			cancelled = true;
+		};
 	}, [id]);
 
 	const handlePlayAll = useCallback(() => {
@@ -65,29 +67,31 @@ export default function RemotePlaylistScreen() {
 		}
 	}, [tracks, downloadSelected]);
 
-	const headerRightActions = tracks.length > 0 ? (
-		<CollectionDownloadButton
-			tracks={tracks}
-			isDownloading={isDownloading}
-			progress={downloadProgress}
-			onDownload={handleDownloadAll}
-			onCancel={cancelDownload}
-		/>
-	) : undefined;
+	const headerRightActions =
+		tracks.length > 0 ? (
+			<CollectionDownloadButton
+				tracks={tracks}
+				isDownloading={isDownloading}
+				progress={downloadProgress}
+				onDownload={handleDownloadAll}
+				onCancel={cancelDownload}
+			/>
+		) : undefined;
 
 	const metadata: MetadataLine[] = isLoading
 		? []
 		: [{ text: `${tracks.length} ${tracks.length === 1 ? 'track' : 'tracks'}` }];
 
-	const actionButton = tracks.length > 0 ? (
-		<Button
-			mode="contained"
-			icon={() => <Icon as={PlayIcon} size={18} color={colors.onPrimary} />}
-			onPress={handlePlayAll}
-		>
-			Play All
-		</Button>
-	) : undefined;
+	const actionButton =
+		tracks.length > 0 ? (
+			<Button
+				mode="contained"
+				icon={() => <Icon as={PlayIcon} size={18} color={colors.onPrimary} />}
+				onPress={handlePlayAll}
+			>
+				Play All
+			</Button>
+		) : undefined;
 
 	const headerInfo: DetailsHeaderInfo = {
 		title: name ?? 'Playlist',
