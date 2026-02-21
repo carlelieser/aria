@@ -19,7 +19,7 @@ import kotlin.math.sqrt
  * Native Audio Visualizer Module for Android
  *
  * Uses android.media.audiofx.Visualizer on session 0 (global output mix)
- * to capture real-time FFT data. Processes FFT into 4 frequency bands
+ * to capture real-time FFT data. Processes FFT into 12 frequency bands
  * and emits normalized levels at ~20 Hz for smooth visualization.
  *
  * Requires RECORD_AUDIO and MODIFY_AUDIO_SETTINGS permissions.
@@ -31,12 +31,15 @@ class AudioVisualizerModule : Module() {
 
     companion object {
         private const val TAG = "AudioVisualizer"
-        private const val BAND_COUNT = 4
-        private const val CAPTURE_SIZE = 128
+        private const val BAND_COUNT = 12
+        private const val CAPTURE_SIZE = 256
         private const val TARGET_CAPTURE_RATE = 20000
         private const val START_DELAY_MS = 300L
 
-        private val BAND_EDGES = floatArrayOf(20f, 250f, 2000f, 6000f, 20000f)
+        private val BAND_EDGES = floatArrayOf(
+            20f, 60f, 120f, 250f, 500f, 1000f, 2000f,
+            3500f, 5000f, 7000f, 10000f, 14000f, 20000f
+        )
 
         private const val MIN_DB = 0f
         private const val MAX_DB = 45f

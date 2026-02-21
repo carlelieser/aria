@@ -5,7 +5,7 @@
  * - Android: android.media.audiofx.Visualizer (requires RECORD_AUDIO permission)
  * - iOS: MTAudioProcessingTap with vDSP FFT (no permission needed)
  *
- * Emits 4 normalized frequency band levels at ~30 Hz for smooth visualization.
+ * Emits 12 normalized frequency band levels at ~30 Hz for smooth visualization.
  */
 
 import { requireNativeModule, Platform } from 'expo-modules-core';
@@ -60,7 +60,7 @@ export function isAvailable(): boolean {
 
 /**
  * Subscribe to real-time audio level events.
- * Each event contains 4 normalized frequency band levels (0.0–1.0).
+ * Each event contains 12 normalized frequency band levels (0.0–1.0).
  */
 export function addAudioLevelsListener(
 	listener: (event: AudioLevelsEvent) => void

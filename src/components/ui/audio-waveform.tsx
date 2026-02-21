@@ -21,29 +21,37 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useEffect } from 'react';
 
-const BAR_COUNT = 4;
-const BAR_WIDTH = 3;
-const BAR_GAP = 2;
-const BAR_MIN_HEIGHT = 3;
+const BAR_COUNT = 12;
+const BAR_WIDTH = 2;
+const BAR_GAP = 1;
+const BAR_MIN_HEIGHT = 2;
 const BAR_MAX_HEIGHT = 16;
-const BAR_BORDER_RADIUS = 1.5;
+const BAR_BORDER_RADIUS = 1;
 
 const BAR_PHASES: readonly { speed: number; delay: number }[] = [
 	{ speed: 400, delay: 0 },
-	{ speed: 500, delay: 150 },
-	{ speed: 350, delay: 80 },
-	{ speed: 450, delay: 200 },
+	{ speed: 480, delay: 120 },
+	{ speed: 350, delay: 50 },
+	{ speed: 520, delay: 180 },
+	{ speed: 380, delay: 90 },
+	{ speed: 460, delay: 210 },
+	{ speed: 340, delay: 30 },
+	{ speed: 500, delay: 160 },
+	{ speed: 370, delay: 70 },
+	{ speed: 440, delay: 200 },
+	{ speed: 360, delay: 100 },
+	{ speed: 490, delay: 140 },
 ];
+
+const TIMING_CONFIG = {
+	duration: 80,
+	easing: Easing.out(Easing.cubic),
+} as const;
 
 interface AudioWaveformProps {
 	readonly color?: string;
 	/** Real-time audio levels from native capture (0.0–1.0 per band) */
-	readonly levels?: readonly [
-		SharedValue<number>,
-		SharedValue<number>,
-		SharedValue<number>,
-		SharedValue<number>,
-	];
+	readonly levels?: SharedValue<number[]>;
 }
 
 function SyntheticBar({ speed, delay, color }: { speed: number; delay: number; color: string }) {
@@ -83,16 +91,27 @@ function SyntheticBar({ speed, delay, color }: { speed: number; delay: number; c
 	return <Animated.View style={[styles.bar, animatedStyle, { backgroundColor: color }]} />;
 }
 
-function RealTimeBar({ level, color }: { level: SharedValue<number>; color: string }) {
+function RealTimeBar({
+	levels,
+	index,
+	color,
+}: {
+	levels: SharedValue<number[]>;
+	index: number;
+	color: string;
+}) {
 	const animatedStyle = useAnimatedStyle(() => {
-		const height = BAR_MIN_HEIGHT + level.value * (BAR_MAX_HEIGHT - BAR_MIN_HEIGHT);
-		return { height };
+		const level = levels.value[index] ?? 0;
+		const target = BAR_MIN_HEIGHT + level * (BAR_MAX_HEIGHT - BAR_MIN_HEIGHT);
+		return { height: withTiming(target, TIMING_CONFIG) };
 	});
 
 	return <Animated.View style={[styles.bar, animatedStyle, { backgroundColor: color }]} />;
 }
 
 const FADE_IN_DURATION = 250;
+
+const BAR_INDICES = Array.from({ length: BAR_COUNT }, (_, i) => i);
 
 export function AudioWaveform({ color = '#FFFFFF', levels }: AudioWaveformProps) {
 	const useRealTime = levels !== undefined;
@@ -114,8 +133,8 @@ export function AudioWaveform({ color = '#FFFFFF', levels }: AudioWaveformProps)
 			<View style={styles.scrim} />
 			<View style={styles.barsContainer}>
 				{useRealTime
-					? levels.map((level, index) => (
-							<RealTimeBar key={index} level={level} color={color} />
+					? BAR_INDICES.map((index) => (
+							<RealTimeBar key={index} levels={levels} index={index} color={color} />
 						))
 					: BAR_PHASES.map((phase, index) => (
 							<SyntheticBar

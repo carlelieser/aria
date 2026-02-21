@@ -8,29 +8,15 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { Platform, PermissionsAndroid } from 'react-native';
-import { useSharedValue, withTiming, Easing, type SharedValue } from 'react-native-reanimated';
+import { useSharedValue, type SharedValue } from 'react-native-reanimated';
 import { startCapture, stopCapture, isAvailable, addAudioLevelsListener } from 'audio-visualizer';
 import { useIsPlaying } from '@/src/application/state/player-store';
 
-const BAND_COUNT = 4;
-
-const TIMING_CONFIG = {
-	duration: 80,
-	easing: Easing.out(Easing.cubic),
-} as const;
-
-const ZERO_TIMING_CONFIG = {
-	duration: 300,
-	easing: Easing.out(Easing.quad),
-} as const;
+const BAND_COUNT = 12;
+const ZERO_LEVELS: number[] = new Array(BAND_COUNT).fill(0);
 
 export interface AudioLevelsResult {
-	readonly levels: readonly [
-		SharedValue<number>,
-		SharedValue<number>,
-		SharedValue<number>,
-		SharedValue<number>,
-	];
+	readonly levels: SharedValue<number[]>;
 }
 
 async function ensureRecordPermission(): Promise<boolean> {
@@ -51,20 +37,13 @@ async function ensureRecordPermission(): Promise<boolean> {
 }
 
 export function useAudioLevels(): AudioLevelsResult {
-	const level0 = useSharedValue(0);
-	const level1 = useSharedValue(0);
-	const level2 = useSharedValue(0);
-	const level3 = useSharedValue(0);
-
+	const levels = useSharedValue(ZERO_LEVELS);
 	const isPlaying = useIsPlaying();
 	const permissionDeniedRef = useRef(false);
 
 	const animateToZero = useCallback(() => {
-		level0.value = withTiming(0, ZERO_TIMING_CONFIG);
-		level1.value = withTiming(0, ZERO_TIMING_CONFIG);
-		level2.value = withTiming(0, ZERO_TIMING_CONFIG);
-		level3.value = withTiming(0, ZERO_TIMING_CONFIG);
-	}, [level0, level1, level2, level3]);
+		levels.value = ZERO_LEVELS;
+	}, [levels]);
 
 	useEffect(() => {
 		if (!isPlaying || permissionDeniedRef.current || !isAvailable()) {
@@ -75,13 +54,9 @@ export function useAudioLevels(): AudioLevelsResult {
 		let cancelled = false;
 
 		const subscription = addAudioLevelsListener((event) => {
-			const levels = event.levels;
-			if (levels.length < BAND_COUNT) return;
-
-			level0.value = withTiming(levels[0], TIMING_CONFIG);
-			level1.value = withTiming(levels[1], TIMING_CONFIG);
-			level2.value = withTiming(levels[2], TIMING_CONFIG);
-			level3.value = withTiming(levels[3], TIMING_CONFIG);
+			const raw = event.levels;
+			if (raw.length < BAND_COUNT) return;
+			levels.value = raw.slice(0, BAND_COUNT) as number[];
 		});
 
 		const start = async () => {
@@ -107,9 +82,7 @@ export function useAudioLevels(): AudioLevelsResult {
 			subscription.remove();
 			stopCapture().catch(() => {});
 		};
-	}, [isPlaying, level0, level1, level2, level3, animateToZero]);
+	}, [isPlaying, levels, animateToZero]);
 
-	return {
-		levels: [level0, level1, level2, level3] as const,
-	};
+	return { levels };
 }

@@ -7,7 +7,7 @@ import Accelerate
  *
  * Uses MTAudioProcessingTap on AVPlayerItem's audioMix to capture real-time
  * audio data from the playback engine. Processes audio using vDSP FFT into
- * 4 frequency bands and emits normalized levels via CADisplayLink at ~30 fps.
+ * 12 frequency bands and emits normalized levels via CADisplayLink at ~30 fps.
  *
  * No microphone permission needed — taps into the player pipeline directly.
  */
@@ -16,16 +16,19 @@ public class AudioVisualizerModule: Module {
     private var displayLink: CADisplayLink?
     private var playerObserver: NSKeyValueObservation?
     private var currentItem: AVPlayerItem?
-    private var latestLevels: [Double] = [0, 0, 0, 0]
+    private var latestLevels: [Double] = Array(repeating: 0, count: 12)
     private let levelsLock = NSLock()
 
     // FFT setup
     private var fftSetup: vDSP_DFT_Setup?
-    private let fftSize = 128
+    private let fftSize = 256
 
-    // Band boundaries in Hz
-    private static let bandEdges: [Float] = [20, 250, 2000, 6000, 20000]
-    private static let bandCount = 4
+    // Band boundaries in Hz (12 bands, logarithmic spacing)
+    private static let bandEdges: [Float] = [
+        20, 60, 120, 250, 500, 1000, 2000,
+        3500, 5000, 7000, 10000, 14000, 20000
+    ]
+    private static let bandCount = 12
     private static let minDB: Float = -60
     private static let maxDB: Float = 0
 

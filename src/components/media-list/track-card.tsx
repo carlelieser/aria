@@ -12,10 +12,13 @@ import { Text } from 'react-native-paper';
 import { Music } from 'lucide-react-native';
 
 import { Icon } from '@/src/components/ui/icon';
+import { AudioWaveform } from '@/src/components/ui/audio-waveform';
+import { useAudioLevelsContext } from '@/src/components/ui/audio-levels-provider';
 import { usePlayer } from '@/src/hooks/use-player';
 import type { Track } from '@/src/domain/entities/track';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import { getArtistNames } from '@/src/domain/entities/track';
+import { useCurrentTrack, useIsPlaying } from '@/src/application/state/player-store';
 import { DownloadIndicator } from './download-indicator';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 
@@ -36,6 +39,12 @@ export const TrackCard = memo(function TrackCard({
 }: TrackCardProps) {
 	const { play, playQueue } = usePlayer();
 	const { colors } = useAppTheme();
+	const currentTrack = useCurrentTrack();
+	const isPlaying = useIsPlaying();
+	const audioLevels = useAudioLevelsContext();
+
+	const isActiveTrack = currentTrack !== null && currentTrack.id.value === track.id.value;
+	const isCurrentlyPlaying = isActiveTrack && isPlaying;
 
 	const handlePress = useCallback(() => {
 		if (onPress) {
@@ -74,11 +83,16 @@ export const TrackCard = memo(function TrackCard({
 					) : (
 						<Icon as={Music} size={48} color={colors.onSurfaceVariant} />
 					)}
+					{isCurrentlyPlaying && <AudioWaveform levels={audioLevels?.levels} />}
 				</View>
 				<DownloadIndicator trackId={track.id.value} size="lg" />
 			</View>
 			<View style={styles.infoContainer}>
-				<Text variant="labelLarge" numberOfLines={1} style={{ color: colors.onSurface }}>
+				<Text
+					variant="labelLarge"
+					numberOfLines={1}
+					style={{ color: isActiveTrack ? colors.primary : colors.onSurface }}
+				>
 					{track.title}
 				</Text>
 				<Text
