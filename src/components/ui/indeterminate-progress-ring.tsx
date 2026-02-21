@@ -94,6 +94,12 @@ export const IndeterminateProgressRing = memo(function IndeterminateProgressRing
 	const peaks = useSharedValue(4);
 	const ampScale = useSharedValue(1);
 	const activeRef = useRef(false);
+	const changePeaksRef = useRef<() => void>(() => {});
+
+	const schedulePeakChange = useCallback(() => {
+		if (!activeRef.current) return;
+		setTimeout(() => changePeaksRef.current(), PEAK_CHANGE_INTERVAL);
+	}, []);
 
 	const changePeaks = useCallback(() => {
 		if (!activeRef.current) return;
@@ -113,12 +119,8 @@ export const IndeterminateProgressRing = memo(function IndeterminateProgressRing
 				});
 			}
 		});
-	}, [peaks, ampScale]);
-
-	const schedulePeakChange = useCallback(() => {
-		if (!activeRef.current) return;
-		setTimeout(changePeaks, PEAK_CHANGE_INTERVAL);
-	}, [changePeaks]);
+	}, [peaks, ampScale, schedulePeakChange]);
+	changePeaksRef.current = changePeaks;
 
 	useEffect(() => {
 		if (active) {

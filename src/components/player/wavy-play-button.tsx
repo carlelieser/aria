@@ -125,6 +125,12 @@ export const WavyPlayButton = memo(function WavyPlayButton({
 	const strokeAnim = useSharedValue(0);
 
 	const activeRef = useRef(false);
+	const changePeaksRef = useRef<() => void>(() => {});
+
+	const schedulePeakChange = useCallback(() => {
+		if (!activeRef.current) return;
+		setTimeout(() => changePeaksRef.current(), PEAK_CHANGE_INTERVAL);
+	}, []);
 
 	const changePeaks = useCallback(() => {
 		if (!activeRef.current) return;
@@ -144,12 +150,8 @@ export const WavyPlayButton = memo(function WavyPlayButton({
 				});
 			}
 		});
-	}, [peaks, ampScale]);
-
-	const schedulePeakChange = useCallback(() => {
-		if (!activeRef.current) return;
-		setTimeout(changePeaks, PEAK_CHANGE_INTERVAL);
-	}, [changePeaks]);
+	}, [peaks, ampScale, schedulePeakChange]);
+	changePeaksRef.current = changePeaks;
 
 	useEffect(() => {
 		if (isLoading || !isPlaying) {

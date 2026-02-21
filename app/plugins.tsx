@@ -80,13 +80,7 @@ function PluginItem({
 	const PluginIcon = categoryIcons[plugin.category] || DEFAULT_PLUGIN_ICON;
 
 	const toggle = useMemo(
-		() => (
-			<Switch
-				value={isEnabled}
-				onValueChange={onToggle}
-				disabled={plugin.isRequired}
-			/>
-		),
+		() => <Switch value={isEnabled} onValueChange={onToggle} disabled={plugin.isRequired} />,
 		[isEnabled, onToggle, plugin.isRequired]
 	);
 

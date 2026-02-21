@@ -32,8 +32,7 @@ export default function HomeScreen() {
 	const checkPrefetch = useCallback(
 		(contentHeight: number) => {
 			if (viewportHeight.current <= 0) return;
-			const distanceFromEnd =
-				contentHeight - viewportHeight.current - scrollOffset.current;
+			const distanceFromEnd = contentHeight - viewportHeight.current - scrollOffset.current;
 			if (distanceFromEnd < viewportHeight.current * PREFETCH_VIEWPORTS) {
 				handleLoadMore();
 			}

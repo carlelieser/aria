@@ -37,20 +37,15 @@ async function ensureRecordPermission(): Promise<boolean> {
 	if (Platform.OS !== 'android') return true;
 
 	// Check if already granted — avoids showing the dialog again
-	const already = await PermissionsAndroid.check(
-		PermissionsAndroid.PERMISSIONS.RECORD_AUDIO
-	);
+	const already = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO);
 	if (already) return true;
 
-	const result = await PermissionsAndroid.request(
-		PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-		{
-			title: 'Audio Visualizer',
-			message: 'Aria needs microphone access to visualize audio playback in real time.',
-			buttonPositive: 'Allow',
-			buttonNegative: 'Deny',
-		}
-	);
+	const result = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO, {
+		title: 'Audio Visualizer',
+		message: 'Aria needs microphone access to visualize audio playback in real time.',
+		buttonPositive: 'Allow',
+		buttonNegative: 'Deny',
+	});
 
 	return result === PermissionsAndroid.RESULTS.GRANTED;
 }
