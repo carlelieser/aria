@@ -1,11 +1,11 @@
 import { View, StyleSheet } from 'react-native';
 import { Skeleton } from '@/src/components/ui/skeleton';
 
-function FeedSectionSkeleton() {
+export function FeedSectionSkeleton() {
 	return (
 		<View style={styles.section}>
 			<View style={styles.header}>
-				<Skeleton width={'50%'} height={20} rounded={'sm'} />
+				<Skeleton width={'30%'} height={20} rounded={'sm'} />
 			</View>
 			<View style={styles.cards}>
 				{Array.from({ length: 4 }).map((_, index) => (

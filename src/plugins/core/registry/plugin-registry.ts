@@ -48,7 +48,7 @@ export class PluginRegistry implements ProviderRegistryInterface {
 	private static instance: PluginRegistry | null = null;
 
 	private plugins = new Map<string, RegisteredPlugin>();
-	private activeProviders = new Map<string, string>();
+	private activeProviders = new Map<string, Set<string>>();
 	private eventBus: EventBus;
 
 	private readonly _metadata: ProviderAccessor<MetadataProvider>;
@@ -173,11 +173,6 @@ export class PluginRegistry implements ProviderRegistryInterface {
 			if (!result.success) return result;
 		}
 
-		const currentActive = this.activeProviders.get(category);
-		if (currentActive && currentActive !== pluginId) {
-			await this.deactivate(currentActive);
-		}
-
 		if (plugin.onActivate) {
 			const result = await plugin.onActivate();
 			if (isErr(result)) {
@@ -186,7 +181,9 @@ export class PluginRegistry implements ProviderRegistryInterface {
 			}
 		}
 
-		this.activeProviders.set(category, pluginId);
+		const active = this.activeProviders.get(category) ?? new Set<string>();
+		active.add(pluginId);
+		this.activeProviders.set(category, active);
 		this._emitEvent({ type: 'plugin-activated', pluginId, category });
 		return ok(undefined);
 	}
@@ -200,7 +197,8 @@ export class PluginRegistry implements ProviderRegistryInterface {
 		const { plugin } = registered;
 		const category = plugin.manifest.category;
 
-		if (this.activeProviders.get(category) !== pluginId) {
+		const active = this.activeProviders.get(category);
+		if (!active?.has(pluginId)) {
 			return ok(undefined);
 		}
 
@@ -212,7 +210,10 @@ export class PluginRegistry implements ProviderRegistryInterface {
 			}
 		}
 
-		this.activeProviders.delete(category);
+		active.delete(pluginId);
+		if (active.size === 0) {
+			this.activeProviders.delete(category);
+		}
 		this._emitEvent({ type: 'plugin-deactivated', pluginId, category });
 		return ok(undefined);
 	}
@@ -233,8 +234,10 @@ export class PluginRegistry implements ProviderRegistryInterface {
 	}
 
 	getActiveProvider(category: string): BasePlugin | undefined {
-		const pluginId = this.activeProviders.get(category);
-		return pluginId ? this.plugins.get(pluginId)?.plugin : undefined;
+		const active = this.activeProviders.get(category);
+		if (!active || active.size === 0) return undefined;
+		const firstId = active.values().next().value;
+		return firstId ? this.plugins.get(firstId)?.plugin : undefined;
 	}
 
 	getActiveMetadataProvider(): MetadataProvider | undefined {
@@ -300,7 +303,8 @@ export class PluginRegistry implements ProviderRegistryInterface {
 	isActive(pluginId: string): boolean {
 		const registered = this.plugins.get(pluginId);
 		if (!registered) return false;
-		return this.activeProviders.get(registered.plugin.manifest.category) === pluginId;
+		const active = this.activeProviders.get(registered.plugin.manifest.category);
+		return active?.has(pluginId) ?? false;
 	}
 
 	getStatus(pluginId: string): PluginStatus | undefined {

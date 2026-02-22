@@ -6,7 +6,10 @@
  */
 
 import type { MetadataProvider } from '../../plugins/core/interfaces/metadata-provider';
-import type { AudioSourceProvider } from '../../plugins/core/interfaces/audio-source-provider';
+import {
+	type AudioSourceProvider,
+	hasAudioSourceCapability,
+} from '../../plugins/core/interfaces/audio-source-provider';
 import type { PlaybackProvider } from '../../plugins/core/interfaces/playback-provider';
 import type {
 	PluginRegistry,
@@ -203,15 +206,19 @@ export class PluginLifecycleService {
 				);
 			}
 
-			// Check if it also has audio source capability
-			const audioSourceProviders = this.pluginRegistry.getAllAudioSourceProviders();
-			const audioSourceProvider = audioSourceProviders.find(
-				(p) => p.manifest.id === pluginId
-			);
-
-			if (audioSourceProvider) {
-				this.services.playbackService.addAudioSourceProvider(audioSourceProvider);
-				this.services.downloadService.addAudioSourceProvider(audioSourceProvider);
+			// Re-sync audio source providers from all metadata providers.
+			// Metadata providers with audio source capability (e.g. YouTube Music)
+			// may have been removed when they were deactivated due to the
+			// single-active-per-category rule. Re-add all that qualify.
+			for (const mp of metadataProviders) {
+				if (hasAudioSourceCapability(mp)) {
+					this.services.playbackService.addAudioSourceProvider(
+						mp as unknown as AudioSourceProvider
+					);
+					this.services.downloadService.addAudioSourceProvider(
+						mp as unknown as AudioSourceProvider
+					);
+				}
 			}
 		}
 

@@ -4,15 +4,25 @@ import { AlertCircleIcon, MusicIcon } from 'lucide-react-native';
 import { PageLayout } from '@/src/components/ui/page-layout';
 import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
 import { EmptyState } from '@/src/components/ui/empty-state';
-import { FeedCarousel, FeedFilterChips, HomeFeedSkeleton } from '@/src/components/home';
+import {
+	FeedCarousel,
+	FeedFilterChips,
+	FeedSectionSkeleton,
+	HomeFeedSkeleton,
+} from '@/src/components/home';
 import { useHomeFeed } from '@/src/hooks/use-home-feed';
 import { useHomeFeedStore } from '@/src/application/state/home-feed-store';
 import { useAppTheme } from '@/lib/theme';
 
+const useHasCompletedInitialLoad = () =>
+	useHomeFeedStore((state) => state.lastFetchedAt !== null);
+
 const PREFETCH_VIEWPORTS = 3;
+const MIN_VISIBLE_SECTIONS = 4;
 
 export default function HomeScreen() {
 	const { colors } = useAppTheme();
+	const hasCompletedInitialLoad = useHasCompletedInitialLoad();
 	const activeFilterIndex = useHomeFeedStore((state) => state.activeFilterIndex);
 	const {
 		sections,
@@ -40,6 +50,10 @@ export default function HomeScreen() {
 		[handleLoadMore]
 	);
 
+	const visibleSections = sections.filter((section) => section.items.length > 0);
+	const skeletonCount = !hasCompletedInitialLoad
+		? Math.max(0, MIN_VISIBLE_SECTIONS - visibleSections.length)
+		: 0;
 	const hasData = sections.length > 0;
 	const showSkeleton = isLoading && !hasData;
 	const showError = !isLoading && !hasData && error !== null;
@@ -99,10 +113,12 @@ export default function HomeScreen() {
 								onDeselect={handleClearFilter}
 							/>
 						)}
-						{sections
-							.filter((section) => section.items.length > 0)
-							.map((section) => (
-								<FeedCarousel key={section.id} section={section} />
+						{visibleSections.map((section) => (
+							<FeedCarousel key={section.id} section={section} />
+						))}
+						{skeletonCount > 0 &&
+							Array.from({ length: skeletonCount }, (_, i) => (
+								<FeedSectionSkeleton key={`skeleton-${i}`} />
 							))}
 					</View>
 				)}
