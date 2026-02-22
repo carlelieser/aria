@@ -6,7 +6,7 @@
  * primary-colored title, and live position instead of static duration.
  */
 
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useRef } from 'react';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { CheckCircle, AlertCircle, X, Trash2, Music, RotateCcw } from 'lucide-react-native';
@@ -81,7 +81,13 @@ export const TrackListItem = memo(function TrackListItem({
 	const isActiveTrack = currentTrack !== null && currentTrack.id.value === track.id.value;
 	const isCurrentlyPlaying = isActiveTrack && isPlaying;
 
+	const longPressedRef = useRef(false);
+
 	const handlePress = useCallback(() => {
+		if (longPressedRef.current) {
+			longPressedRef.current = false;
+			return;
+		}
 		if (onPress) {
 			onPress(track);
 		} else {
@@ -94,6 +100,7 @@ export const TrackListItem = memo(function TrackListItem({
 	}, [onPress, track, play, playQueue, queue, queueIndex]);
 
 	const handleLongPress = useCallback(() => {
+		longPressedRef.current = true;
 		onLongPress?.(track);
 	}, [onLongPress, track]);
 
