@@ -14,6 +14,7 @@ import { useLyricsForTrack } from '@/src/hooks/use-lyrics';
 import { getArtistNames } from '@/src/domain/entities/track';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import { useAppTheme } from '@/lib/theme';
+import { FontFamily } from '@/lib/theme/typography';
 
 export default function LyricsScreen() {
 	const { trackId } = useLocalSearchParams<{ trackId: string }>();
@@ -181,8 +182,9 @@ const styles = StyleSheet.create({
 		paddingVertical: 24,
 	},
 	plainLyricsText: {
-		fontSize: 18,
-		lineHeight: 32,
+		fontFamily: FontFamily.medium,
+		fontSize: 22,
+		lineHeight: 36,
 		textAlign: 'center',
 	},
 	attribution: {

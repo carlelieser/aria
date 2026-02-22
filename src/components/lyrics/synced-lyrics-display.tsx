@@ -14,9 +14,8 @@ import { useCurrentLineIndex } from '@/src/application/state/lyrics-store';
 import { usePlayer } from '@/src/hooks/use-player';
 import { Duration } from '@/src/domain/value-objects/duration';
 import { useAppTheme } from '@/lib/theme';
+import { FontFamily } from '@/lib/theme/typography';
 import type { LyricsLine } from '@/src/plugins/core/interfaces/metadata-provider';
-
-const SCROLL_OFFSET = 120;
 
 interface LyricsLineItemProps {
 	line: LyricsLine;
@@ -44,13 +43,14 @@ const LyricsLineItem = memo(function LyricsLineItem({
 
 		return {
 			opacity: withTiming(opacity, { duration: 200 }),
-			transform: [{ scale: withTiming(scale, { duration: 200 }) }],
+			transform: [{ scale: withTiming(scale, { duration: 500 }) }],
 		};
 	}, [isCurrent, isPast]);
 
 	const textAnimatedStyle = useAnimatedStyle(() => {
 		const color = interpolateColor(isCurrent ? 1 : 0, [0, 1], [inactiveColor, activeColor]);
-		return { color };
+		const fontSize = withTiming(isCurrent ? 36 : 24, { duration: 300 });
+		return { color, fontSize };
 	}, [isCurrent, activeColor, inactiveColor]);
 
 	const handlePress = useCallback(() => {
@@ -67,7 +67,7 @@ const LyricsLineItem = memo(function LyricsLineItem({
 				<Animated.Text
 					style={[
 						styles.lineText,
-						isCurrent && styles.currentLineText,
+						isCurrent && styles.currentLineFont,
 						textAnimatedStyle,
 					]}
 				>
@@ -86,21 +86,23 @@ interface SyncedLyricsDisplayProps {
 export function SyncedLyricsDisplay({ lines, attribution }: SyncedLyricsDisplayProps) {
 	const { colors } = useAppTheme();
 	const scrollViewRef = useRef<ScrollView>(null);
-	const linePositions = useRef<Map<number, number>>(new Map());
+	const lineLayouts = useRef<Map<number, { y: number; height: number }>>(new Map());
+	const viewportHeight = useRef(0);
 
 	const currentLineIndex = useCurrentLineIndex();
 	const { seekTo } = usePlayer();
 
-	// Auto-scroll to current line
+	// Auto-scroll to center the active line vertically
 	useEffect(() => {
 		if (currentLineIndex < 0) {
 			return;
 		}
 
-		const position = linePositions.current.get(currentLineIndex);
-		if (position !== undefined && scrollViewRef.current) {
+		const layout = lineLayouts.current.get(currentLineIndex);
+		if (layout && scrollViewRef.current) {
+			const lineCenter = layout.y + layout.height / 2;
 			scrollViewRef.current.scrollTo({
-				y: Math.max(0, position - SCROLL_OFFSET),
+				y: Math.max(0, lineCenter - viewportHeight.current / 2),
 				animated: true,
 			});
 		}
@@ -113,8 +115,8 @@ export function SyncedLyricsDisplay({ lines, attribution }: SyncedLyricsDisplayP
 		[seekTo]
 	);
 
-	const handleLineLayout = useCallback((index: number, y: number) => {
-		linePositions.current.set(index, y);
+	const handleLineLayout = useCallback((index: number, y: number, height: number) => {
+		lineLayouts.current.set(index, { y, height });
 	}, []);
 
 	return (
@@ -122,12 +124,21 @@ export function SyncedLyricsDisplay({ lines, attribution }: SyncedLyricsDisplayP
 			ref={scrollViewRef}
 			contentContainerStyle={styles.scrollContent}
 			showsVerticalScrollIndicator={false}
+			onLayout={(e) => {
+				viewportHeight.current = e.nativeEvent.layout.height;
+			}}
 		>
 			<View style={styles.lyricsContainer}>
 				{lines.map((line, index) => (
 					<View
 						key={`${index}-${line.startTime}`}
-						onLayout={(e) => handleLineLayout(index, e.nativeEvent.layout.y)}
+						onLayout={(e) =>
+							handleLineLayout(
+								index,
+								e.nativeEvent.layout.y,
+								e.nativeEvent.layout.height
+							)
+						}
 					>
 						<LyricsLineItem
 							line={line}
@@ -165,14 +176,11 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 4,
 	},
 	lineText: {
-		fontSize: 18,
-		lineHeight: 32,
+		fontFamily: FontFamily.medium,
 		textAlign: 'center',
-		fontWeight: '500',
 	},
-	currentLineText: {
-		fontSize: 20,
-		fontWeight: '700',
+	currentLineFont: {
+		fontFamily: FontFamily.bold,
 	},
 	emptyLine: {
 		height: 24,
