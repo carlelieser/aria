@@ -93,7 +93,7 @@ export function TabOrderSetting() {
 		<>
 			<SettingsItem
 				icon={GripVerticalIcon}
-				title="Tab order"
+				title={'Tab order'}
 				subtitle={orderSummary}
 				onPress={handlePress}
 				showChevron
@@ -102,8 +102,8 @@ export function TabOrderSetting() {
 			<SettingsBottomSheet
 				isOpen={isOpen}
 				onClose={handleClose}
-				portalName="tab-order-setting"
-				title="Reorder tabs"
+				portalName={'tab-order-setting'}
+				title={'Reorder tabs'}
 				showReset={!isDefault}
 				onReset={handleReset}
 			>
@@ -132,7 +132,7 @@ export function TabOrderSetting() {
 										color={isEnabled ? colors.onSurface : colors.outlineVariant}
 									/>
 									<Text
-										variant="bodyMedium"
+										variant={'bodyMedium'}
 										style={[
 											styles.tabLabel,
 											{

@@ -34,19 +34,20 @@ export function EmptyState({ icon: IconComponent, title, description, action }: 
 				<Icon as={IconComponent} size={48} color={colors.onSurfaceVariant} />
 			</View>
 			<Text
-				variant="titleLarge"
-				style={{ color: colors.onSurface, marginBottom: 8, fontWeight: '600' }}
+				variant={'titleLarge'}
+				style={{
+					color: colors.onSurface,
+					marginBottom: 8,
+					fontWeight: '600',
+					textAlign: 'center',
+				}}
 			>
 				{title}
 			</Text>
 			{description && (
 				<Text
-					variant="bodyMedium"
-					style={{
-						color: colors.onSurfaceVariant,
-						textAlign: 'center',
-						paddingHorizontal: 32,
-					}}
+					variant={'bodyMedium'}
+					style={{ color: colors.onSurfaceVariant, textAlign: 'center' }}
 				>
 					{description}
 				</Text>
@@ -59,11 +60,12 @@ export function EmptyState({ icon: IconComponent, title, description, action }: 
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		alignItems: 'center',
 		justifyContent: 'center',
 		paddingVertical: 64,
+		paddingHorizontal: 32,
 	},
 	iconContainer: {
+		alignSelf: 'center',
 		borderRadius: 9999,
 		padding: 24,
 		marginBottom: 16,

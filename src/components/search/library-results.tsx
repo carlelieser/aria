@@ -32,12 +32,12 @@ export function LibraryResults({
 	return (
 		<>
 			{tracks.length > 0 && (
-				<ResultSection title="Songs" icon={MusicIcon}>
+				<ResultSection title={'Songs'} icon={MusicIcon}>
 					{tracks.map((track, index) => (
 						<SelectableTrackListItem
 							key={track.id.value}
 							track={track}
-							source="library"
+							source={'library'}
 							isSelectionMode={isSelectionMode}
 							isSelected={selectedTrackIds.has(track.id.value)}
 							onLongPress={onLongPress}
@@ -50,7 +50,7 @@ export function LibraryResults({
 			)}
 
 			{playlists.length > 0 && (
-				<ResultSection title="Playlists" icon={ListMusicIcon}>
+				<ResultSection title={'Playlists'} icon={ListMusicIcon}>
 					{playlists.map((playlist) => (
 						<PlaylistListItem key={playlist.id} playlist={playlist} />
 					))}
@@ -58,7 +58,7 @@ export function LibraryResults({
 			)}
 
 			{albums.length > 0 && (
-				<ResultSection title="Albums" icon={DiscIcon}>
+				<ResultSection title={'Albums'} icon={DiscIcon}>
 					{albums.map((album) => (
 						<AlbumListItem
 							key={album.id}
@@ -73,7 +73,7 @@ export function LibraryResults({
 			)}
 
 			{artists.length > 0 && (
-				<ResultSection title="Artists" icon={UsersIcon}>
+				<ResultSection title={'Artists'} icon={UsersIcon}>
 					{artists.map((artist) => (
 						<ArtistListItem
 							key={artist.id}

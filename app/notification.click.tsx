@@ -6,7 +6,7 @@ export default function NotificationClickHandler() {
 	const navState = useRootNavigationState();
 
 	if (!currentTrack) {
-		return <Redirect href="/" />;
+		return <Redirect href={'/'} />;
 	}
 
 	const routes = navState?.routes ?? [];
@@ -16,5 +16,5 @@ export default function NotificationClickHandler() {
 		return null;
 	}
 
-	return <Redirect href="/player" />;
+	return <Redirect href={'/player'} />;
 }

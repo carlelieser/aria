@@ -60,13 +60,13 @@ export default function PlayerScreen() {
 						)}
 						onPress={() => router.back()}
 					/>
-					<Text variant="labelLarge" style={{ color: colors.onSurfaceVariant }}>
+					<Text variant={'labelLarge'} style={{ color: colors.onSurfaceVariant }}>
 						{showLyrics ? 'Lyrics' : 'Now Playing'}
 					</Text>
 					<TrackOptionsMenu
 						track={currentTrack}
-						source="player"
-						orientation="horizontal"
+						source={'player'}
+						orientation={'horizontal'}
 					/>
 				</View>
 
@@ -81,9 +81,9 @@ export default function PlayerScreen() {
 								<Image
 									source={{ uri: artworkUrl }}
 									style={styles.artwork}
-									contentFit="cover"
+									contentFit={'cover'}
 									transition={300}
-									cachePolicy="memory-disk"
+									cachePolicy={'memory-disk'}
 									recyclingKey={currentTrack.id.value}
 									onLoad={handleArtworkLoad}
 								/>
@@ -102,14 +102,14 @@ export default function PlayerScreen() {
 
 				<View style={styles.trackInfo}>
 					<Text
-						variant="headlineSmall"
+						variant={'headlineSmall'}
 						numberOfLines={2}
 						style={{ color: colors.onSurface, fontWeight: '700' }}
 					>
 						{currentTrack.title}
 					</Text>
 					<Text
-						variant="titleMedium"
+						variant={'titleMedium'}
 						numberOfLines={1}
 						style={{ color: colors.onSurfaceVariant }}
 					>
@@ -119,7 +119,7 @@ export default function PlayerScreen() {
 
 				{error && (
 					<View style={[styles.errorContainer, { backgroundColor: `${colors.error}1A` }]}>
-						<Text variant="bodySmall" style={{ color: colors.error }}>
+						<Text variant={'bodySmall'} style={{ color: colors.error }}>
 							{error}
 						</Text>
 					</View>
@@ -129,7 +129,7 @@ export default function PlayerScreen() {
 					<ProgressBar seekable={true} />
 				</View>
 
-				<PlayerControls size="lg" />
+				<PlayerControls size={'lg'} />
 			</View>
 		</SafeAreaView>
 	);

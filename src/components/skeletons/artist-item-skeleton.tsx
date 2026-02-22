@@ -10,7 +10,7 @@ import { MediaListItemSkeleton, MediaListSkeleton } from './media-list-item-skel
 export function ArtistItemSkeleton() {
 	return (
 		<MediaListItemSkeleton
-			shape="circular"
+			shape={'circular'}
 			artworkSize={56}
 			lines={2}
 			primaryWidth={'55%' as const}
@@ -28,7 +28,7 @@ export function ArtistListSkeleton({ count = 5 }: ArtistListSkeletonProps) {
 	return (
 		<MediaListSkeleton
 			count={count}
-			shape="circular"
+			shape={'circular'}
 			artworkSize={56}
 			lines={2}
 			primaryWidth={'55%' as const}

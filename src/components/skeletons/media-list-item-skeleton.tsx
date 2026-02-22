@@ -47,12 +47,12 @@ export function MediaListItemSkeleton({
 			<Skeleton width={artworkSize} height={artworkSize} rounded={artworkRounded} />
 
 			<View style={styles.textContainer}>
-				<Skeleton width={primaryWidth} height={16} rounded="sm" />
-				{lines >= 2 && <Skeleton width={secondaryWidth} height={14} rounded="sm" />}
-				{lines >= 3 && <Skeleton width={tertiaryWidth} height={12} rounded="sm" />}
+				<Skeleton width={primaryWidth} height={16} rounded={'sm'} />
+				{lines >= 2 && <Skeleton width={secondaryWidth} height={14} rounded={'sm'} />}
+				{lines >= 3 && <Skeleton width={tertiaryWidth} height={12} rounded={'sm'} />}
 			</View>
 
-			{showAccessory && <Skeleton width={32} height={14} rounded="sm" />}
+			{showAccessory && <Skeleton width={32} height={14} rounded={'sm'} />}
 		</View>
 	);
 }

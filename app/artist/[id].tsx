@@ -127,7 +127,7 @@ export default function ArtistScreen() {
 							<TrackListItem
 								key={track.id.value}
 								track={track}
-								source="library"
+								source={'library'}
 								queue={libraryTracks}
 								queueIndex={index}
 							/>
@@ -144,7 +144,7 @@ export default function ArtistScreen() {
 		if (isLoading && !hasData) {
 			return (
 				<View style={styles.loadingState}>
-					<ActivityIndicator size="large" color={colors.primary} />
+					<ActivityIndicator size={'large'} color={colors.primary} />
 				</View>
 			);
 		}
@@ -153,12 +153,12 @@ export default function ArtistScreen() {
 			return (
 				<View style={styles.emptyState}>
 					<Text
-						variant="bodyMedium"
+						variant={'bodyMedium'}
 						style={{ color: colors.onSurfaceVariant, textAlign: 'center' }}
 					>
 						{error}
 					</Text>
-					<Button mode="text" onPress={handleSearchArtist}>
+					<Button mode={'text'} onPress={handleSearchArtist}>
 						Search instead
 					</Button>
 				</View>
@@ -168,10 +168,10 @@ export default function ArtistScreen() {
 		if (albums.length === 0 && libraryTracks.length === 0) {
 			return (
 				<View style={styles.emptyState}>
-					<Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant }}>
+					<Text variant={'bodyMedium'} style={{ color: colors.onSurfaceVariant }}>
 						No content found for this artist
 					</Text>
-					<Button mode="text" onPress={handleSearchArtist}>
+					<Button mode={'text'} onPress={handleSearchArtist}>
 						Search for tracks
 					</Button>
 				</View>

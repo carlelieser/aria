@@ -40,19 +40,19 @@ export const PluginTextField = memo(function PluginTextField({
 				onBlur={() => onBlur(schema.key)}
 				keyboardType={keyboardType}
 				error={!!error}
-				autoCapitalize="none"
+				autoCapitalize={'none'}
 				autoCorrect={false}
 			/>
 			{schema.description && !error && (
 				<Text
-					variant="bodySmall"
+					variant={'bodySmall'}
 					style={[styles.helper, { color: colors.onSurfaceVariant }]}
 				>
 					{schema.description}
 				</Text>
 			)}
 			{error && (
-				<Text variant="bodySmall" style={[styles.error, { color: colors.error }]}>
+				<Text variant={'bodySmall'} style={[styles.error, { color: colors.error }]}>
 					{error}
 				</Text>
 			)}

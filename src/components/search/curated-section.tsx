@@ -31,7 +31,7 @@ export const CuratedSection = memo(function CuratedSection({
 	return (
 		<View style={styles.curatedSection}>
 			<View style={styles.curatedSectionHeader}>
-				<Text variant="labelLarge" style={titleStyle}>
+				<Text variant={'labelLarge'} style={titleStyle}>
 					{title}
 				</Text>
 			</View>

@@ -72,7 +72,7 @@ const ColorOptionItem = memo(function ColorOptionItem({
 		>
 			<View style={styles.itemContent}>
 				<View style={[styles.colorIndicator, { backgroundColor: colorValue }]} />
-				<Text variant="bodyLarge" style={[styles.itemText, { color: colors.onSurface }]}>
+				<Text variant={'bodyLarge'} style={[styles.itemText, { color: colors.onSurface }]}>
 					{label}
 				</Text>
 				{isSelected && (
@@ -114,7 +114,7 @@ const DynamicColorOption = memo(function DynamicColorOption({
 		>
 			<View style={styles.itemContent}>
 				<View style={[styles.colorIndicator, { backgroundColor: dynamicColor }]} />
-				<Text variant="bodyLarge" style={[styles.itemText, { color: colors.onSurface }]}>
+				<Text variant={'bodyLarge'} style={[styles.itemText, { color: colors.onSurface }]}>
 					{DYNAMIC_COLOR.label}
 				</Text>
 				{isSelected && (
@@ -179,7 +179,7 @@ export function AccentColorPicker({ value, onValueChange }: AccentColorPickerPro
 	const subtitleElement = (
 		<View style={styles.valueRow}>
 			<View style={[styles.colorDot, { backgroundColor: currentColor }]} />
-			<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
+			<Text variant={'bodySmall'} style={{ color: colors.onSurfaceVariant }}>
 				{selectedOption?.label ?? 'Default'}
 			</Text>
 		</View>
@@ -189,14 +189,14 @@ export function AccentColorPicker({ value, onValueChange }: AccentColorPickerPro
 		<>
 			<SettingsItem
 				icon={PaletteIcon}
-				title="Accent"
+				title={'Accent'}
 				subtitleElement={subtitleElement}
 				onPress={handlePress}
 				showChevron
 			/>
 
 			{isOpen && (
-				<Portal name="action-sheet-accent-color-picker">
+				<Portal name={'action-sheet-accent-color-picker'}>
 					<BottomSheet
 						ref={sheetRef}
 						index={0}
@@ -217,7 +217,7 @@ export function AccentColorPicker({ value, onValueChange }: AccentColorPickerPro
 							<View style={styles.header}>
 								<Icon as={PaletteIcon} size={22} color={colors.onSurfaceVariant} />
 								<Text
-									variant="titleMedium"
+									variant={'titleMedium'}
 									style={[styles.headerTitle, { color: colors.onSurface }]}
 								>
 									Accent

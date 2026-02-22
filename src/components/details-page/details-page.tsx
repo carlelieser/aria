@@ -168,7 +168,7 @@ export function DetailsPage({
 			<View key={section.key} style={styles.section}>
 				{section.title && (
 					<Text
-						variant="titleMedium"
+						variant={'titleMedium'}
 						style={[styles.sectionTitle, { color: colors.onSurface }]}
 					>
 						{section.title}

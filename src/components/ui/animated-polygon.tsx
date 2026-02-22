@@ -81,7 +81,7 @@ export function AnimatedPolygonView({
 					fill={fill}
 					stroke={stroke}
 					strokeWidth={strokeWidth}
-					strokeLinejoin="round"
+					strokeLinejoin={'round'}
 				/>
 			</Svg>
 		</View>
@@ -136,8 +136,8 @@ export function ControlledPolygon({
 					fill={fill}
 					stroke={stroke}
 					strokeWidth={strokeWidth}
-					strokeLinejoin="round"
-					strokeLinecap="round"
+					strokeLinejoin={'round'}
+					strokeLinecap={'round'}
 				/>
 			</Svg>
 		</View>
@@ -226,7 +226,7 @@ export function StaticPolygon({
 					fill={fill}
 					stroke={stroke}
 					strokeWidth={strokeWidth}
-					strokeLinejoin="round"
+					strokeLinejoin={'round'}
 				/>
 			</Svg>
 		</View>

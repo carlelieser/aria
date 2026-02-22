@@ -75,9 +75,9 @@ export const TrackCard = memo(function TrackCard({
 						<Image
 							source={{ uri: artworkUrl }}
 							style={styles.artwork}
-							contentFit="cover"
+							contentFit={'cover'}
 							transition={200}
-							cachePolicy="memory-disk"
+							cachePolicy={'memory-disk'}
 							recyclingKey={track.id.value}
 						/>
 					) : (
@@ -85,18 +85,18 @@ export const TrackCard = memo(function TrackCard({
 					)}
 					{isCurrentlyPlaying && <AudioWaveform levels={audioLevels?.levels} />}
 				</View>
-				<DownloadIndicator trackId={track.id.value} size="lg" />
+				<DownloadIndicator trackId={track.id.value} size={'lg'} />
 			</View>
 			<View style={styles.infoContainer}>
 				<Text
-					variant="labelLarge"
+					variant={'labelLarge'}
 					numberOfLines={1}
 					style={{ color: isActiveTrack ? colors.primary : colors.onSurface }}
 				>
 					{track.title}
 				</Text>
 				<Text
-					variant="bodySmall"
+					variant={'bodySmall'}
 					numberOfLines={1}
 					style={{ color: colors.onSurfaceVariant }}
 				>

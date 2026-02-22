@@ -101,7 +101,7 @@ export function SongsTab({ tracks, isLoading, hasFilters, onScroll }: SongsTabPr
 			/>
 
 			<BatchActionBar
-				context="library"
+				context={'library'}
 				selectedCount={selectedCount}
 				onCancel={exitSelectionMode}
 				onAddToQueue={handleBatchAddToQueue}

@@ -10,7 +10,7 @@ import { MediaListItemSkeleton, MediaListSkeleton } from './media-list-item-skel
 export function PlaylistItemSkeleton() {
 	return (
 		<MediaListItemSkeleton
-			shape="rounded"
+			shape={'rounded'}
 			artworkSize={56}
 			lines={2}
 			primaryWidth={'60%' as const}
@@ -28,7 +28,7 @@ export function PlaylistListSkeleton({ count = 5 }: PlaylistListSkeletonProps) {
 	return (
 		<MediaListSkeleton
 			count={count}
-			shape="rounded"
+			shape={'rounded'}
 			artworkSize={56}
 			lines={2}
 			primaryWidth={'60%' as const}

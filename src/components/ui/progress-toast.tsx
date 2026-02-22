@@ -142,15 +142,18 @@ export const ProgressToast = memo(function ProgressToast({
 	if (isMinimized && !showComplete) {
 		return (
 			<Portal name={portalName}>
-				<View style={[styles.container, { bottom: bottomOffset }]} pointerEvents="box-none">
+				<View
+					style={[styles.container, { bottom: bottomOffset }]}
+					pointerEvents={'box-none'}
+				>
 					<Animated.View style={animatedContainerStyle}>
 						<Pressable
 							onPress={handleExpand}
 							style={[styles.pill, { backgroundColor: colors.primaryContainer }]}
 						>
-							<ActivityIndicator size="small" color={colors.onPrimaryContainer} />
+							<ActivityIndicator size={'small'} color={colors.onPrimaryContainer} />
 							<Text
-								variant="labelMedium"
+								variant={'labelMedium'}
 								style={[styles.pillText, { color: colors.onPrimaryContainer }]}
 							>
 								{percentage}%
@@ -164,7 +167,7 @@ export const ProgressToast = memo(function ProgressToast({
 
 	return (
 		<Portal name={portalName}>
-			<View style={[styles.container, { bottom: bottomOffset }]} pointerEvents="box-none">
+			<View style={[styles.container, { bottom: bottomOffset }]} pointerEvents={'box-none'}>
 				<GestureDetector gesture={panGesture}>
 					<Animated.View
 						style={[
@@ -174,12 +177,15 @@ export const ProgressToast = memo(function ProgressToast({
 						]}
 					>
 						<View style={styles.header}>
-							<Text variant="labelLarge" style={{ color: colors.onPrimaryContainer }}>
+							<Text
+								variant={'labelLarge'}
+								style={{ color: colors.onPrimaryContainer }}
+							>
 								{phaseMessage}
 							</Text>
 							{!showComplete && (
 								<Text
-									variant="labelMedium"
+									variant={'labelMedium'}
 									style={{ color: colors.onPrimaryContainer }}
 								>
 									{percentage}%
@@ -197,14 +203,14 @@ export const ProgressToast = memo(function ProgressToast({
 
 								<View style={styles.footer}>
 									<Text
-										variant="bodySmall"
+										variant={'bodySmall'}
 										style={{ color: colors.onPrimaryContainer, opacity: 0.8 }}
 									>
 										{progressText}
 									</Text>
 									{currentItemLabel && (
 										<Text
-											variant="bodySmall"
+											variant={'bodySmall'}
 											numberOfLines={1}
 											style={{
 												color: colors.onPrimaryContainer,

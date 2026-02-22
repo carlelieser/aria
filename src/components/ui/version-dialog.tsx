@@ -29,10 +29,10 @@ function InfoRow({ icon: IconComponent, label, value }: InfoRowProps) {
 	return (
 		<View style={styles.infoRow}>
 			<Icon as={IconComponent} size={18} color={colors.onSurfaceVariant} />
-			<Text variant="bodyMedium" style={[styles.label, { color: colors.onSurfaceVariant }]}>
+			<Text variant={'bodyMedium'} style={[styles.label, { color: colors.onSurfaceVariant }]}>
 				{label}
 			</Text>
-			<Text variant="bodyMedium" style={[styles.value, { color: colors.onSurface }]}>
+			<Text variant={'bodyMedium'} style={[styles.value, { color: colors.onSurface }]}>
 				{value}
 			</Text>
 		</View>
@@ -74,10 +74,10 @@ export function VersionDialog({ visible, onDismiss }: VersionDialogProps) {
 							<Icon as={PackageIcon} size={32} color={colors.onPrimaryContainer} />
 						</View>
 						<View style={styles.headerText}>
-							<Text variant="headlineSmall" style={{ color: colors.onSurface }}>
+							<Text variant={'headlineSmall'} style={{ color: colors.onSurface }}>
 								Aria
 							</Text>
-							<Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant }}>
+							<Text variant={'bodyMedium'} style={{ color: colors.onSurfaceVariant }}>
 								Music Player
 							</Text>
 						</View>
@@ -88,14 +88,14 @@ export function VersionDialog({ visible, onDismiss }: VersionDialogProps) {
 					<View style={styles.infoSection}>
 						<InfoRow
 							icon={PackageIcon}
-							label="Version"
+							label={'Version'}
 							value={buildNumber ? `${appVersion} (${buildNumber})` : appVersion}
 						/>
-						<InfoRow icon={CodeIcon} label="Expo SDK" value={expoSdkVersion} />
-						<InfoRow icon={SmartphoneIcon} label="Platform" value={platformVersion} />
+						<InfoRow icon={CodeIcon} label={'Expo SDK'} value={expoSdkVersion} />
+						<InfoRow icon={SmartphoneIcon} label={'Platform'} value={platformVersion} />
 						<InfoRow
 							icon={CpuIcon}
-							label="Architecture"
+							label={'Architecture'}
 							value={Platform.OS === 'ios' ? 'arm64' : 'arm64-v8a'}
 						/>
 					</View>
@@ -103,7 +103,7 @@ export function VersionDialog({ visible, onDismiss }: VersionDialogProps) {
 					<Divider style={[styles.divider, { backgroundColor: colors.outlineVariant }]} />
 
 					<Text
-						variant="bodySmall"
+						variant={'bodySmall'}
 						style={[styles.description, { color: colors.onSurfaceVariant }]}
 					>
 						A powerful music player with plugin support for multiple sources, offline
@@ -112,7 +112,7 @@ export function VersionDialog({ visible, onDismiss }: VersionDialogProps) {
 				</Dialog.Content>
 				<Dialog.Actions style={styles.actions}>
 					<Button
-						mode="text"
+						mode={'text'}
 						onPress={handleOpenGitHub}
 						textColor={colors.primary}
 						icon={({ size, color }) => (
@@ -121,7 +121,7 @@ export function VersionDialog({ visible, onDismiss }: VersionDialogProps) {
 					>
 						GitHub
 					</Button>
-					<Button mode="text" onPress={onDismiss} textColor={colors.primary}>
+					<Button mode={'text'} onPress={onDismiss} textColor={colors.primary}>
 						Close
 					</Button>
 				</Dialog.Actions>

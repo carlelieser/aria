@@ -47,7 +47,7 @@ export const ScanProgressToast = memo(function ScanProgressToast() {
 
 	return (
 		<ProgressToast
-			portalName="scan-progress-toast"
+			portalName={'scan-progress-toast'}
 			isActive={isScanning}
 			isComplete={scanProgress?.phase === 'complete'}
 			phaseMessage={phaseMessage}

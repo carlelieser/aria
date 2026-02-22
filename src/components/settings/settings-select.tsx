@@ -72,7 +72,7 @@ export function SettingsSelect<T extends string>({
 	const header = (
 		<View style={styles.header}>
 			<Icon as={IconComponent} size={22} color={colors.onSurfaceVariant} />
-			<Text variant="titleMedium" style={[styles.headerTitle, { color: colors.onSurface }]}>
+			<Text variant={'titleMedium'} style={[styles.headerTitle, { color: colors.onSurface }]}>
 				{title}
 			</Text>
 		</View>

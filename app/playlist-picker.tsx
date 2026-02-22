@@ -34,19 +34,19 @@ function PlaylistItem({ playlist, onSelect, trackAlreadyIn }: PlaylistItemProps)
 			</View>
 			<View style={styles.playlistText}>
 				<Text
-					variant="bodyMedium"
+					variant={'bodyMedium'}
 					style={{ color: trackAlreadyIn ? colors.onSurfaceVariant : colors.onSurface }}
 				>
 					{playlist.name}
 				</Text>
-				<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
+				<Text variant={'bodySmall'} style={{ color: colors.onSurfaceVariant }}>
 					{playlist.tracks.length} {playlist.tracks.length === 1 ? 'track' : 'tracks'}
 				</Text>
 			</View>
 			{trackAlreadyIn && (
 				<View style={styles.addedIndicator}>
 					<Icon as={CheckIcon} size={16} color={colors.onSurfaceVariant} />
-					<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
+					<Text variant={'bodySmall'} style={{ color: colors.onSurfaceVariant }}>
 						Added
 					</Text>
 				</View>
@@ -107,7 +107,7 @@ export default function PlaylistPickerScreen() {
 				showBorder: false,
 				rightActions: (
 					<Button
-						mode="text"
+						mode={'text'}
 						icon={() => <Icon as={PlusIcon} size={18} color={colors.primary} />}
 						onPress={() => setIsCreateSheetOpen(true)}
 					>
@@ -119,14 +119,14 @@ export default function PlaylistPickerScreen() {
 						style={[styles.trackPreview, { backgroundColor: `${colors.background}80` }]}
 					>
 						<Text
-							variant="bodyMedium"
+							variant={'bodyMedium'}
 							numberOfLines={1}
 							style={{ color: colors.onSurface, fontWeight: '500' }}
 						>
 							{track.title}
 						</Text>
 						<Text
-							variant="bodySmall"
+							variant={'bodySmall'}
 							numberOfLines={1}
 							style={{ color: colors.onSurfaceVariant }}
 						>
@@ -145,9 +145,9 @@ export default function PlaylistPickerScreen() {
 				{playlists.length === 0 ? (
 					<EmptyState
 						icon={ListMusicIcon}
-						title="No playlists yet"
+						title={'No playlists yet'}
 						action={
-							<Button mode="text" onPress={() => setIsCreateSheetOpen(true)}>
+							<Button mode={'text'} onPress={() => setIsCreateSheetOpen(true)}>
 								Create your first playlist
 							</Button>
 						}

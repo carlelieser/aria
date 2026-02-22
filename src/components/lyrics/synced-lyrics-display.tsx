@@ -141,7 +141,7 @@ export function SyncedLyricsDisplay({ lines, attribution }: SyncedLyricsDisplayP
 				))}
 				{attribution && (
 					<Text
-						variant="labelSmall"
+						variant={'labelSmall'}
 						style={[styles.attribution, { color: colors.onSurfaceVariant }]}
 					>
 						{attribution}

@@ -61,7 +61,7 @@ export function InputDialog({
 				<Dialog.Content>
 					{message && (
 						<Text
-							variant="bodyMedium"
+							variant={'bodyMedium'}
 							style={[styles.message, { color: colors.onSurfaceVariant }]}
 						>
 							{message}
@@ -71,18 +71,18 @@ export function InputDialog({
 						value={value}
 						onChangeText={setValue}
 						placeholder={placeholder}
-						mode="outlined"
+						mode={'outlined'}
 						autoFocus
 						onSubmitEditing={handleConfirm}
 						style={styles.input}
 					/>
 				</Dialog.Content>
 				<Dialog.Actions style={styles.actions}>
-					<Button mode="text" onPress={onCancel} textColor={colors.onSurfaceVariant}>
+					<Button mode={'text'} onPress={onCancel} textColor={colors.onSurfaceVariant}>
 						{cancelLabel}
 					</Button>
 					<Button
-						mode="text"
+						mode={'text'}
 						onPress={handleConfirm}
 						textColor={colors.primary}
 						disabled={isConfirmDisabled}

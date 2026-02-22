@@ -48,21 +48,24 @@ export function CreatePlaylistSheet({ isOpen, onClose, onCreated }: CreatePlayli
 
 	return (
 		<ManagedBottomSheet
-			portalName="create-playlist"
+			portalName={'create-playlist'}
 			isOpen={isOpen}
 			onClose={handleClose}
 			snapPoints={['35%']}
-			keyboardBehavior="extend"
-			keyboardBlurBehavior="restore"
+			keyboardBehavior={'extend'}
+			keyboardBlurBehavior={'restore'}
 		>
 			<View style={styles.form}>
-				<Text variant="titleMedium" style={{ color: colors.onSurface, fontWeight: '600' }}>
+				<Text
+					variant={'titleMedium'}
+					style={{ color: colors.onSurface, fontWeight: '600' }}
+				>
 					New Playlist
 				</Text>
 				<BottomSheetTextInput
 					value={name}
 					onChangeText={setName}
-					placeholder="Playlist name"
+					placeholder={'Playlist name'}
 					placeholderTextColor={colors.onSurfaceVariant}
 					autoFocus
 					onSubmitEditing={handleCreate}
@@ -77,7 +80,7 @@ export function CreatePlaylistSheet({ isOpen, onClose, onCreated }: CreatePlayli
 				/>
 				<View style={styles.actions}>
 					<Button
-						mode="outlined"
+						mode={'outlined'}
 						icon={({ color }) => <Icon as={XIcon} size={16} color={color} />}
 						onPress={handleClose}
 						style={styles.button}
@@ -85,7 +88,7 @@ export function CreatePlaylistSheet({ isOpen, onClose, onCreated }: CreatePlayli
 						Cancel
 					</Button>
 					<Button
-						mode="contained"
+						mode={'contained'}
 						icon={({ color }) => <Icon as={CheckIcon} size={16} color={color} />}
 						onPress={handleCreate}
 						disabled={!name.trim()}

@@ -29,12 +29,12 @@ export function ExploreResults({
 	return (
 		<>
 			{tracks.length > 0 && (
-				<ResultSection title="Songs" icon={MusicIcon}>
+				<ResultSection title={'Songs'} icon={MusicIcon}>
 					{tracks.map((track, index) => (
 						<SelectableTrackListItem
 							key={track.id.value}
 							track={track}
-							source="search"
+							source={'search'}
 							isSelectionMode={isSelectionMode}
 							isSelected={selectedTrackIds.has(track.id.value)}
 							onLongPress={onLongPress}
@@ -47,7 +47,7 @@ export function ExploreResults({
 			)}
 
 			{albums.length > 0 && (
-				<ResultSection title="Albums" icon={DiscIcon}>
+				<ResultSection title={'Albums'} icon={DiscIcon}>
 					{albums.map((album) => (
 						<AlbumListItem key={album.id.value} album={album} />
 					))}
@@ -55,7 +55,7 @@ export function ExploreResults({
 			)}
 
 			{artists.length > 0 && (
-				<ResultSection title="Artists" icon={UsersIcon}>
+				<ResultSection title={'Artists'} icon={UsersIcon}>
 					{artists.map((artist) => (
 						<ArtistListItem key={artist.id} artist={artist} />
 					))}

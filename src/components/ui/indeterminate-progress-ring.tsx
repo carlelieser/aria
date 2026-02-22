@@ -167,7 +167,7 @@ export const IndeterminateProgressRing = memo(function IndeterminateProgressRing
 				animatedProps={animatedProps}
 				stroke={color}
 				strokeWidth={strokeWidth}
-				strokeLinejoin="round"
+				strokeLinejoin={'round'}
 				fill={fillColor ?? 'none'}
 			/>
 		</Svg>

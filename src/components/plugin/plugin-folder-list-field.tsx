@@ -111,27 +111,27 @@ export const PluginFolderListField = memo(function PluginFolderListField({
 		<View style={styles.container}>
 			<View style={styles.header}>
 				<View style={styles.headerText}>
-					<Text variant="bodyMedium" style={{ color: colors.onSurface }}>
+					<Text variant={'bodyMedium'} style={{ color: colors.onSurface }}>
 						{schema.label}
 					</Text>
 					{schema.description && (
-						<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
+						<Text variant={'bodySmall'} style={{ color: colors.onSurfaceVariant }}>
 							{schema.description}
 						</Text>
 					)}
 				</View>
 				<Button
-					variant="secondary"
+					variant={'secondary'}
 					onPress={handleAddFolder}
 					disabled={isScanning || isAddingFolder}
-					icon={<Icon as={FolderPlusIcon} size="sm" color={colors.primary} />}
+					icon={<Icon as={FolderPlusIcon} size={'sm'} color={colors.primary} />}
 				>
 					Add
 				</Button>
 			</View>
 
 			{folders.length === 0 ? (
-				<EmptyState icon={FolderIcon} title="No folders added" />
+				<EmptyState icon={FolderIcon} title={'No folders added'} />
 			) : (
 				<View style={[styles.folderList, { backgroundColor: colors.surfaceContainerLow }]}>
 					{folders.map((folder) => (
@@ -173,13 +173,13 @@ const FolderItem = memo(function FolderItem({
 	return (
 		<View style={styles.folderItem}>
 			<View style={[styles.folderIcon, { backgroundColor: colors.surfaceContainerHighest }]}>
-				<Icon as={FolderIcon} size="sm" color={colors.onSurfaceVariant} />
+				<Icon as={FolderIcon} size={'sm'} color={colors.onSurfaceVariant} />
 			</View>
 			<View style={styles.folderInfo}>
-				<Text variant="bodyMedium" numberOfLines={1} style={{ color: colors.onSurface }}>
+				<Text variant={'bodyMedium'} numberOfLines={1} style={{ color: colors.onSurface }}>
 					{name}
 				</Text>
-				<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
+				<Text variant={'bodySmall'} style={{ color: colors.onSurfaceVariant }}>
 					{trackCount} {trackCount === 1 ? 'track' : 'tracks'}
 				</Text>
 			</View>
@@ -190,7 +190,7 @@ const FolderItem = memo(function FolderItem({
 			>
 				<Icon
 					as={RefreshCwIcon}
-					size="sm"
+					size={'sm'}
 					color={disabled ? colors.outline : colors.onSurfaceVariant}
 				/>
 			</RectButton>
@@ -199,7 +199,11 @@ const FolderItem = memo(function FolderItem({
 				enabled={!disabled}
 				style={styles.actionButton}
 			>
-				<Icon as={Trash2Icon} size="sm" color={disabled ? colors.outline : colors.error} />
+				<Icon
+					as={Trash2Icon}
+					size={'sm'}
+					color={disabled ? colors.outline : colors.error}
+				/>
 			</RectButton>
 		</View>
 	);

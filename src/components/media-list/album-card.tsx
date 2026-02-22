@@ -25,7 +25,7 @@ export function AlbumCard({ album, onPress }: AlbumCardProps) {
 				<Image
 					source={{ uri: artwork.url }}
 					style={styles.albumArtwork}
-					contentFit="cover"
+					contentFit={'cover'}
 					transition={200}
 				/>
 			) : (
@@ -39,14 +39,14 @@ export function AlbumCard({ album, onPress }: AlbumCardProps) {
 				</View>
 			)}
 			<Text
-				variant="bodyMedium"
+				variant={'bodyMedium'}
 				numberOfLines={2}
 				style={[styles.albumTitle, { color: colors.onSurface }]}
 			>
 				{album.name}
 			</Text>
 			{album.releaseDate && (
-				<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
+				<Text variant={'bodySmall'} style={{ color: colors.onSurfaceVariant }}>
 					{new Date(album.releaseDate).getFullYear()}
 				</Text>
 			)}

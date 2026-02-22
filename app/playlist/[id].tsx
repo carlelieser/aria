@@ -168,7 +168,7 @@ export default function PlaylistScreen() {
 					paddingHorizontal: 24,
 				}}
 				track={item.track}
-				source="playlist"
+				source={'playlist'}
 				isSelectionMode={isSelectionMode}
 				isSelected={selectedTrackIds.has(item.track.id.value)}
 				onLongPress={handleLongPress}
@@ -216,18 +216,18 @@ export default function PlaylistScreen() {
 						<Image
 							source={{ uri: artwork?.url }}
 							style={styles.draggableArtwork}
-							contentFit="cover"
+							contentFit={'cover'}
 						/>
 						<View style={styles.draggableInfo}>
 							<Text
-								variant="bodyLarge"
+								variant={'bodyLarge'}
 								numberOfLines={1}
 								style={{ color: colors.onSurface }}
 							>
 								{item.track.title}
 							</Text>
 							<Text
-								variant="bodyMedium"
+								variant={'bodyMedium'}
 								numberOfLines={1}
 								style={{ color: colors.onSurfaceVariant }}
 							>
@@ -252,8 +252,8 @@ export default function PlaylistScreen() {
 			<DetailsPage headerInfo={emptyHeaderInfo}>
 				<EmptyState
 					icon={ListMusicIcon}
-					title="Playlist not found"
-					description="This playlist may have been deleted"
+					title={'Playlist not found'}
+					description={'This playlist may have been deleted'}
 				/>
 			</DetailsPage>
 		);
@@ -292,7 +292,7 @@ export default function PlaylistScreen() {
 	const actionButton =
 		tracks.length > 0 ? (
 			<Button
-				mode="contained"
+				mode={'contained'}
 				icon={() => <Icon as={PlayIcon} size={18} color={colors.onPrimary} />}
 				onPress={handlePlayAll}
 			>
@@ -314,7 +314,7 @@ export default function PlaylistScreen() {
 	const bottomContent = (
 		<>
 			<BatchActionBar
-				context="playlist"
+				context={'playlist'}
 				selectedCount={selectedCount}
 				onCancel={exitSelectionMode}
 				onAddToQueue={handleBatchAddToQueue}
@@ -323,9 +323,9 @@ export default function PlaylistScreen() {
 
 			<ConfirmationDialog
 				visible={deleteDialogVisible}
-				title="Delete playlist"
+				title={'Delete playlist'}
 				message={`Are you sure you want to delete "${playlist.name}"? This action cannot be undone.`}
-				confirmLabel="Delete"
+				confirmLabel={'Delete'}
 				destructive
 				onConfirm={handleDeletePlaylist}
 				onCancel={() => setDeleteDialogVisible(false)}
@@ -333,10 +333,10 @@ export default function PlaylistScreen() {
 
 			<InputDialog
 				visible={renameDialogVisible}
-				title="Rename playlist"
-				placeholder="Playlist name"
+				title={'Rename playlist'}
+				placeholder={'Playlist name'}
 				initialValue={playlist.name}
-				confirmLabel="Rename"
+				confirmLabel={'Rename'}
 				onConfirm={handleRenamePlaylist}
 				onCancel={() => setRenameDialogVisible(false)}
 			/>
@@ -380,8 +380,8 @@ export default function PlaylistScreen() {
 				ListEmptyComponent={
 					<EmptyState
 						icon={ListMusicIcon}
-						title="No tracks yet"
-						description="Add tracks to this playlist from the track options menu"
+						title={'No tracks yet'}
+						description={'Add tracks to this playlist from the track options menu'}
 					/>
 				}
 				onScroll={onScroll}
@@ -477,20 +477,20 @@ function PlaylistHeaderActions({
 						<Icon as={GripVerticalIcon} size={20} color={colors.onSurface} />
 					)}
 					onPress={onToggleEditMode}
-					title="Reorder tracks"
+					title={'Reorder tracks'}
 					titleStyle={{ color: colors.onSurface }}
 					disabled={trackCount < 2}
 				/>
 				<Menu.Item
 					leadingIcon={() => <Icon as={PencilIcon} size={20} color={colors.onSurface} />}
 					onPress={onRename}
-					title="Rename playlist"
+					title={'Rename playlist'}
 					titleStyle={{ color: colors.onSurface }}
 				/>
 				<Menu.Item
 					leadingIcon={() => <Icon as={Trash2Icon} size={20} color={colors.error} />}
 					onPress={onDelete}
-					title="Delete playlist"
+					title={'Delete playlist'}
 					titleStyle={{ color: colors.error }}
 				/>
 			</Menu>

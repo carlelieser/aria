@@ -75,7 +75,7 @@ export function TrackOptionsSheet() {
 				disappearsOnIndex={-1}
 				appearsOnIndex={0}
 				opacity={0.5}
-				pressBehavior="close"
+				pressBehavior={'close'}
 			/>
 		),
 		[]
@@ -83,7 +83,7 @@ export function TrackOptionsSheet() {
 
 	return (
 		<BottomSheetPortal
-			name="track-options-sheet"
+			name={'track-options-sheet'}
 			ref={bottomSheetRef}
 			enablePanDownToClose
 			snapPoints={['50%', '75%']}
@@ -180,18 +180,18 @@ function TrackOptionsContent({
 				<Image
 					source={{ uri: artwork?.url }}
 					style={styles.headerArtwork}
-					contentFit="cover"
+					contentFit={'cover'}
 				/>
 				<View style={styles.headerText}>
 					<Text
-						variant="bodyLarge"
+						variant={'bodyLarge'}
 						numberOfLines={1}
 						style={{ color: colors.onSurface, fontWeight: '600' }}
 					>
 						{track.title}
 					</Text>
 					<Text
-						variant="bodySmall"
+						variant={'bodySmall'}
 						numberOfLines={1}
 						style={{ color: colors.onSurfaceVariant }}
 					>
@@ -268,7 +268,7 @@ function ActionSheetItem({
 					</View>
 				)}
 				<Text
-					variant="bodyLarge"
+					variant={'bodyLarge'}
 					style={[styles.itemText, { color: textColor }]}
 					numberOfLines={1}
 				>

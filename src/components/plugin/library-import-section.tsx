@@ -54,20 +54,20 @@ export const LibraryImportSection = memo(function LibraryImportSection({
 	const lastImportedText = formatLastImported(lastImportedAt);
 
 	return (
-		<SettingsSection title="Library">
+		<SettingsSection title={'Library'}>
 			<View style={styles.container}>
 				<View style={styles.content}>
-					<Text variant="bodyMedium" style={{ color: colors.onSurface }}>
+					<Text variant={'bodyMedium'} style={{ color: colors.onSurface }}>
 						Import your saved tracks, albums, and playlists into your local library.
 					</Text>
 					{lastImportedText && (
-						<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
+						<Text variant={'bodySmall'} style={{ color: colors.onSurfaceVariant }}>
 							{lastImportedText}
 						</Text>
 					)}
 				</View>
 				<Button
-					mode="contained-tonal"
+					mode={'contained-tonal'}
 					onPress={handleImport}
 					disabled={!isEnabled || isImporting}
 					loading={isImporting}

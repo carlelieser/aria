@@ -159,7 +159,7 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 				subtitle={isAuthenticated ? 'Connected' : 'Not connected'}
 				rightElement={
 					isLoading ? (
-						<ActivityIndicator size="small" color={colors.primary} />
+						<ActivityIndicator size={'small'} color={colors.primary} />
 					) : (
 						<Button
 							variant={isAuthenticated ? 'outline' : 'default'}
@@ -171,15 +171,15 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 				}
 			/>
 			{error && (
-				<Text variant="bodySmall" style={[styles.error, { color: colors.error }]}>
+				<Text variant={'bodySmall'} style={[styles.error, { color: colors.error }]}>
 					{error}
 				</Text>
 			)}
 
 			<Modal
 				visible={showLoginModal}
-				animationType="slide"
-				presentationStyle="fullScreen"
+				animationType={'slide'}
+				presentationStyle={'fullScreen'}
 				onRequestClose={handleLoginCancel}
 			>
 				{LoginComponent && (

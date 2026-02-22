@@ -24,11 +24,11 @@ export const FeedCarousel = memo(function FeedCarousel({ section }: FeedCarousel
 	return (
 		<View style={styles.container}>
 			<View style={styles.header}>
-				<Text variant="titleMedium" style={[styles.title, { color: colors.onSurface }]}>
+				<Text variant={'titleMedium'} style={[styles.title, { color: colors.onSurface }]}>
 					{section.title}
 				</Text>
 				{section.subtitle && (
-					<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
+					<Text variant={'bodySmall'} style={{ color: colors.onSurfaceVariant }}>
 						{section.subtitle}
 					</Text>
 				)}

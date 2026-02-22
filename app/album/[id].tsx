@@ -116,10 +116,10 @@ export default function AlbumScreen() {
 		if (error) {
 			return (
 				<View style={styles.emptyState}>
-					<Text variant="bodyMedium" style={errorTextStyle}>
+					<Text variant={'bodyMedium'} style={errorTextStyle}>
 						{error}
 					</Text>
-					<Button mode="text" onPress={handleSearchAlbum}>
+					<Button mode={'text'} onPress={handleSearchAlbum}>
 						Search for tracks instead
 					</Button>
 				</View>
@@ -133,10 +133,10 @@ export default function AlbumScreen() {
 		if (enrichedTracks.length === 0) {
 			return (
 				<View style={styles.emptyState}>
-					<Text variant="bodyMedium" style={emptyTextStyle}>
+					<Text variant={'bodyMedium'} style={emptyTextStyle}>
 						No tracks found for this album
 					</Text>
-					<Button mode="text" onPress={handleSearchAlbum}>
+					<Button mode={'text'} onPress={handleSearchAlbum}>
 						Search for tracks
 					</Button>
 				</View>
@@ -149,7 +149,7 @@ export default function AlbumScreen() {
 					<TrackListItem
 						key={track.id.value}
 						track={track}
-						source="search"
+						source={'search'}
 						queue={enrichedTracks}
 						queueIndex={index}
 					/>

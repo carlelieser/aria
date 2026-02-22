@@ -66,8 +66,8 @@ export default function PluginDetailScreen() {
 			<PageLayout header={{ title: 'Plugin', showBack: true }}>
 				<EmptyState
 					icon={DEFAULT_PLUGIN_ICON}
-					title="Plugin not found"
-					description="This plugin may have been removed"
+					title={'Plugin not found'}
+					description={'This plugin may have been removed'}
 				/>
 			</PageLayout>
 		);
@@ -103,17 +103,17 @@ export default function PluginDetailScreen() {
 						/>
 					</View>
 					<Text
-						variant="headlineSmall"
+						variant={'headlineSmall'}
 						style={[styles.detailTitle, { color: colors.onSurface }]}
 					>
 						{plugin.name}
 					</Text>
-					<Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant }}>
+					<Text variant={'bodyMedium'} style={{ color: colors.onSurfaceVariant }}>
 						Version {plugin.version}
 					</Text>
 					<View style={styles.detailStatusRow}>
 						<Icon as={StatusIcon} size={16} color={statusColor} />
-						<Text variant="bodySmall" style={{ color: statusColor }}>
+						<Text variant={'bodySmall'} style={{ color: statusColor }}>
 							{isEnabled && !plugin.isLoaded
 								? 'Restart app to load'
 								: statusInfo.label}
@@ -127,29 +127,29 @@ export default function PluginDetailScreen() {
 				</View>
 
 				{plugin.description && (
-					<SettingsSection title="Description">
+					<SettingsSection title={'Description'}>
 						<View style={styles.detailCard}>
-							<Text variant="bodyMedium" style={{ color: colors.onSurface }}>
+							<Text variant={'bodyMedium'} style={{ color: colors.onSurface }}>
 								{plugin.description}
 							</Text>
 						</View>
 					</SettingsSection>
 				)}
 
-				<SettingsSection title="Category">
+				<SettingsSection title={'Category'}>
 					<View style={styles.detailCard}>
-						<Text variant="bodyMedium" style={{ color: colors.onSurface }}>
+						<Text variant={'bodyMedium'} style={{ color: colors.onSurface }}>
 							{categoryLabels[plugin.category] || plugin.category}
 						</Text>
 					</View>
 				</SettingsSection>
 
 				{plugin.requiresAuth && (
-					<SettingsSection title="Authentication">
+					<SettingsSection title={'Authentication'}>
 						<View style={styles.detailCard}>
 							<View style={styles.authRow}>
 								<Icon as={LockIcon} size={16} color={colors.onSurfaceVariant} />
-								<Text variant="bodyMedium" style={{ color: colors.onSurface }}>
+								<Text variant={'bodyMedium'} style={{ color: colors.onSurface }}>
 									This plugin requires authentication to use
 								</Text>
 							</View>
@@ -158,7 +158,7 @@ export default function PluginDetailScreen() {
 				)}
 
 				{plugin.capabilities.length > 0 && (
-					<SettingsSection title="Capabilities">
+					<SettingsSection title={'Capabilities'}>
 						<View style={styles.detailCard}>
 							<View style={styles.capabilitiesContainer}>
 								{plugin.capabilities.map((cap) => (
@@ -175,10 +175,10 @@ export default function PluginDetailScreen() {
 				<LibraryImportSection pluginId={plugin.id} />
 
 				{plugin.requiresAuth && (
-					<SettingsSection title="Troubleshooting">
+					<SettingsSection title={'Troubleshooting'}>
 						<SettingsItem
 							icon={Trash2Icon}
-							title="Clear cache"
+							title={'Clear cache'}
 							subtitle={`This will sign you out of ${plugin.name}`}
 							onPress={handleClearCache}
 							destructive
@@ -188,9 +188,11 @@ export default function PluginDetailScreen() {
 
 				<ConfirmationDialog
 					visible={clearCacheDialogVisible}
-					title="Clear cache?"
-					message="This will clear all browser cookies and sign you out. You will need to sign in again."
-					confirmLabel="Clear"
+					title={'Clear cache?'}
+					message={
+						'This will clear all browser cookies and sign you out. You will need to sign in again.'
+					}
+					confirmLabel={'Clear'}
 					onConfirm={confirmClearCache}
 					onCancel={() => setClearCacheDialogVisible(false)}
 					destructive

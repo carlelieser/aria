@@ -41,7 +41,7 @@ export const ProgressRing = memo(function ProgressRing({
 				r={radius}
 				stroke={backgroundColor}
 				strokeWidth={strokeWidth}
-				fill="none"
+				fill={'none'}
 			/>
 			<AnimatedCircle
 				cx={size / 2}
@@ -49,10 +49,10 @@ export const ProgressRing = memo(function ProgressRing({
 				r={radius}
 				stroke={color}
 				strokeWidth={strokeWidth}
-				fill="none"
+				fill={'none'}
 				strokeDasharray={circumference}
 				animatedProps={animatedProps}
-				strokeLinecap="round"
+				strokeLinecap={'round'}
 				rotation={-90}
 				origin={`${size / 2}, ${size / 2}`}
 			/>

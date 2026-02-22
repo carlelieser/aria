@@ -74,7 +74,7 @@ function ActionButton({ icon, label, onPress, disabled, destructive }: ActionBut
 			disabled={disabled}
 		>
 			<Icon as={icon} size={20} color={iconColor} />
-			<Text variant="labelSmall" style={{ color: textColor }}>
+			<Text variant={'labelSmall'} style={{ color: textColor }}>
 				{label}
 			</Text>
 		</Pressable>
@@ -153,14 +153,14 @@ export const BatchActionBar = memo(function BatchActionBar(props: BatchActionBar
 			entering={FadeInDown.duration(200)}
 			exiting={FadeOutDown.duration(200)}
 			elevation={4}
-			mode="flat"
+			mode={'flat'}
 			style={[styles.container, { paddingBottom: Math.max(insets.bottom, 16) }]}
 		>
 			<View style={styles.header}>
 				<Pressable style={styles.cancelButton} onPress={onCancel} hitSlop={8}>
 					<Icon as={X} size={20} color={colors.onSurfaceVariant} />
 				</Pressable>
-				<Text variant="titleSmall" style={{ color: colors.onSurface }}>
+				<Text variant={'titleSmall'} style={{ color: colors.onSurface }}>
 					{selectedCount} selected
 				</Text>
 			</View>

@@ -58,12 +58,12 @@ export const MediaListItem = memo(function MediaListItem({
 			/>
 
 			<View style={styles.infoContainer}>
-				<Text variant="bodyLarge" numberOfLines={1} style={{ color: colors.onSurface }}>
+				<Text variant={'bodyLarge'} numberOfLines={1} style={{ color: colors.onSurface }}>
 					{title}
 				</Text>
 				{subtitle && (
 					<Text
-						variant="bodyMedium"
+						variant={'bodyMedium'}
 						numberOfLines={1}
 						style={{ color: colors.onSurfaceVariant }}
 					>
@@ -72,7 +72,7 @@ export const MediaListItem = memo(function MediaListItem({
 				)}
 				{tertiaryText && (
 					<Text
-						variant="bodySmall"
+						variant={'bodySmall'}
 						numberOfLines={1}
 						style={{ color: colors.onSurfaceVariant }}
 					>

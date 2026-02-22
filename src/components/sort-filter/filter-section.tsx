@@ -46,7 +46,7 @@ function FilterChipSection({
 	return (
 		<View style={styles.section}>
 			<Text
-				variant="labelMedium"
+				variant={'labelMedium'}
 				style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}
 			>
 				{label}
@@ -89,7 +89,7 @@ export function FilterSection({
 
 			{toggles.map((toggle) => (
 				<View key={toggle.label} style={styles.toggleRow}>
-					<Text variant="bodyMedium" style={{ color: colors.onSurface }}>
+					<Text variant={'bodyMedium'} style={{ color: colors.onSurface }}>
 						{toggle.label}
 					</Text>
 					<Switch value={toggle.value} onValueChange={toggle.onToggle} />
@@ -98,7 +98,7 @@ export function FilterSection({
 
 			{artists.length > 0 && (
 				<FilterChipSection
-					label="ARTISTS"
+					label={'ARTISTS'}
 					items={artists}
 					selectedIds={selectedArtistIds}
 					onToggle={onToggleArtist}
@@ -107,7 +107,7 @@ export function FilterSection({
 
 			{albums.length > 0 && (
 				<FilterChipSection
-					label="ALBUMS"
+					label={'ALBUMS'}
 					items={albums}
 					selectedIds={selectedAlbumIds}
 					onToggle={onToggleAlbum}

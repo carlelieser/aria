@@ -120,7 +120,7 @@ export function UnifiedFilterSheet({
 				disappearsOnIndex={-1}
 				appearsOnIndex={0}
 				opacity={0.5}
-				pressBehavior="close"
+				pressBehavior={'close'}
 			/>
 		),
 		[]
@@ -171,7 +171,7 @@ export function UnifiedFilterSheet({
 		() => (
 			<View style={styles.filterSection}>
 				<Text
-					variant="labelMedium"
+					variant={'labelMedium'}
 					style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}
 				>
 					CONTENT TYPE
@@ -194,7 +194,7 @@ export function UnifiedFilterSheet({
 	}
 
 	return (
-		<Portal name="unified-filter-sheet">
+		<Portal name={'unified-filter-sheet'}>
 			<BottomSheet
 				ref={sheetRef}
 				index={0}
@@ -213,11 +213,11 @@ export function UnifiedFilterSheet({
 			>
 				<BottomSheetScrollView style={styles.contentContainer}>
 					<View style={styles.header}>
-						<Text variant="titleMedium" style={{ color: colors.onSurface }}>
+						<Text variant={'titleMedium'} style={{ color: colors.onSurface }}>
 							Sort & Filter
 						</Text>
 						<Button
-							mode="text"
+							mode={'text'}
 							compact
 							onPress={handleClearAll}
 							textColor={colors.onSurfaceVariant}
@@ -230,7 +230,7 @@ export function UnifiedFilterSheet({
 						<View style={styles.tabRow}>
 							<Pressable style={styles.tab} onPress={() => setActiveTab('library')}>
 								<Text
-									variant="labelLarge"
+									variant={'labelLarge'}
 									style={{
 										color:
 											activeTab === 'library'
@@ -244,7 +244,7 @@ export function UnifiedFilterSheet({
 							</Pressable>
 							<Pressable style={styles.tab} onPress={() => setActiveTab('explore')}>
 								<Text
-									variant="labelLarge"
+									variant={'labelLarge'}
 									style={{
 										color:
 											activeTab === 'explore'

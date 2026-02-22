@@ -28,7 +28,7 @@ export const ResultSection = memo(function ResultSection({
 		<View style={styles.section}>
 			<View style={styles.sectionHeader}>
 				<Icon as={IconComponent} size={18} color={colors.primary} />
-				<Text variant="titleSmall" style={titleStyle}>
+				<Text variant={'titleSmall'} style={titleStyle}>
 					{title}
 				</Text>
 			</View>

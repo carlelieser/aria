@@ -121,7 +121,7 @@ export const SpotifyLoginWebView = memo(function SpotifyLoginWebView({
 	if (!config) {
 		return (
 			<View style={styles.loading}>
-				<ActivityIndicator size="large" />
+				<ActivityIndicator size={'large'} />
 			</View>
 		);
 	}

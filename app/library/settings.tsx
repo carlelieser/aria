@@ -20,14 +20,14 @@ export default function LibrarySettingsScreen() {
 				style={styles.scrollView}
 				contentContainerStyle={styles.scrollContent}
 			>
-				<SettingsSection title="Display">
+				<SettingsSection title={'Display'}>
 					<SettingsSelect
 						icon={MusicIcon}
-						title="Default tab"
+						title={'Default tab'}
 						options={LIBRARY_TAB_OPTIONS}
 						value={defaultLibraryTab}
 						onValueChange={setDefaultLibraryTab}
-						portalName="library-default-tab-select"
+						portalName={'library-default-tab-select'}
 					/>
 				</SettingsSection>
 			</PlayerAwareScrollView>

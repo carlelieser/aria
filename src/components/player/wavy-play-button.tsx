@@ -239,7 +239,7 @@ export const WavyPlayButton = memo(function WavyPlayButton({
 				<AnimatedPath
 					animatedProps={animatedProps}
 					stroke={color}
-					strokeLinejoin="round"
+					strokeLinejoin={'round'}
 					fill={color}
 				/>
 			</Svg>

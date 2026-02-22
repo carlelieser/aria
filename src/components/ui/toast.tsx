@@ -157,12 +157,12 @@ export function ToastContainer() {
 	}
 
 	return (
-		<Portal name="toast-container">
-			<View style={[styles.container, { bottom: bottomOffset }]} pointerEvents="box-none">
+		<Portal name={'toast-container'}>
+			<View style={[styles.container, { bottom: bottomOffset }]} pointerEvents={'box-none'}>
 				<GestureDetector gesture={panGesture}>
 					<AnimatedSurface
 						elevation={3}
-						mode="flat"
+						mode={'flat'}
 						style={[
 							styles.toast,
 							{ backgroundColor: variantColors.backgroundColor },

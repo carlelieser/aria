@@ -54,9 +54,9 @@ export const MediaArtwork = memo(function MediaArtwork({
 				<Image
 					source={{ uri: url }}
 					style={[styles.image, { width: size, height: size, borderRadius }]}
-					contentFit="cover"
+					contentFit={'cover'}
 					transition={200}
-					cachePolicy="memory-disk"
+					cachePolicy={'memory-disk'}
 					recyclingKey={recyclingKey}
 				/>
 			) : (

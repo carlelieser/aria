@@ -87,10 +87,10 @@ export function LyricsDisplay({ maxHeight, onLineTap }: LyricsDisplayProps) {
 		return (
 			<View style={styles.container}>
 				<View style={styles.loadingContainer}>
-					<Skeleton width="80%" height={20} rounded="sm" />
-					<Skeleton width="60%" height={20} rounded="sm" />
-					<Skeleton width="70%" height={20} rounded="sm" />
-					<Skeleton width="50%" height={20} rounded="sm" />
+					<Skeleton width={'80%'} height={20} rounded={'sm'} />
+					<Skeleton width={'60%'} height={20} rounded={'sm'} />
+					<Skeleton width={'70%'} height={20} rounded={'sm'} />
+					<Skeleton width={'50%'} height={20} rounded={'sm'} />
 				</View>
 			</View>
 		);
@@ -101,7 +101,7 @@ export function LyricsDisplay({ maxHeight, onLineTap }: LyricsDisplayProps) {
 			<View style={styles.container}>
 				<View style={styles.noLyricsContainer}>
 					<Text
-						variant="bodyMedium"
+						variant={'bodyMedium'}
 						style={{ color: colors.onSurfaceVariant, textAlign: 'center' }}
 					>
 						No lyrics available
@@ -142,7 +142,7 @@ export function LyricsDisplay({ maxHeight, onLineTap }: LyricsDisplayProps) {
 
 				{lyrics.attribution && (
 					<Text
-						variant="labelSmall"
+						variant={'labelSmall'}
 						style={[styles.attribution, { color: colors.onSurfaceVariant }]}
 					>
 						{lyrics.attribution}
@@ -164,14 +164,14 @@ export function LyricsDisplay({ maxHeight, onLineTap }: LyricsDisplayProps) {
 				contentContainerStyle={styles.plainLyricsContent}
 				showsVerticalScrollIndicator={false}
 			>
-				<Text variant="bodyMedium" style={{ color: colors.onSurface, lineHeight: 24 }}>
+				<Text variant={'bodyMedium'} style={{ color: colors.onSurface, lineHeight: 24 }}>
 					{lyrics?.plainLyrics}
 				</Text>
 			</PlayerAwareScrollView>
 
 			{lyrics?.attribution && (
 				<Text
-					variant="labelSmall"
+					variant={'labelSmall'}
 					style={[styles.attribution, { color: colors.onSurfaceVariant }]}
 				>
 					{lyrics.attribution}

@@ -205,7 +205,7 @@ export function DropdownMenuLabel({ children }: { children: string }) {
 
 	return (
 		<View style={styles.label}>
-			<Text variant="labelMedium" style={{ color: colors.onSurfaceVariant }}>
+			<Text variant={'labelMedium'} style={{ color: colors.onSurfaceVariant }}>
 				{children}
 			</Text>
 		</View>

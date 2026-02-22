@@ -65,7 +65,7 @@ export function SettingsBottomSheet({
 				disappearsOnIndex={-1}
 				appearsOnIndex={0}
 				opacity={0.5}
-				pressBehavior="close"
+				pressBehavior={'close'}
 			/>
 		),
 		[]
@@ -94,7 +94,10 @@ export function SettingsBottomSheet({
 				]}
 			>
 				<BottomSheetView style={styles.content}>
-					<Text variant="titleMedium" style={[styles.title, { color: colors.onSurface }]}>
+					<Text
+						variant={'titleMedium'}
+						style={[styles.title, { color: colors.onSurface }]}
+					>
 						{title}
 					</Text>
 
@@ -111,7 +114,7 @@ export function SettingsBottomSheet({
 						>
 							<Icon as={RotateCcwIcon} size={18} color={colors.onSurfaceVariant} />
 							<Text
-								variant="labelLarge"
+								variant={'labelLarge'}
 								style={[styles.resetText, { color: colors.onSurfaceVariant }]}
 							>
 								Reset to Default

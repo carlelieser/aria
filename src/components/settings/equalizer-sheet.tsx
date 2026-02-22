@@ -55,7 +55,7 @@ const PresetButton = memo(function PresetButton({
 			]}
 		>
 			<Text
-				variant="bodyMedium"
+				variant={'bodyMedium'}
 				style={{
 					color: isSelected ? colors.onPrimaryContainer : colors.onSurface,
 					fontWeight: isSelected ? '600' : '400',
@@ -98,7 +98,7 @@ export function EqualizerSheet({ isOpen, onClose }: EqualizerSheetProps) {
 
 	return (
 		<ManagedBottomSheet
-			portalName="equalizer-sheet"
+			portalName={'equalizer-sheet'}
 			isOpen={isOpen}
 			onClose={onClose}
 			snapPoints={['85%']}
@@ -107,7 +107,7 @@ export function EqualizerSheet({ isOpen, onClose }: EqualizerSheetProps) {
 			<View style={styles.header}>
 				<View style={styles.headerLeft}>
 					<Icon as={SlidersHorizontal} size={24} color={colors.primary} />
-					<Text variant="titleLarge" style={{ color: colors.onSurface }}>
+					<Text variant={'titleLarge'} style={{ color: colors.onSurface }}>
 						Equalizer
 					</Text>
 				</View>
@@ -117,7 +117,10 @@ export function EqualizerSheet({ isOpen, onClose }: EqualizerSheetProps) {
 			{isNativeAvailable ? (
 				<View style={[styles.infoContainer, { backgroundColor: colors.primaryContainer }]}>
 					<Icon as={CheckCircle} size={16} color={colors.onPrimaryContainer} />
-					<Text variant="bodySmall" style={{ color: colors.onPrimaryContainer, flex: 1 }}>
+					<Text
+						variant={'bodySmall'}
+						style={{ color: colors.onPrimaryContainer, flex: 1 }}
+					>
 						Native equalizer active. Audio adjustments will affect playback.
 					</Text>
 				</View>
@@ -129,7 +132,7 @@ export function EqualizerSheet({ isOpen, onClose }: EqualizerSheetProps) {
 					]}
 				>
 					<Icon as={Info} size={16} color={colors.onSurfaceVariant} />
-					<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, flex: 1 }}>
+					<Text variant={'bodySmall'} style={{ color: colors.onSurfaceVariant, flex: 1 }}>
 						Native equalizer unavailable. Visual preview only.
 					</Text>
 				</View>
@@ -149,7 +152,7 @@ export function EqualizerSheet({ isOpen, onClose }: EqualizerSheetProps) {
 			</View>
 
 			<Text
-				variant="labelLarge"
+				variant={'labelLarge'}
 				style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}
 			>
 				Presets
@@ -209,11 +212,11 @@ function EqualizerBand({ label, gain, isEnabled }: EqualizerBandProps) {
 					]}
 				/>
 			</View>
-			<Text variant="labelSmall" style={{ color: colors.onSurfaceVariant, marginTop: 4 }}>
+			<Text variant={'labelSmall'} style={{ color: colors.onSurfaceVariant, marginTop: 4 }}>
 				{label}
 			</Text>
 			<Text
-				variant="labelSmall"
+				variant={'labelSmall'}
 				style={{
 					color: gain === 0 ? colors.onSurfaceVariant : colors.primary,
 					fontWeight: '600',

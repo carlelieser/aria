@@ -30,7 +30,7 @@ export const ArtistCard = memo(function ArtistCard({ artist }: ArtistCardProps) 
 				<Image
 					source={{ uri: artwork.url }}
 					style={styles.artwork}
-					contentFit="cover"
+					contentFit={'cover'}
 					transition={200}
 				/>
 			) : (
@@ -39,7 +39,7 @@ export const ArtistCard = memo(function ArtistCard({ artist }: ArtistCardProps) 
 				</View>
 			)}
 			<Text
-				variant="bodyMedium"
+				variant={'bodyMedium'}
 				numberOfLines={1}
 				style={[styles.name, { color: colors.onSurface }]}
 			>

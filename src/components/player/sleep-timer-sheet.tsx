@@ -50,7 +50,7 @@ const TimerPresetButton = memo(function TimerPresetButton({
 				},
 			]}
 		>
-			<Text variant="titleMedium" style={{ color: colors.onSurface, fontWeight: '500' }}>
+			<Text variant={'titleMedium'} style={{ color: colors.onSurface, fontWeight: '500' }}>
 				{label}
 			</Text>
 		</Pressable>
@@ -85,7 +85,7 @@ export function SleepTimerSheet({ isOpen, onClose }: SleepTimerSheetProps) {
 				disappearsOnIndex={-1}
 				appearsOnIndex={0}
 				opacity={0.5}
-				pressBehavior="close"
+				pressBehavior={'close'}
 			/>
 		),
 		[]
@@ -119,7 +119,7 @@ export function SleepTimerSheet({ isOpen, onClose }: SleepTimerSheetProps) {
 
 	return (
 		<BottomSheetPortal
-			name="sleep-timer-sheet"
+			name={'sleep-timer-sheet'}
 			ref={sheetRef}
 			snapPoints={snapPoints}
 			enablePanDownToClose
@@ -134,7 +134,7 @@ export function SleepTimerSheet({ isOpen, onClose }: SleepTimerSheetProps) {
 			<BottomSheetScrollView style={styles.contentContainer}>
 				<View style={styles.header}>
 					<Icon as={Clock} size={24} color={colors.primary} />
-					<Text variant="titleLarge" style={{ color: colors.onSurface }}>
+					<Text variant={'titleLarge'} style={{ color: colors.onSurface }}>
 						Sleep Timer
 					</Text>
 				</View>
@@ -147,16 +147,16 @@ export function SleepTimerSheet({ isOpen, onClose }: SleepTimerSheetProps) {
 						]}
 					>
 						<Text
-							variant="headlineMedium"
+							variant={'headlineMedium'}
 							style={{ color: colors.onPrimaryContainer, fontWeight: '600' }}
 						>
 							{formatRemaining()}
 						</Text>
-						<Text variant="bodyMedium" style={{ color: colors.onPrimaryContainer }}>
+						<Text variant={'bodyMedium'} style={{ color: colors.onPrimaryContainer }}>
 							remaining
 						</Text>
 						<Button
-							mode="text"
+							mode={'text'}
 							textColor={colors.primary}
 							onPress={handleCancel}
 							style={styles.cancelButton}
@@ -175,13 +175,13 @@ export function SleepTimerSheet({ isOpen, onClose }: SleepTimerSheetProps) {
 					>
 						<Icon as={Music2} size={32} color={colors.onPrimaryContainer} />
 						<Text
-							variant="titleMedium"
+							variant={'titleMedium'}
 							style={{ color: colors.onPrimaryContainer, marginTop: 8 }}
 						>
 							Stopping after current track
 						</Text>
 						<Button
-							mode="text"
+							mode={'text'}
 							textColor={colors.primary}
 							onPress={handleCancel}
 							style={styles.cancelButton}
@@ -194,7 +194,7 @@ export function SleepTimerSheet({ isOpen, onClose }: SleepTimerSheetProps) {
 				<Divider style={{ backgroundColor: colors.outlineVariant }} />
 
 				<Text
-					variant="labelLarge"
+					variant={'labelLarge'}
 					style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}
 				>
 					Duration
@@ -227,10 +227,10 @@ export function SleepTimerSheet({ isOpen, onClose }: SleepTimerSheetProps) {
 					<View style={styles.endOfTrackContent}>
 						<Icon as={Music2} size={22} color={colors.onSurfaceVariant} />
 						<View style={styles.endOfTrackText}>
-							<Text variant="bodyLarge" style={{ color: colors.onSurface }}>
+							<Text variant={'bodyLarge'} style={{ color: colors.onSurface }}>
 								End of current track
 							</Text>
-							<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
+							<Text variant={'bodySmall'} style={{ color: colors.onSurfaceVariant }}>
 								Stop playback when this track ends
 							</Text>
 						</View>

@@ -255,7 +255,7 @@ export function ProgressBar({ seekable = true }: ProgressBarProps) {
 									y2={cy}
 									stroke={colors.primaryContainer}
 									strokeWidth={TRACK_THICKNESS}
-									strokeLinecap="round"
+									strokeLinecap={'round'}
 								/>
 							)}
 
@@ -268,8 +268,8 @@ export function ProgressBar({ seekable = true }: ProgressBarProps) {
 									animatedProps={waveAnimatedProps}
 									stroke={colors.primary}
 									strokeWidth={ACTIVE_THICKNESS}
-									strokeLinecap="round"
-									fill="none"
+									strokeLinecap={'round'}
+									fill={'none'}
 								/>
 							)}
 						</Svg>
@@ -293,20 +293,20 @@ export function ProgressBar({ seekable = true }: ProgressBarProps) {
 			{/* Time labels */}
 			<View style={styles.timeContainer}>
 				{isLoading ? (
-					<Skeleton width={32} height={14} rounded="sm" />
+					<Skeleton width={32} height={14} rounded={'sm'} />
 				) : (
 					<Text
-						variant="bodySmall"
+						variant={'bodySmall'}
 						style={[styles.timeText, { color: colors.onSurfaceVariant }]}
 					>
 						{currentTime}
 					</Text>
 				)}
 				{isLoading ? (
-					<Skeleton width={32} height={14} rounded="sm" />
+					<Skeleton width={32} height={14} rounded={'sm'} />
 				) : (
 					<Text
-						variant="bodySmall"
+						variant={'bodySmall'}
 						style={[styles.timeText, { color: colors.onSurfaceVariant }]}
 					>
 						{totalTime}

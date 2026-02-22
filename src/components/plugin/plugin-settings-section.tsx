@@ -23,7 +23,7 @@ export const PluginSettingsSection = memo(function PluginSettingsSection({
 	}
 
 	return (
-		<SettingsSection title="Configuration">
+		<SettingsSection title={'Configuration'}>
 			{configSchema.map((schema) => (
 				<PluginConfigField
 					key={schema.key}

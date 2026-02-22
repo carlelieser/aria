@@ -59,7 +59,7 @@ export function SortFilterBottomSheet({
 				disappearsOnIndex={-1}
 				appearsOnIndex={0}
 				opacity={0.5}
-				pressBehavior="close"
+				pressBehavior={'close'}
 			/>
 		),
 		[]
@@ -89,11 +89,11 @@ export function SortFilterBottomSheet({
 			>
 				<BottomSheetScrollView style={styles.contentContainer}>
 					<View style={styles.header}>
-						<Text variant="titleMedium" style={{ color: colors.onSurface }}>
+						<Text variant={'titleMedium'} style={{ color: colors.onSurface }}>
 							Sort & Filter
 						</Text>
 						<Button
-							mode="text"
+							mode={'text'}
 							compact
 							onPress={onClearAll}
 							textColor={colors.onSurfaceVariant}

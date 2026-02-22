@@ -116,9 +116,9 @@ export function FloatingPlayer() {
 
 	return (
 		<AnimatedSurface
-			key="floating-player"
+			key={'floating-player'}
 			elevation={3}
-			mode="flat"
+			mode={'flat'}
 			style={containerStyle}
 			pointerEvents={shouldShow ? 'auto' : 'none'}
 		>
@@ -132,29 +132,29 @@ export function FloatingPlayer() {
 						<Image
 							source={{ uri: artworkUrl }}
 							style={styles.artwork}
-							contentFit="cover"
+							contentFit={'cover'}
 							transition={200}
-							cachePolicy="memory-disk"
+							cachePolicy={'memory-disk'}
 							recyclingKey={currentTrack?.id.value}
 						/>
 						{isPlaying && <AudioWaveform levels={audioLevels?.levels} />}
 						{showLoadingIndicator && (
 							<View style={styles.loadingOverlay}>
-								<ActivityIndicator size="small" color="white" />
+								<ActivityIndicator size={'small'} color={'white'} />
 							</View>
 						)}
 					</View>
 
 					<View style={styles.trackInfo}>
 						<Text
-							variant="titleSmall"
+							variant={'titleSmall'}
 							numberOfLines={1}
 							style={{ color: colors.onSurface }}
 						>
 							{currentTrack?.title}
 						</Text>
 						<Text
-							variant="bodySmall"
+							variant={'bodySmall'}
 							numberOfLines={1}
 							style={{ color: colors.onSurfaceVariant }}
 						>

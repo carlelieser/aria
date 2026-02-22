@@ -12,7 +12,7 @@ import { useAppTheme } from '@/lib/theme';
 export function PlayerArtworkSkeleton() {
 	return (
 		<View style={styles.artworkContainer}>
-			<Skeleton rounded="2xl" style={styles.artwork} />
+			<Skeleton rounded={'2xl'} style={styles.artwork} />
 		</View>
 	);
 }
@@ -22,7 +22,7 @@ export function PlayerBufferingOverlay() {
 
 	return (
 		<View style={[styles.bufferingOverlay, { backgroundColor: `${colors.background}99` }]}>
-			<Skeleton width={80} height={80} rounded="full" />
+			<Skeleton width={80} height={80} rounded={'full'} />
 		</View>
 	);
 }
@@ -30,9 +30,9 @@ export function PlayerBufferingOverlay() {
 export function PlayerTrackInfoSkeleton() {
 	return (
 		<View style={styles.trackInfoContainer}>
-			<Skeleton width="80%" height={28} rounded="md" />
-			<Skeleton width="50%" height={20} rounded="sm" />
-			<Skeleton width="40%" height={16} rounded="sm" />
+			<Skeleton width={'80%'} height={28} rounded={'md'} />
+			<Skeleton width={'50%'} height={20} rounded={'sm'} />
+			<Skeleton width={'40%'} height={16} rounded={'sm'} />
 		</View>
 	);
 }

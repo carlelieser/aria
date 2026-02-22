@@ -121,7 +121,7 @@ export const TrackListItem = memo(function TrackListItem({
 		if (isDownloading && downloadInfo.progress > 0) {
 			return (
 				<View style={styles.statusRow}>
-					<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
+					<Text variant={'bodySmall'} style={{ color: colors.onSurfaceVariant }}>
 						{downloadInfo.progress}%
 					</Text>
 				</View>
@@ -133,7 +133,7 @@ export const TrackListItem = memo(function TrackListItem({
 				<View style={styles.statusRow}>
 					<Icon as={CheckCircle} size={12} color={colors.primary} />
 					<Text
-						variant="bodySmall"
+						variant={'bodySmall'}
 						style={[styles.statusText, { color: colors.onSurfaceVariant }]}
 					>
 						{formatFileSize(downloadInfo.fileSize)} ·{' '}
@@ -148,7 +148,7 @@ export const TrackListItem = memo(function TrackListItem({
 				<View style={styles.statusRow}>
 					<Icon as={AlertCircle} size={12} color={colors.error} />
 					<Text
-						variant="bodySmall"
+						variant={'bodySmall'}
 						numberOfLines={1}
 						style={[styles.statusText, { color: colors.error }]}
 					>
@@ -216,9 +216,9 @@ export const TrackListItem = memo(function TrackListItem({
 						<Image
 							source={{ uri: artworkUrl }}
 							style={styles.artwork}
-							contentFit="cover"
+							contentFit={'cover'}
 							transition={200}
-							cachePolicy="memory-disk"
+							cachePolicy={'memory-disk'}
 							recyclingKey={track.id.value}
 						/>
 					) : (
@@ -226,19 +226,19 @@ export const TrackListItem = memo(function TrackListItem({
 					)}
 					{isCurrentlyPlaying && <AudioWaveform levels={audioLevels?.levels} />}
 				</View>
-				{!downloadInfo && <DownloadIndicator trackId={track.id.value} size="sm" />}
+				{!downloadInfo && <DownloadIndicator trackId={track.id.value} size={'sm'} />}
 			</View>
 
 			<View style={styles.infoContainer}>
 				<Text
-					variant="bodyLarge"
+					variant={'bodyLarge'}
 					numberOfLines={1}
 					style={{ color: isActiveTrack ? colors.primary : colors.onSurface }}
 				>
 					{track.title}
 				</Text>
 				<Text
-					variant="bodyMedium"
+					variant={'bodyMedium'}
 					numberOfLines={1}
 					style={{ color: colors.onSurfaceVariant }}
 				>
@@ -265,7 +265,7 @@ export const TrackListItem = memo(function TrackListItem({
 				<>
 					{!track.duration.isZero() && (
 						<Text
-							variant="bodySmall"
+							variant={'bodySmall'}
 							style={[
 								styles.duration,
 								{

@@ -26,7 +26,7 @@ export const PlaylistCard = memo(function PlaylistCard({ playlist, onPress }: Pl
 				<Image
 					source={{ uri: artwork.url }}
 					style={styles.artwork}
-					contentFit="cover"
+					contentFit={'cover'}
 					transition={200}
 				/>
 			) : (
@@ -35,7 +35,7 @@ export const PlaylistCard = memo(function PlaylistCard({ playlist, onPress }: Pl
 				</View>
 			)}
 			<Text
-				variant="bodyMedium"
+				variant={'bodyMedium'}
 				numberOfLines={2}
 				style={[styles.name, { color: colors.onSurface }]}
 			>

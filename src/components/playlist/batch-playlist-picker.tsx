@@ -41,10 +41,10 @@ function PlaylistItem({ playlist, onSelect }: PlaylistItemProps) {
 				<Icon as={ListMusicIcon} size={24} color={colors.onSurfaceVariant} />
 			</View>
 			<View style={styles.playlistText}>
-				<Text variant="bodyMedium" style={{ color: colors.onSurface }}>
+				<Text variant={'bodyMedium'} style={{ color: colors.onSurface }}>
 					{playlist.name}
 				</Text>
-				<Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
+				<Text variant={'bodySmall'} style={{ color: colors.onSurfaceVariant }}>
 					{playlist.tracks.length} {playlist.tracks.length === 1 ? 'track' : 'tracks'}
 				</Text>
 			</View>
@@ -79,17 +79,20 @@ export function BatchPlaylistPicker({
 	return (
 		<>
 			<ManagedBottomSheet
-				portalName="batch-playlist-picker"
+				portalName={'batch-playlist-picker'}
 				isOpen={isOpen}
 				onClose={handleClose}
 				snapPoints={['60%']}
 			>
 				<View style={styles.header}>
-					<Text variant="titleMedium" style={[styles.title, { color: colors.onSurface }]}>
+					<Text
+						variant={'titleMedium'}
+						style={[styles.title, { color: colors.onSurface }]}
+					>
 						Add {selectedCount} tracks to playlist
 					</Text>
 					<Button
-						mode="text"
+						mode={'text'}
 						icon={() => <Icon as={PlusIcon} size={18} color={colors.primary} />}
 						onPress={() => setIsCreateSheetOpen(true)}
 					>
@@ -104,9 +107,9 @@ export function BatchPlaylistPicker({
 					{playlists.length === 0 ? (
 						<EmptyState
 							icon={ListMusicIcon}
-							title="No playlists yet"
+							title={'No playlists yet'}
 							action={
-								<Button mode="text" onPress={() => setIsCreateSheetOpen(true)}>
+								<Button mode={'text'} onPress={() => setIsCreateSheetOpen(true)}>
 									Create your first playlist
 								</Button>
 							}

@@ -64,7 +64,7 @@ export function LibrarySortFilterSheet({ isOpen, onClose }: LibrarySortFilterShe
 			isOpen={isOpen}
 			onClose={onClose}
 			onClearAll={clearAll}
-			portalName="library-sort-filter-sheet"
+			portalName={'library-sort-filter-sheet'}
 		>
 			<Divider style={styles.divider} />
 			<View style={styles.section}>

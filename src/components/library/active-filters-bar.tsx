@@ -55,7 +55,7 @@ export function ActiveFiltersBar({
 			>
 				{activeFilters.favoritesOnly && (
 					<FilterChip
-						label="Favorites"
+						label={'Favorites'}
 						selected
 						showRemoveIcon
 						onRemove={onToggleFavorites}
@@ -63,7 +63,7 @@ export function ActiveFiltersBar({
 				)}
 				{activeFilters.downloadedOnly && (
 					<FilterChip
-						label="Downloaded"
+						label={'Downloaded'}
 						selected
 						showRemoveIcon
 						onRemove={onToggleDownloaded}

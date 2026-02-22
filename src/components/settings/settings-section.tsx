@@ -19,7 +19,10 @@ export function SettingsSection({ title, children }: SettingsSectionProps) {
 
 	return (
 		<View style={styles.container}>
-			<Text variant="labelMedium" style={[styles.title, { color: colors.onSurfaceVariant }]}>
+			<Text
+				variant={'labelMedium'}
+				style={[styles.title, { color: colors.onSurfaceVariant }]}
+			>
 				{title.toUpperCase()}
 			</Text>
 			<Surface

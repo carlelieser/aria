@@ -57,13 +57,13 @@ export function DetailsHeader({
 					<Image
 						source={{ uri: info.artworkUrl }}
 						style={StyleSheet.absoluteFill}
-						contentFit="contain"
+						contentFit={'contain'}
 					/>
 					<BlurView
 						intensity={BLUR_INTENSITY}
-						experimentalBlurMethod="dimezisBlurView"
+						experimentalBlurMethod={'dimezisBlurView'}
 						style={StyleSheet.absoluteFill}
-						tint="dark"
+						tint={'dark'}
 					/>
 				</View>
 			)}
@@ -92,7 +92,7 @@ export function DetailsHeader({
 							{ width: artworkSize, height: artworkSize },
 							isCircular ? { borderRadius: artworkSize / 2 } : styles.squareArtwork,
 						]}
-						contentFit="cover"
+						contentFit={'cover'}
 						transition={200}
 					/>
 				) : (
@@ -110,7 +110,7 @@ export function DetailsHeader({
 
 				<View style={styles.textContent}>
 					<Text
-						variant="headlineMedium"
+						variant={'headlineMedium'}
 						style={[styles.title, { color: colors.onSurface }]}
 						numberOfLines={2}
 					>
@@ -123,14 +123,14 @@ export function DetailsHeader({
 								<View key={index} style={styles.metadataLine}>
 									{index > 0 && (
 										<Text
-											variant="bodySmall"
+											variant={'bodySmall'}
 											style={{ color: colors.onSurfaceVariant }}
 										>
 											•
 										</Text>
 									)}
 									<Text
-										variant="bodySmall"
+										variant={'bodySmall'}
 										style={{
 											color: colors.onSurfaceVariant,
 											textAlign: 'center',

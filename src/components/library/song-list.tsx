@@ -34,7 +34,7 @@ export function SongList({
 			renderItem={({ item, index }) => (
 				<SelectableTrackListItem
 					track={item}
-					source="library"
+					source={'library'}
 					isSelectionMode={isSelectionMode}
 					isSelected={selectedTrackIds.has(item.id.value)}
 					onLongPress={onLongPress}

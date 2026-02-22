@@ -10,7 +10,7 @@ import { MediaListItemSkeleton, MediaListSkeleton } from './media-list-item-skel
 export function AlbumItemSkeleton() {
 	return (
 		<MediaListItemSkeleton
-			shape="rounded"
+			shape={'rounded'}
 			artworkSize={56}
 			lines={2}
 			primaryWidth={'55%' as const}
@@ -28,7 +28,7 @@ export function AlbumListSkeleton({ count = 5 }: AlbumListSkeletonProps) {
 	return (
 		<MediaListSkeleton
 			count={count}
-			shape="rounded"
+			shape={'rounded'}
 			artworkSize={56}
 			lines={2}
 			primaryWidth={'55%' as const}

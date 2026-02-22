@@ -169,10 +169,10 @@ export const OAuthLoginWebView = memo(function OAuthLoginWebView({
 				<IconButton
 					icon={() => <XIcon size={24} color={colors.onSurface} />}
 					onPress={handleCancel}
-					accessibilityLabel="Close"
+					accessibilityLabel={'Close'}
 				/>
 				<Text
-					variant="titleMedium"
+					variant={'titleMedium'}
 					style={[styles.title, { color: colors.onSurface }]}
 					numberOfLines={1}
 				>
@@ -181,14 +181,14 @@ export const OAuthLoginWebView = memo(function OAuthLoginWebView({
 				<IconButton
 					icon={() => <MoreVerticalIcon size={24} color={colors.onSurface} />}
 					onPress={handleMenuOpen}
-					accessibilityLabel="More options"
+					accessibilityLabel={'More options'}
 				/>
 			</View>
 
 			<Modal
 				visible={menuVisible}
 				transparent
-				animationType="fade"
+				animationType={'fade'}
 				onRequestClose={handleMenuClose}
 			>
 				<Pressable style={styles.menuOverlay} onPress={handleMenuClose}>
@@ -262,19 +262,19 @@ export const OAuthLoginWebView = memo(function OAuthLoginWebView({
 						{pollingTimedOut ? (
 							<EmptyState
 								icon={ClockIcon}
-								title="Sign in timed out"
-								description="Please try signing in again"
+								title={'Sign in timed out'}
+								description={'Please try signing in again'}
 								action={
-									<Button variant="default" onPress={handleRetry}>
+									<Button variant={'default'} onPress={handleRetry}>
 										Try Again
 									</Button>
 								}
 							/>
 						) : (
 							<>
-								<ActivityIndicator size="large" color={colors.primary} />
+								<ActivityIndicator size={'large'} color={colors.primary} />
 								<Text
-									variant="bodyMedium"
+									variant={'bodyMedium'}
 									style={[styles.loadingText, { color: colors.onSurfaceVariant }]}
 								>
 									{isPolling ? config.pollingText : config.loadingText}

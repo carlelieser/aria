@@ -11,14 +11,14 @@ import { Skeleton } from '@/src/components/ui/skeleton';
 export function TrackListItemSkeleton() {
 	return (
 		<View style={styles.container}>
-			<Skeleton width={48} height={48} rounded="lg" />
+			<Skeleton width={48} height={48} rounded={'lg'} />
 
 			<View style={styles.textContainer}>
-				<Skeleton width="70%" height={16} rounded="sm" />
-				<Skeleton width="50%" height={14} rounded="sm" />
+				<Skeleton width={'70%'} height={16} rounded={'sm'} />
+				<Skeleton width={'50%'} height={14} rounded={'sm'} />
 			</View>
 
-			<Skeleton width={36} height={14} rounded="sm" />
+			<Skeleton width={36} height={14} rounded={'sm'} />
 		</View>
 	);
 }

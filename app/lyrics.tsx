@@ -33,8 +33,8 @@ export default function LyricsScreen() {
 			<PageLayout header={{ title: 'Lyrics', showBack: true }}>
 				<EmptyState
 					icon={AlertCircleIcon}
-					title="Track not found"
-					description="Unable to load track information"
+					title={'Track not found'}
+					description={'Unable to load track information'}
 				/>
 			</PageLayout>
 		);
@@ -48,17 +48,17 @@ export default function LyricsScreen() {
 
 	const trackInfoHeader = (
 		<View style={styles.trackInfo}>
-			<Image source={{ uri: artwork?.url }} style={styles.artwork} contentFit="cover" />
+			<Image source={{ uri: artwork?.url }} style={styles.artwork} contentFit={'cover'} />
 			<View style={styles.trackText}>
 				<Text
-					variant="bodyLarge"
+					variant={'bodyLarge'}
 					numberOfLines={1}
 					style={{ color: colors.onSurface, fontWeight: '600' }}
 				>
 					{track.title}
 				</Text>
 				<Text
-					variant="bodyMedium"
+					variant={'bodyMedium'}
 					numberOfLines={1}
 					style={{ color: colors.onSurfaceVariant }}
 				>
@@ -76,13 +76,13 @@ export default function LyricsScreen() {
 					showsVerticalScrollIndicator={false}
 				>
 					<View style={styles.loadingContainer}>
-						<Skeleton width="80%" height={24} rounded="sm" />
-						<Skeleton width="60%" height={24} rounded="sm" />
-						<Skeleton width="70%" height={24} rounded="sm" />
-						<Skeleton width="55%" height={24} rounded="sm" />
-						<Skeleton width="75%" height={24} rounded="sm" />
-						<Skeleton width="65%" height={24} rounded="sm" />
-						<Skeleton width="85%" height={24} rounded="sm" />
+						<Skeleton width={'80%'} height={24} rounded={'sm'} />
+						<Skeleton width={'60%'} height={24} rounded={'sm'} />
+						<Skeleton width={'70%'} height={24} rounded={'sm'} />
+						<Skeleton width={'55%'} height={24} rounded={'sm'} />
+						<Skeleton width={'75%'} height={24} rounded={'sm'} />
+						<Skeleton width={'65%'} height={24} rounded={'sm'} />
+						<Skeleton width={'85%'} height={24} rounded={'sm'} />
 					</View>
 				</PlayerAwareScrollView>
 			);
@@ -92,7 +92,7 @@ export default function LyricsScreen() {
 			return (
 				<EmptyState
 					icon={AlertCircleIcon}
-					title="Failed to load lyrics"
+					title={'Failed to load lyrics'}
 					description={error}
 				/>
 			);
@@ -102,8 +102,8 @@ export default function LyricsScreen() {
 			return (
 				<EmptyState
 					icon={MicVocalIcon}
-					title="No lyrics available"
-					description="We couldn't find lyrics for this track"
+					title={'No lyrics available'}
+					description={"We couldn't find lyrics for this track"}
 				/>
 			);
 		}
@@ -123,14 +123,14 @@ export default function LyricsScreen() {
 				showsVerticalScrollIndicator={false}
 			>
 				<Text
-					variant="bodyLarge"
+					variant={'bodyLarge'}
 					style={[styles.plainLyricsText, { color: colors.onSurface }]}
 				>
 					{lyrics.plainLyrics}
 				</Text>
 				{lyrics.attribution && (
 					<Text
-						variant="labelSmall"
+						variant={'labelSmall'}
 						style={[styles.attribution, { color: colors.onSurfaceVariant }]}
 					>
 						{lyrics.attribution}

@@ -40,16 +40,16 @@ export function ConfirmationDialog({
 			>
 				<Dialog.Title style={{ color: colors.onSurface }}>{title}</Dialog.Title>
 				<Dialog.Content>
-					<Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant }}>
+					<Text variant={'bodyMedium'} style={{ color: colors.onSurfaceVariant }}>
 						{message}
 					</Text>
 				</Dialog.Content>
 				<Dialog.Actions style={styles.actions}>
-					<Button mode="text" onPress={onCancel} textColor={colors.onSurfaceVariant}>
+					<Button mode={'text'} onPress={onCancel} textColor={colors.onSurfaceVariant}>
 						{cancelLabel}
 					</Button>
 					<Button
-						mode="text"
+						mode={'text'}
 						onPress={onConfirm}
 						textColor={destructive ? colors.error : colors.primary}
 					>

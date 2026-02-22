@@ -69,7 +69,7 @@ const FilterChip = memo(function FilterChip({ text, isActive, onPress }: FilterC
 			]}
 		>
 			<Text
-				variant="labelLarge"
+				variant={'labelLarge'}
 				style={{
 					color: isActive ? colors.onSecondaryContainer : colors.onSurfaceVariant,
 				}}

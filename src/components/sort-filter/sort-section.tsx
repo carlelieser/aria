@@ -63,7 +63,7 @@ const SortOptionItem = memo(function SortOptionItem<T extends string>({
 	return (
 		<Pressable style={styles.optionRow} onPress={handlePress}>
 			<Text
-				variant="bodyMedium"
+				variant={'bodyMedium'}
 				style={{
 					color: colors.onSurface,
 					fontWeight: isSelected ? '500' : '400',
@@ -89,7 +89,7 @@ export function SortSection<T extends string>({
 		<View style={styles.container}>
 			<View style={styles.header}>
 				<Text
-					variant="labelMedium"
+					variant={'labelMedium'}
 					style={[styles.sectionLabel, { color: colors.onSurfaceVariant }]}
 				>
 					SORT BY
@@ -100,7 +100,7 @@ export function SortSection<T extends string>({
 						size={16}
 						color={colors.onSurface}
 					/>
-					<Text variant="bodySmall" style={{ color: colors.onSurface }}>
+					<Text variant={'bodySmall'} style={{ color: colors.onSurface }}>
 						{sortDirection === 'asc' ? 'Ascending' : 'Descending'}
 					</Text>
 				</Pressable>

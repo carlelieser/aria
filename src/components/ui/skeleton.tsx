@@ -114,7 +114,7 @@ export function Skeleton({
 			{shimmer && layoutWidth > 0 && (
 				<Animated.View
 					style={[StyleSheet.absoluteFill, animatedStyle]}
-					pointerEvents="none"
+					pointerEvents={'none'}
 				>
 					<LinearGradient
 						colors={shimmerColors}

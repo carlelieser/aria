@@ -42,8 +42,10 @@ export default function PluginsScreen() {
 				) : plugins.length === 0 ? (
 					<EmptyState
 						icon={DEFAULT_PLUGIN_ICON}
-						title="No plugins available"
-						description="Plugins extend Aria with new music sources, playback features, and more."
+						title={'No plugins available'}
+						description={
+							'Plugins extend Aria with new music sources, playback features, and more.'
+						}
 					/>
 				) : (
 					Object.entries(pluginsByCategory).map(([category, categoryPlugins]) => (

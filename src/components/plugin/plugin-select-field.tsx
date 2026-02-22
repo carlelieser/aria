@@ -62,7 +62,7 @@ export const PluginSelectField = memo(function PluginSelectField({
 	const header = (
 		<View style={styles.header}>
 			<Icon as={ListIcon} size={22} color={colors.onSurfaceVariant} />
-			<Text variant="titleMedium" style={[styles.headerTitle, { color: colors.onSurface }]}>
+			<Text variant={'titleMedium'} style={[styles.headerTitle, { color: colors.onSurface }]}>
 				{schema.label}
 			</Text>
 		</View>

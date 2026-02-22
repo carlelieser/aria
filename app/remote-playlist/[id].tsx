@@ -85,7 +85,7 @@ export default function RemotePlaylistScreen() {
 	const actionButton =
 		tracks.length > 0 ? (
 			<Button
-				mode="contained"
+				mode={'contained'}
 				icon={() => <Icon as={PlayIcon} size={18} color={colors.onPrimary} />}
 				onPress={handlePlayAll}
 			>
@@ -111,7 +111,7 @@ export default function RemotePlaylistScreen() {
 		if (error) {
 			return (
 				<View style={styles.emptyState}>
-					<Text variant="bodyMedium" style={errorTextStyle}>
+					<Text variant={'bodyMedium'} style={errorTextStyle}>
 						{error}
 					</Text>
 				</View>
@@ -131,7 +131,7 @@ export default function RemotePlaylistScreen() {
 		if (tracks.length === 0) {
 			return (
 				<View style={styles.emptyState}>
-					<Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant }}>
+					<Text variant={'bodyMedium'} style={{ color: colors.onSurfaceVariant }}>
 						No tracks found in this playlist
 					</Text>
 				</View>
@@ -144,7 +144,7 @@ export default function RemotePlaylistScreen() {
 					<TrackListItem
 						key={track.id.value}
 						track={track}
-						source="search"
+						source={'search'}
 						queue={tracks}
 						queueIndex={index}
 					/>

@@ -192,7 +192,7 @@ export function AnimatedSplash({
 						<Image
 							source={require('@/assets/icon-content.png')}
 							style={{ width: ICON_SIZE, height: ICON_SIZE }}
-							resizeMode="contain"
+							resizeMode={'contain'}
 						/>
 					</View>
 					<View style={styles.polygonWrapper}>
@@ -220,7 +220,7 @@ export function AnimatedSplash({
 					<Image
 						source={require('@/assets/icon-content.png')}
 						style={{ width: ICON_SIZE, height: ICON_SIZE }}
-						resizeMode="contain"
+						resizeMode={'contain'}
 					/>
 				</View>
 				<Animated.View style={[styles.polygonWrapper, polygonContainerStyle]}>

@@ -48,10 +48,10 @@ export const SpotifyLoginWebView = memo(function SpotifyLoginWebView({
 				<IconButton
 					icon={() => <XIcon size={24} color={colors.onSurface} />}
 					onPress={onCancel}
-					accessibilityLabel="Close"
+					accessibilityLabel={'Close'}
 				/>
 				<Text
-					variant="titleMedium"
+					variant={'titleMedium'}
 					style={[styles.title, { color: colors.onSurface }]}
 					numberOfLines={1}
 				>
@@ -61,11 +61,14 @@ export const SpotifyLoginWebView = memo(function SpotifyLoginWebView({
 			</View>
 
 			<View style={styles.content}>
-				<Text variant="headlineSmall" style={{ color: colors.onSurface, marginBottom: 8 }}>
+				<Text
+					variant={'headlineSmall'}
+					style={{ color: colors.onSurface, marginBottom: 8 }}
+				>
 					Not Available on Web
 				</Text>
 				<Text
-					variant="bodyMedium"
+					variant={'bodyMedium'}
 					style={{ color: colors.onSurfaceVariant, textAlign: 'center' }}
 				>
 					Spotify login requires native cookie access and is only available on iOS and

@@ -79,7 +79,7 @@ export const SelectableDownloadListItem = memo(function SelectableDownloadListIt
 			<View style={styles.trackItem}>
 				<TrackListItem
 					track={track}
-					source="library"
+					source={'library'}
 					onPress={isSelectionMode ? handlePress : undefined}
 					onLongPress={!isSelectionMode ? handleLongPress : undefined}
 					hideOptionsMenu={isSelectionMode}

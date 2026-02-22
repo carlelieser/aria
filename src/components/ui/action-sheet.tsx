@@ -181,7 +181,7 @@ const ActionSheetItemComponent = React.memo(function ActionSheetItemComponent({
 					</View>
 				)}
 				<Text
-					variant="bodyLarge"
+					variant={'bodyLarge'}
 					style={[styles.itemText, { color: textColor }]}
 					numberOfLines={1}
 				>

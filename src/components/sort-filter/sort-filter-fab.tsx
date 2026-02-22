@@ -45,7 +45,7 @@ export function SortFilterFAB({ filterCount, onPress }: SortFilterFABProps) {
 					onPress={onPress}
 					style={[styles.fab, { backgroundColor: colors.secondaryContainer }]}
 					color={colors.onSecondaryContainer}
-					size="medium"
+					size={'medium'}
 				/>
 				{filterCount > 0 && (
 					<Badge size={20} style={[styles.badge, { backgroundColor: colors.error }]}>

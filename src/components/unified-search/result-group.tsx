@@ -66,14 +66,14 @@ export function ResultGroup({
 					{IconComponent && <Icon as={IconComponent} size={20} color={colors.primary} />}
 					<View style={styles.headerText}>
 						<Text
-							variant="titleMedium"
+							variant={'titleMedium'}
 							style={[styles.title, { color: colors.onSurface }]}
 						>
 							{title}
 						</Text>
 						{subtitle && (
 							<Text
-								variant="bodySmall"
+								variant={'bodySmall'}
 								style={[styles.subtitle, { color: colors.onSurfaceVariant }]}
 							>
 								{subtitle}
