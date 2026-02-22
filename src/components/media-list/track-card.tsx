@@ -13,7 +13,6 @@ import { Music } from 'lucide-react-native';
 
 import { Icon } from '@/src/components/ui/icon';
 import { AudioWaveform } from '@/src/components/ui/audio-waveform';
-import { useAudioLevelsContext } from '@/src/components/ui/audio-levels-provider';
 import { usePlayer } from '@/src/hooks/use-player';
 import type { Track } from '@/src/domain/entities/track';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
@@ -41,8 +40,6 @@ export const TrackCard = memo(function TrackCard({
 	const { colors } = useAppTheme();
 	const currentTrack = useCurrentTrack();
 	const isPlaying = useIsPlaying();
-	const audioLevels = useAudioLevelsContext();
-
 	const isActiveTrack = currentTrack !== null && currentTrack.id.value === track.id.value;
 	const isCurrentlyPlaying = isActiveTrack && isPlaying;
 
@@ -83,7 +80,7 @@ export const TrackCard = memo(function TrackCard({
 					) : (
 						<Icon as={Music} size={48} color={colors.onSurfaceVariant} />
 					)}
-					{isCurrentlyPlaying && <AudioWaveform levels={audioLevels?.levels} />}
+					{isCurrentlyPlaying && <AudioWaveform />}
 				</View>
 				<DownloadIndicator trackId={track.id.value} size={'lg'} />
 			</View>

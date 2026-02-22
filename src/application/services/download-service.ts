@@ -26,8 +26,6 @@ import { libraryService } from './library-service';
 
 const logger = getLogger('DownloadService');
 
-const MAX_CONCURRENT_DOWNLOADS = 3;
-
 export class DownloadService {
 	private audioSourceProviders: AudioSourceProvider[] = [];
 	private activeDownloads: Map<string, boolean> = new Map();
@@ -88,10 +86,6 @@ export class DownloadService {
 		if (store.isDownloading(trackId) || this.activeDownloads.get(trackId)) {
 			logger.debug(`Track ${trackId} already downloading`);
 			return ok(undefined);
-		}
-
-		if (store.getActiveDownloadsCount() >= MAX_CONCURRENT_DOWNLOADS) {
-			return err(new Error('Too many concurrent downloads. Please wait for one to finish.'));
 		}
 
 		const artwork = getLargestArtwork(track.artwork);

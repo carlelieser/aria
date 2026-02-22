@@ -19,7 +19,6 @@ import { ToastContainer } from '@/src/components/ui/toast';
 import { ScanProgressToast } from '@/src/components/ui/scan-progress-toast';
 import { ImportProgressToast } from '@/src/components/ui/import-progress-toast';
 import { AnimatedSplash } from '@/src/components/ui/animated-splash';
-import { AudioLevelsProvider } from '@/src/components/ui/audio-levels-provider';
 import { AppThemeProvider, useAppTheme } from '@/lib/theme';
 import { ErrorBoundary, useGlobalErrorHandlers } from '@/lib/error-capture';
 import { useSleepTimerSheetOpen, usePlayerUIStore } from '@/src/application/state/player-ui-store';
@@ -61,8 +60,7 @@ function AppContent() {
 	}, []);
 
 	return (
-		<AudioLevelsProvider>
-			<View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]}>
+		<View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]}>
 				<Stack
 					screenOptions={{
 						headerShown: false,
@@ -100,8 +98,7 @@ function AppContent() {
 						isDark={isDark}
 					/>
 				)}
-			</View>
-		</AudioLevelsProvider>
+		</View>
 	);
 }
 
