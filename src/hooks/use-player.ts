@@ -95,6 +95,7 @@ export function usePlayer() {
 
 	const cycleRepeatMode = useCallback(() => {
 		usePlayerStore.getState().cycleRepeatMode();
+		playbackService.setRepeatMode(usePlayerStore.getState().repeatMode);
 	}, []);
 
 	const setVolume = useCallback(async (volume: number) => {

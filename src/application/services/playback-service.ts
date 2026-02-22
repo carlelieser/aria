@@ -1,5 +1,6 @@
 import type { AudioFormat, AudioStream, Track } from '@/src/domain';
 import { createAudioStream, Duration, getPlaybackUri, isLocallyAvailable } from '@/src/domain';
+import type { RepeatMode } from '@/src/domain/value-objects/playback-state';
 import type {
 	AudioSourceProvider,
 	PlaybackEvent,
@@ -260,6 +261,12 @@ export class PlaybackService {
 		const currentTrack = usePlayerStore.getState().currentTrack;
 		if (currentTrack) {
 			this.play(currentTrack);
+		}
+	}
+
+	setRepeatMode(mode: RepeatMode): void {
+		if (this.activeProvider) {
+			this.activeProvider.setRepeatMode(mode);
 		}
 	}
 

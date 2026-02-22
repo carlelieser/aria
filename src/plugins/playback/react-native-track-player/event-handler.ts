@@ -143,9 +143,6 @@ export class EventHandler {
 	}
 
 	private onQueueEnded(): void {
-		if (this.state.repeatMode === 'all' && this.state.queue.length > 0) {
-			return;
-		}
 		this.emitEvent({ type: 'ended', timestamp: Date.now() });
 	}
 

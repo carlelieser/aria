@@ -176,7 +176,6 @@ export class PlaybackOperations {
 			case 'one':
 				return RNTPRepeatMode.Track;
 			case 'all':
-				return RNTPRepeatMode.Queue;
 			case 'off':
 			default:
 				return RNTPRepeatMode.Off;
