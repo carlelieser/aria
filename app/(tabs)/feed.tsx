@@ -24,7 +24,8 @@ export default function HomeScreen() {
 	const hasCompletedInitialLoad = useHasCompletedInitialLoad();
 	const activeFilterIndex = useHomeFeedStore((state) => state.activeFilterIndex);
 	const {
-		sections,
+		localSections,
+		remoteSections,
 		filterChips,
 		isLoading,
 		isRefreshing,
@@ -49,11 +50,13 @@ export default function HomeScreen() {
 		[handleLoadMore]
 	);
 
-	const visibleSections = sections.filter((section) => section.items.length > 0);
+	const visibleLocalSections = localSections.filter((s) => s.items.length > 0);
+	const visibleRemoteSections = remoteSections.filter((s) => s.items.length > 0);
+	const totalVisible = visibleLocalSections.length + visibleRemoteSections.length;
 	const skeletonCount = !hasCompletedInitialLoad
-		? Math.max(0, MIN_VISIBLE_SECTIONS - visibleSections.length)
+		? Math.max(0, MIN_VISIBLE_SECTIONS - totalVisible)
 		: 0;
-	const hasData = sections.length > 0;
+	const hasData = localSections.length > 0 || remoteSections.length > 0;
 	const showSkeleton = isLoading && !hasData;
 	const showError = !isLoading && !hasData && error !== null;
 	const showEmpty = !isLoading && !hasData && error === null;
@@ -104,6 +107,9 @@ export default function HomeScreen() {
 
 				{hasData && (
 					<View style={styles.content}>
+						{visibleLocalSections.map((section) => (
+							<FeedCarousel key={section.id} section={section} />
+						))}
 						{filterChips.length > 0 && (
 							<FeedFilterChips
 								chips={filterChips}
@@ -112,7 +118,7 @@ export default function HomeScreen() {
 								onDeselect={handleClearFilter}
 							/>
 						)}
-						{visibleSections.map((section) => (
+						{visibleRemoteSections.map((section) => (
 							<FeedCarousel key={section.id} section={section} />
 						))}
 						{skeletonCount > 0 &&

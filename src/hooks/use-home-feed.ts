@@ -12,7 +12,8 @@ import { useCuratedContent } from './use-curated-content';
 import type { FeedSection, FeedFilterChip } from '@/src/domain/entities/feed-section';
 
 interface HomeFeedResult {
-	readonly sections: FeedSection[];
+	readonly localSections: FeedSection[];
+	readonly remoteSections: FeedSection[];
 	readonly filterChips: FeedFilterChip[];
 	readonly isLoading: boolean;
 	readonly isRefreshing: boolean;
@@ -72,10 +73,6 @@ export function useHomeFeed(): HomeFeedResult {
 
 	const localSections = useMemo(() => buildLocalSections(curated), [curated]);
 
-	const sections = useMemo(() => {
-		return [...localSections, ...remoteSections];
-	}, [localSections, remoteSections]);
-
 	const handleRefresh = useCallback(() => {
 		homeFeedService.refresh();
 	}, []);
@@ -93,7 +90,8 @@ export function useHomeFeed(): HomeFeedResult {
 	}, []);
 
 	return {
-		sections,
+		localSections,
+		remoteSections,
 		filterChips,
 		isLoading,
 		isRefreshing,
