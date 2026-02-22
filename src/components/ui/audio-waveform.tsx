@@ -21,31 +21,25 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useEffect } from 'react';
 
-const BAR_COUNT = 12;
+const BAR_COUNT = 6;
 const BAR_WIDTH = 2;
-const BAR_GAP = 1;
+const BAR_GAP = 2;
 const BAR_MIN_HEIGHT = 2;
 const BAR_MAX_HEIGHT = 16;
 const BAR_BORDER_RADIUS = 1;
 
 const BAR_PHASES: readonly { speed: number; delay: number }[] = [
-	{ speed: 400, delay: 0 },
-	{ speed: 480, delay: 120 },
-	{ speed: 350, delay: 50 },
-	{ speed: 520, delay: 180 },
-	{ speed: 380, delay: 90 },
-	{ speed: 460, delay: 210 },
-	{ speed: 340, delay: 30 },
-	{ speed: 500, delay: 160 },
-	{ speed: 370, delay: 70 },
-	{ speed: 440, delay: 200 },
-	{ speed: 360, delay: 100 },
-	{ speed: 490, delay: 140 },
+	{ speed: 380, delay: 0 },
+	{ speed: 460, delay: 80 },
+	{ speed: 520, delay: 160 },
+	{ speed: 340, delay: 40 },
+	{ speed: 490, delay: 120 },
+	{ speed: 410, delay: 200 },
 ];
 
 const TIMING_CONFIG = {
-	duration: 80,
-	easing: Easing.out(Easing.cubic),
+	duration: 10,
+	easing: Easing.inOut(Easing.cubic),
 } as const;
 
 interface AudioWaveformProps {
@@ -101,7 +95,10 @@ function RealTimeBar({
 	color: string;
 }) {
 	const animatedStyle = useAnimatedStyle(() => {
-		const level = levels.value[index] ?? 0;
+		const i = index * 2;
+		const a = levels.value[i] ?? 0;
+		const b = levels.value[i + 1] ?? 0;
+		const level = (a + b) / 2;
 		const target = BAR_MIN_HEIGHT + level * (BAR_MAX_HEIGHT - BAR_MIN_HEIGHT);
 		return { height: withTiming(target, TIMING_CONFIG) };
 	});
@@ -163,7 +160,7 @@ const styles = StyleSheet.create({
 	},
 	barsContainer: {
 		flexDirection: 'row',
-		alignItems: 'flex-end',
+		alignItems: 'center',
 		gap: BAR_GAP,
 		height: BAR_MAX_HEIGHT,
 		width: TOTAL_WIDTH,
