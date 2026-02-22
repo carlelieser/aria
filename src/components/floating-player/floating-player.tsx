@@ -186,7 +186,7 @@ export function FloatingPlayer() {
 							size={24}
 							onPress={handleSkipNext}
 							iconColor={colors.onSurface}
-							accessibilityLabel="Skip to next track"
+							accessibilityLabel={'Skip to next track'}
 						/>
 					</View>
 				</View>

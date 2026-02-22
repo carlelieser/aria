@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ListMusicIcon, PlayIcon, Shuffle } from 'lucide-react-native';
 import { Text, Button } from 'react-native-paper';
