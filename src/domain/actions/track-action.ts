@@ -44,6 +44,7 @@ export interface TrackActionContext {
 export const CORE_ACTION_IDS = {
 	ADD_TO_LIBRARY: 'add-to-library',
 	REMOVE_FROM_LIBRARY: 'remove-from-library',
+	PLAY_NEXT: 'play-next',
 	ADD_TO_QUEUE: 'add-to-queue',
 	ADD_TO_PLAYLIST: 'add-to-playlist',
 	REMOVE_FROM_PLAYLIST: 'remove-from-playlist',

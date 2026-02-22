@@ -124,6 +124,9 @@ export function useTrackActionExecutor({
 						case CORE_ACTION_IDS.REMOVE_FROM_LIBRARY:
 							success('Removed from library', currentTrack.title);
 							break;
+						case CORE_ACTION_IDS.PLAY_NEXT:
+							success('Playing next', currentTrack.title);
+							break;
 						case CORE_ACTION_IDS.ADD_TO_QUEUE:
 							success('Added to queue', currentTrack.title);
 							break;

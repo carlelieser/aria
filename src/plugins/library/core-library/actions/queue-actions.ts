@@ -6,9 +6,17 @@ import { usePlayerStore } from '../../../../application/state/player-store';
 export function getQueueActions(_context: TrackActionContext): TrackAction[] {
 	return [
 		{
+			id: CORE_ACTION_IDS.PLAY_NEXT,
+			label: 'Play Next',
+			icon: 'ListStart',
+			group: 'primary',
+			priority: 105,
+			enabled: true,
+		},
+		{
 			id: CORE_ACTION_IDS.ADD_TO_QUEUE,
 			label: 'Add to Queue',
-			icon: 'ListPlus',
+			icon: 'ListEnd',
 			group: 'primary',
 			priority: 100,
 			enabled: true,
@@ -23,6 +31,19 @@ export async function executeQueueAction(
 	const { track } = context;
 
 	switch (actionId) {
+		case CORE_ACTION_IDS.PLAY_NEXT: {
+			const store = usePlayerStore.getState();
+			const currentQueue = [...store.queue];
+			const insertIndex = store.queueIndex + 1;
+			currentQueue.splice(insertIndex, 0, track);
+			store.setQueue(currentQueue, store.queueIndex);
+			return {
+				handled: true,
+				success: true,
+				feedback: { message: 'Playing next', description: track.title },
+			};
+		}
+
 		case CORE_ACTION_IDS.ADD_TO_QUEUE: {
 			const store = usePlayerStore.getState();
 			const currentQueue = store.queue;
