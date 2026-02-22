@@ -10,6 +10,7 @@ import DraggableFlatList, {
 import {
 	ListMusicIcon,
 	PlayIcon,
+	Shuffle,
 	Trash2Icon,
 	PencilIcon,
 	GripVerticalIcon,
@@ -42,7 +43,7 @@ export default function PlaylistScreen() {
 	const insets = useSafeAreaInsets();
 	const { id } = useLocalSearchParams<{ id: string }>();
 	const { colors } = useAppTheme();
-	const { playQueue } = usePlayer();
+	const { playQueue, isShuffled, toggleShuffle } = usePlayer();
 	const { success } = useToast();
 
 	const [menuVisible, setMenuVisible] = useState(false);
@@ -83,6 +84,16 @@ export default function PlaylistScreen() {
 			router.push('/player');
 		}
 	}, [tracks, playQueue]);
+
+	const handleShufflePlay = useCallback(() => {
+		if (tracks.length > 0) {
+			if (!isShuffled) {
+				toggleShuffle();
+			}
+			playQueue(tracks, 0);
+			router.push('/player');
+		}
+	}, [tracks, isShuffled, toggleShuffle, playQueue]);
 
 	const handleDeletePlaylist = useCallback(() => {
 		if (playlist) {
@@ -291,13 +302,23 @@ export default function PlaylistScreen() {
 
 	const actionButton =
 		tracks.length > 0 ? (
-			<Button
-				mode={'contained'}
-				icon={() => <Icon as={PlayIcon} size={18} color={colors.onPrimary} />}
-				onPress={handlePlayAll}
-			>
-				Play All
-			</Button>
+			<View style={styles.actionButtons}>
+				<Button
+					mode={'contained'}
+					icon={() => <Icon as={PlayIcon} size={18} color={colors.onPrimary} />}
+					onPress={handlePlayAll}
+				>
+					Play All
+				</Button>
+				<Button
+					mode={'contained-tonal'}
+					icon={() => <Icon as={Shuffle} size={18} color={colors.onSecondaryContainer} />}
+					onPress={handleShufflePlay}
+					accessibilityLabel={'Shuffle play'}
+				>
+					Shuffle
+				</Button>
+			</View>
 		) : undefined;
 
 	const headerInfo: DetailsHeaderInfo = {
@@ -499,6 +520,10 @@ function PlaylistHeaderActions({
 }
 
 const styles = StyleSheet.create({
+	actionButtons: {
+		flexDirection: 'row',
+		gap: 12,
+	},
 	headerActions: {
 		flexDirection: 'row',
 		alignItems: 'center',
