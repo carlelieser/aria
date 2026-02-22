@@ -3,29 +3,13 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
-export type TabId = 'home' | 'library' | 'downloads' | 'search';
+export type TabId = 'feed' | 'library' | 'downloads' | 'search';
 export type DefaultTab = TabId;
 export type LibraryTabId = 'songs' | 'playlists' | 'artists' | 'albums';
 
-export const DEFAULT_TAB_ORDER: TabId[] = ['home', 'library', 'search', 'downloads'];
-export const DEFAULT_ENABLED_TABS: TabId[] = ['home', 'library', 'search', 'downloads'];
+export const DEFAULT_TAB_ORDER: TabId[] = ['feed', 'library', 'search', 'downloads'];
+export const DEFAULT_ENABLED_TABS: TabId[] = ['feed', 'library', 'search', 'downloads'];
 export const REQUIRED_TABS: TabId[] = [];
-
-/**
- * Migrates legacy tab IDs for existing users.
- * Removes 'explore' tab that no longer exists.
- */
-const REMOVED_TABS = new Set(['explore', 'settings']);
-
-function migrateTabId(tabId: string): TabId | null {
-	if (tabId === 'index') return 'library';
-	if (REMOVED_TABS.has(tabId)) return null;
-	return tabId as TabId;
-}
-
-function migrateTabIds(tabIds: string[]): TabId[] {
-	return tabIds.map(migrateTabId).filter((id): id is TabId => id !== null);
-}
 
 interface SettingsState {
 	themePreference: ThemePreference;
@@ -63,7 +47,7 @@ export const useSettingsStore = create<SettingsState>()(
 	persist(
 		(set, get) => ({
 			themePreference: 'system',
-			defaultTab: 'home',
+			defaultTab: 'feed',
 			defaultLibraryTab: 'songs',
 			accentColor: null,
 			tabOrder: DEFAULT_TAB_ORDER,
@@ -112,7 +96,7 @@ export const useSettingsStore = create<SettingsState>()(
 			resetAllSettings: () => {
 				set({
 					themePreference: 'system',
-					defaultTab: 'home',
+					defaultTab: 'feed',
 					defaultLibraryTab: 'songs',
 					accentColor: null,
 					tabOrder: DEFAULT_TAB_ORDER,
@@ -123,79 +107,6 @@ export const useSettingsStore = create<SettingsState>()(
 		{
 			name: 'aria-settings-storage',
 			storage: createJSONStorage(() => customStorage),
-			version: 6,
-			migrate: (persistedState, version) => {
-				const state = persistedState as Partial<SettingsState>;
-				// Version 0/1 -> 2: Remove 'explore' tab
-				if (version < 2) {
-					const migratedDefaultTab = state.defaultTab
-						? migrateTabId(state.defaultTab)
-						: null;
-					state.defaultTab = (migratedDefaultTab ?? 'home') as DefaultTab;
-					state.tabOrder = state.tabOrder
-						? migrateTabIds(state.tabOrder)
-						: DEFAULT_TAB_ORDER;
-					state.enabledTabs = state.enabledTabs
-						? migrateTabIds(state.enabledTabs)
-						: DEFAULT_ENABLED_TABS;
-				}
-				// Version 2 -> 3: Add 'search' tab for existing users
-				if (version < 3) {
-					const tabOrder = state.tabOrder ?? DEFAULT_TAB_ORDER;
-					const enabledTabs = state.enabledTabs ?? DEFAULT_ENABLED_TABS;
-					if (!tabOrder.includes('search')) {
-						const settingsIdx = (tabOrder as string[]).indexOf('settings');
-						const insertIdx = settingsIdx >= 0 ? settingsIdx : tabOrder.length;
-						state.tabOrder = [
-							...tabOrder.slice(0, insertIdx),
-							'search',
-							...tabOrder.slice(insertIdx),
-						];
-					}
-					if (!enabledTabs.includes('search')) {
-						state.enabledTabs = [...enabledTabs, 'search'];
-					}
-				}
-				// Version 3 -> 4: Add 'home' tab for existing users
-				if (version < 4) {
-					const tabOrder = state.tabOrder ?? DEFAULT_TAB_ORDER;
-					const enabledTabs = state.enabledTabs ?? DEFAULT_ENABLED_TABS;
-					if (!tabOrder.includes('home')) {
-						state.tabOrder = ['home', ...tabOrder];
-					}
-					if (!enabledTabs.includes('home')) {
-						state.enabledTabs = ['home', ...enabledTabs];
-					}
-					if (state.defaultTab === ('index' as DefaultTab)) {
-						state.defaultTab = 'home';
-					}
-				}
-				// Version 4 -> 5: Remove 'settings' tab (now a modal)
-				if (version < 5) {
-					state.tabOrder = state.tabOrder
-						? migrateTabIds(state.tabOrder)
-						: DEFAULT_TAB_ORDER;
-					state.enabledTabs = state.enabledTabs
-						? migrateTabIds(state.enabledTabs)
-						: DEFAULT_ENABLED_TABS;
-					if (state.defaultTab === ('settings' as DefaultTab)) {
-						state.defaultTab = 'home';
-					}
-				}
-				// Version 5 -> 6: Rename 'index' tab to 'library'
-				if (version < 6) {
-					if (state.defaultTab === ('index' as DefaultTab)) {
-						state.defaultTab = 'library';
-					}
-					state.tabOrder = state.tabOrder
-						? migrateTabIds(state.tabOrder)
-						: DEFAULT_TAB_ORDER;
-					state.enabledTabs = state.enabledTabs
-						? migrateTabIds(state.enabledTabs)
-						: DEFAULT_ENABLED_TABS;
-				}
-				return state as SettingsState;
-			},
 		}
 	)
 );

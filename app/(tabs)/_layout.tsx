@@ -47,14 +47,22 @@ export default function TabLayout() {
 		return filtered.length > 0 ? filtered : DEFAULT_TAB_ORDER;
 	}, [tabOrder, enabledTabs]);
 
+	const { colors } = useAppTheme();
+
 	const screenOptions = useMemo(
 		() => ({
 			headerShown: false,
 			animation: 'shift' as const,
 			lazy: false,
 			freezeOnBlur: false,
+			sceneStyle: {
+				borderTopLeftRadius: 48,
+				borderTopRightRadius: 48,
+				overflow: 'hidden' as const,
+				backgroundColor: colors.background,
+			},
 		}),
-		[]
+		[colors.background]
 	);
 
 	const [activeTabId, setActiveTabId] = useState<TabId>(validTabOrder[0]);

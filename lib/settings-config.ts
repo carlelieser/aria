@@ -1,5 +1,5 @@
 import {
-	HomeIcon,
+	NewspaperIcon,
 	MusicIcon,
 	SearchIcon,
 	DownloadIcon,
@@ -24,7 +24,7 @@ export const THEME_OPTIONS: { value: ThemePreference; label: string; icon: Lucid
 ];
 
 export const DEFAULT_TAB_OPTIONS: { value: DefaultTab; label: string; icon: LucideIcon }[] = [
-	{ value: 'home', label: 'Home', icon: HomeIcon },
+	{ value: 'feed', label: 'Feed', icon: NewspaperIcon },
 	{ value: 'library', label: 'Library', icon: MusicIcon },
 	{ value: 'search', label: 'Search', icon: SearchIcon },
 	{ value: 'downloads', label: 'Downloads', icon: DownloadIcon },
