@@ -1,12 +1,14 @@
-import { useEffect, useCallback, useMemo, memo } from 'react';
-import { Tabs, usePathname } from 'expo-router';
+import { useState, useEffect, useCallback, useMemo, memo } from 'react';
+import { Tabs, router } from 'expo-router';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-import { useAppTheme } from '@/lib/theme';
+import { Text, IconButton } from 'react-native-paper';
+import { SettingsIcon } from 'lucide-react-native';
+import { ProfileAvatarButton } from '@/src/components/ui/profile-avatar-button';
+import { useAppTheme, resolveDisplayFont } from '@/lib/theme';
 import { useDownloadQueue } from '@/src/hooks/use-download-queue';
 import {
-	useDefaultTab,
 	useTabOrder,
 	useEnabledTabs,
 	type TabId,
@@ -16,8 +18,7 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { TAB_CONFIG, TAB_BAR_HEIGHT } from '@/lib/tab-config';
 import { LottieTabIcon } from '@/src/components/ui/lottie-tab-icon';
 import { StaticTabIcon } from '@/src/components/ui/static-tab-icon';
-import { HeaderActionsProvider } from '@/src/contexts/header-actions-context';
-import { SettingsHeaderAction } from '@/src/components/settings-header-action';
+import { Icon } from '@/src/components/ui/icon';
 
 const TAB_WIDTH = 68;
 const TAB_GAP = 12;
@@ -28,7 +29,6 @@ const INDICATOR_TOP = 11;
 const TAB_SPRING_CONFIG = { damping: 20, stiffness: 200, mass: 0.5 };
 
 export default function TabLayout() {
-	const defaultTab = useDefaultTab();
 	const tabOrder = useTabOrder();
 	const enabledTabs = useEnabledTabs();
 
@@ -57,22 +57,22 @@ export default function TabLayout() {
 		[]
 	);
 
-	const pathname = usePathname();
-	const defaultTabRoute = `/${enabledTabs.includes(defaultTab) ? defaultTab : validTabOrder[0]}`;
-	const headerActions = useMemo(
-		() => ({
-			extraActions: pathname === defaultTabRoute ? <SettingsHeaderAction /> : undefined,
-		}),
-		[pathname, defaultTabRoute]
-	);
+	const [activeTabId, setActiveTabId] = useState<TabId>(validTabOrder[0]);
 
 	return (
-		<HeaderActionsProvider value={headerActions}>
+		<View style={styles.layoutRoot}>
+			<TabHeader currentTabId={activeTabId} />
 			<Tabs
 				screenOptions={screenOptions}
-				tabBar={(props) => <CustomTabBar {...props} tabOrder={validTabOrder} />}
+				tabBar={(props) => (
+					<CustomTabBar
+						{...props}
+						tabOrder={validTabOrder}
+						onActiveTabChange={setActiveTabId}
+					/>
+				)}
 			>
-				<Tabs.Screen name="index" options={{ href: null }} />
+				<Tabs.Screen name={'index'} options={{ href: null }} />
 				{validTabOrder.map((tabId) => {
 					const config = TAB_CONFIG[tabId];
 
@@ -81,15 +81,42 @@ export default function TabLayout() {
 					return <Tabs.Screen key={tabId} name={tabId} options={config} />;
 				})}
 			</Tabs>
-		</HeaderActionsProvider>
+		</View>
+	);
+}
+
+function TabHeader({ currentTabId }: { readonly currentTabId: TabId }) {
+	const { colors } = useAppTheme();
+	const insets = useSafeAreaInsets();
+	const title = TAB_CONFIG[currentTabId]?.title ?? '';
+	return (
+		<View
+			style={[
+				styles.tabHeader,
+				{ paddingTop: insets.top, backgroundColor: colors.background },
+			]}
+		>
+			<IconButton
+				icon={() => <Icon as={SettingsIcon} size={22} color={colors.onSurfaceVariant} />}
+				onPress={() => router.push('/settings')}
+			/>
+			<Text
+				variant={'headlineMedium'}
+				style={{ fontFamily: resolveDisplayFont('700'), color: colors.onSurface }}
+			>
+				{title}
+			</Text>
+			<ProfileAvatarButton />
+		</View>
 	);
 }
 
 interface CustomTabBarProps extends BottomTabBarProps {
-	tabOrder: TabId[];
+	readonly tabOrder: TabId[];
+	readonly onActiveTabChange: (tabId: TabId) => void;
 }
 
-function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
+function CustomTabBar({ state, navigation, tabOrder, onActiveTabChange }: CustomTabBarProps) {
 	const { colors } = useAppTheme();
 	const insets = useSafeAreaInsets();
 	const { stats } = useDownloadQueue();
@@ -103,6 +130,7 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 	const indicatorX = useSharedValue(initialX);
 
 	useEffect(() => {
+		onActiveTabChange(currentRouteName);
 		const newVisualIndex = tabOrder.indexOf(currentRouteName);
 		if (newVisualIndex >= 0) {
 			const newX = newVisualIndex * (TAB_WIDTH + TAB_GAP) + (TAB_WIDTH - INDICATOR_WIDTH) / 2;
@@ -112,7 +140,7 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 				mass: 0.5,
 			});
 		}
-	}, [currentRouteName, tabOrder, indicatorX]);
+	}, [currentRouteName, tabOrder, indicatorX, onActiveTabChange]);
 
 	const animatedIndicatorStyle = useAnimatedStyle(() => {
 		return {
@@ -178,7 +206,7 @@ function CustomTabBar({ state, navigation, tabOrder }: CustomTabBarProps) {
 								key={tabId}
 								onPress={() => handleTabPress(visualIdx, routeIndex, tabId)}
 								style={styles.tabButton}
-								accessibilityRole="tab"
+								accessibilityRole={'tab'}
 								accessibilityLabel={config.title}
 								accessibilityState={{ selected: isFocused }}
 							>
@@ -238,6 +266,16 @@ const TabLabel = memo(function TabLabel({ label, isFocused, color }: TabLabelPro
 });
 
 const styles = StyleSheet.create({
+	layoutRoot: {
+		flex: 1,
+	},
+	tabHeader: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		paddingHorizontal: 4,
+		paddingBottom: 4,
+	},
 	tabBarContainer: {
 		position: 'relative',
 	},

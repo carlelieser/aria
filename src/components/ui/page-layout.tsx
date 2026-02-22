@@ -5,7 +5,6 @@ import { Text, IconButton } from 'react-native-paper';
 import { Icon } from '@/src/components/ui/icon';
 import { ChevronLeftIcon, type LucideIcon } from 'lucide-react-native';
 import { useAppTheme, resolveDisplayFont } from '@/lib/theme';
-import { useHeaderActions } from '@/src/contexts/header-actions-context';
 import type { ReactNode } from 'react';
 
 interface PageHeaderProps {
@@ -45,40 +44,26 @@ export function PageLayout({
 }: PageLayoutProps) {
 	const { colors } = useAppTheme();
 	const insets = useSafeAreaInsets();
-	const { extraActions } = useHeaderActions();
 
 	const isExtended = header?.extended ?? false;
 	const isTransparent = header?.transparent ?? false;
 	const effectiveEdges = isExtended ? edges.filter((e) => e !== 'top') : edges;
-
-	const effectiveHeader =
-		header && extraActions
-			? {
-					...header,
-					rightActions: (
-						<>
-							{header.rightActions}
-							{extraActions}
-						</>
-					),
-				}
-			: header;
 
 	return (
 		<SafeAreaView
 			style={[styles.container, { backgroundColor: colors.background }, style]}
 			edges={effectiveEdges}
 		>
-			{effectiveHeader && !isTransparent && (
-				<PageHeader {...effectiveHeader} topInset={isExtended ? insets.top : 0} />
+			{header && !isTransparent && (
+				<PageHeader {...header} topInset={isExtended ? insets.top : 0} />
 			)}
 			<View style={[styles.content, contentPadding && styles.contentPadding, contentStyle]}>
 				{children}
 			</View>
-			{effectiveHeader && isTransparent && (
-				<View style={styles.transparentHeaderOverlay} pointerEvents="box-none">
-					{effectiveHeader.transparentBackground}
-					<PageHeader {...effectiveHeader} topInset={isExtended ? insets.top : 0} />
+			{header && isTransparent && (
+				<View style={styles.transparentHeaderOverlay} pointerEvents={'box-none'}>
+					{header.transparentBackground}
+					<PageHeader {...header} topInset={isExtended ? insets.top : 0} />
 				</View>
 			)}
 		</SafeAreaView>

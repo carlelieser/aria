@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react';
 import { RefreshControl, StyleSheet, View } from 'react-native';
-import { HomeIcon, AlertCircleIcon } from 'lucide-react-native';
+import { AlertCircleIcon, MusicIcon } from 'lucide-react-native';
 import { PageLayout } from '@/src/components/ui/page-layout';
 import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
 import { EmptyState } from '@/src/components/ui/empty-state';
@@ -43,15 +43,10 @@ export default function HomeScreen() {
 	const hasData = sections.length > 0;
 	const showSkeleton = isLoading && !hasData;
 	const showError = !isLoading && !hasData && error !== null;
+	const showEmpty = !isLoading && !hasData && error === null;
 
 	return (
-		<PageLayout
-			header={{
-				icon: HomeIcon,
-				title: 'Home',
-				showBorder: false,
-			}}
-		>
+		<PageLayout edges={[]}>
 			<PlayerAwareScrollView
 				refreshControl={
 					<RefreshControl
@@ -79,8 +74,18 @@ export default function HomeScreen() {
 				{showError && (
 					<EmptyState
 						icon={AlertCircleIcon}
-						title="Something went wrong"
+						title={'Something went wrong'}
 						description={error ?? 'Failed to load home feed'}
+					/>
+				)}
+
+				{showEmpty && (
+					<EmptyState
+						icon={MusicIcon}
+						title={'Your feed is empty'}
+						description={
+							'Connect a music provider or start listening to see personalized content here'
+						}
 					/>
 				)}
 

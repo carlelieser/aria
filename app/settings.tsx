@@ -152,121 +152,121 @@ export default function SettingsScreen() {
 				style={styles.scrollView}
 				contentContainerStyle={styles.scrollContent}
 			>
-				<SettingsSection title="Plugins">
+				<SettingsSection title={'Plugins'}>
 					<SettingsItem
 						icon={PlugIcon}
-						title="Manage plugins"
-						subtitle="Music sources, playback, and more"
+						title={'Manage plugins'}
+						subtitle={'Music sources, playback, and more'}
 						onPress={() => router.push('/plugins')}
 						showChevron
 					/>
 				</SettingsSection>
 
-				<SettingsSection title="Appearance">
+				<SettingsSection title={'Appearance'}>
 					<SettingsSelect
 						icon={SunMoonIcon}
-						title="Theme"
+						title={'Theme'}
 						options={THEME_OPTIONS}
 						value={themePreference}
 						onValueChange={setThemePreference}
-						portalName="theme-select"
+						portalName={'theme-select'}
 					/>
 					<AccentColorPicker value={accentColor} onValueChange={setAccentColor} />
 					<SettingsSelect
 						icon={LayoutGridIcon}
-						title="Default home screen"
+						title={'Default home screen'}
 						options={DEFAULT_TAB_OPTIONS}
 						value={defaultTab}
 						onValueChange={setDefaultTab}
-						portalName="default-tab-select"
+						portalName={'default-tab-select'}
 					/>
 					<TabOrderSetting />
 				</SettingsSection>
 
-				<SettingsSection title="Playback">
+				<SettingsSection title={'Playback'}>
 					<SettingsItem
 						icon={WifiOffIcon}
-						title="Offline mode"
-						subtitle="Show only downloaded songs"
+						title={'Offline mode'}
+						subtitle={'Show only downloaded songs'}
 						rightElement={offlineModeSwitch}
 						onPress={toggleOfflineMode}
 					/>
 					<SettingsItem
 						icon={SlidersHorizontalIcon}
-						title="Equalizer"
+						title={'Equalizer'}
 						subtitle={eqEnabled ? `${currentPreset.name} (On)` : 'Off'}
 						onPress={openEqualizerSheet}
 						showChevron
 					/>
 				</SettingsSection>
 
-				<SettingsSection title="Storage">
+				<SettingsSection title={'Storage'}>
 					<SettingsItem
 						icon={HardDriveIcon}
-						title="Storage used"
+						title={'Storage used'}
 						subtitle={`${formatFileSize(stats.totalSize)} · ${stats.completedCount} files`}
 					/>
 					{stats.completedCount > 0 && (
 						<SettingsItem
 							icon={TrashIcon}
-							title="Clear all downloads"
-							subtitle="Remove all downloaded files"
+							title={'Clear all downloads'}
+							subtitle={'Remove all downloaded files'}
 							onPress={handleClearDownloads}
 							destructive
 						/>
 					)}
 				</SettingsSection>
 
-				<SettingsSection title="Library">
+				<SettingsSection title={'Library'}>
 					<SettingsItem
 						icon={MusicIcon}
-						title="Library settings"
-						subtitle="Default tab and display options"
+						title={'Library settings'}
+						subtitle={'Default tab and display options'}
 						onPress={() => router.push('/library/settings')}
 						showChevron
 					/>
 					<SettingsItem
 						icon={InfoIcon}
-						title="Library stats"
+						title={'Library stats'}
 						subtitle={`${tracks.length} tracks · ${playlists.length} playlists · ${favorites.size} favorites`}
 					/>
 					<SettingsItem
 						icon={TrashIcon}
-						title="Clear library"
-						subtitle="Remove all tracks and playlists"
+						title={'Clear library'}
+						subtitle={'Remove all tracks and playlists'}
 						onPress={handleClearLibrary}
 						destructive
 					/>
 				</SettingsSection>
 
-				<SettingsSection title="Reset">
+				<SettingsSection title={'Reset'}>
 					<SettingsItem
 						icon={RotateCcwIcon}
-						title="Reset settings"
-						subtitle="Reset appearance and navigation preferences"
+						title={'Reset settings'}
+						subtitle={'Reset appearance and navigation preferences'}
 						onPress={handleResetSettings}
 						destructive
 					/>
 					<SettingsItem
 						icon={RotateCcwIcon}
-						title="Reset equalizer"
-						subtitle="Reset equalizer to default"
+						title={'Reset equalizer'}
+						subtitle={'Reset equalizer to default'}
 						onPress={handleResetEqualizer}
 						destructive
 					/>
 					<SettingsItem
 						icon={RotateCcwIcon}
-						title="Factory reset"
-						subtitle="Clear all data and reset to defaults"
+						title={'Factory reset'}
+						subtitle={'Clear all data and reset to defaults'}
 						onPress={handleFactoryReset}
 						destructive
 					/>
 				</SettingsSection>
 
-				<SettingsSection title="Developer">
+				<SettingsSection title={'Developer'}>
 					<SettingsItem
 						icon={CameraIcon}
-						title="Screenshot mode"
+						title={'Screenshot mode'}
 						subtitle={
 							mockDataLoaded
 								? 'Loaded (tap to clear)'
@@ -276,25 +276,25 @@ export default function SettingsScreen() {
 					/>
 				</SettingsSection>
 
-				<SettingsSection title="About">
+				<SettingsSection title={'About'}>
 					<SettingsItem
 						icon={InfoIcon}
-						title="Version"
+						title={'Version'}
 						subtitle={appVersion}
 						onPress={() => setVersionDialogVisible(true)}
 						showChevron
 					/>
 					<SettingsItem
 						icon={CodeIcon}
-						title="Developer"
-						subtitle="Carlos Santos"
+						title={'Developer'}
+						subtitle={'Carlos Santos'}
 						onPress={() => Linking.openURL('https://carlelieser.dev')}
 						showChevron
 					/>
 					<SettingsItem
 						icon={GithubIcon}
-						title="Source code"
-						subtitle="View on GitHub"
+						title={'Source code'}
+						subtitle={'View on GitHub'}
 						onPress={() => Linking.openURL('https://github.com/carlelieser/aria')}
 						showChevron
 					/>
@@ -305,10 +305,12 @@ export default function SettingsScreen() {
 
 			<ConfirmationDialog
 				visible={clearLibraryDialogVisible}
-				title="Clear library"
-				message="This will remove all tracks, playlists, and favorites. This action cannot be undone."
-				confirmLabel="Clear"
-				cancelLabel="Cancel"
+				title={'Clear library'}
+				message={
+					'This will remove all tracks, playlists, and favorites. This action cannot be undone.'
+				}
+				confirmLabel={'Clear'}
+				cancelLabel={'Cancel'}
 				destructive
 				onConfirm={confirmClearLibrary}
 				onCancel={() => setClearLibraryDialogVisible(false)}
@@ -316,10 +318,10 @@ export default function SettingsScreen() {
 
 			<ConfirmationDialog
 				visible={clearDownloadsDialogVisible}
-				title="Clear all downloads"
-				message="This will remove all downloaded files. This action cannot be undone."
-				confirmLabel="Clear All"
-				cancelLabel="Cancel"
+				title={'Clear all downloads'}
+				message={'This will remove all downloaded files. This action cannot be undone.'}
+				confirmLabel={'Clear All'}
+				cancelLabel={'Cancel'}
 				destructive
 				onConfirm={confirmClearDownloads}
 				onCancel={() => setClearDownloadsDialogVisible(false)}
@@ -327,10 +329,12 @@ export default function SettingsScreen() {
 
 			<ConfirmationDialog
 				visible={resetSettingsDialogVisible}
-				title="Reset settings"
-				message="This will reset all appearance and navigation preferences to their defaults."
-				confirmLabel="Reset"
-				cancelLabel="Cancel"
+				title={'Reset settings'}
+				message={
+					'This will reset all appearance and navigation preferences to their defaults.'
+				}
+				confirmLabel={'Reset'}
+				cancelLabel={'Cancel'}
 				destructive
 				onConfirm={confirmResetSettings}
 				onCancel={() => setResetSettingsDialogVisible(false)}
@@ -338,10 +342,10 @@ export default function SettingsScreen() {
 
 			<ConfirmationDialog
 				visible={resetEqualizerDialogVisible}
-				title="Reset equalizer"
-				message="This will disable the equalizer and reset all bands to flat."
-				confirmLabel="Reset"
-				cancelLabel="Cancel"
+				title={'Reset equalizer'}
+				message={'This will disable the equalizer and reset all bands to flat.'}
+				confirmLabel={'Reset'}
+				cancelLabel={'Cancel'}
 				destructive
 				onConfirm={confirmResetEqualizer}
 				onCancel={() => setResetEqualizerDialogVisible(false)}
@@ -349,10 +353,12 @@ export default function SettingsScreen() {
 
 			<ConfirmationDialog
 				visible={factoryResetDialogVisible}
-				title="Factory reset"
-				message="This will clear all your data including library, downloads, settings, and equalizer. This action cannot be undone."
-				confirmLabel="Reset Everything"
-				cancelLabel="Cancel"
+				title={'Factory reset'}
+				message={
+					'This will clear all your data including library, downloads, settings, and equalizer. This action cannot be undone.'
+				}
+				confirmLabel={'Reset Everything'}
+				cancelLabel={'Cancel'}
 				destructive
 				onConfirm={confirmFactoryReset}
 				onCancel={() => setFactoryResetDialogVisible(false)}

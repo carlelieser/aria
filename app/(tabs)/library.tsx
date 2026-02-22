@@ -15,7 +15,6 @@ import {
 import { useLibraryFilter } from '@/src/hooks/use-library-filter';
 import { useTabShadow } from '@/src/hooks/use-tab-shadow';
 import { useAppTheme } from '@/lib/theme';
-import { MusicIcon } from 'lucide-react-native';
 import { TAB_INDEX_MAP } from '@/lib/settings-config';
 
 export default function HomeScreen() {
@@ -57,22 +56,16 @@ export default function HomeScreen() {
 	const { handleScroll, shadowStyle } = useTabShadow({ tabIndex });
 
 	return (
-		<PageLayout
-			header={{
-				icon: MusicIcon,
-				title: 'Library',
-				showBorder: false,
-			}}
-		>
+		<PageLayout edges={[]}>
 			<View style={styles.content}>
 				<TabsProvider defaultIndex={tabIndex} onChangeIndex={setTabIndex}>
 					<Tabs
 						uppercase={false}
-						mode="scrollable"
+						mode={'scrollable'}
 						showLeadingSpace={false}
 						style={{ backgroundColor: colors.surface, ...shadowStyle }}
 					>
-						<TabScreen label="Songs" icon="music-note">
+						<TabScreen label={'Songs'} icon={'music-note'}>
 							<View style={styles.tabContent}>
 								<SongsTab
 									tracks={filteredTracks}
@@ -82,7 +75,7 @@ export default function HomeScreen() {
 								/>
 							</View>
 						</TabScreen>
-						<TabScreen label="Artists" icon="account-music">
+						<TabScreen label={'Artists'} icon={'account-music'}>
 							<View style={styles.tabContent}>
 								<ArtistList
 									artists={artists}
@@ -91,7 +84,7 @@ export default function HomeScreen() {
 								/>
 							</View>
 						</TabScreen>
-						<TabScreen label="Albums" icon="album">
+						<TabScreen label={'Albums'} icon={'album'}>
 							<View style={styles.tabContent}>
 								<AlbumList
 									albums={albums}
@@ -100,7 +93,7 @@ export default function HomeScreen() {
 								/>
 							</View>
 						</TabScreen>
-						<TabScreen label="Playlists" icon="playlist-music">
+						<TabScreen label={'Playlists'} icon={'playlist-music'}>
 							<View style={styles.tabContent}>
 								<PlaylistList
 									playlists={playlists}

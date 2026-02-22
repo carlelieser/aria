@@ -151,13 +151,7 @@ export default function SearchScreen() {
 	}, [hasLibraryResults, hasDownloadsResults, hasExploreResults, isSearching]);
 
 	return (
-		<PageLayout
-			header={{
-				icon: SearchIcon,
-				title: 'Search',
-				showBorder: false,
-			}}
-		>
+		<PageLayout edges={[]}>
 			<View style={styles.searchContainer}>
 				<View
 					style={[
@@ -177,11 +171,11 @@ export default function SearchScreen() {
 						onChangeText={search}
 						style={[styles.searchInput, { color: colors.onSurface }]}
 						placeholderTextColor={colors.onSurfaceVariant}
-						placeholder="Search songs, artists, albums..."
-						autoCapitalize="none"
+						placeholder={'Search songs, artists, albums...'}
+						autoCapitalize={'none'}
 						autoCorrect={false}
-						returnKeyType="search"
-						textAlignVertical="center"
+						returnKeyType={'search'}
+						textAlignVertical={'center'}
 					/>
 					{query.length > 0 && (
 						<Pressable onPress={clearSearch} hitSlop={8} style={styles.clearButton}>
@@ -213,8 +207,10 @@ export default function SearchScreen() {
 							<View style={styles.emptyContainer}>
 								<EmptyState
 									icon={SearchIcon}
-									title="Search for music"
-									description="Find songs, artists, and albums from your library and YouTube Music"
+									title={'Search for music'}
+									description={
+										'Find songs, artists, and albums from your library and YouTube Music'
+									}
 								/>
 							</View>
 						)}
@@ -222,23 +218,23 @@ export default function SearchScreen() {
 						{hasCuratedContent && (
 							<>
 								<CuratedSection
-									id="recently-played"
-									title="Recently Played"
+									id={'recently-played'}
+									title={'Recently Played'}
 									icon={ClockIcon}
 									tracks={recentlyPlayed}
 								/>
 
 								<CuratedSection
-									id="favorites"
-									title="Favorites"
+									id={'favorites'}
+									title={'Favorites'}
 									icon={HeartIcon}
 									tracks={favoriteTracks}
 								/>
 
 								{recentlyAdded.length > 0 && (
 									<CuratedSection
-										id="recently-added"
-										title="Recently Added"
+										id={'recently-added'}
+										title={'Recently Added'}
 										icon={SparklesIcon}
 										tracks={recentlyAdded}
 									/>
@@ -253,13 +249,13 @@ export default function SearchScreen() {
 						{error ? (
 							<EmptyState
 								icon={AlertCircleIcon}
-								title="Something went wrong"
+								title={'Something went wrong'}
 								description={error}
 							/>
 						) : (
 							<EmptyState
 								icon={SearchXIcon}
-								title="No results found"
+								title={'No results found'}
 								description={
 									hasFilters
 										? 'Try adjusting your filters or search term'
@@ -278,13 +274,13 @@ export default function SearchScreen() {
 									return (
 										<ResultGroup
 											key={key}
-											title="Your Library"
+											title={'Your Library'}
 											icon={LibraryBigIcon}
 											isEmpty={!hasLibraryResults}
 											emptyState={
 												<EmptyState
 													icon={MusicIcon}
-													title="No library matches"
+													title={'No library matches'}
 													description={`"${query}" not found in your library`}
 												/>
 											}
@@ -319,13 +315,13 @@ export default function SearchScreen() {
 									return (
 										<ResultGroup
 											key={key}
-											title="Downloads"
+											title={'Downloads'}
 											icon={DownloadIcon}
 											isEmpty={!hasDownloadsResults}
 											emptyState={
 												<EmptyState
 													icon={DownloadIcon}
-													title="No download matches"
+													title={'No download matches'}
 													description={`"${query}" not found in downloads`}
 												/>
 											}
@@ -337,7 +333,7 @@ export default function SearchScreen() {
 														<SelectableTrackListItem
 															key={track.id.value}
 															track={track}
-															source="library"
+															source={'library'}
 															isSelectionMode={
 																isSelectionMode &&
 																selectionSource === 'library'
@@ -360,14 +356,14 @@ export default function SearchScreen() {
 									return (
 										<ResultGroup
 											key={key}
-											title="Plugins"
+											title={'Plugins'}
 											icon={PlugIcon}
 											isEmpty={!hasExploreResults && !isSearching}
 											emptyState={
 												<EmptyState
 													icon={SearchXIcon}
-													title="No plugin results"
-													description="Try a different search term"
+													title={'No plugin results'}
+													description={'Try a different search term'}
 												/>
 											}
 										>
@@ -445,7 +441,7 @@ export default function SearchScreen() {
 
 			{selectionSource === 'library' ? (
 				<BatchActionBar
-					context="library"
+					context={'library'}
 					selectedCount={selectedCount}
 					onCancel={exitSelectionMode}
 					onAddToQueue={handleBatchAddToQueue}
@@ -456,7 +452,7 @@ export default function SearchScreen() {
 				/>
 			) : (
 				<BatchActionBar
-					context="explore"
+					context={'explore'}
 					selectedCount={selectedCount}
 					onDownload={handleBatchDownload}
 					onAddToLibrary={handleBatchAddToLibrary}

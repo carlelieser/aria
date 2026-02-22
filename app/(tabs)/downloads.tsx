@@ -1,17 +1,14 @@
 import { useState, useMemo, useCallback } from 'react';
 import { View, StyleSheet, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
-import { Text, IconButton, Portal, Dialog, Button } from 'react-native-paper';
 import { TabsProvider, Tabs, TabScreen } from 'react-native-paper-tabs';
-import { Icon } from '@/src/components/ui/icon';
 import { GenericListView } from '@/src/components/ui/generic-list-view';
 import { PageLayout } from '@/src/components/ui/page-layout';
-import { DownloadIcon, TrashIcon, CheckCircle2Icon, AlertCircleIcon } from 'lucide-react-native';
+import { DownloadIcon, CheckCircle2Icon, AlertCircleIcon } from 'lucide-react-native';
 import { DownloadListItem } from '@/src/components/downloads/download-list-item';
 import { SelectableDownloadListItem } from '@/src/components/downloads/selectable-download-list-item';
 import { BatchActionBar } from '@/src/components/selection/batch-action-bar';
 import { useDownloadQueue } from '@/src/hooks/use-download-queue';
 import { useDownloadActions } from '@/src/hooks/use-download-actions';
-import { useClearDownloads } from '@/src/hooks/use-clear-downloads';
 import { useSelection } from '@/src/hooks/use-selection';
 import { useBatchActions } from '@/src/hooks/use-batch-actions';
 import { useResolvedTracks } from '@/src/hooks/use-resolved-track';
@@ -26,9 +23,7 @@ const DEFAULT_CONTENT_PADDING = 20;
 
 export default function DownloadsScreen() {
 	const [tabIndex, setTabIndex] = useState(0);
-	const [clearDialogVisible, setClearDialogVisible] = useState(false);
 	const { colors } = useAppTheme();
-	const { clearDownloads } = useClearDownloads();
 
 	const { activeDownloads, completedDownloads, failedDownloads, stats } = useDownloadQueue();
 	const { retryDownload } = useDownloadActions();
@@ -45,11 +40,6 @@ export default function DownloadsScreen() {
 	const { addSelectedToLibrary, deleteSelectedDownloads, isDeleting } = useBatchActions();
 
 	const { handleScroll, shadowStyle } = useTabShadow({ tabIndex });
-
-	const handleClearAllDownloads = useCallback(async () => {
-		setClearDialogVisible(false);
-		await clearDownloads();
-	}, [clearDownloads]);
 
 	const completedTrackIds = useMemo(
 		() => completedDownloads.map((d) => d.trackId),
@@ -104,14 +94,6 @@ export default function DownloadsScreen() {
 		exitSelectionMode();
 	}, [selectedTrackIds, deleteSelectedDownloads, exitSelectionMode]);
 
-	const headerRightActions =
-		stats.completedCount > 0 ? (
-			<IconButton
-				icon={() => <Icon as={TrashIcon} size={20} color={colors.onSurfaceVariant} />}
-				onPress={() => setClearDialogVisible(true)}
-			/>
-		) : null;
-
 	// Note: Labels must be static strings because react-native-paper-tabs uses them as React keys.
 	// Dynamic labels (with counts) cause react-native-pager-view to fire onPageSelected incorrectly
 	// when content changes. See: https://github.com/callstack/react-native-pager-view/issues/84
@@ -120,23 +102,17 @@ export default function DownloadsScreen() {
 	const failedLabel = 'Failed';
 
 	return (
-		<PageLayout
-			header={{
-				icon: DownloadIcon,
-				title: 'Downloads',
-				rightActions: headerRightActions,
-			}}
-		>
+		<PageLayout edges={[]}>
 			<View style={styles.content}>
 				<TabsProvider defaultIndex={tabIndex} onChangeIndex={setTabIndex}>
 					<Tabs
 						uppercase={false}
-						mode="fixed"
+						mode={'fixed'}
 						style={{ backgroundColor: colors.surface, ...shadowStyle }}
 					>
 						<TabScreen
 							label={activeLabel}
-							icon="download"
+							icon={'download'}
 							badge={stats.activeCount || undefined}
 						>
 							<View style={styles.tabContent}>
@@ -148,7 +124,7 @@ export default function DownloadsScreen() {
 						</TabScreen>
 						<TabScreen
 							label={doneLabel}
-							icon="check-circle"
+							icon={'check-circle'}
 							badge={stats.completedCount || undefined}
 						>
 							<View style={styles.tabContent}>
@@ -165,7 +141,7 @@ export default function DownloadsScreen() {
 						</TabScreen>
 						<TabScreen
 							label={failedLabel}
-							icon="alert-circle"
+							icon={'alert-circle'}
 							badge={stats.failedCount || undefined}
 						>
 							<View style={styles.tabContent}>
@@ -181,30 +157,13 @@ export default function DownloadsScreen() {
 			</View>
 
 			<BatchActionBar
-				context="downloads"
+				context={'downloads'}
 				selectedCount={selectedCount}
 				onCancel={exitSelectionMode}
 				onAddToLibrary={handleBatchAddToLibrary}
 				onDeleteDownloads={handleBatchDeleteDownloads}
 				isProcessing={isDeleting}
 			/>
-
-			<Portal>
-				<Dialog visible={clearDialogVisible} onDismiss={() => setClearDialogVisible(false)}>
-					<Dialog.Title>Clear All Downloads</Dialog.Title>
-					<Dialog.Content>
-						<Text variant="bodyMedium">
-							This will remove all downloaded files. This action cannot be undone.
-						</Text>
-					</Dialog.Content>
-					<Dialog.Actions>
-						<Button onPress={() => setClearDialogVisible(false)}>Cancel</Button>
-						<Button onPress={handleClearAllDownloads} textColor={colors.error}>
-							Clear All
-						</Button>
-					</Dialog.Actions>
-				</Dialog>
-			</Portal>
 		</PageLayout>
 	);
 }
@@ -227,7 +186,7 @@ function ActiveDownloadsList({ downloads, onScroll }: ActiveDownloadsListProps) 
 			emptyState={{
 				icon: DownloadIcon,
 				title: 'No active downloads',
-				description: 'Downloads will appear here when you start downloading tracks',
+				description: 'No downloads in progress',
 			}}
 			contentContainerStyle={{ paddingBottom: DEFAULT_CONTENT_PADDING }}
 			disablePlayerAwarePadding
@@ -303,7 +262,7 @@ function FailedDownloadsList({ downloads, onRetry, onScroll }: FailedDownloadsLi
 			emptyState={{
 				icon: AlertCircleIcon,
 				title: 'No failed downloads',
-				description: 'Failed downloads will appear here for retry',
+				description: 'Failed downloads will appear here',
 			}}
 			contentContainerStyle={{ paddingBottom: DEFAULT_CONTENT_PADDING }}
 			disablePlayerAwarePadding
