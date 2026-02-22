@@ -8,6 +8,11 @@ import type { Track } from '@/src/domain/entities/track';
 import type { Playlist } from '@/src/domain/entities/playlist';
 import type { UniqueAlbum, UniqueArtist } from '@/src/application/state/library-store';
 
+interface SectionOverflow {
+	readonly totalCount: number;
+	readonly onShowAll: () => void;
+}
+
 interface LibraryResultsProps {
 	readonly tracks: Track[];
 	readonly playlists: Playlist[];
@@ -17,6 +22,10 @@ interface LibraryResultsProps {
 	readonly selectedTrackIds: Set<string>;
 	readonly onLongPress: (track: Track) => void;
 	readonly onSelectionToggle: (track: Track) => void;
+	readonly tracksOverflow?: SectionOverflow;
+	readonly playlistsOverflow?: SectionOverflow;
+	readonly albumsOverflow?: SectionOverflow;
+	readonly artistsOverflow?: SectionOverflow;
 }
 
 export function LibraryResults({
@@ -28,11 +37,20 @@ export function LibraryResults({
 	selectedTrackIds,
 	onLongPress,
 	onSelectionToggle,
+	tracksOverflow,
+	playlistsOverflow,
+	albumsOverflow,
+	artistsOverflow,
 }: LibraryResultsProps) {
 	return (
 		<>
 			{tracks.length > 0 && (
-				<ResultSection title={'Songs'} icon={MusicIcon}>
+				<ResultSection
+					title={'Songs'}
+					icon={MusicIcon}
+					totalCount={tracksOverflow?.totalCount}
+					onShowAll={tracksOverflow?.onShowAll}
+				>
 					{tracks.map((track, index) => (
 						<SelectableTrackListItem
 							key={track.id.value}
@@ -50,7 +68,12 @@ export function LibraryResults({
 			)}
 
 			{playlists.length > 0 && (
-				<ResultSection title={'Playlists'} icon={ListMusicIcon}>
+				<ResultSection
+					title={'Playlists'}
+					icon={ListMusicIcon}
+					totalCount={playlistsOverflow?.totalCount}
+					onShowAll={playlistsOverflow?.onShowAll}
+				>
 					{playlists.map((playlist) => (
 						<PlaylistListItem key={playlist.id} playlist={playlist} />
 					))}
@@ -58,7 +81,12 @@ export function LibraryResults({
 			)}
 
 			{albums.length > 0 && (
-				<ResultSection title={'Albums'} icon={DiscIcon}>
+				<ResultSection
+					title={'Albums'}
+					icon={DiscIcon}
+					totalCount={albumsOverflow?.totalCount}
+					onShowAll={albumsOverflow?.onShowAll}
+				>
 					{albums.map((album) => (
 						<AlbumListItem
 							key={album.id}
@@ -73,7 +101,12 @@ export function LibraryResults({
 			)}
 
 			{artists.length > 0 && (
-				<ResultSection title={'Artists'} icon={UsersIcon}>
+				<ResultSection
+					title={'Artists'}
+					icon={UsersIcon}
+					totalCount={artistsOverflow?.totalCount}
+					onShowAll={artistsOverflow?.onShowAll}
+				>
 					{artists.map((artist) => (
 						<ArtistListItem
 							key={artist.id}

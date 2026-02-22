@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 import { Text } from 'react-native-paper';
 import { Icon } from '@/src/components/ui/icon';
 import { useAppTheme } from '@/lib/theme';
@@ -9,13 +9,16 @@ interface ResultSectionProps {
 	readonly title: string;
 	readonly icon: LucideIcon;
 	readonly children: React.ReactNode;
-	readonly maxItems?: number;
+	readonly totalCount?: number;
+	readonly onShowAll?: () => void;
 }
 
 export const ResultSection = memo(function ResultSection({
 	title,
 	icon: IconComponent,
 	children,
+	totalCount,
+	onShowAll,
 }: ResultSectionProps) {
 	const { colors } = useAppTheme();
 
@@ -33,6 +36,18 @@ export const ResultSection = memo(function ResultSection({
 				</Text>
 			</View>
 			<View style={styles.sectionContent}>{children}</View>
+			{totalCount !== undefined && onShowAll && (
+				<Pressable
+					onPress={onShowAll}
+					style={styles.showAllButton}
+					accessibilityLabel={`Show all ${totalCount} ${title.toLowerCase()}`}
+					accessibilityRole={'button'}
+				>
+					<Text variant={'labelMedium'} style={{ color: colors.primary }}>
+						{`Show all ${totalCount} results`}
+					</Text>
+				</Pressable>
+			)}
 		</View>
 	);
 });
@@ -50,5 +65,10 @@ const styles = StyleSheet.create({
 	sectionContent: {
 		paddingHorizontal: 16,
 		gap: 4,
+	},
+	showAllButton: {
+		paddingHorizontal: 16,
+		paddingVertical: 8,
+		alignItems: 'center',
 	},
 });

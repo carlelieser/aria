@@ -23,11 +23,18 @@ import { ResultGroup, UnifiedFilterSheet } from '@/src/components/unified-search
 import { SortFilterFAB } from '@/src/components/sort-filter/sort-filter-fab';
 import { BatchActionBar } from '@/src/components/selection/batch-action-bar';
 import { BatchPlaylistPicker } from '@/src/components/playlist/batch-playlist-picker';
-import { CuratedSection, LibraryResults, ExploreResults } from '@/src/components/search';
+import {
+	CuratedSection,
+	LibraryResults,
+	ExploreResults,
+	RecentSearches,
+} from '@/src/components/search';
 import { useCuratedContent } from '@/src/hooks/use-curated-content';
 import { useUnifiedSearch } from '@/src/hooks/use-unified-search';
 import { useSelection } from '@/src/hooks/use-selection';
 import { useBatchHandlers } from '@/src/hooks/use-batch-handlers';
+import { useSearchStore } from '@/src/application/state/search-store';
+import { Text } from 'react-native-paper';
 import { useAppTheme, FontFamily } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
 
@@ -35,11 +42,48 @@ const BATCH_ACTION_BAR_PADDING = 120;
 const DEFAULT_CONTENT_PADDING = 20;
 const MAX_RESULTS_PER_SECTION = 5;
 
+function OverflowButton({
+	totalCount,
+	onPress,
+}: {
+	readonly totalCount: number;
+	readonly onPress: () => void;
+}) {
+	const { colors } = useAppTheme();
+	return (
+		<Pressable
+			onPress={onPress}
+			style={styles.showAllButton}
+			accessibilityLabel={`Show all ${totalCount} results`}
+			accessibilityRole={'button'}
+		>
+			<Text variant={'labelMedium'} style={{ color: colors.primary }}>
+				{`Show all ${totalCount} results`}
+			</Text>
+		</Pressable>
+	);
+}
+
+type ExpandedSectionKey =
+	| 'library-tracks'
+	| 'library-playlists'
+	| 'library-albums'
+	| 'library-artists'
+	| 'downloads-tracks'
+	| 'explore-tracks'
+	| 'explore-albums'
+	| 'explore-artists';
+
 export default function SearchScreen() {
 	const { colors } = useAppTheme();
 	const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
 	const [selectionSource, setSelectionSource] = useState<'library' | 'explore'>('library');
+	const [expandedSections, setExpandedSections] = useState<Set<ExpandedSectionKey>>(new Set());
 	const searchInputRef = useRef<TextInput>(null);
+
+	const recentSearches = useSearchStore((s) => s.recentSearches);
+	const removeRecentSearch = useSearchStore((s) => s.removeRecentSearch);
+	const clearRecentSearches = useSearchStore((s) => s.clearRecentSearches);
 
 	const { recentlyPlayed, favoriteTracks, recentlyAdded, hasCuratedContent } =
 		useCuratedContent(10);
@@ -136,6 +180,27 @@ export default function SearchScreen() {
 		setIsFilterSheetOpen(false);
 	}, []);
 
+	const handleSelectRecentSearch = useCallback(
+		(recentQuery: string) => {
+			search(recentQuery);
+			useSearchStore.getState().addRecentSearch(recentQuery);
+		},
+		[search]
+	);
+
+	const toggleExpandedSection = useCallback((key: ExpandedSectionKey) => {
+		setExpandedSections((prev) => {
+			const next = new Set(prev);
+			if (next.has(key)) {
+				next.delete(key);
+			} else {
+				next.add(key);
+			}
+			return next;
+		});
+	}, []);
+
+	const hasRecentSearches = recentSearches.length > 0;
 	const showCuratedContent = !hasQuery;
 	const showLoading = hasQuery && isSearching && !hasAnyResults;
 	const showNoResults = hasQuery && !hasAnyResults && !isSearching;
@@ -149,6 +214,26 @@ export default function SearchScreen() {
 		];
 		return sections.sort((a, b) => Number(b.hasResults) - Number(a.hasResults));
 	}, [hasLibraryResults, hasDownloadsResults, hasExploreResults, isSearching]);
+
+	const getSectionLimit = useCallback(
+		(key: ExpandedSectionKey, totalCount: number) => {
+			return expandedSections.has(key) ? totalCount : MAX_RESULTS_PER_SECTION;
+		},
+		[expandedSections]
+	);
+
+	const buildOverflow = useCallback(
+		(key: ExpandedSectionKey, totalCount: number) => {
+			if (totalCount <= MAX_RESULTS_PER_SECTION || expandedSections.has(key)) {
+				return undefined;
+			}
+			return {
+				totalCount,
+				onShowAll: () => toggleExpandedSection(key),
+			};
+		},
+		[expandedSections, toggleExpandedSection]
+	);
 
 	return (
 		<PageLayout edges={[]}>
@@ -203,7 +288,16 @@ export default function SearchScreen() {
 			>
 				{showCuratedContent && (
 					<>
-						{!hasCuratedContent && (
+						{hasRecentSearches && (
+							<RecentSearches
+								searches={recentSearches}
+								onSelect={handleSelectRecentSearch}
+								onRemove={removeRecentSearch}
+								onClearAll={clearRecentSearches}
+							/>
+						)}
+
+						{!hasCuratedContent && !hasRecentSearches && (
 							<View style={styles.emptyContainer}>
 								<EmptyState
 									icon={SearchIcon}
@@ -288,19 +382,31 @@ export default function SearchScreen() {
 											<LibraryResults
 												tracks={libraryTracks.slice(
 													0,
-													MAX_RESULTS_PER_SECTION
+													getSectionLimit(
+														'library-tracks',
+														libraryTracks.length
+													)
 												)}
 												playlists={libraryPlaylists.slice(
 													0,
-													MAX_RESULTS_PER_SECTION
+													getSectionLimit(
+														'library-playlists',
+														libraryPlaylists.length
+													)
 												)}
 												albums={libraryAlbums.slice(
 													0,
-													MAX_RESULTS_PER_SECTION
+													getSectionLimit(
+														'library-albums',
+														libraryAlbums.length
+													)
 												)}
 												artists={libraryArtists.slice(
 													0,
-													MAX_RESULTS_PER_SECTION
+													getSectionLimit(
+														'library-artists',
+														libraryArtists.length
+													)
 												)}
 												isSelectionMode={
 													isSelectionMode && selectionSource === 'library'
@@ -308,6 +414,22 @@ export default function SearchScreen() {
 												selectedTrackIds={selectedTrackIds}
 												onLongPress={handleLibraryLongPress}
 												onSelectionToggle={handleLibrarySelectionToggle}
+												tracksOverflow={buildOverflow(
+													'library-tracks',
+													libraryTracks.length
+												)}
+												playlistsOverflow={buildOverflow(
+													'library-playlists',
+													libraryPlaylists.length
+												)}
+												albumsOverflow={buildOverflow(
+													'library-albums',
+													libraryAlbums.length
+												)}
+												artistsOverflow={buildOverflow(
+													'library-artists',
+													libraryArtists.length
+												)}
 											/>
 										</ResultGroup>
 									);
@@ -328,7 +450,13 @@ export default function SearchScreen() {
 										>
 											<View style={styles.sectionContent}>
 												{downloadsTracks
-													.slice(0, MAX_RESULTS_PER_SECTION)
+													.slice(
+														0,
+														getSectionLimit(
+															'downloads-tracks',
+															downloadsTracks.length
+														)
+													)
 													.map((track, index) => (
 														<SelectableTrackListItem
 															key={track.id.value}
@@ -349,6 +477,19 @@ export default function SearchScreen() {
 															queueIndex={index}
 														/>
 													))}
+												{buildOverflow(
+													'downloads-tracks',
+													downloadsTracks.length
+												) && (
+													<OverflowButton
+														totalCount={downloadsTracks.length}
+														onPress={() =>
+															toggleExpandedSection(
+																'downloads-tracks'
+															)
+														}
+													/>
+												)}
 											</View>
 										</ResultGroup>
 									);
@@ -375,15 +516,24 @@ export default function SearchScreen() {
 												<ExploreResults
 													tracks={exploreTracks.slice(
 														0,
-														MAX_RESULTS_PER_SECTION
+														getSectionLimit(
+															'explore-tracks',
+															exploreTracks.length
+														)
 													)}
 													albums={exploreAlbums.slice(
 														0,
-														MAX_RESULTS_PER_SECTION
+														getSectionLimit(
+															'explore-albums',
+															exploreAlbums.length
+														)
 													)}
 													artists={exploreArtists.slice(
 														0,
-														MAX_RESULTS_PER_SECTION
+														getSectionLimit(
+															'explore-artists',
+															exploreArtists.length
+														)
 													)}
 													isSelectionMode={
 														isSelectionMode &&
@@ -392,6 +542,18 @@ export default function SearchScreen() {
 													selectedTrackIds={selectedTrackIds}
 													onLongPress={handleExploreLongPress}
 													onSelectionToggle={handleExploreSelectionToggle}
+													tracksOverflow={buildOverflow(
+														'explore-tracks',
+														exploreTracks.length
+													)}
+													albumsOverflow={buildOverflow(
+														'explore-albums',
+														exploreAlbums.length
+													)}
+													artistsOverflow={buildOverflow(
+														'explore-artists',
+														exploreArtists.length
+													)}
 												/>
 											)}
 										</ResultGroup>
@@ -520,5 +682,9 @@ const styles = StyleSheet.create({
 	sectionContent: {
 		paddingHorizontal: 16,
 		gap: 4,
+	},
+	showAllButton: {
+		paddingVertical: 8,
+		alignItems: 'center',
 	},
 });

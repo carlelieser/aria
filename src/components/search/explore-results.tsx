@@ -7,6 +7,11 @@ import type { Track } from '@/src/domain/entities/track';
 import type { Album } from '@/src/domain/entities/album';
 import type { Artist } from '@/src/domain/entities/artist';
 
+interface SectionOverflow {
+	readonly totalCount: number;
+	readonly onShowAll: () => void;
+}
+
 interface ExploreResultsProps {
 	readonly tracks: Track[];
 	readonly albums: Album[];
@@ -15,6 +20,9 @@ interface ExploreResultsProps {
 	readonly selectedTrackIds: Set<string>;
 	readonly onLongPress: (track: Track) => void;
 	readonly onSelectionToggle: (track: Track) => void;
+	readonly tracksOverflow?: SectionOverflow;
+	readonly albumsOverflow?: SectionOverflow;
+	readonly artistsOverflow?: SectionOverflow;
 }
 
 export function ExploreResults({
@@ -25,11 +33,19 @@ export function ExploreResults({
 	selectedTrackIds,
 	onLongPress,
 	onSelectionToggle,
+	tracksOverflow,
+	albumsOverflow,
+	artistsOverflow,
 }: ExploreResultsProps) {
 	return (
 		<>
 			{tracks.length > 0 && (
-				<ResultSection title={'Songs'} icon={MusicIcon}>
+				<ResultSection
+					title={'Songs'}
+					icon={MusicIcon}
+					totalCount={tracksOverflow?.totalCount}
+					onShowAll={tracksOverflow?.onShowAll}
+				>
 					{tracks.map((track, index) => (
 						<SelectableTrackListItem
 							key={track.id.value}
@@ -47,7 +63,12 @@ export function ExploreResults({
 			)}
 
 			{albums.length > 0 && (
-				<ResultSection title={'Albums'} icon={DiscIcon}>
+				<ResultSection
+					title={'Albums'}
+					icon={DiscIcon}
+					totalCount={albumsOverflow?.totalCount}
+					onShowAll={albumsOverflow?.onShowAll}
+				>
 					{albums.map((album) => (
 						<AlbumListItem key={album.id.value} album={album} />
 					))}
@@ -55,7 +76,12 @@ export function ExploreResults({
 			)}
 
 			{artists.length > 0 && (
-				<ResultSection title={'Artists'} icon={UsersIcon}>
+				<ResultSection
+					title={'Artists'}
+					icon={UsersIcon}
+					totalCount={artistsOverflow?.totalCount}
+					onShowAll={artistsOverflow?.onShowAll}
+				>
 					{artists.map((artist) => (
 						<ArtistListItem key={artist.id} artist={artist} />
 					))}
