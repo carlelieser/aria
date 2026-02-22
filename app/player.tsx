@@ -1,5 +1,7 @@
 import { View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCallback, useEffect, useState } from 'react';
 import { router, usePathname } from 'expo-router';
@@ -15,7 +17,10 @@ import { useLyrics } from '@/src/hooks/use-lyrics';
 import { getLargestArtwork } from '@/src/domain/value-objects/artwork';
 import { getArtistNames } from '@/src/domain/entities/track';
 import { useAppTheme } from '@/lib/theme';
+import { useDetailsPageTheme } from '@/src/hooks/use-details-page-theme';
 import { useShowLyrics } from '@/src/application/state/player-ui-store';
+
+const BLUR_INTENSITY = 80;
 
 export default function PlayerScreen() {
 	const pathname = usePathname();
@@ -28,6 +33,9 @@ export default function PlayerScreen() {
 
 	const artwork = currentTrack ? getLargestArtwork(currentTrack.artwork) : undefined;
 	const artworkUrl = artwork?.url;
+
+	const { headerColors, hasCustomColors } = useDetailsPageTheme(artworkUrl);
+	const trackInfoColors = hasCustomColors ? headerColors : colors;
 
 	useEffect(() => {
 		if (!currentTrack && pathname === '/player') {
@@ -51,92 +59,131 @@ export default function PlayerScreen() {
 	const albumName = currentTrack.album?.name;
 
 	return (
-		<SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-			<View style={styles.content}>
-				<View style={styles.header}>
-					<IconButton
-						icon={() => (
-							<Icon as={ChevronLeftIcon} size={24} color={colors.onSurface} />
-						)}
-						onPress={() => router.back()}
+		<View style={[styles.container, { backgroundColor: colors.background }]}>
+			{artworkUrl && (
+				<View style={StyleSheet.absoluteFill}>
+					<Image
+						source={{ uri: artworkUrl }}
+						style={StyleSheet.absoluteFill}
+						contentFit={'cover'}
 					/>
-					<Text variant={'labelLarge'} style={{ color: colors.onSurfaceVariant }}>
-						{showLyrics ? 'Lyrics' : 'Now Playing'}
-					</Text>
-					<TrackOptionsMenu
-						track={currentTrack}
-						source={'player'}
-						orientation={'horizontal'}
+					<BlurView
+						intensity={BLUR_INTENSITY}
+						experimentalBlurMethod={'dimezisBlurView'}
+						style={StyleSheet.absoluteFill}
+						tint={'dark'}
+					/>
+					<LinearGradient
+						colors={[colors.background, 'transparent']}
+						style={StyleSheet.absoluteFill}
+						locations={[0, 0.4]}
+					/>
+					<LinearGradient
+						colors={['transparent', colors.background]}
+						style={StyleSheet.absoluteFill}
+						locations={[0.6, 1]}
 					/>
 				</View>
+			)}
 
-				<View style={styles.artworkContainer}>
-					{showLyrics ? (
-						<LyricsDisplay />
-					) : (
-						<View
-							style={[styles.artworkWrapper, artworkLoaded && styles.artworkShadow]}
-						>
-							{artworkUrl ? (
-								<Image
-									source={{ uri: artworkUrl }}
-									style={styles.artwork}
-									contentFit={'cover'}
-									transition={300}
-									cachePolicy={'memory-disk'}
-									recyclingKey={currentTrack.id.value}
-									onLoad={handleArtworkLoad}
-								/>
-							) : (
-								<View
-									style={[
-										styles.artwork,
-										styles.artworkPlaceholder,
-										{ backgroundColor: colors.surfaceContainerHighest },
-									]}
-								/>
+			<SafeAreaView style={styles.safeArea}>
+				<View style={styles.content}>
+					<View style={styles.header}>
+						<IconButton
+							icon={() => (
+								<Icon as={ChevronLeftIcon} size={24} color={colors.onSurface} />
 							)}
-						</View>
-					)}
-				</View>
+							onPress={() => router.back()}
+						/>
+						<Text variant={'labelLarge'} style={{ color: colors.onSurfaceVariant }}>
+							{showLyrics ? 'Lyrics' : 'Now Playing'}
+						</Text>
+						<TrackOptionsMenu
+							track={currentTrack}
+							source={'player'}
+							orientation={'horizontal'}
+						/>
+					</View>
 
-				<View style={styles.trackInfo}>
-					<Text
-						variant={'headlineSmall'}
-						numberOfLines={2}
-						style={{ color: colors.onSurface, fontWeight: '700' }}
-					>
-						{currentTrack.title}
-					</Text>
-					<Text
-						variant={'titleMedium'}
-						numberOfLines={1}
-						style={{ color: colors.onSurfaceVariant }}
-					>
-						{albumName ? `${artistNames} \u2022 ${albumName}` : artistNames}
-					</Text>
-				</View>
+					<View style={styles.artworkContainer}>
+						{showLyrics ? (
+							<LyricsDisplay />
+						) : (
+							<View
+								style={[
+									styles.artworkWrapper,
+									artworkLoaded && styles.artworkShadow,
+								]}
+							>
+								{artworkUrl ? (
+									<Image
+										source={{ uri: artworkUrl }}
+										style={styles.artwork}
+										contentFit={'cover'}
+										transition={300}
+										cachePolicy={'memory-disk'}
+										recyclingKey={currentTrack.id.value}
+										onLoad={handleArtworkLoad}
+									/>
+								) : (
+									<View
+										style={[
+											styles.artwork,
+											styles.artworkPlaceholder,
+											{ backgroundColor: colors.surfaceContainerHighest },
+										]}
+									/>
+								)}
+							</View>
+						)}
+					</View>
 
-				{error && (
-					<View style={[styles.errorContainer, { backgroundColor: `${colors.error}1A` }]}>
-						<Text variant={'bodySmall'} style={{ color: colors.error }}>
-							{error}
+					<View style={styles.trackInfo}>
+						<Text
+							variant={'headlineSmall'}
+							numberOfLines={2}
+							style={{ color: trackInfoColors.onSurface, fontWeight: '700' }}
+						>
+							{currentTrack.title}
+						</Text>
+						<Text
+							variant={'titleMedium'}
+							numberOfLines={1}
+							style={{ color: trackInfoColors.onSurfaceVariant }}
+						>
+							{albumName ? `${artistNames} \u2022 ${albumName}` : artistNames}
 						</Text>
 					</View>
-				)}
 
-				<View style={styles.progressContainer}>
-					<ProgressBar seekable={true} />
+					{error && (
+						<View
+							style={[
+								styles.errorContainer,
+								{ backgroundColor: `${colors.error}1A` },
+							]}
+						>
+							<Text variant={'bodySmall'} style={{ color: colors.error }}>
+								{error}
+							</Text>
+						</View>
+					)}
+
+					<View style={styles.progressContainer}>
+						<ProgressBar seekable={true} />
+					</View>
+
+					<PlayerControls size={'lg'} />
 				</View>
-
-				<PlayerControls size={'lg'} />
-			</View>
-		</SafeAreaView>
+			</SafeAreaView>
+		</View>
 	);
 }
 
 const styles = StyleSheet.create({
 	container: {
+		flex: 1,
+	},
+	safeArea: {
 		flex: 1,
 	},
 	content: {
