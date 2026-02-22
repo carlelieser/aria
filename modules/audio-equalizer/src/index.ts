@@ -104,10 +104,11 @@ export async function setBandLevels(levels: number[]): Promise<void> {
 /**
  * Apply a system preset by name.
  */
-export async function usePreset(presetName: string): Promise<void> {
+export async function applyPreset(presetName: string): Promise<void> {
 	if (!NativeModule) {
 		throw new Error('AudioEqualizer module is not available on web');
 	}
+	// eslint-disable-next-line react-hooks/rules-of-hooks -- native module method, not a React hook
 	return NativeModule.usePreset(presetName);
 }
 
