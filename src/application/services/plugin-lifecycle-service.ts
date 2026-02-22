@@ -13,7 +13,7 @@ import type {
 	PluginRegistryEvent,
 } from '../../plugins/core/registry/plugin-registry';
 import { usePluginSettingsStore, REQUIRED_PLUGINS } from '../state/plugin-settings-store';
-import type { HomeFeedOperations } from '../../plugins/metadata/youtube-music/home-feed-operations';
+import type { HomeFeedOperations } from '../../plugins/core/interfaces/home-feed-provider';
 import { getLogger } from '../../shared/services/logger';
 
 const logger = getLogger('PluginLifecycleService');
@@ -46,8 +46,8 @@ interface ServiceRefs {
 		removeAudioSourceProvider: (id: string) => void;
 	};
 	homeFeedService: {
-		setHomeFeedOperations: (ops: HomeFeedOperations) => void;
-		clearOperations: () => void;
+		addHomeFeedProvider: (id: string, ops: HomeFeedOperations) => void;
+		removeHomeFeedProvider: (id: string) => void;
 	};
 }
 
@@ -160,8 +160,8 @@ export class PluginLifecycleService {
 		this.services.artistService.removeMetadataProvider(pluginId);
 		this.services.lyricsService.removeMetadataProvider(pluginId);
 
-		// Clear home feed operations
-		this.services.homeFeedService.clearOperations();
+		// Remove home feed provider
+		this.services.homeFeedService.removeHomeFeedProvider(pluginId);
 
 		// Remove from audio source services
 		this.services.playbackService.removeAudioSourceProvider(pluginId);
@@ -197,7 +197,10 @@ export class PluginLifecycleService {
 				const providerWithFeed = metadataProvider as MetadataProvider & {
 					homeFeed: HomeFeedOperations;
 				};
-				this.services.homeFeedService.setHomeFeedOperations(providerWithFeed.homeFeed);
+				this.services.homeFeedService.addHomeFeedProvider(
+					pluginId,
+					providerWithFeed.homeFeed
+				);
 			}
 
 			// Check if it also has audio source capability

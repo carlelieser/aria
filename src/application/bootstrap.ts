@@ -102,7 +102,7 @@ async function bootstrapAsync(): Promise<BootstrapResult> {
 
 	await hydrateSettings(pluginRegistry, manifestRegistry);
 	await loadPlugins(pluginRegistry, manifestRegistry);
-	await wireAllServices(pluginRegistry);
+	await initAllServices(pluginRegistry);
 
 	logger.info('Application initialized successfully');
 
@@ -155,8 +155,8 @@ async function loadPlugins(
 	}
 }
 
-async function wireAllServices(pluginRegistry: PluginRegistry): Promise<void> {
-	await wireServices(pluginRegistry);
+async function initAllServices(pluginRegistry: PluginRegistry): Promise<void> {
+	await initServices(pluginRegistry);
 	pluginLifecycleService.initialize(pluginRegistry, {
 		searchService,
 		albumService,
@@ -168,12 +168,12 @@ async function wireAllServices(pluginRegistry: PluginRegistry): Promise<void> {
 	});
 }
 
-async function wireServices(registry: PluginRegistry): Promise<void> {
-	await wirePlaybackProviders(registry);
-	wireMetadataProviders(registry);
+async function initServices(registry: PluginRegistry): Promise<void> {
+	await initPlaybackProviders(registry);
+	initMetadataProviders(registry);
 }
 
-async function wirePlaybackProviders(registry: PluginRegistry): Promise<void> {
+async function initPlaybackProviders(registry: PluginRegistry): Promise<void> {
 	const providers = registry.getAllPlaybackProviders();
 	if (providers.length === 0) return;
 
@@ -193,8 +193,38 @@ async function wirePlaybackProviders(registry: PluginRegistry): Promise<void> {
 	playbackService.setPlaybackProviders(providers);
 }
 
-function wireMetadataProviders(registry: PluginRegistry): void {
+function initFeedService(registry: PluginRegistry) {
 	const providers = registry.getAllMetadataProviders();
+
+	for (const provider of providers) {
+		const hasHomeFeed = 'homeFeed' in provider;
+		const isActive = provider.status === 'active';
+		if (hasHomeFeed && isActive) {
+			const providerWithFeed = provider as MetadataProvider & {
+				homeFeed: Parameters<typeof homeFeedService.addHomeFeedProvider>[1];
+			};
+			homeFeedService.addHomeFeedProvider(provider.manifest.id, providerWithFeed.homeFeed);
+		}
+	}
+}
+
+function initAudioServices(registry: PluginRegistry) {
+	const providers = registry.getAllMetadataProviders();
+
+	const audioSources = providers.filter(
+		hasAudioSourceCapability
+	) as unknown as AudioSourceProvider[];
+
+	if (audioSources.length > 0) {
+		logger.info(`Discovered ${audioSources.length} audio source provider(s)`);
+		playbackService.setAudioSourceProviders(audioSources);
+		downloadService.setAudioSourceProviders(audioSources);
+	}
+}
+
+function initMetadataProviders(registry: PluginRegistry): void {
+	const providers = registry.getAllMetadataProviders();
+
 	if (providers.length === 0) {
 		logger.warn('No metadata providers loaded - search may not work');
 		return;
@@ -207,29 +237,8 @@ function wireMetadataProviders(registry: PluginRegistry): void {
 	artistService.setMetadataProviders(providers);
 	lyricsService.setMetadataProviders(providers);
 
-	// Wire home feed operations from providers that support it
-	for (const provider of providers) {
-		if ('homeFeed' in provider) {
-			homeFeedService.setHomeFeedOperations(
-				(
-					provider as MetadataProvider & {
-						homeFeed: Parameters<typeof homeFeedService.setHomeFeedOperations>[0];
-					}
-				).homeFeed
-			);
-			break;
-		}
-	}
-
-	const audioSources = providers.filter(
-		hasAudioSourceCapability
-	) as unknown as AudioSourceProvider[];
-
-	if (audioSources.length > 0) {
-		logger.info(`Discovered ${audioSources.length} audio source provider(s)`);
-		playbackService.setAudioSourceProviders(audioSources);
-		downloadService.setAudioSourceProviders(audioSources);
-	}
+	initFeedService(registry);
+	initAudioServices(registry);
 }
 
 /** @deprecated Use lazyBootstrap() instead */

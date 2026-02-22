@@ -72,10 +72,9 @@ export function useHomeFeed(): HomeFeedResult {
 
 	const localSections = useMemo(() => buildLocalSections(curated), [curated]);
 
-	const sections = useMemo(
-		() => [...localSections, ...remoteSections],
-		[localSections, remoteSections]
-	);
+	const sections = useMemo(() => {
+		return [...remoteSections, ...localSections];
+	}, [localSections, remoteSections]);
 
 	const handleRefresh = useCallback(() => {
 		homeFeedService.refresh();

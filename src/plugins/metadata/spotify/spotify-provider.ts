@@ -23,6 +23,8 @@ import { createInfoOperations, type InfoOperations } from './info';
 import { createLibraryOperations, type LibraryOperations } from './library';
 import { createRecommendationOperations, type RecommendationOperations } from './recommendations';
 import { createImportOperations, type ImportOperations } from './import-operations';
+import { createSpotifyHomeFeedOperations } from './home-feed';
+import type { HomeFeedOperations } from '@plugins/core/interfaces/home-feed-provider';
 
 export interface SpotifyLibraryProvider extends MetadataProvider, OAuthCapablePlugin {
 	readonly library: LibraryOperations;
@@ -45,6 +47,7 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 	private libraryOps: LibraryOperations | null = null;
 	private recommendationOps: RecommendationOperations | null = null;
 	private importOps: ImportOperations | null = null;
+	private homeFeedOps: HomeFeedOperations | null = null;
 
 	constructor(config: SpotifyClientConfig = {}) {
 		this.config = config;
@@ -64,6 +67,13 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 		return this.importOps;
 	}
 
+	get homeFeed(): HomeFeedOperations {
+		if (!this.homeFeedOps) {
+			throw new Error('Plugin not initialized');
+		}
+		return this.homeFeedOps;
+	}
+
 	async onInit(context: PluginInitContext): Promise<Result<void, Error>> {
 		try {
 			this.status = 'initializing';
@@ -78,6 +88,7 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 			this.libraryOps = createLibraryOperations(this.client);
 			this.recommendationOps = createRecommendationOperations(this.client);
 			this.importOps = createImportOperations(this.libraryOps, this.infoOps!, this.client);
+			this.homeFeedOps = createSpotifyHomeFeedOperations(this.client);
 
 			await this.client.initialize();
 
@@ -111,6 +122,7 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 		this.libraryOps = null;
 		this.recommendationOps = null;
 		this.importOps = null;
+		this.homeFeedOps = null;
 		this.status = 'uninitialized';
 		return ok(undefined);
 	}

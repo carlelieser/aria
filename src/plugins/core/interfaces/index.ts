@@ -6,3 +6,4 @@ export * from './audio-source-provider';
 export * from './playback-provider';
 export * from './sync-provider';
 export * from './oauth-capable-plugin';
+export * from './home-feed-provider';

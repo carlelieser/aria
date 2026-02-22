@@ -18,14 +18,10 @@ import type { ClientManager } from './client';
 import type { YouTubeMusicItem } from './types';
 import { getLogger } from '@shared/services/logger';
 
-const logger = getLogger('YouTubeMusic:HomeFeed');
+import type { HomeFeedOperations } from '@plugins/core/interfaces/home-feed-provider';
+export type { HomeFeedOperations } from '@plugins/core/interfaces/home-feed-provider';
 
-export interface HomeFeedOperations {
-	getHomeFeed(): Promise<Result<HomeFeedData, Error>>;
-	applyFilter(chipText: string): Promise<Result<HomeFeedData, Error>>;
-	loadMore(): Promise<Result<HomeFeedData, Error>>;
-	getPlaylistTracks(playlistId: string): Promise<Result<Track[], Error>>;
-}
+const logger = getLogger('YouTubeMusic:HomeFeed');
 
 interface Continuable {
 	has_continuation: boolean;
