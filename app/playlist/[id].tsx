@@ -43,7 +43,7 @@ export default function PlaylistScreen() {
 	const insets = useSafeAreaInsets();
 	const { id } = useLocalSearchParams<{ id: string }>();
 	const { colors } = useAppTheme();
-	const { playQueue, isShuffled, toggleShuffle } = usePlayer();
+	const { playQueue, shufflePlay } = usePlayer();
 	const { success } = useToast();
 
 	const [menuVisible, setMenuVisible] = useState(false);
@@ -81,19 +81,12 @@ export default function PlaylistScreen() {
 	const handlePlayAll = useCallback(() => {
 		if (tracks.length > 0) {
 			playQueue(tracks, 0);
-			router.push('/player');
 		}
 	}, [tracks, playQueue]);
 
 	const handleShufflePlay = useCallback(() => {
-		if (tracks.length > 0) {
-			if (!isShuffled) {
-				toggleShuffle();
-			}
-			playQueue(tracks, 0);
-			router.push('/player');
-		}
-	}, [tracks, isShuffled, toggleShuffle, playQueue]);
+		shufflePlay(tracks);
+	}, [tracks, shufflePlay]);
 
 	const handleDeletePlaylist = useCallback(() => {
 		if (playlist) {

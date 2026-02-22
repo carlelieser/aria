@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ListMusicIcon, PlayIcon } from 'lucide-react-native';
+import { ListMusicIcon, PlayIcon, Shuffle } from 'lucide-react-native';
 import { Text, Button } from 'react-native-paper';
 import { Icon } from '@/src/components/ui/icon';
 import { DetailsPage } from '@/src/components/details-page';
@@ -24,7 +24,7 @@ export default function RemotePlaylistScreen() {
 		artwork?: string;
 	}>();
 	const { colors } = useAppTheme();
-	const { playQueue } = usePlayer();
+	const { playQueue, shufflePlay } = usePlayer();
 	const { downloadSelected, cancelDownload, isDownloading, downloadProgress } = useBatchActions();
 
 	const [tracks, setTracks] = useState<Track[]>([]);
@@ -57,9 +57,12 @@ export default function RemotePlaylistScreen() {
 	const handlePlayAll = useCallback(() => {
 		if (tracks.length > 0) {
 			playQueue(tracks, 0);
-			router.push('/player');
 		}
 	}, [tracks, playQueue]);
+
+	const handleShufflePlay = useCallback(() => {
+		shufflePlay(tracks);
+	}, [tracks, shufflePlay]);
 
 	const handleDownloadAll = useCallback(async () => {
 		if (tracks.length > 0) {
@@ -84,13 +87,23 @@ export default function RemotePlaylistScreen() {
 
 	const actionButton =
 		tracks.length > 0 ? (
-			<Button
-				mode={'contained'}
-				icon={() => <Icon as={PlayIcon} size={18} color={colors.onPrimary} />}
-				onPress={handlePlayAll}
-			>
-				Play All
-			</Button>
+			<View style={styles.actionButtons}>
+				<Button
+					mode={'contained'}
+					icon={() => <Icon as={PlayIcon} size={18} color={colors.onPrimary} />}
+					onPress={handlePlayAll}
+				>
+					Play All
+				</Button>
+				<Button
+					mode={'contained-tonal'}
+					icon={() => <Icon as={Shuffle} size={18} color={colors.onSecondaryContainer} />}
+					onPress={handleShufflePlay}
+					accessibilityLabel={'Shuffle play'}
+				>
+					Shuffle
+				</Button>
+			</View>
 		) : undefined;
 
 	const headerInfo: DetailsHeaderInfo = {
@@ -166,6 +179,10 @@ export default function RemotePlaylistScreen() {
 }
 
 const styles = StyleSheet.create({
+	actionButtons: {
+		flexDirection: 'row',
+		gap: 12,
+	},
 	content: {
 		paddingHorizontal: 24,
 	},

@@ -89,6 +89,21 @@ export function usePlayer() {
 		await playbackService.skipToPrevious();
 	}, []);
 
+	const shufflePlay = useCallback(
+		async (tracks: Track[]) => {
+			if (tracks.length === 0) return;
+			const store = usePlayerStore.getState();
+			if (!store.isShuffled) {
+				store.toggleShuffle();
+			}
+			const randomIndex = Math.floor(Math.random() * tracks.length);
+			store.setQueue(tracks, randomIndex);
+			addToHistory(tracks[randomIndex]);
+			await playbackService.play(tracks[randomIndex]);
+		},
+		[addToHistory]
+	);
+
 	const toggleShuffle = useCallback(() => {
 		usePlayerStore.getState().toggleShuffle();
 	}, []);
@@ -127,6 +142,7 @@ export function usePlayer() {
 
 		play,
 		playQueue,
+		shufflePlay,
 		pause,
 		resume,
 		togglePlayPause,
