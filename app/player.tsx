@@ -6,8 +6,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCallback, useEffect, useState } from 'react';
 import { router, usePathname } from 'expo-router';
 import { Text, IconButton } from 'react-native-paper';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { Icon } from '@/src/components/ui/icon';
-import { ChevronLeftIcon } from 'lucide-react-native';
+import { ChevronLeftIcon, Heart } from 'lucide-react-native';
 import { PlayerControls } from '@/src/components/player/player-controls';
 import { ProgressBar } from '@/src/components/player/progress-bar';
 import { TrackOptionsMenu } from '@/src/components/track-options-menu';
@@ -19,8 +20,11 @@ import { getArtistNames } from '@/src/domain/entities/track';
 import { useAppTheme } from '@/lib/theme';
 import { useDetailsPageTheme } from '@/src/hooks/use-details-page-theme';
 import { useShowLyrics } from '@/src/application/state/player-ui-store';
+import { useLibraryStore, useIsFavorite } from '@/src/application/state/library-store';
 
 const BLUR_INTENSITY = 80;
+const FAVORITE_ICON_SIZE = 24;
+const FAVORITE_SPRING_CONFIG = { damping: 8, stiffness: 300 };
 
 export default function PlayerScreen() {
 	const pathname = usePathname();
@@ -30,6 +34,25 @@ export default function PlayerScreen() {
 	const [artworkLoaded, setArtworkLoaded] = useState(false);
 
 	useLyrics();
+
+	const trackId = currentTrack?.id.value ?? '';
+	const isFavorite = useIsFavorite(trackId);
+	const favoriteScale = useSharedValue(1);
+
+	const handleToggleFavorite = useCallback(() => {
+		const store = useLibraryStore.getState();
+		if (currentTrack && !store.isFavorite(currentTrack.id.value)) {
+			store.addTrack(currentTrack);
+		}
+		store.toggleFavorite(trackId);
+		favoriteScale.value = withSpring(1.3, FAVORITE_SPRING_CONFIG, () => {
+			favoriteScale.value = withSpring(1, FAVORITE_SPRING_CONFIG);
+		});
+	}, [currentTrack, trackId, favoriteScale]);
+
+	const favoriteAnimatedStyle = useAnimatedStyle(() => ({
+		transform: [{ scale: favoriteScale.value }],
+	}));
 
 	const artwork = currentTrack ? getLargestArtwork(currentTrack.artwork) : undefined;
 	const artworkUrl = artwork?.url;
@@ -139,20 +162,42 @@ export default function PlayerScreen() {
 					</View>
 
 					<View style={styles.trackInfo}>
-						<Text
-							variant={'headlineSmall'}
-							numberOfLines={2}
-							style={{ color: trackInfoColors.onSurface, fontWeight: '700' }}
-						>
-							{currentTrack.title}
-						</Text>
-						<Text
-							variant={'titleMedium'}
-							numberOfLines={1}
-							style={{ color: trackInfoColors.onSurfaceVariant }}
-						>
-							{albumName ? `${artistNames} \u2022 ${albumName}` : artistNames}
-						</Text>
+						<View style={styles.trackInfoText}>
+							<Text
+								variant={'headlineSmall'}
+								numberOfLines={2}
+								style={{ color: trackInfoColors.onSurface, fontWeight: '700' }}
+							>
+								{currentTrack.title}
+							</Text>
+							<Text
+								variant={'titleMedium'}
+								numberOfLines={1}
+								style={{ color: trackInfoColors.onSurfaceVariant }}
+							>
+								{albumName ? `${artistNames} \u2022 ${albumName}` : artistNames}
+							</Text>
+						</View>
+						<Animated.View style={favoriteAnimatedStyle}>
+							<IconButton
+								icon={() => (
+									<Heart
+										size={FAVORITE_ICON_SIZE}
+										color={
+											isFavorite
+												? colors.primary
+												: trackInfoColors.onSurfaceVariant
+										}
+										fill={isFavorite ? colors.primary : 'transparent'}
+									/>
+								)}
+								onPress={handleToggleFavorite}
+								size={FAVORITE_ICON_SIZE}
+								accessibilityLabel={
+									isFavorite ? 'Remove from favorites' : 'Add to favorites'
+								}
+							/>
+						</Animated.View>
 					</View>
 
 					{error && (
@@ -223,9 +268,15 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 	},
 	trackInfo: {
-		gap: 4,
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: 8,
 		marginTop: 32,
 		marginBottom: 24,
+	},
+	trackInfoText: {
+		flex: 1,
+		gap: 4,
 	},
 	errorContainer: {
 		paddingVertical: 8,
