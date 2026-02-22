@@ -25,6 +25,7 @@ import {
 	type NativeSyntheticEvent,
 	type NativeScrollEvent,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { Text } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
@@ -132,7 +133,10 @@ export function DetailsPage({
 		),
 	}));
 
+	const { isDark } = useAppTheme();
 	const tintColor = headerSolid ? colors.onSurface : headerColors.onSurface;
+	const needsLightStatusBar = pageTheme.hasCustomColors && !headerSolid;
+	const statusBarStyle = needsLightStatusBar ? 'light' : isDark ? 'light' : 'dark';
 
 	const scrollableHeader = (
 		<View
@@ -229,6 +233,7 @@ export function DetailsPage({
 
 	return (
 		<DetailsPageContext.Provider value={contextValue}>
+			<StatusBar style={statusBarStyle} />
 			<PageLayout
 				style={{ backgroundColor: colors.background }}
 				header={{

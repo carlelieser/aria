@@ -174,7 +174,6 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 	},
 	title: {
-		fontWeight: '700',
 		textAlign: 'center',
 	},
 	metadataContainer: {

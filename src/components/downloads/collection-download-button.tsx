@@ -19,7 +19,7 @@ import {
 	useCollectionDownloadState,
 	type DownloadState,
 } from '@/src/hooks/use-collection-download-state';
-import { useAppTheme } from '@/lib/theme';
+import { useDetailsPageHeaderColors } from '@/src/components/details-page';
 import type { Track } from '@/src/domain/entities/track';
 
 interface CollectionDownloadButtonProps {
@@ -39,7 +39,7 @@ export const CollectionDownloadButton = memo(function CollectionDownloadButton({
 	onCancel,
 	size = 22,
 }: CollectionDownloadButtonProps) {
-	const { colors } = useAppTheme();
+	const colors = useDetailsPageHeaderColors();
 	const { state, downloadedCount, totalCount } = useCollectionDownloadState(tracks);
 
 	const effectiveState: DownloadState = isDownloading ? 'downloading' : state;
