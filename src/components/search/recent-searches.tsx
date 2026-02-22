@@ -79,9 +79,7 @@ const RecentSearchItem = memo(function RecentSearchItem({
 
 	return (
 		<Chip
-			icon={({ size }) => (
-				<Icon as={ClockIcon} size={size} color={colors.onSurfaceVariant} />
-			)}
+			icon={({ size }) => <Icon as={ClockIcon} size={size} color={colors.onSurfaceVariant} />}
 			onPress={handleSelect}
 			onClose={handleRemove}
 			closeIcon={({ size }) => (
@@ -93,7 +91,7 @@ const RecentSearchItem = memo(function RecentSearchItem({
 				height: 48,
 				display: 'flex',
 				alignItems: 'center',
-				flexDirection: 'row'
+				flexDirection: 'row',
 			}}
 			elevation={1}
 		>

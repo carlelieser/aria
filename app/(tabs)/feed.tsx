@@ -14,8 +14,7 @@ import { useHomeFeed } from '@/src/hooks/use-home-feed';
 import { useHomeFeedStore } from '@/src/application/state/home-feed-store';
 import { useAppTheme } from '@/lib/theme';
 
-const useHasCompletedInitialLoad = () =>
-	useHomeFeedStore((state) => state.lastFetchedAt !== null);
+const useHasCompletedInitialLoad = () => useHomeFeedStore((state) => state.lastFetchedAt !== null);
 
 const PREFETCH_VIEWPORTS = 3;
 const MIN_VISIBLE_SECTIONS = 4;
