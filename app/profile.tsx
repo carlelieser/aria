@@ -7,7 +7,9 @@ import { UserIcon, PencilIcon, CheckIcon } from 'lucide-react-native';
 import { PageLayout } from '@/src/components/ui/page-layout';
 import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
 import { Icon } from '@/src/components/ui/icon';
+import { FLOATING_PLAYER_HEIGHT } from '@/src/components/floating-player';
 import { useProfileStore } from '@/src/application/state/profile-store';
+import { useCurrentTrack } from '@/src/application/state/player-store';
 import { useAppTheme, FontFamily } from '@/lib/theme';
 import { useToast } from '@/src/hooks/use-toast';
 
@@ -16,6 +18,7 @@ const AVATAR_SIZE = 120;
 export default function ProfileScreen() {
 	const { colors } = useAppTheme();
 	const { success } = useToast();
+	const hasActiveTrack = useCurrentTrack() !== null;
 	const { name, email, avatarUri, setName, setEmail, setAvatarUri } = useProfileStore();
 
 	const [isEditing, setIsEditing] = useState(false);
@@ -119,7 +122,11 @@ export default function ProfileScreen() {
 					</View>
 				)}
 				onPress={isEditing ? handleSave : handleEdit}
-				style={[styles.fab, { backgroundColor: colors.primaryContainer }]}
+				style={[
+					styles.fab,
+					{ backgroundColor: colors.primaryContainer },
+					hasActiveTrack && { bottom: 48 + FLOATING_PLAYER_HEIGHT },
+				]}
 				color={colors.onPrimaryContainer}
 				size={'large'}
 			/>
