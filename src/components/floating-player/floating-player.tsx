@@ -22,7 +22,7 @@ import { IconButton, Text, Surface } from 'react-native-paper';
 
 import { FloatingProgressBar } from './floating-progress-bar';
 
-import { Play, Pause } from 'lucide-react-native';
+import { Play, Pause, SkipForward } from 'lucide-react-native';
 import { usePlayer } from '@/src/hooks/use-player';
 import { useCurrentTrack, usePlaybackStatus } from '@/src/application/state/player-store';
 import { getArtistNames } from '@/src/domain/entities/track';
@@ -41,7 +41,7 @@ export function FloatingPlayer() {
 	const insets = useSafeAreaInsets();
 	const currentTrack = useCurrentTrack();
 	const status = usePlaybackStatus();
-	const { togglePlayPause, isLoading, isBuffering } = usePlayer();
+	const { togglePlayPause, skipToNext, isLoading, isBuffering } = usePlayer();
 	const { colors } = useAppTheme();
 	const audioLevels = useAudioLevelsContext();
 
@@ -95,6 +95,10 @@ export function FloatingPlayer() {
 		togglePlayPause();
 	}, [togglePlayPause]);
 
+	const handleSkipNext = useCallback(() => {
+		skipToNext();
+	}, [skipToNext]);
+
 	const containerStyle = useMemo(
 		() => [styles.container, { bottom: bottomOffset }, animatedStyle],
 		[bottomOffset, animatedStyle]
@@ -108,6 +112,13 @@ export function FloatingPlayer() {
 				<Play size={size} color={color} fill={color} />
 			),
 		[isPlaying]
+	);
+
+	const skipForwardIcon = useCallback(
+		({ size, color }: { size: number; color: string }) => (
+			<SkipForward size={size} color={color} fill={color} />
+		),
+		[]
 	);
 
 	if (!isVisible && !shouldShow) {
@@ -169,6 +180,13 @@ export function FloatingPlayer() {
 							onPress={handlePlayPause}
 							disabled={isLoading}
 							iconColor={colors.onSurface}
+						/>
+						<IconButton
+							icon={skipForwardIcon}
+							size={24}
+							onPress={handleSkipNext}
+							iconColor={colors.onSurface}
+							accessibilityLabel="Skip to next track"
 						/>
 					</View>
 				</View>
