@@ -32,11 +32,11 @@ Get the latest release from the [Releases](https://github.com/carlelieser/aria/r
 ## Screenshots
 
 <p align="center">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/01_library_songs.png" width="19%" />
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/06_explore.png" width="19%" />
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/09_player.png" width="19%" />
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/08_settings.png" width="19%" />
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/09_player_dark.png" width="19%" />
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/01_feed.png" width="19%" />
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/02_library_songs.png" width="19%" />
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/08_player.png" width="19%" />
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/01_feed_dark.png" width="19%" />
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/08_player_dark.png" width="19%" />
 </p>
 
 ## Setup
