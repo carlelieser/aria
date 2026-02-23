@@ -215,47 +215,41 @@ load_mock_data_via_settings() {
     sleep 2
 }
 
+take_feed_screenshot() {
+    log_info "Taking Feed screenshot..."
+    navigate_to "(tabs)/feed" "Feed"
+    take_screenshot "01_feed"
+}
+
 take_library_screenshots() {
     log_info "Taking Library screenshots..."
 
     # Songs tab (default)
-    navigate_to "(tabs)" "Library - Songs"
+    navigate_to "(tabs)/library" "Library - Songs"
     sleep 1
-    take_screenshot "01_library_songs"
+    take_screenshot "02_library_songs"
 
     # For tab switching, we need to tap on the segment buttons
     # Albums tab - tap on the albums segment (approximate position)
     tap_screen 270 200  # Adjust based on actual tab position
     sleep 1
-    take_screenshot "02_library_albums"
+    take_screenshot "03_library_albums"
 
     # Artists tab
     tap_screen 450 200
     sleep 1
-    take_screenshot "03_library_artists"
+    take_screenshot "04_library_artists"
 
     # Playlists tab
     tap_screen 630 200
     sleep 1
-    take_screenshot "04_library_playlists"
-}
-
-take_explore_screenshot() {
-    log_info "Taking Explore screenshot..."
-    navigate_to "(tabs)/explore" "Explore"
-    take_screenshot "05_explore"
+    take_screenshot "05_library_playlists"
 }
 
 take_downloads_screenshot() {
     log_info "Taking Downloads screenshot..."
     navigate_to "(tabs)/downloads" "Downloads"
-    take_screenshot "06_downloads"
-}
-
-take_settings_screenshot() {
-    log_info "Taking Settings screenshot..."
-    navigate_to "(tabs)/settings" "Settings"
-    take_screenshot "07_settings"
+    take_screenshot "07_downloads"
 }
 
 take_player_screenshot() {
@@ -267,6 +261,10 @@ take_player_screenshot() {
 take_detail_screenshots() {
     log_info "Taking detail screen screenshots..."
 
+    # Playlist detail
+    navigate_to "playlist/playlist-001" "Playlist Detail"
+    take_screenshot "06_playlist_detail"
+
     # Album detail - use a mock album ID
     navigate_to "album/album-001" "Album Detail"
     take_screenshot "09_album_detail"
@@ -274,10 +272,12 @@ take_detail_screenshots() {
     # Artist detail
     navigate_to "artist/artist-001" "Artist Detail"
     take_screenshot "10_artist_detail"
+}
 
-    # Playlist detail
-    navigate_to "playlist/playlist-001" "Playlist Detail"
-    take_screenshot "11_playlist_detail"
+take_settings_screenshot() {
+    log_info "Taking Settings screenshot..."
+    navigate_to "settings" "Settings"
+    take_screenshot "11_settings"
 }
 
 run_screenshot_sequence() {
@@ -305,12 +305,12 @@ run_screenshot_sequence() {
     fi
 
     # Take all screenshots
+    take_feed_screenshot
     take_library_screenshots
-    take_explore_screenshot
     take_downloads_screenshot
-    take_settings_screenshot
     take_player_screenshot
     take_detail_screenshots
+    take_settings_screenshot
 
     log_success "Screenshot sequence complete for ${current_mode} mode!"
 }
