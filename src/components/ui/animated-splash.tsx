@@ -249,7 +249,9 @@ export function AnimatedSplash({
 					</View>
 				</View>
 				<View style={styles.progressSection}>
-					<View style={[styles.progressTrack, { backgroundColor: colors.surfaceVariant }]}>
+					<View
+						style={[styles.progressTrack, { backgroundColor: colors.surfaceVariant }]}
+					>
 						<View
 							style={[
 								styles.progressFill,

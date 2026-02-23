@@ -9,7 +9,6 @@ import { memo, useMemo } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
 import { Text, Surface } from 'react-native-paper';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import {
 	Download,
@@ -140,8 +139,6 @@ function _getActionsForContext(
 export const BatchActionBar = memo(function BatchActionBar(props: BatchActionBarProps) {
 	const { context, selectedCount, onCancel, isProcessing = false } = props;
 	const { colors } = useAppTheme();
-	const insets = useSafeAreaInsets();
-
 	const actions = useMemo(() => _getActionsForContext(context, props), [context, props]);
 
 	if (selectedCount === 0) {

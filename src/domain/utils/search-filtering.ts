@@ -113,11 +113,7 @@ export function countActiveSearchFilters(filters: SearchFilters): number {
 }
 
 export function hasActiveUnifiedFilters(filters: UnifiedSearchFilters): boolean {
-	return (
-		filters.contentType !== 'all' ||
-		filters.downloadedOnly ||
-		hasBaseActiveFilters(filters)
-	);
+	return filters.contentType !== 'all' || filters.downloadedOnly || hasBaseActiveFilters(filters);
 }
 
 export function countActiveUnifiedFilters(filters: UnifiedSearchFilters): number {

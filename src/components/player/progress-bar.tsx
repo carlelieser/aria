@@ -10,7 +10,7 @@ import { Skeleton } from '@/src/components/ui/skeleton';
 import { ProgressTrack } from '@/src/components/ui/progress-track';
 import { usePlayer } from '@/src/hooks/use-player';
 import { Duration } from '@/src/domain/value-objects/duration';
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { usePlayerTheme } from '@/src/components/player/player-theme-context';
 import { useProgressBarStyle } from '@/src/application/state/settings-store';
 
@@ -22,25 +22,18 @@ export function ProgressBar({ seekable = true }: ProgressBarProps) {
 	const { position, duration, seekTo, isLoading, isBuffering, isPlaying } = usePlayer();
 	const { colors } = usePlayerTheme();
 	const barStyle = useProgressBarStyle();
-	const [isSeeking, setIsSeeking] = useState(false);
-	const [seekPosition, setSeekPosition] = useState(0);
-
 	const totalMillis = duration.totalMilliseconds;
-	const currentMillis = isSeeking ? seekPosition : position.totalMilliseconds;
-	const progress = totalMillis > 0 ? currentMillis / totalMillis : 0;
+	const progress = totalMillis > 0 ? position.totalMilliseconds / totalMillis : 0;
 
 	const handleSeek = useCallback(
 		async (newProgress: number) => {
 			const newPositionMs = Math.round(newProgress * totalMillis);
-			setIsSeeking(false);
 			await seekTo(Duration.fromMilliseconds(newPositionMs));
 		},
 		[totalMillis, seekTo]
 	);
 
-	const currentTime = isSeeking
-		? Duration.fromMilliseconds(seekPosition).format()
-		: position.format();
+	const currentTime = position.format();
 	const totalTime = duration.format();
 
 	const isDisabled = !seekable || isLoading || duration.isZero();

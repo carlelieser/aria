@@ -331,11 +331,7 @@ export function ProgressTrack({
 			<Animated.View
 				style={[
 					thumbAnimatedStyle,
-					isBasic
-						? styles.basicThumb
-						: isVariant
-							? styles.variantThumb
-							: styles.thumb,
+					isBasic ? styles.basicThumb : isVariant ? styles.variantThumb : styles.thumb,
 					{
 						left:
 							activeEnd -
@@ -447,9 +443,7 @@ function renderTrack(style: ProgressBarStyle, params: TrackRenderParams) {
 		return (
 			<Svg width={trackWidth} height={VARIANT_TRACK_HEIGHT} style={styles.variantTrackSvg}>
 				{/* Inactive track (right of thumb) */}
-				{inactivePath.length > 0 && (
-					<Path d={inactivePath} fill={inactiveColor} />
-				)}
+				{inactivePath.length > 0 && <Path d={inactivePath} fill={inactiveColor} />}
 				{/* Active track (left of thumb) */}
 				{activeEnd > 0 && (
 					<Path

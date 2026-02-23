@@ -34,8 +34,7 @@ export const useBootstrapProgressStore = create<BootstrapProgressState>((set) =>
 export const useBootstrapProgress = () =>
 	useBootstrapProgressStore((state) => state.currentStep / state.totalSteps);
 
-export const useBootstrapMessage = () =>
-	useBootstrapProgressStore((state) => state.message);
+export const useBootstrapMessage = () => useBootstrapProgressStore((state) => state.message);
 
 export function getBootstrapProgressState() {
 	return useBootstrapProgressStore.getState();
