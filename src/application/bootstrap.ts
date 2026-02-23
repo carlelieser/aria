@@ -29,6 +29,7 @@ import { lyricsService } from './services/lyrics-service';
 import { pluginLifecycleService } from './services/plugin-lifecycle-service';
 import { homeFeedService } from './services/home-feed-service';
 import { getLogger } from '@shared/services/logger';
+import { getBootstrapProgressState } from './state/bootstrap-progress-store';
 
 const logger = getLogger('Bootstrap');
 
@@ -96,12 +97,21 @@ const CORE_PLUGINS = ['core-library'];
 
 async function bootstrapAsync(): Promise<BootstrapResult> {
 	logger.info('Initializing Aria...');
+	const progress = getBootstrapProgressState();
+	progress.reset();
 
 	const pluginRegistry = PluginRegistry.getInstance();
 	const manifestRegistry = PluginManifestRegistry.getInstance();
 
+	progress.advance('Loading settings...');
 	await hydrateSettings(pluginRegistry, manifestRegistry);
+
+	const pluginCount = manifestRegistry.getAvailablePlugins().length;
+	progress.setTotalSteps(1 + pluginCount + 1);
+
 	await loadPlugins(pluginRegistry, manifestRegistry);
+
+	progress.advance('Starting services...');
 	await initAllServices(pluginRegistry);
 
 	logger.info('Application initialized successfully');
@@ -139,11 +149,13 @@ async function loadPlugins(
 
 	const loader = new PluginLoader(pluginRegistry, manifestRegistry);
 	const configs = getPluginConfigs();
+	const progress = getBootstrapProgressState();
 
 	// Register ALL plugins so config/metadata is always accessible.
 	// Only auto-activate enabled ones.
 	const available = manifestRegistry.getAvailablePlugins();
 	for (const manifest of available) {
+		progress.advance(`Loading ${manifest.name}...`);
 		const isEnabled = enabledPlugins.has(manifest.id);
 		const result = await loader.loadPlugin(manifest.id, {
 			configs,

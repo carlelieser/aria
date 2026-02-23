@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useState, useRef } from 'react';
-import { StyleSheet, View, Image, Platform, useWindowDimensions } from 'react-native';
+import { StyleSheet, Text, View, Image, Platform, useWindowDimensions } from 'react-native';
 import Animated, {
 	useSharedValue,
 	useAnimatedStyle,
@@ -14,6 +14,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import { AnimatedPolygonView } from './animated-polygon';
 import { M3Colors } from '@/lib/theme/colors';
+import { FontFamily } from '@/lib/theme/typography';
+import {
+	useBootstrapProgress,
+	useBootstrapMessage,
+} from '@application/state/bootstrap-progress-store';
 
 const IS_WEB = Platform.OS === 'web';
 
@@ -24,6 +29,8 @@ const MORPH_INTERVAL = 2500;
 const ROTATION_DURATION = 4000;
 const MIN_SEGMENTS = 3;
 const MAX_SEGMENTS = 6;
+const PROGRESS_BAR_WIDTH = 200;
+const PROGRESS_TIMING_MS = 300;
 
 interface AnimatedSplashProps {
 	isReady: boolean;
@@ -54,6 +61,43 @@ export function AnimatedSplash({
 	const isFirstRender = useRef(true);
 
 	const colors = isDark ? M3Colors.dark : M3Colors.light;
+
+	const progress = useBootstrapProgress();
+	const progressMessage = useBootstrapMessage();
+	const progressWidth = useSharedValue(0);
+	const bootstrapDone = useSharedValue(false);
+	const [dismissReady, setDismissReady] = useState(false);
+
+	useEffect(() => {
+		progressWidth.value = withTiming(progress, {
+			duration: PROGRESS_TIMING_MS,
+			easing: Easing.out(Easing.ease),
+		});
+	}, [progress, progressWidth]);
+
+	useEffect(() => {
+		if (isReady) {
+			bootstrapDone.value = true;
+		}
+	}, [isReady, bootstrapDone]);
+
+	useAnimatedReaction(
+		() => bootstrapDone.value && progressWidth.value >= 0.99,
+		(ready, prev) => {
+			if (ready && !prev) {
+				runOnJS(setDismissReady)(true);
+			}
+		},
+		[setDismissReady]
+	);
+
+	const progressFillStyle = useAnimatedStyle(() => ({
+		width: progressWidth.value * PROGRESS_BAR_WIDTH,
+	}));
+
+	const progressSectionStyle = useAnimatedStyle(() => ({
+		opacity: interpolate(translateY.value, [0, -screenHeight / 4], [1, 0]),
+	}));
 
 	const handleAnimationComplete = useCallback(() => {
 		onAnimationComplete?.();
@@ -107,8 +151,7 @@ export function AnimatedSplash({
 	}, []);
 
 	useEffect(() => {
-		if (isReady) {
-			// Slide up and fade out
+		if (dismissReady) {
 			translateY.value = withTiming(-screenHeight, {
 				duration: ANIMATION_DURATION,
 				easing: Easing.in(Easing.cubic),
@@ -122,14 +165,13 @@ export function AnimatedSplash({
 				})
 			);
 
-			// Web fallback: use setTimeout since withTiming callback may not fire
 			if (IS_WEB) {
 				setTimeout(() => {
 					handleAnimationComplete();
 				}, ANIMATION_DURATION + 50);
 			}
 		}
-	}, [isReady, translateY, opacity, handleAnimationComplete, screenHeight]);
+	}, [dismissReady, translateY, opacity, handleAnimationComplete, screenHeight]);
 
 	// Native: watch animation completion via useAnimatedReaction
 	useAnimatedReaction(
@@ -163,14 +205,14 @@ export function AnimatedSplash({
 	const [webDismissing, setWebDismissing] = useState(false);
 
 	useEffect(() => {
-		if (IS_WEB && isReady) {
+		if (IS_WEB && dismissReady) {
 			setWebDismissing(true);
 			const timer = setTimeout(() => {
 				onAnimationComplete?.();
 			}, ANIMATION_DURATION);
 			return () => clearTimeout(timer);
 		}
-	}, [isReady, onAnimationComplete]);
+	}, [dismissReady, onAnimationComplete]);
 
 	// Web uses CSS transitions, native uses Reanimated
 	if (IS_WEB) {
@@ -206,6 +248,25 @@ export function AnimatedSplash({
 						/>
 					</View>
 				</View>
+				<View style={styles.progressSection}>
+					<View style={[styles.progressTrack, { backgroundColor: colors.surfaceVariant }]}>
+						<View
+							style={[
+								styles.progressFill,
+								{
+									backgroundColor: colors.onSurface,
+									width: progress * PROGRESS_BAR_WIDTH,
+								},
+							]}
+						/>
+					</View>
+					<Text
+						style={[styles.progressLabel, { color: colors.onSurfaceVariant }]}
+						numberOfLines={1}
+					>
+						{progressMessage}
+					</Text>
+				</View>
 			</View>
 		);
 	}
@@ -234,6 +295,23 @@ export function AnimatedSplash({
 					/>
 				</Animated.View>
 			</View>
+			<Animated.View style={[styles.progressSection, progressSectionStyle]}>
+				<View style={[styles.progressTrack, { backgroundColor: colors.surfaceVariant }]}>
+					<Animated.View
+						style={[
+							styles.progressFill,
+							{ backgroundColor: colors.onSurface },
+							progressFillStyle,
+						]}
+					/>
+				</View>
+				<Text
+					style={[styles.progressLabel, { color: colors.onSurfaceVariant }]}
+					numberOfLines={1}
+				>
+					{progressMessage}
+				</Text>
+			</Animated.View>
 		</Animated.View>
 	);
 }
@@ -262,6 +340,28 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		zIndex: 999999,
 		overflow: 'visible',
+	},
+	progressSection: {
+		position: 'absolute',
+		bottom: '28%',
+		left: 0,
+		right: 0,
+		alignItems: 'center',
+	},
+	progressTrack: {
+		width: PROGRESS_BAR_WIDTH,
+		height: 3,
+		borderRadius: 1.5,
+		overflow: 'hidden',
+	},
+	progressFill: {
+		height: 3,
+		borderRadius: 1.5,
+	},
+	progressLabel: {
+		marginTop: 8,
+		fontSize: 12,
+		fontFamily: FontFamily.regular,
 	},
 });
 
