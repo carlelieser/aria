@@ -64,14 +64,21 @@ const StyleCard = memo(function StyleCard({
 				{
 					borderColor: isSelected ? colors.primary : colors.outlineVariant,
 					borderWidth: isSelected ? 2 : 1,
-					backgroundColor: pressed ? colors.surfaceContainerHighest : colors.surfaceContainerLow,
+					backgroundColor: pressed
+						? colors.surfaceContainerHighest
+						: colors.surfaceContainerLow,
 				},
 			]}
 		>
-			<View style={[styles.previewContainer, {
-				marginTop: style === 'expressive-variant' ? 14 : 0,
-				marginBottom: style === 'expressive-variant' ? 14 : 0
-			}]}>
+			<View
+				style={[
+					styles.previewContainer,
+					{
+						marginTop: style === 'expressive-variant' ? 14 : 0,
+						marginBottom: style === 'expressive-variant' ? 14 : 0,
+					},
+				]}
+			>
 				<ProgressTrack
 					variant={style}
 					progress={PREVIEW_PROGRESS}

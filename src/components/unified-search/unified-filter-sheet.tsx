@@ -72,7 +72,12 @@ export function UnifiedFilterSheet({
 				onToggle: onToggleDownloaded,
 			},
 		],
-		[activeFilters.favoritesOnly, activeFilters.downloadedOnly, onToggleFavorites, onToggleDownloaded]
+		[
+			activeFilters.favoritesOnly,
+			activeFilters.downloadedOnly,
+			onToggleFavorites,
+			onToggleDownloaded,
+		]
 	);
 
 	const headerContent = useMemo(

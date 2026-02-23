@@ -133,12 +133,7 @@ export function useUnifiedSearch() {
 		}
 
 		return [...downloadedLibraryTracks, ...nonLibraryDownloads];
-	}, [
-		allTracks,
-		filterState.activeFilters.downloadedOnly,
-		downloadedIds,
-		downloadedTracksMap,
-	]);
+	}, [allTracks, filterState.activeFilters.downloadedOnly, downloadedIds, downloadedTracksMap]);
 
 	const libraryFiltersForSearch = useMemo(
 		() => ({
@@ -194,12 +189,7 @@ export function useUnifiedSearch() {
 
 	const libraryTracks = useMemo(() => {
 		if (!hasQuery) return [];
-		const filtered = filterTracks(
-			libraryBaseTracks,
-			query,
-			libraryFiltersForSearch,
-			favorites
-		);
+		const filtered = filterTracks(libraryBaseTracks, query, libraryFiltersForSearch, favorites);
 		return sortTracks(filtered, librarySortField, filterState.sortDirection);
 	}, [
 		libraryBaseTracks,

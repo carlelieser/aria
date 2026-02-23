@@ -107,7 +107,7 @@ function TabHeader({ currentTabId }: { readonly currentTabId: TabId }) {
 			<IconButton
 				icon={() => <Icon as={SettingsIcon} size={22} color={colors.onSurfaceVariant} />}
 				onPress={() => router.push('/settings')}
-				accessibilityLabel="Settings"
+				accessibilityLabel={'Settings'}
 			/>
 			<Text
 				variant={'headlineMedium'}
