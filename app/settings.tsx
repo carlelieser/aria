@@ -9,6 +9,7 @@ import { SettingsItem } from '@/src/components/settings/settings-item';
 import { SettingsSection } from '@/src/components/settings/settings-section';
 import { SettingsSelect } from '@/src/components/settings/settings-select';
 import { AccentColorPicker } from '@/src/components/settings/accent-color-picker';
+import { ProgressStylePicker } from '@/src/components/settings/progress-style-picker';
 import { TabOrderSetting } from '@/src/components/settings/tab-order-setting';
 import { EqualizerSheet } from '@/src/components/settings/equalizer-sheet';
 import { Switch } from 'react-native-paper';
@@ -27,13 +28,11 @@ import {
 	GithubIcon,
 	CameraIcon,
 	MonitorPlayIcon,
-	AudioWaveformIcon,
 	PaintbrushIcon,
 } from 'lucide-react-native';
 import {
 	THEME_OPTIONS,
 	DEFAULT_TAB_OPTIONS,
-	PROGRESS_BAR_OPTIONS,
 	PLAYER_BACKGROUND_OPTIONS,
 } from '@/lib/settings-config';
 import { useLibraryStore } from '@application/state/library-store';
@@ -204,18 +203,14 @@ export default function SettingsScreen() {
 				<SettingsSection title={'Player'}>
 					<SettingsItem
 						icon={MonitorPlayIcon}
-						title={'Open on track click'}
-						subtitle={'Automatically open player when a track is played'}
+						title={'Open player on tap'}
+						subtitle={'Automatically open the player when a track is tapped'}
 						rightElement={openPlayerSwitch}
 						onPress={() => setOpenPlayerOnTrackClick(!openPlayerOnTrackClick)}
 					/>
-					<SettingsSelect
-						icon={AudioWaveformIcon}
-						title={'Progress bar style'}
-						options={PROGRESS_BAR_OPTIONS}
+					<ProgressStylePicker
 						value={progressBarStyle}
 						onValueChange={setProgressBarStyle}
-						portalName={'progress-bar-style-select'}
 					/>
 					<SettingsSelect
 						icon={PaintbrushIcon}

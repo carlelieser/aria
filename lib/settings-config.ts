@@ -9,9 +9,6 @@ import {
 	MonitorSmartphoneIcon,
 	SunIcon,
 	MoonIcon,
-	AudioWaveformIcon,
-	BarChart3Icon,
-	MinusIcon,
 	ImageIcon,
 	PaletteIcon,
 	SwatchBookIcon,
@@ -21,7 +18,6 @@ import type {
 	ThemePreference,
 	DefaultTab,
 	LibraryTabId,
-	ProgressBarStyle,
 	PlayerBackground,
 } from '@/src/application/state/settings-store';
 
@@ -52,19 +48,12 @@ export const TAB_INDEX_MAP: Record<LibraryTabId, number> = {
 	playlists: 3,
 };
 
-export const PROGRESS_BAR_OPTIONS: { value: ProgressBarStyle; label: string; icon: LucideIcon }[] =
-	[
-		{ value: 'expressive', label: 'M3 Expressive', icon: AudioWaveformIcon },
-		{ value: 'expressive-variant', label: 'M3 Expressive Variant', icon: BarChart3Icon },
-		{ value: 'basic', label: 'Basic', icon: MinusIcon },
-	];
-
 export const PLAYER_BACKGROUND_OPTIONS: {
 	value: PlayerBackground;
 	label: string;
 	icon: LucideIcon;
 }[] = [
-	{ value: 'artwork-blur', label: 'Artwork Blur', icon: ImageIcon },
-	{ value: 'artwork-solid', label: 'Artwork Solid', icon: PaletteIcon },
-	{ value: 'theme-color', label: 'Theme Color', icon: SwatchBookIcon },
+	{ value: 'artwork-blur', label: 'Blurred', icon: ImageIcon },
+	{ value: 'artwork-solid', label: 'Solid', icon: PaletteIcon },
+	{ value: 'theme-color', label: 'Themed', icon: SwatchBookIcon },
 ];
