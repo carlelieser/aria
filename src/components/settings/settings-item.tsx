@@ -70,7 +70,7 @@ export const SettingsItem = memo(function SettingsItem({
 			onPress={onPress}
 			titleStyle={[styles.title, { color: textColor, includeFontPadding: false }]}
 			descriptionStyle={{ color: colors.onSurfaceVariant, includeFontPadding: false }}
-			descriptionNumberOfLines={1}
+			descriptionNumberOfLines={2}
 			style={styles.item}
 		/>
 	);

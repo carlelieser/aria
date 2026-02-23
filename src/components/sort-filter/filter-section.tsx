@@ -54,7 +54,6 @@ function FilterChipSection({
 			<ScrollView
 				horizontal
 				showsHorizontalScrollIndicator={false}
-				style={styles.scrollView}
 				contentContainerStyle={styles.chipContainer}
 			>
 				{items.map((item) => (
@@ -120,10 +119,6 @@ export function FilterSection({
 const styles = StyleSheet.create({
 	container: {
 		gap: 16,
-	},
-	scrollView: {
-		borderRadius: 12,
-		overflow: 'hidden',
 	},
 	toggleRow: {
 		flexDirection: 'row',

@@ -18,13 +18,28 @@ export type SearchContentType = 'all' | 'tracks' | 'albums' | 'artists';
 export type SearchSortField = 'relevance' | 'title' | 'artist' | 'duration';
 export type SearchSortDirection = 'asc' | 'desc';
 
+export type UnifiedSortField = 'relevance' | 'title' | 'artist' | 'dateAdded' | 'duration';
+
 export interface SearchFilters extends BaseFilters {
 	readonly contentType: SearchContentType;
+}
+
+export interface UnifiedSearchFilters extends BaseFilters {
+	readonly contentType: SearchContentType;
+	readonly downloadedOnly: boolean;
 }
 
 export const DEFAULT_SEARCH_FILTERS: SearchFilters = {
 	contentType: 'all',
 	favoritesOnly: false,
+	artistIds: [],
+	albumIds: [],
+};
+
+export const DEFAULT_UNIFIED_FILTERS: UnifiedSearchFilters = {
+	contentType: 'all',
+	favoritesOnly: false,
+	downloadedOnly: false,
 	artistIds: [],
 	albumIds: [],
 };
@@ -94,6 +109,21 @@ export function hasActiveSearchFilters(filters: SearchFilters): boolean {
 export function countActiveSearchFilters(filters: SearchFilters): number {
 	let count = countBaseActiveFilters(filters);
 	if (filters.contentType !== 'all') count += 1;
+	return count;
+}
+
+export function hasActiveUnifiedFilters(filters: UnifiedSearchFilters): boolean {
+	return (
+		filters.contentType !== 'all' ||
+		filters.downloadedOnly ||
+		hasBaseActiveFilters(filters)
+	);
+}
+
+export function countActiveUnifiedFilters(filters: UnifiedSearchFilters): number {
+	let count = countBaseActiveFilters(filters);
+	if (filters.contentType !== 'all') count += 1;
+	if (filters.downloadedOnly) count += 1;
 	return count;
 }
 

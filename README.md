@@ -35,7 +35,7 @@ Get the latest release from the [Releases](https://github.com/carlelieser/aria/r
   <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20260223-022000.png" width="13%" />
   <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20260223-022351.png" width="13%" />
   <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20260223-022118.png" width="13%" />
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20260223-022133.png" width="13%" />
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20260223-025501.png" width="13%" />
   <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20260223-022202.png" width="13%" />
   <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20260223-022232.png" width="13%" />
   <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20260223-022305.png" width="13%" />

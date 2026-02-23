@@ -1,45 +1,42 @@
 /**
- * Explore Filter Store
+ * Search Filter Store
  *
- * Zustand store for managing explore screen filter and sort state.
+ * Unified Zustand store for managing search screen filter and sort state.
+ * Replaces the separate library/explore filter stores for the search context.
  */
 
 import { create } from 'zustand';
 import {
-	type SearchSortField,
+	type UnifiedSortField,
 	type SearchSortDirection,
-	type SearchFilters,
+	type UnifiedSearchFilters,
 	type SearchContentType,
-	DEFAULT_SEARCH_FILTERS,
+	DEFAULT_UNIFIED_FILTERS,
 } from '../../domain/utils/search-filtering';
 import { toggleIdInArray } from './create-filter-store';
 
-interface ExploreFilterState {
-	sortField: SearchSortField;
+interface SearchFilterState {
+	sortField: UnifiedSortField;
 	sortDirection: SearchSortDirection;
-	activeFilters: SearchFilters;
-	isFilterSheetOpen: boolean;
+	activeFilters: UnifiedSearchFilters;
 
-	setSortField: (field: SearchSortField) => void;
-	setSortDirection: (direction: SearchSortDirection) => void;
+	setSortField: (field: UnifiedSortField) => void;
 	toggleSortDirection: () => void;
 	setContentType: (type: SearchContentType) => void;
 	toggleArtistFilter: (artistId: string) => void;
 	toggleAlbumFilter: (albumId: string) => void;
 	toggleFavoritesOnly: () => void;
-	clearFilters: () => void;
+	toggleDownloadedOnly: () => void;
 	clearAll: () => void;
-	setFilterSheetOpen: (isOpen: boolean) => void;
 }
 
-export const useExploreFilterStore = create<ExploreFilterState>()((set) => ({
+export const useSearchFilterStore = create<SearchFilterState>()((set) => ({
 	sortField: 'relevance',
 	sortDirection: 'desc',
-	activeFilters: DEFAULT_SEARCH_FILTERS,
-	isFilterSheetOpen: false,
+	activeFilters: DEFAULT_UNIFIED_FILTERS,
 
 	setSortField: (field) => set({ sortField: field }),
-	setSortDirection: (direction) => set({ sortDirection: direction }),
+
 	toggleSortDirection: () =>
 		set((state) => ({ sortDirection: state.sortDirection === 'asc' ? 'desc' : 'asc' })),
 
@@ -70,22 +67,18 @@ export const useExploreFilterStore = create<ExploreFilterState>()((set) => ({
 			},
 		})),
 
-	clearFilters: () => set({ activeFilters: DEFAULT_SEARCH_FILTERS }),
+	toggleDownloadedOnly: () =>
+		set((state) => ({
+			activeFilters: {
+				...state.activeFilters,
+				downloadedOnly: !state.activeFilters.downloadedOnly,
+			},
+		})),
+
 	clearAll: () =>
 		set({
 			sortField: 'relevance',
 			sortDirection: 'desc',
-			activeFilters: DEFAULT_SEARCH_FILTERS,
+			activeFilters: DEFAULT_UNIFIED_FILTERS,
 		}),
-
-	setFilterSheetOpen: (isOpen) => set({ isFilterSheetOpen: isOpen }),
 }));
-
-export const useExploreSortField = () => useExploreFilterStore((state) => state.sortField);
-
-export const useExploreSortDirection = () => useExploreFilterStore((state) => state.sortDirection);
-
-export const useExploreActiveFilters = () => useExploreFilterStore((state) => state.activeFilters);
-
-export const useExploreFilterSheetOpen = () =>
-	useExploreFilterStore((state) => state.isFilterSheetOpen);

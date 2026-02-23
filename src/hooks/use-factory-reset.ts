@@ -3,7 +3,7 @@ import { useLibraryStore } from '@/src/application/state/library-store';
 import { useDownloadStore } from '@/src/application/state/download-store';
 import { useHistoryStore } from '@/src/application/state/history-store';
 import { useSearchStore } from '@/src/application/state/search-store';
-import { useExploreFilterStore } from '@/src/application/state/explore-filter-store';
+import { useSearchFilterStore } from '@/src/application/state/search-filter-store';
 import { useEqualizerStore } from '@/src/application/state/equalizer-store';
 import { useSettingsStore } from '@/src/application/state/settings-store';
 import { clearAllDownloads } from '@/src/infrastructure/filesystem/download-manager';
@@ -19,7 +19,7 @@ export function useFactoryReset() {
 		useHistoryStore.getState().clearHistory();
 		useSearchStore.getState().clearResults();
 		useSearchStore.getState().clearRecentSearches();
-		useExploreFilterStore.getState().clearAll();
+		useSearchFilterStore.getState().clearAll();
 		useEqualizerStore.getState().resetEqualizer();
 		useSettingsStore.getState().resetAllSettings();
 

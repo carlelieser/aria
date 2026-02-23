@@ -109,8 +109,7 @@ export default function SearchScreen() {
 		exploreArtists,
 		hasFilters,
 		filterCount,
-		libraryFilterState,
-		exploreFilterState,
+		filterState,
 	} = useUnifiedSearch();
 
 	const {
@@ -571,34 +570,19 @@ export default function SearchScreen() {
 			<UnifiedFilterSheet
 				isOpen={isFilterSheetOpen}
 				onClose={handleCloseFilterSheet}
-				libraryProps={{
-					sortField: libraryFilterState.sortField,
-					sortDirection: libraryFilterState.sortDirection,
-					activeFilters: libraryFilterState.activeFilters,
-					artists: libraryFilterState.artists,
-					albums: libraryFilterState.albums,
-					onSortFieldChange: libraryFilterState.setSortField,
-					onToggleSortDirection: libraryFilterState.toggleSortDirection,
-					onToggleArtist: libraryFilterState.toggleArtistFilter,
-					onToggleAlbum: libraryFilterState.toggleAlbumFilter,
-					onToggleFavorites: libraryFilterState.toggleFavoritesOnly,
-					onToggleDownloaded: libraryFilterState.toggleDownloadedOnly,
-					onClearAll: libraryFilterState.clearAll,
-				}}
-				exploreProps={{
-					sortField: exploreFilterState.sortField,
-					sortDirection: exploreFilterState.sortDirection,
-					activeFilters: exploreFilterState.activeFilters,
-					artists: exploreFilterState.artists,
-					albums: exploreFilterState.albums,
-					onSortFieldChange: exploreFilterState.setSortField,
-					onToggleSortDirection: exploreFilterState.toggleSortDirection,
-					onContentTypeChange: exploreFilterState.setContentType,
-					onToggleArtist: exploreFilterState.toggleArtistFilter,
-					onToggleAlbum: exploreFilterState.toggleAlbumFilter,
-					onToggleFavorites: exploreFilterState.toggleFavoritesOnly,
-					onClearAll: exploreFilterState.clearAll,
-				}}
+				sortField={filterState.sortField}
+				sortDirection={filterState.sortDirection}
+				activeFilters={filterState.activeFilters}
+				artists={filterState.artists}
+				albums={filterState.albums}
+				onSortFieldChange={filterState.setSortField}
+				onToggleSortDirection={filterState.toggleSortDirection}
+				onContentTypeChange={filterState.setContentType}
+				onToggleArtist={filterState.toggleArtistFilter}
+				onToggleAlbum={filterState.toggleAlbumFilter}
+				onToggleFavorites={filterState.toggleFavoritesOnly}
+				onToggleDownloaded={filterState.toggleDownloadedOnly}
+				onClearAll={filterState.clearAll}
 			/>
 
 			{selectionSource === 'library' ? (

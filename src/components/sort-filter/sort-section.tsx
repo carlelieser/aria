@@ -12,7 +12,7 @@ import { Icon } from '@/src/components/ui/icon';
 import { Check, ArrowUp, ArrowDown } from 'lucide-react-native';
 import { useAppTheme } from '@/lib/theme';
 import type { SortField } from '@/src/domain/utils/track-filtering';
-import type { SearchSortField } from '@/src/domain/utils/search-filtering';
+import type { SearchSortField, UnifiedSortField } from '@/src/domain/utils/search-filtering';
 
 interface SortOption<T extends string> {
 	readonly field: T;
@@ -38,6 +38,14 @@ export const EXPLORE_SORT_OPTIONS: readonly SortOption<SearchSortField>[] = [
 	{ field: 'relevance', label: 'Relevance' },
 	{ field: 'title', label: 'Title' },
 	{ field: 'artist', label: 'Artist' },
+	{ field: 'duration', label: 'Duration' },
+] as const;
+
+export const UNIFIED_SORT_OPTIONS: readonly SortOption<UnifiedSortField>[] = [
+	{ field: 'relevance', label: 'Relevance' },
+	{ field: 'title', label: 'Title' },
+	{ field: 'artist', label: 'Artist' },
+	{ field: 'dateAdded', label: 'Date Added' },
 	{ field: 'duration', label: 'Duration' },
 ] as const;
 

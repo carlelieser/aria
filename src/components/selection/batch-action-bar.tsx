@@ -154,7 +154,7 @@ export const BatchActionBar = memo(function BatchActionBar(props: BatchActionBar
 			exiting={FadeOutDown.duration(200)}
 			elevation={4}
 			mode={'flat'}
-			style={[styles.container, { paddingBottom: Math.max(insets.bottom, 16) }]}
+			style={[styles.container]}
 		>
 			<View style={styles.header}>
 				<Pressable style={styles.cancelButton} onPress={onCancel} hitSlop={8}>

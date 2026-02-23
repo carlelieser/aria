@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 	},
 	fab: {
 		elevation: 4,
-		bottom: 24,
+		bottom: 0,
 	},
 	badge: {
 		position: 'absolute',

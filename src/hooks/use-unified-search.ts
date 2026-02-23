@@ -4,25 +4,19 @@ import { useSearchStore } from '@/src/application/state/search-store';
 import { searchService } from '@/src/application/services/search-service';
 import { useFavorites, usePlaylists } from '@/src/application/state/library-store';
 import { useDownloadedTracks } from '@/src/application/state/download-store';
-import { useLibraryFilterStore } from '@/src/application/state/library-filter-store';
-import { useExploreFilterStore } from '@/src/application/state/explore-filter-store';
+import { useSearchFilterStore } from '@/src/application/state/search-filter-store';
 import {
 	useAggregatedTracks,
 	useAggregatedArtists,
 	useAggregatedAlbums,
 } from './use-aggregated-library';
 import { useResolvedTracks } from './use-resolved-track';
-import {
-	filterTracks,
-	sortTracks,
-	hasActiveFilters as hasLibraryActiveFilters,
-	countActiveFilters as countLibraryActiveFilters,
-} from '@/src/domain/utils/track-filtering';
+import { filterTracks, sortTracks } from '@/src/domain/utils/track-filtering';
 import {
 	filterSearchResults,
 	sortSearchResults,
-	hasActiveSearchFilters,
-	countActiveSearchFilters,
+	hasActiveUnifiedFilters,
+	countActiveUnifiedFilters,
 	createRelevanceOrderMap,
 } from '@/src/domain/utils/search-filtering';
 import {
@@ -31,8 +25,42 @@ import {
 } from '@/src/domain/utils/core-filtering';
 import { filterPlaylists, filterAlbums, filterArtists } from '@/src/domain/utils/library-filtering';
 import { createTrackFromDownloadedMetadata } from '@/src/domain/utils/create-track-from-download';
+import type { SortField } from '@/src/domain/utils/track-filtering';
+import type { SearchSortField } from '@/src/domain/utils/search-filtering';
 
 const DEBOUNCE_MS = 300;
+
+/**
+ * Maps a UnifiedSortField to a library SortField.
+ * 'relevance' has no local signal, so it falls back to 'dateAdded'.
+ */
+function toLibrarySortField(field: string): SortField {
+	switch (field) {
+		case 'title':
+		case 'artist':
+		case 'dateAdded':
+		case 'duration':
+			return field;
+		default:
+			return 'dateAdded';
+	}
+}
+
+/**
+ * Maps a UnifiedSortField to an explore SearchSortField.
+ * 'dateAdded' has no remote signal, so it falls back to 'relevance'.
+ */
+function toExploreSortField(field: string): SearchSortField {
+	switch (field) {
+		case 'relevance':
+		case 'title':
+		case 'artist':
+		case 'duration':
+			return field;
+		default:
+			return 'relevance';
+	}
+}
 
 export function useUnifiedSearch() {
 	const [localQuery, setLocalQuery] = useState('');
@@ -50,22 +78,7 @@ export function useUnifiedSearch() {
 	const isSearching = useSearchStore((s) => s.isSearching);
 	const searchError = useSearchStore((s) => s.error);
 
-	const libraryFilterState = useLibraryFilterStore(
-		useShallow((s) => ({
-			sortField: s.sortField,
-			sortDirection: s.sortDirection,
-			activeFilters: s.activeFilters,
-			setSortField: s.setSortField,
-			toggleSortDirection: s.toggleSortDirection,
-			toggleArtistFilter: s.toggleArtistFilter,
-			toggleAlbumFilter: s.toggleAlbumFilter,
-			toggleFavoritesOnly: s.toggleFavoritesOnly,
-			toggleDownloadedOnly: s.toggleDownloadedOnly,
-			clearAll: s.clearAll,
-		}))
-	);
-
-	const exploreFilterState = useExploreFilterStore(
+	const filterState = useSearchFilterStore(
 		useShallow((s) => ({
 			sortField: s.sortField,
 			sortDirection: s.sortDirection,
@@ -76,9 +89,13 @@ export function useUnifiedSearch() {
 			toggleArtistFilter: s.toggleArtistFilter,
 			toggleAlbumFilter: s.toggleAlbumFilter,
 			toggleFavoritesOnly: s.toggleFavoritesOnly,
+			toggleDownloadedOnly: s.toggleDownloadedOnly,
 			clearAll: s.clearAll,
 		}))
 	);
+
+	const librarySortField = toLibrarySortField(filterState.sortField);
+	const exploreSortField = toExploreSortField(filterState.sortField);
 
 	useEffect(() => {
 		relevanceOrderRef.current = createRelevanceOrderMap(searchResults.tracks);
@@ -101,7 +118,7 @@ export function useUnifiedSearch() {
 	}, [downloadedTracksMap]);
 
 	const libraryBaseTracks = useMemo(() => {
-		if (!libraryFilterState.activeFilters.downloadedOnly) {
+		if (!filterState.activeFilters.downloadedOnly) {
 			return allTracks;
 		}
 
@@ -118,14 +135,19 @@ export function useUnifiedSearch() {
 		return [...downloadedLibraryTracks, ...nonLibraryDownloads];
 	}, [
 		allTracks,
-		libraryFilterState.activeFilters.downloadedOnly,
+		filterState.activeFilters.downloadedOnly,
 		downloadedIds,
 		downloadedTracksMap,
 	]);
 
-	const filtersWithoutDownloaded = useMemo(
-		() => ({ ...libraryFilterState.activeFilters, downloadedOnly: false }),
-		[libraryFilterState.activeFilters]
+	const libraryFiltersForSearch = useMemo(
+		() => ({
+			favoritesOnly: filterState.activeFilters.favoritesOnly,
+			artistIds: filterState.activeFilters.artistIds,
+			albumIds: filterState.activeFilters.albumIds,
+			downloadedOnly: false,
+		}),
+		[filterState.activeFilters]
 	);
 
 	const matchingDownloadIds = useMemo(() => {
@@ -175,18 +197,18 @@ export function useUnifiedSearch() {
 		const filtered = filterTracks(
 			libraryBaseTracks,
 			query,
-			filtersWithoutDownloaded,
+			libraryFiltersForSearch,
 			favorites
 		);
-		return sortTracks(filtered, libraryFilterState.sortField, libraryFilterState.sortDirection);
+		return sortTracks(filtered, librarySortField, filterState.sortDirection);
 	}, [
 		libraryBaseTracks,
 		query,
 		hasQuery,
-		filtersWithoutDownloaded,
+		libraryFiltersForSearch,
 		favorites,
-		libraryFilterState.sortField,
-		libraryFilterState.sortDirection,
+		librarySortField,
+		filterState.sortDirection,
 	]);
 
 	const libraryPlaylists = useMemo(() => {
@@ -204,79 +226,95 @@ export function useUnifiedSearch() {
 		return filterArtists(allArtists, query);
 	}, [allArtists, query, hasQuery]);
 
+	const exploreSearchFilters = useMemo(
+		() => ({
+			contentType: filterState.activeFilters.contentType,
+			favoritesOnly: filterState.activeFilters.favoritesOnly,
+			artistIds: filterState.activeFilters.artistIds,
+			albumIds: filterState.activeFilters.albumIds,
+		}),
+		[filterState.activeFilters]
+	);
+
 	const exploreFilteredTracks = useMemo(() => {
-		return filterSearchResults(
-			searchResults.tracks,
-			exploreFilterState.activeFilters,
-			favorites
-		);
-	}, [searchResults.tracks, exploreFilterState.activeFilters, favorites]);
+		return filterSearchResults(searchResults.tracks, exploreSearchFilters, favorites);
+	}, [searchResults.tracks, exploreSearchFilters, favorites]);
 
 	const exploreTracks = useMemo(() => {
-		const contentType = exploreFilterState.activeFilters.contentType;
+		const contentType = filterState.activeFilters.contentType;
 		if (contentType === 'albums' || contentType === 'artists') {
 			return [];
 		}
 		return sortSearchResults(
 			exploreFilteredTracks,
-			exploreFilterState.sortField,
-			exploreFilterState.sortDirection,
+			exploreSortField,
+			filterState.sortDirection,
 			relevanceOrderRef.current
 		);
 	}, [
 		exploreFilteredTracks,
-		exploreFilterState.sortField,
-		exploreFilterState.sortDirection,
-		exploreFilterState.activeFilters.contentType,
+		exploreSortField,
+		filterState.sortDirection,
+		filterState.activeFilters.contentType,
 	]);
 
 	const exploreAlbums = useMemo(() => {
-		const contentType = exploreFilterState.activeFilters.contentType;
+		const contentType = filterState.activeFilters.contentType;
 		if (contentType === 'tracks' || contentType === 'artists') {
 			return [];
 		}
 		return searchResults.albums;
-	}, [searchResults.albums, exploreFilterState.activeFilters.contentType]);
+	}, [searchResults.albums, filterState.activeFilters.contentType]);
 
 	const exploreArtists = useMemo(() => {
-		const contentType = exploreFilterState.activeFilters.contentType;
+		const contentType = filterState.activeFilters.contentType;
 		if (contentType === 'tracks' || contentType === 'albums') {
 			return [];
 		}
 		return searchResults.artists;
-	}, [searchResults.artists, exploreFilterState.activeFilters.contentType]);
+	}, [searchResults.artists, filterState.activeFilters.contentType]);
 
-	const libraryFilterArtists = useMemo(() => {
+	const mergedFilterArtists = useMemo(() => {
 		const artistMap = new Map<string, { id: string; name: string }>();
-		libraryBaseTracks.forEach((track) => {
-			track.artists.forEach((artist) => {
+
+		for (const track of libraryBaseTracks) {
+			for (const artist of track.artists) {
 				if (!artistMap.has(artist.id)) {
 					artistMap.set(artist.id, { id: artist.id, name: artist.name });
 				}
-			});
-		});
-		return Array.from(artistMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-	}, [libraryBaseTracks]);
+			}
+		}
 
-	const libraryFilterAlbums = useMemo(() => {
+		const exploreArtistRefs = extractUniqueArtistsFromItems(searchResults.tracks);
+		for (const artist of exploreArtistRefs) {
+			if (!artistMap.has(artist.id)) {
+				artistMap.set(artist.id, { id: artist.id, name: artist.name });
+			}
+		}
+
+		return Array.from(artistMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+	}, [libraryBaseTracks, searchResults.tracks]);
+
+	const mergedFilterAlbums = useMemo(() => {
 		const albumMap = new Map<string, { id: string; name: string }>();
-		libraryBaseTracks.forEach((track) => {
+
+		for (const track of libraryBaseTracks) {
 			if (track.album) {
 				if (!albumMap.has(track.album.id)) {
 					albumMap.set(track.album.id, { id: track.album.id, name: track.album.name });
 				}
 			}
-		});
+		}
+
+		const exploreAlbumRefs = extractUniqueAlbumsFromItems(searchResults.tracks);
+		for (const album of exploreAlbumRefs) {
+			if (!albumMap.has(album.id)) {
+				albumMap.set(album.id, { id: album.id, name: album.name });
+			}
+		}
+
 		return Array.from(albumMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-	}, [libraryBaseTracks]);
-
-	const exploreFilterArtists = useMemo(() => {
-		return extractUniqueArtistsFromItems(searchResults.tracks);
-	}, [searchResults.tracks]);
-
-	const exploreFilterAlbums = useMemo(() => {
-		return extractUniqueAlbumsFromItems(searchResults.tracks);
-	}, [searchResults.tracks]);
+	}, [libraryBaseTracks, searchResults.tracks]);
 
 	const search = useCallback((newQuery: string) => {
 		setLocalQuery(newQuery);
@@ -319,13 +357,8 @@ export function useUnifiedSearch() {
 
 	const hasAnyResults = hasLibraryResults || hasExploreResults || hasDownloadsResults;
 
-	const hasLibraryFilters = hasLibraryActiveFilters(libraryFilterState.activeFilters);
-	const hasExploreFilters = hasActiveSearchFilters(exploreFilterState.activeFilters);
-	const hasFilters = hasLibraryFilters || hasExploreFilters;
-
-	const libraryFilterCount = countLibraryActiveFilters(libraryFilterState.activeFilters);
-	const exploreFilterCount = countActiveSearchFilters(exploreFilterState.activeFilters);
-	const filterCount = libraryFilterCount + exploreFilterCount;
+	const hasFilters = hasActiveUnifiedFilters(filterState.activeFilters);
+	const filterCount = countActiveUnifiedFilters(filterState.activeFilters);
 
 	return {
 		query: localQuery,
@@ -353,40 +386,22 @@ export function useUnifiedSearch() {
 		exploreArtists,
 
 		hasFilters,
-		hasLibraryFilters,
-		hasExploreFilters,
 		filterCount,
-		libraryFilterCount,
-		exploreFilterCount,
 
-		libraryFilterState: {
-			sortField: libraryFilterState.sortField,
-			sortDirection: libraryFilterState.sortDirection,
-			activeFilters: libraryFilterState.activeFilters,
-			artists: libraryFilterArtists,
-			albums: libraryFilterAlbums,
-			setSortField: libraryFilterState.setSortField,
-			toggleSortDirection: libraryFilterState.toggleSortDirection,
-			toggleArtistFilter: libraryFilterState.toggleArtistFilter,
-			toggleAlbumFilter: libraryFilterState.toggleAlbumFilter,
-			toggleFavoritesOnly: libraryFilterState.toggleFavoritesOnly,
-			toggleDownloadedOnly: libraryFilterState.toggleDownloadedOnly,
-			clearAll: libraryFilterState.clearAll,
-		},
-
-		exploreFilterState: {
-			sortField: exploreFilterState.sortField,
-			sortDirection: exploreFilterState.sortDirection,
-			activeFilters: exploreFilterState.activeFilters,
-			artists: exploreFilterArtists,
-			albums: exploreFilterAlbums,
-			setSortField: exploreFilterState.setSortField,
-			toggleSortDirection: exploreFilterState.toggleSortDirection,
-			setContentType: exploreFilterState.setContentType,
-			toggleArtistFilter: exploreFilterState.toggleArtistFilter,
-			toggleAlbumFilter: exploreFilterState.toggleAlbumFilter,
-			toggleFavoritesOnly: exploreFilterState.toggleFavoritesOnly,
-			clearAll: exploreFilterState.clearAll,
+		filterState: {
+			sortField: filterState.sortField,
+			sortDirection: filterState.sortDirection,
+			activeFilters: filterState.activeFilters,
+			artists: mergedFilterArtists,
+			albums: mergedFilterAlbums,
+			setSortField: filterState.setSortField,
+			toggleSortDirection: filterState.toggleSortDirection,
+			setContentType: filterState.setContentType,
+			toggleArtistFilter: filterState.toggleArtistFilter,
+			toggleAlbumFilter: filterState.toggleAlbumFilter,
+			toggleFavoritesOnly: filterState.toggleFavoritesOnly,
+			toggleDownloadedOnly: filterState.toggleDownloadedOnly,
+			clearAll: filterState.clearAll,
 		},
 	};
 }
