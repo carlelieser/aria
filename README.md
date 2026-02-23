@@ -32,11 +32,13 @@ Get the latest release from the [Releases](https://github.com/carlelieser/aria/r
 ## Screenshots
 
 <p align="center">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/01_feed.png" width="19%" />
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/02_library_songs.png" width="19%" />
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/08_player.png" width="19%" />
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/01_feed_dark.png" width="19%" />
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/08_player_dark.png" width="19%" />
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20260223-022000.png" width="13%" />
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20260223-022351.png" width="13%" />
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20260223-022118.png" width="13%" />
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20260223-022133.png" width="13%" />
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20260223-022202.png" width="13%" />
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20260223-022232.png" width="13%" />
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_20260223-022305.png" width="13%" />
 </p>
 
 ## Setup
