@@ -65,21 +65,21 @@ fastlane/metadata/android/en-US/images/phoneScreenshots/
 
 ### Generated Files
 
-| File                       | Screen                  |
-| -------------------------- | ----------------------- |
-| `01_feed.png`              | Feed (landing screen)   |
-| `02_library_songs.png`     | Library - Songs tab     |
-| `03_library_albums.png`    | Library - Albums tab    |
-| `04_library_artists.png`   | Library - Artists tab   |
-| `05_library_playlists.png` | Library - Playlists tab |
-| `06_playlist_detail.png`   | Playlist detail view    |
-| `07_downloads.png`         | Downloads screen        |
-| `08_player.png`            | Full-screen player      |
-| `09_album_detail.png`      | Album detail view       |
-| `10_artist_detail.png`     | Artist detail view      |
-| `11_settings.png`          | Settings screen         |
+Dark mode variants have `_dark` suffix.
 
-Dark mode variants have `_dark` suffix (e.g., `01_feed_dark.png`).
+| Light | Dark | Screen |
+|-------|------|--------|
+| ![Feed](../../fastlane/metadata/android/en-US/images/phoneScreenshots/01_feed.png) | ![Feed Dark](../../fastlane/metadata/android/en-US/images/phoneScreenshots/01_feed_dark.png) | Feed (landing screen) |
+| ![Library Songs](../../fastlane/metadata/android/en-US/images/phoneScreenshots/02_library_songs.png) | ![Library Songs Dark](../../fastlane/metadata/android/en-US/images/phoneScreenshots/02_library_songs_dark.png) | Library - Songs tab |
+| ![Library Albums](../../fastlane/metadata/android/en-US/images/phoneScreenshots/03_library_albums.png) | ![Library Albums Dark](../../fastlane/metadata/android/en-US/images/phoneScreenshots/03_library_albums_dark.png) | Library - Albums tab |
+| ![Library Artists](../../fastlane/metadata/android/en-US/images/phoneScreenshots/04_library_artists.png) | ![Library Artists Dark](../../fastlane/metadata/android/en-US/images/phoneScreenshots/04_library_artists_dark.png) | Library - Artists tab |
+| ![Library Playlists](../../fastlane/metadata/android/en-US/images/phoneScreenshots/05_library_playlists.png) | ![Library Playlists Dark](../../fastlane/metadata/android/en-US/images/phoneScreenshots/05_library_playlists_dark.png) | Library - Playlists tab |
+| ![Playlist Detail](../../fastlane/metadata/android/en-US/images/phoneScreenshots/06_playlist_detail.png) | ![Playlist Detail Dark](../../fastlane/metadata/android/en-US/images/phoneScreenshots/06_playlist_detail_dark.png) | Playlist detail view |
+| ![Downloads](../../fastlane/metadata/android/en-US/images/phoneScreenshots/07_downloads.png) | ![Downloads Dark](../../fastlane/metadata/android/en-US/images/phoneScreenshots/07_downloads_dark.png) | Downloads screen |
+| ![Player](../../fastlane/metadata/android/en-US/images/phoneScreenshots/08_player.png) | ![Player Dark](../../fastlane/metadata/android/en-US/images/phoneScreenshots/08_player_dark.png) | Full-screen player |
+| ![Album Detail](../../fastlane/metadata/android/en-US/images/phoneScreenshots/09_album_detail.png) | ![Album Detail Dark](../../fastlane/metadata/android/en-US/images/phoneScreenshots/09_album_detail_dark.png) | Album detail view |
+| ![Artist Detail](../../fastlane/metadata/android/en-US/images/phoneScreenshots/10_artist_detail.png) | ![Artist Detail Dark](../../fastlane/metadata/android/en-US/images/phoneScreenshots/10_artist_detail_dark.png) | Artist detail view |
+| ![Settings](../../fastlane/metadata/android/en-US/images/phoneScreenshots/11_settings.png) | ![Settings Dark](../../fastlane/metadata/android/en-US/images/phoneScreenshots/11_settings_dark.png) | Settings screen |
 
 ## How It Works
 
