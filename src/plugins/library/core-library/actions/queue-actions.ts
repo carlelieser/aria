@@ -33,10 +33,8 @@ export async function executeQueueAction(
 	switch (actionId) {
 		case CORE_ACTION_IDS.PLAY_NEXT: {
 			const store = usePlayerStore.getState();
-			const currentQueue = [...store.queue];
 			const insertIndex = store.queueIndex + 1;
-			currentQueue.splice(insertIndex, 0, track);
-			store.setQueue(currentQueue, store.queueIndex);
+			store.insertIntoQueue(track, insertIndex);
 			return {
 				handled: true,
 				success: true,
@@ -45,9 +43,7 @@ export async function executeQueueAction(
 		}
 
 		case CORE_ACTION_IDS.ADD_TO_QUEUE: {
-			const store = usePlayerStore.getState();
-			const currentQueue = store.queue;
-			store.setQueue([...currentQueue, track], store.queueIndex);
+			usePlayerStore.getState().appendToQueue(track);
 			return {
 				handled: true,
 				success: true,
