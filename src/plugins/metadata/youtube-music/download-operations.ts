@@ -14,6 +14,7 @@ export const DOWNLOAD_TIMEOUT_MS = 60000; // 60 seconds timeout for downloads
 export interface DownloadOptions {
 	readonly url: string;
 	readonly videoId: string;
+	readonly format?: string;
 	readonly headers?: Record<string, string>;
 	readonly cookies?: string;
 	readonly expectedSize?: number;
@@ -76,10 +77,10 @@ function isSuccessfulDownload(status: number): boolean {
 }
 
 export async function downloadToCache(options: DownloadOptions): Promise<string | null> {
-	const { url, videoId, headers, cookies, expectedSize } = options;
+	const { url, videoId, format, headers, cookies, expectedSize } = options;
 
 	await ensureCacheDirectory();
-	const cachedFilePath = getCachedFilePath(videoId);
+	const cachedFilePath = getCachedFilePath(videoId, format);
 
 	const finalHeaders = buildDownloadHeaders(headers, cookies, expectedSize);
 

@@ -1,8 +1,10 @@
-import type { Track } from '@domain/entities/track';
 import type { FeedSection, FeedFilterChip } from '@domain/entities/feed-section';
 import type { Result } from '@shared/types/result';
 import { err } from '@shared/types/result';
-import type { HomeFeedOperations } from '@plugins/core/interfaces/home-feed-provider';
+import type {
+	HomeFeedOperations,
+	PlaylistTracksPage,
+} from '@plugins/core/interfaces/home-feed-provider';
 import { useHomeFeedStore } from '../state/home-feed-store';
 import { getLogger } from '@shared/services/logger';
 
@@ -61,40 +63,37 @@ export class HomeFeedService {
 		await this._readyPromise;
 		if (this._providers.size === 0) return;
 
-		const store = useHomeFeedStore.getState();
+		const { lastFetchedAt } = useHomeFeedStore.getState();
 
-		if (!force && store.lastFetchedAt) {
-			const elapsed = Date.now() - store.lastFetchedAt;
+		if (!force && lastFetchedAt) {
+			const elapsed = Date.now() - lastFetchedAt;
 			if (elapsed < STALENESS_THRESHOLD_MS) {
 				logger.debug('Home feed data is fresh, skipping fetch');
 				return;
 			}
 		}
 
-		store.setLoading(true);
-		store.setError(null);
+		useHomeFeedStore.setState({ isLoading: true, error: null });
 
 		await this._fetchAllProviders();
 
-		store.setLoading(false);
+		useHomeFeedStore.setState({ isLoading: false });
 	}
 
 	async refresh(): Promise<void> {
 		if (this._providers.size === 0) return;
 
-		const store = useHomeFeedStore.getState();
-		store.setRefreshing(true);
+		useHomeFeedStore.setState({ isRefreshing: true });
 
 		await this._fetchAllProviders();
 
-		store.setRefreshing(false);
+		useHomeFeedStore.setState({ isRefreshing: false });
 	}
 
 	async applyFilter(chipText: string, chipIndex: number): Promise<void> {
 		if (this._providers.size === 0) return;
 
-		const store = useHomeFeedStore.getState();
-		store.setLoading(true);
+		useHomeFeedStore.setState({ isLoading: true });
 
 		const results = await Promise.allSettled(
 			Array.from(this._providers.entries())
@@ -120,15 +119,13 @@ export class HomeFeedService {
 		}
 
 		this._pushMergedState();
-		store.setActiveFilterIndex(chipIndex);
-		store.setLoading(false);
+		useHomeFeedStore.setState({ activeFilterIndex: chipIndex, isLoading: false });
 	}
 
 	async loadMore(): Promise<void> {
 		if (this._providers.size === 0) return;
 
-		const store = useHomeFeedStore.getState();
-		if (store.isLoadingMore) return;
+		if (useHomeFeedStore.getState().isLoadingMore) return;
 
 		const providersWithMore = Array.from(this._providers.entries()).filter(
 			([, state]) => state.hasContinuation
@@ -136,7 +133,7 @@ export class HomeFeedService {
 
 		if (providersWithMore.length === 0) return;
 
-		store.setLoadingMore(true);
+		useHomeFeedStore.setState({ isLoadingMore: true });
 
 		const results = await Promise.allSettled(
 			providersWithMore.map(async ([id, state]) => {
@@ -160,10 +157,10 @@ export class HomeFeedService {
 		}
 
 		this._pushMergedState();
-		store.setLoadingMore(false);
+		useHomeFeedStore.setState({ isLoadingMore: false });
 	}
 
-	async getPlaylistTracks(playlistId: string): Promise<Result<Track[], Error>> {
+	async getPlaylistTracks(playlistId: string): Promise<Result<PlaylistTracksPage, Error>> {
 		await this._readyPromise;
 
 		for (const [id, state] of this._providers) {
@@ -173,6 +170,18 @@ export class HomeFeedService {
 		}
 
 		return err(new Error('No provider could fetch tracks for this playlist'));
+	}
+
+	async loadMorePlaylistTracks(): Promise<Result<PlaylistTracksPage, Error>> {
+		await this._readyPromise;
+
+		for (const [id, state] of this._providers) {
+			const result = await state.operations.loadMorePlaylistTracks();
+			if (result.success) return result;
+			logger.debug(`Provider ${id} could not load more playlist tracks`);
+		}
+
+		return err(new Error('No provider could load more playlist tracks'));
 	}
 
 	private async _fetchAllProviders(): Promise<void> {
@@ -210,13 +219,18 @@ export class HomeFeedService {
 
 		this._pushMergedState();
 
-		const store = useHomeFeedStore.getState();
-
 		if (hasAnySuccess) {
-			store.setLastFetchedAt(Date.now());
-			store.setActiveFilterIndex(null);
+			useHomeFeedStore.setState({
+				lastFetchedAt: Date.now(),
+				activeFilterIndex: null,
+			});
 		} else {
-			store.setError('Failed to load home feed from all providers');
+			useHomeFeedStore.setState({
+				error: 'Failed to load home feed from all providers',
+				isLoading: false,
+				isRefreshing: false,
+				isLoadingMore: false,
+			});
 		}
 	}
 
@@ -253,10 +267,12 @@ export class HomeFeedService {
 			if (state.hasContinuation) anyContinuation = true;
 		}
 
-		const store = useHomeFeedStore.getState();
-		store.setSections(allSections);
-		store.setFilterChips(allChips);
-		store.setHasContinuation(anyContinuation);
+		useHomeFeedStore.setState({
+			sections: allSections,
+			filterChips: allChips,
+			hasContinuation: anyContinuation,
+			error: null,
+		});
 	}
 }
 

@@ -6,35 +6,7 @@ import { playbackService } from '@/src/application/services/playback-service';
 import type { Track } from '@/src/domain/entities/track';
 import { Duration } from '@/src/domain/value-objects/duration';
 
-export function usePlayer() {
-	const {
-		currentTrack,
-		status,
-		position,
-		duration,
-		volume,
-		isMuted,
-		repeatMode,
-		isShuffled,
-		queue,
-		queueIndex,
-		error,
-	} = usePlayerStore(
-		useShallow((state) => ({
-			currentTrack: state.currentTrack,
-			status: state.status,
-			position: state.position,
-			duration: state.duration,
-			volume: state.volume,
-			isMuted: state.isMuted,
-			repeatMode: state.repeatMode,
-			isShuffled: state.isShuffled,
-			queue: state.queue,
-			queueIndex: state.queueIndex,
-			error: state.error,
-		}))
-	);
-
+export function usePlayerActions() {
 	const addToHistory = useHistoryStore((state) => state.addToHistory);
 
 	const play = useCallback(
@@ -122,6 +94,54 @@ export function usePlayer() {
 	}, []);
 
 	return {
+		play,
+		playQueue,
+		shufflePlay,
+		pause,
+		resume,
+		togglePlayPause,
+		seekTo,
+		skipToNext,
+		skipToPrevious,
+		toggleShuffle,
+		cycleRepeatMode,
+		setVolume,
+		toggleMute,
+	};
+}
+
+export function usePlayer() {
+	const {
+		currentTrack,
+		status,
+		position,
+		duration,
+		volume,
+		isMuted,
+		repeatMode,
+		isShuffled,
+		queue,
+		queueIndex,
+		error,
+	} = usePlayerStore(
+		useShallow((state) => ({
+			currentTrack: state.currentTrack,
+			status: state.status,
+			position: state.position,
+			duration: state.duration,
+			volume: state.volume,
+			isMuted: state.isMuted,
+			repeatMode: state.repeatMode,
+			isShuffled: state.isShuffled,
+			queue: state.queue,
+			queueIndex: state.queueIndex,
+			error: state.error,
+		}))
+	);
+
+	const actions = usePlayerActions();
+
+	return {
 		currentTrack,
 		status,
 		position,
@@ -140,18 +160,6 @@ export function usePlayer() {
 		isBuffering: status === 'buffering',
 		isIdle: status === 'idle',
 
-		play,
-		playQueue,
-		shufflePlay,
-		pause,
-		resume,
-		togglePlayPause,
-		seekTo,
-		skipToNext,
-		skipToPrevious,
-		toggleShuffle,
-		cycleRepeatMode,
-		setVolume,
-		toggleMute,
+		...actions,
 	};
 }

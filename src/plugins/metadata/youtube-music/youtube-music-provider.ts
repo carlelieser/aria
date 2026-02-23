@@ -194,6 +194,12 @@ export class YouTubeMusicProvider implements YouTubeMusicLibraryProvider {
 		return track.source.type === 'streaming';
 	}
 
+	onStreamError(): void {
+		if (!this.clientManager) return;
+		logger.info('Stream error reported — refreshing innertube client');
+		this.clientManager.refreshAuth();
+	}
+
 	searchTracks(
 		query: string,
 		options?: SearchOptions

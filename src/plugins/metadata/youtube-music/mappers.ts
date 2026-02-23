@@ -24,14 +24,6 @@ function upgradeYouTubeThumbnailUrl(url: string): string {
 		return `${baseUrl}=w544-h544-l90-rj`;
 	}
 
-	if (url.includes('i.ytimg.com') || url.includes('img.youtube.com')) {
-		return url
-			.replace(/\/default\.jpg$/, '/maxresdefault.jpg')
-			.replace(/\/mqdefault\.jpg$/, '/maxresdefault.jpg')
-			.replace(/\/hqdefault\.jpg$/, '/maxresdefault.jpg')
-			.replace(/\/sddefault\.jpg$/, '/maxresdefault.jpg');
-	}
-
 	return url;
 }
 

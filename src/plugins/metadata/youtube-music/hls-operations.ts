@@ -6,6 +6,7 @@ import {
 	concatenateSegmentsToFile,
 	downloadSegments,
 	downloadInitSegment,
+	generateLocalManifest,
 } from './hls-segment-handler';
 import {
 	getTempDirectory,
@@ -34,11 +35,19 @@ async function downloadFullHls(
 	initSegmentPath: string | null,
 	tempDir: string,
 	cachedFilePath: string,
-	headers: Record<string, string>
+	headers: Record<string, string>,
+	onProgress?: (progress: number) => void
 ): Promise<string | null> {
 	logger.debug('Full download mode: downloading all segments');
 
-	const { segmentPaths } = await downloadSegments(segmentUrls, tempDir, headers);
+	const { segmentPaths } = await downloadSegments(
+		segmentUrls,
+		tempDir,
+		headers,
+		0,
+		undefined,
+		onProgress
+	);
 
 	if (segmentPaths.length === 0) {
 		logger.warn('No segments were downloaded successfully');
@@ -54,17 +63,23 @@ async function downloadFullHls(
 		return null;
 	}
 
+	onProgress?.(95);
 	logger.debug(`HLS download complete: ${cachedFilePath}`);
 	return cachedFilePath;
+}
+
+export interface HlsDownloadResult {
+	readonly path: string;
+	readonly format: 'm4a' | 'm3u8';
 }
 
 export async function downloadHlsToCache(
 	manifestUrl: string,
 	videoId: string,
-	cookies?: string
-): Promise<string | null> {
+	cookies?: string,
+	onProgress?: (progress: number) => void
+): Promise<HlsDownloadResult | null> {
 	await ensureCacheDirectory();
-	const cachedFilePath = getCachedFilePath(videoId);
 	const tempDir = getTempDirectory(videoId);
 
 	await FileSystem.makeDirectoryAsync(tempDir, { intermediates: true }).catch(() => {});
@@ -83,8 +98,11 @@ export async function downloadHlsToCache(
 			return null;
 		}
 
-		const { initSegmentUrl, segmentUrls } = parsed;
+		const { initSegmentUrl, segmentUrls, segmentDurations } = parsed;
 		logger.debug(`Found ${segmentUrls.length} segments to download`);
+
+		// fMP4 has an init segment (ftyp + moov); without one, segments are MPEG-TS
+		const isFmp4 = initSegmentUrl !== null;
 
 		// Download initialization segment first if present
 		let initSegmentPath: string | null = null;
@@ -96,26 +114,63 @@ export async function downloadHlsToCache(
 			}
 		}
 
-		const result = await downloadFullHls(
-			segmentUrls,
-			initSegmentPath,
-			tempDir,
-			cachedFilePath,
-			fetchHeaders
-		);
+		if (isFmp4) {
+			// fMP4 path: concatenate into single .m4a — seeking works natively
+			const cachedFilePath = getCachedFilePath(videoId, 'm4a');
 
-		// Clean up temp segments
-		await cleanupTempFiles([tempDir]);
+			const result = await downloadFullHls(
+				segmentUrls,
+				initSegmentPath,
+				tempDir,
+				cachedFilePath,
+				fetchHeaders,
+				onProgress
+			);
 
-		if (!result) {
-			await cleanupTempFiles([cachedFilePath]);
+			await cleanupTempFiles([tempDir]);
+
+			if (!result) {
+				await cleanupTempFiles([cachedFilePath]);
+				return null;
+			}
+
+			return { path: result, format: 'm4a' };
 		}
 
-		return result;
+		// TS path: keep individual segments, generate local .m3u8 for seeking
+		const { segmentPaths } = await downloadSegments(
+			segmentUrls,
+			tempDir,
+			fetchHeaders,
+			0,
+			undefined,
+			onProgress
+		);
+
+		if (segmentPaths.length === 0) {
+			logger.warn('No segments were downloaded successfully');
+			await cleanupTempFiles([tempDir]);
+			return null;
+		}
+
+		const manifestPath = `${tempDir}playlist.m3u8`;
+		const manifestOk = await generateLocalManifest(
+			segmentPaths,
+			segmentDurations,
+			manifestPath
+		);
+		if (!manifestOk) {
+			await cleanupTempFiles([tempDir]);
+			return null;
+		}
+
+		onProgress?.(95);
+		logger.debug(`HLS download complete with local manifest: ${manifestPath}`);
+		return { path: manifestPath, format: 'm3u8' };
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
 		logger.warn(`HLS download failed: ${message}`);
-		await cleanupTempFiles([tempDir, cachedFilePath]);
+		await cleanupTempFiles([tempDir, getCachedFilePath(videoId, 'm4a')]);
 		return null;
 	}
 }

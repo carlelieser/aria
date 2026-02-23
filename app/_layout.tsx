@@ -61,43 +61,43 @@ function AppContent() {
 
 	return (
 		<View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]}>
-				<Stack
-					screenOptions={{
-						headerShown: false,
-						animation: 'simple_push',
-						contentStyle: { backgroundColor: colors.background },
-					}}
-				>
-					<Stack.Screen name={'(tabs)'} />
-					<Stack.Screen name={'player'} />
-					<Stack.Screen name={'plugins'} />
-					<Stack.Screen name={'plugin/[id]'} />
-					<Stack.Screen name={'library/settings'} />
-					<Stack.Screen name={'artist/[id]'} />
-					<Stack.Screen name={'album/[id]'} />
-					<Stack.Screen name={'playlist/[id]'} />
-					<Stack.Screen name={'remote-playlist/[id]'} />
-					<Stack.Screen name={'profile'} />
-					<Stack.Screen name={'settings'} options={{ presentation: 'modal' }} />
-					<Stack.Screen name={'playlist-picker'} options={{ presentation: 'modal' }} />
-				</Stack>
-				<FloatingPlayer />
-				<SleepTimerSheet isOpen={sleepTimerSheetOpen} onClose={closeSleepTimerSheet} />
-				<TrackOptionsSheet />
-				<ToastContainer />
-				<ScanProgressToast />
-				<ImportProgressToast />
-				<StatusBar style={isDark ? 'light' : 'dark'} />
-				<View style={styles.portalHost} pointerEvents={'box-none'}>
-					<PortalHost />
-				</View>
-				{showSplash && (
-					<AnimatedSplash
-						isReady={isReady}
-						onAnimationComplete={handleSplashComplete}
-						isDark={isDark}
-					/>
-				)}
+			<Stack
+				screenOptions={{
+					headerShown: false,
+					animation: 'simple_push',
+					contentStyle: { backgroundColor: colors.background },
+				}}
+			>
+				<Stack.Screen name={'(tabs)'} />
+				<Stack.Screen name={'player'} />
+				<Stack.Screen name={'plugins'} />
+				<Stack.Screen name={'plugin/[id]'} />
+				<Stack.Screen name={'library/settings'} />
+				<Stack.Screen name={'artist/[id]'} />
+				<Stack.Screen name={'album/[id]'} />
+				<Stack.Screen name={'playlist/[id]'} />
+				<Stack.Screen name={'remote-playlist/[id]'} />
+				<Stack.Screen name={'profile'} />
+				<Stack.Screen name={'settings'} options={{ presentation: 'modal' }} />
+				<Stack.Screen name={'playlist-picker'} options={{ presentation: 'modal' }} />
+			</Stack>
+			<FloatingPlayer />
+			<SleepTimerSheet isOpen={sleepTimerSheetOpen} onClose={closeSleepTimerSheet} />
+			<TrackOptionsSheet />
+			<ToastContainer />
+			<ScanProgressToast />
+			<ImportProgressToast />
+			<StatusBar style={isDark ? 'light' : 'dark'} />
+			<View style={styles.portalHost} pointerEvents={'box-none'}>
+				<PortalHost />
+			</View>
+			{showSplash && (
+				<AnimatedSplash
+					isReady={isReady}
+					onAnimationComplete={handleSplashComplete}
+					isDark={isDark}
+				/>
+			)}
 		</View>
 	);
 }

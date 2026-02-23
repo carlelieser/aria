@@ -61,6 +61,44 @@ export async function concatenateSegmentsToFile(
 	return finalInfo.exists && 'size' in finalInfo && (finalInfo.size as number) > 10000;
 }
 
+export async function generateLocalManifest(
+	segmentPaths: readonly string[],
+	durations: readonly number[],
+	manifestPath: string
+): Promise<boolean> {
+	const targetDuration = Math.ceil(Math.max(...durations, 0));
+
+	const lines: string[] = [
+		'#EXTM3U',
+		'#EXT-X-VERSION:3',
+		`#EXT-X-TARGETDURATION:${targetDuration}`,
+		'#EXT-X-PLAYLIST-TYPE:VOD',
+		'#EXT-X-MEDIA-SEQUENCE:0',
+	];
+
+	for (let i = 0; i < segmentPaths.length; i++) {
+		const filename = segmentPaths[i].substring(segmentPaths[i].lastIndexOf('/') + 1);
+		const duration = durations[i] ?? 0;
+		lines.push(`#EXTINF:${duration.toFixed(6)},`);
+		lines.push(filename);
+	}
+
+	lines.push('#EXT-X-ENDLIST');
+	lines.push('');
+
+	const content = lines.join('\n');
+	await FileSystem.writeAsStringAsync(manifestPath, content);
+
+	const info = await FileSystem.getInfoAsync(manifestPath);
+	if (info.exists) {
+		logger.debug(`Local HLS manifest created: ${manifestPath}`);
+		return true;
+	}
+
+	logger.warn('Failed to write local HLS manifest');
+	return false;
+}
+
 export interface SegmentDownloadResult {
 	readonly segmentPaths: readonly string[];
 	readonly failedSegments: readonly number[];
@@ -71,9 +109,11 @@ export async function downloadSegments(
 	tempDir: string,
 	headers: Record<string, string>,
 	startIndex: number = 0,
-	endIndex?: number
+	endIndex?: number,
+	onProgress?: (progress: number) => void
 ): Promise<SegmentDownloadResult> {
 	const end = endIndex ?? segmentUrls.length;
+	const totalSegments = end - startIndex;
 	const segmentPaths: string[] = [];
 	const failedSegments: number[] = [];
 
@@ -89,8 +129,11 @@ export async function downloadSegments(
 
 		segmentPaths.push(segmentPath);
 
-		if ((i + 1) % 20 === 0) {
-			logger.debug(`Downloaded ${i + 1}/${end} segments`);
+		const completed = i - startIndex + 1;
+		onProgress?.(Math.round((completed / totalSegments) * 90));
+
+		if (completed % 20 === 0) {
+			logger.debug(`Downloaded ${completed}/${totalSegments} segments`);
 		}
 	}
 

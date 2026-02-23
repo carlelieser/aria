@@ -10,7 +10,7 @@ import { View, StyleSheet } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import { SkipBack, SkipForward, Repeat, Repeat1, Shuffle } from 'lucide-react-native';
 import { usePlayer } from '@/src/hooks/use-player';
-import { useAppTheme } from '@/lib/theme';
+import { usePlayerTheme } from '@/src/components/player/player-theme-context';
 import { WavyPlayButton } from '@/src/components/player/wavy-play-button';
 
 interface PlayerControlsProps {
@@ -35,7 +35,7 @@ export function PlayerControls({ size = 'md' }: PlayerControlsProps) {
 		cycleRepeatMode,
 		toggleShuffle,
 	} = usePlayer();
-	const { colors } = useAppTheme();
+	const { colors } = usePlayerTheme();
 
 	const { secondary: secondaryIconSize } = ICON_SIZES[size];
 

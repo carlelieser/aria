@@ -1,4 +1,5 @@
 import { View, StyleSheet } from 'react-native';
+import { Freeze } from 'react-freeze';
 import { TabsProvider, Tabs, TabScreen } from 'react-native-paper-tabs';
 import { PageLayout } from '@/src/components/ui/page-layout';
 import { useState, useEffect, useRef } from 'react';
@@ -66,41 +67,49 @@ export default function HomeScreen() {
 						style={{ backgroundColor: colors.surface, ...shadowStyle }}
 					>
 						<TabScreen label={'Songs'} icon={'music-note'}>
-							<View style={styles.tabContent}>
-								<SongsTab
-									tracks={filteredTracks}
-									isLoading={isLoading}
-									hasFilters={hasFilters}
-									onScroll={handleScroll}
-								/>
-							</View>
+							<Freeze freeze={tabIndex !== 0}>
+								<View style={styles.tabContent}>
+									<SongsTab
+										tracks={filteredTracks}
+										isLoading={isLoading}
+										hasFilters={hasFilters}
+										onScroll={handleScroll}
+									/>
+								</View>
+							</Freeze>
 						</TabScreen>
 						<TabScreen label={'Artists'} icon={'account-music'}>
-							<View style={styles.tabContent}>
-								<ArtistList
-									artists={artists}
-									isLoading={isLoading}
-									onScroll={handleScroll}
-								/>
-							</View>
+							<Freeze freeze={tabIndex !== 1}>
+								<View style={styles.tabContent}>
+									<ArtistList
+										artists={artists}
+										isLoading={isLoading}
+										onScroll={handleScroll}
+									/>
+								</View>
+							</Freeze>
 						</TabScreen>
 						<TabScreen label={'Albums'} icon={'album'}>
-							<View style={styles.tabContent}>
-								<AlbumList
-									albums={albums}
-									isLoading={isLoading}
-									onScroll={handleScroll}
-								/>
-							</View>
+							<Freeze freeze={tabIndex !== 2}>
+								<View style={styles.tabContent}>
+									<AlbumList
+										albums={albums}
+										isLoading={isLoading}
+										onScroll={handleScroll}
+									/>
+								</View>
+							</Freeze>
 						</TabScreen>
 						<TabScreen label={'Playlists'} icon={'playlist-music'}>
-							<View style={styles.tabContent}>
-								<PlaylistList
-									playlists={playlists}
-									isLoading={isLoading}
-									onScroll={handleScroll}
-								/>
-							</View>
+							<Freeze freeze={tabIndex !== 3}>
+								<View style={styles.tabContent}>
+									<PlaylistList
+										playlists={playlists}
+										isLoading={isLoading}
+										onScroll={handleScroll}
+									/>
+								</View>
+							</Freeze>
 						</TabScreen>
 					</Tabs>
 				</TabsProvider>

@@ -25,7 +25,6 @@ import type { Track } from '@/src/domain/entities/track';
 interface CollectionDownloadButtonProps {
 	readonly tracks: readonly Track[];
 	readonly isDownloading: boolean;
-	readonly progress?: { completed: number; total: number };
 	readonly onDownload: () => void;
 	readonly onCancel?: () => void;
 	readonly size?: number;
@@ -34,7 +33,6 @@ interface CollectionDownloadButtonProps {
 export const CollectionDownloadButton = memo(function CollectionDownloadButton({
 	tracks,
 	isDownloading,
-	progress,
 	onDownload,
 	onCancel,
 	size = 22,
@@ -45,14 +43,11 @@ export const CollectionDownloadButton = memo(function CollectionDownloadButton({
 	const effectiveState: DownloadState = isDownloading ? 'downloading' : state;
 
 	const progressValue = useMemo(() => {
-		if (progress && progress.total > 0) {
-			return progress.completed / progress.total;
-		}
 		if (totalCount > 0) {
 			return downloadedCount / totalCount;
 		}
 		return 0;
-	}, [progress, downloadedCount, totalCount]);
+	}, [downloadedCount, totalCount]);
 
 	const isInitialLoading = effectiveState === 'downloading' && progressValue === 0;
 

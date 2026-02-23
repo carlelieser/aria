@@ -1,8 +1,10 @@
-import { useMemo } from 'react';
+import { useStoreWithEqualityFn } from 'zustand/traditional';
 import {
-	useDownloads,
-	useDownloadedTracks,
 	useDownloadStore,
+	useActiveDownloadsList,
+	useCompletedDownloadsList,
+	useFailedDownloadsList,
+	useDownloadStats,
 } from '@/src/application/state/download-store';
 import type {
 	DownloadInfo,
@@ -29,62 +31,18 @@ interface UseDownloadQueueResult {
 }
 
 export function useDownloadQueue(): UseDownloadQueueResult {
-	const downloadsMap = useDownloads();
-	const downloadedTracksMap = useDownloadedTracks();
+	const activeDownloads = useActiveDownloadsList();
+	const completedDownloads = useCompletedDownloadsList();
+	const failedDownloads = useFailedDownloadsList();
+	const stats = useDownloadStats();
 	const clearActiveDownloads = useDownloadStore((state) => state.clearActiveDownloads);
-
-	const downloads = useMemo(() => Array.from(downloadsMap.values()), [downloadsMap]);
-
-	const downloadedTracks = useMemo(
-		() => Array.from(downloadedTracksMap.values()),
-		[downloadedTracksMap]
+	const downloadedTracks = useStoreWithEqualityFn(
+		useDownloadStore,
+		(state) => Array.from(state.downloadedTracks.values()),
+		(a, b) => a.length === b.length
 	);
 
-	const activeDownloads = useMemo(
-		() => downloads.filter((d) => d.status === 'pending' || d.status === 'downloading'),
-		[downloads]
-	);
-
-	const completedDownloads = useMemo(
-		() => downloads.filter((d) => d.status === 'completed'),
-		[downloads]
-	);
-
-	const failedDownloads = useMemo(
-		() => downloads.filter((d) => d.status === 'failed'),
-		[downloads]
-	);
-
-	const stats = useMemo(() => {
-		let activeCount = 0;
-		let completedCount = 0;
-		let failedCount = 0;
-		let pendingCount = 0;
-		let totalSize = 0;
-
-		for (const info of downloads) {
-			switch (info.status) {
-				case 'pending':
-					pendingCount++;
-					activeCount++;
-					break;
-				case 'downloading':
-					activeCount++;
-					break;
-				case 'completed':
-					completedCount++;
-					if (info.fileSize) {
-						totalSize += info.fileSize;
-					}
-					break;
-				case 'failed':
-					failedCount++;
-					break;
-			}
-		}
-
-		return { activeCount, completedCount, failedCount, pendingCount, totalSize };
-	}, [downloads]);
+	const downloads = [...activeDownloads, ...completedDownloads, ...failedDownloads];
 
 	return {
 		downloads,

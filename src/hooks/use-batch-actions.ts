@@ -1,15 +1,9 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import type { Track } from '@/src/domain/entities/track';
 import { downloadService } from '@/src/application/services/download-service';
 import { useLibraryStore } from '@/src/application/state/library-store';
 import { usePlayerStore } from '@/src/application/state/player-store';
 import { useToast } from '@/src/hooks/use-toast';
-
-interface BatchProgress {
-	completed: number;
-	total: number;
-	failed: number;
-}
 
 interface UseBatchActionsResult {
 	downloadSelected: (tracks: Track[]) => Promise<void>;
@@ -23,7 +17,6 @@ interface UseBatchActionsResult {
 	removeSelectedFromPlaylist: (playlistId: string, positions: number[]) => void;
 	isDownloading: boolean;
 	isDeleting: boolean;
-	downloadProgress: BatchProgress;
 }
 
 export function useBatchActions(): UseBatchActionsResult {
@@ -38,96 +31,30 @@ export function useBatchActions(): UseBatchActionsResult {
 
 	const [isDownloading, setIsDownloading] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
-	const [downloadProgress, setDownloadProgress] = useState<BatchProgress>({
-		completed: 0,
-		total: 0,
-		failed: 0,
-	});
-	const cancelledRef = useRef(false);
 
 	const cancelDownload = useCallback(() => {
-		cancelledRef.current = true;
+		downloadService.cancelBatchDownload();
 	}, []);
 
 	const downloadSelected = useCallback(
 		async (tracks: Track[]) => {
 			if (tracks.length === 0) return;
 
-			const tracksToDownload = tracks.filter(
-				(track) =>
-					!downloadService.isDownloaded(track.id.value) &&
-					!downloadService.isDownloading(track.id.value)
-			);
-
-			if (tracksToDownload.length === 0) {
-				info('All selected tracks are already downloaded or downloading');
-				return;
-			}
-
-			cancelledRef.current = false;
 			setIsDownloading(true);
-			setDownloadProgress({ completed: 0, total: tracksToDownload.length, failed: 0 });
+			const result = await downloadService.downloadTracks(tracks);
+			setIsDownloading(false);
 
-			setTimeout(async () => {
-				let completed = 0;
-				let failed = 0;
-				const maxConcurrent = 3;
-				let activeCount = 0;
-				let currentIndex = 0;
-
-				const downloadNext = async (): Promise<void> => {
-					while (
-						currentIndex < tracksToDownload.length &&
-						activeCount < maxConcurrent &&
-						!cancelledRef.current
-					) {
-						const track = tracksToDownload[currentIndex++];
-						activeCount++;
-
-						downloadService.downloadTrack(track).then((result) => {
-							activeCount--;
-							if (result.success) {
-								completed++;
-							} else {
-								failed++;
-							}
-							setDownloadProgress({
-								completed,
-								total: tracksToDownload.length,
-								failed,
-							});
-						});
-					}
-				};
-
-				await new Promise<void>((resolve) => {
-					const checkComplete = setInterval(() => {
-						if (cancelledRef.current) {
-							clearInterval(checkComplete);
-							resolve();
-							return;
-						}
-						downloadNext();
-						if (completed + failed >= tracksToDownload.length) {
-							clearInterval(checkComplete);
-							resolve();
-						}
-					}, 100);
-					downloadNext();
-				});
-
-				setIsDownloading(false);
-
-				if (cancelledRef.current) {
-					info(`Download cancelled. ${completed} tracks completed.`);
-				} else if (failed === 0) {
-					success(`Downloaded ${completed} tracks`);
-				} else if (completed > 0) {
-					info(`Downloaded ${completed} tracks, ${failed} failed`);
-				} else {
-					showError('Download failed', `All ${failed} downloads failed`);
-				}
-			}, 0);
+			if (result.cancelled) {
+				info(`Download cancelled. ${result.completed} tracks completed.`);
+			} else if (result.failed === 0 && result.completed > 0) {
+				success(`Downloaded ${result.completed} tracks`);
+			} else if (result.completed > 0) {
+				info(`Downloaded ${result.completed} tracks, ${result.failed} failed`);
+			} else if (result.failed > 0) {
+				showError('Download failed', `All ${result.failed} downloads failed`);
+			} else {
+				info('All tracks are already downloaded');
+			}
 		},
 		[success, showError, info]
 	);
@@ -242,6 +169,5 @@ export function useBatchActions(): UseBatchActionsResult {
 		removeSelectedFromPlaylist,
 		isDownloading,
 		isDeleting,
-		downloadProgress,
 	};
 }

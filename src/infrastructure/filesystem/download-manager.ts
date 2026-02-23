@@ -113,6 +113,96 @@ export async function downloadAudioFile(
 	}
 }
 
+export async function copyToDownloads(
+	sourcePath: string,
+	trackId: string,
+	format: string = 'm4a'
+): Promise<Result<DownloadResult, Error>> {
+	try {
+		await getDownloadsDirectory();
+		const destPath = getDownloadFilePath(trackId, format);
+
+		const normalizedSource = sourcePath.startsWith('file://')
+			? sourcePath
+			: `file://${sourcePath}`;
+
+		const sourceInfo = await FileSystem.getInfoAsync(normalizedSource);
+		if (!sourceInfo.exists) {
+			return err(new Error('Source file not found'));
+		}
+
+		await FileSystem.copyAsync({ from: normalizedSource, to: destPath });
+
+		const destInfo = await FileSystem.getInfoAsync(destPath);
+		if (!destInfo.exists || !('size' in destInfo)) {
+			return err(new Error('Failed to copy file to downloads'));
+		}
+
+		const fileSize = destInfo.size as number;
+		logger.debug(`Copied to downloads: ${destPath} (${fileSize} bytes)`);
+
+		return ok({ filePath: destPath, fileSize });
+	} catch (error) {
+		logger.error('Copy to downloads error', error instanceof Error ? error : undefined);
+		return err(error instanceof Error ? error : new Error(`Copy failed: ${String(error)}`));
+	}
+}
+
+export async function copyDirectoryToDownloads(
+	sourceDir: string,
+	trackId: string
+): Promise<Result<DownloadResult, Error>> {
+	try {
+		await getDownloadsDirectory();
+		const safeTrackId = trackId.replace(/[^a-zA-Z0-9_-]/g, '_');
+		const destDir = FileSystem.documentDirectory + DOWNLOADS_DIR + `${safeTrackId}_hls/`;
+
+		await FileSystem.makeDirectoryAsync(destDir, { intermediates: true }).catch(() => {});
+		await FileSystem.copyAsync({ from: sourceDir, to: destDir });
+
+		const manifestPath = destDir + 'playlist.m3u8';
+		const manifestInfo = await FileSystem.getInfoAsync(manifestPath);
+		if (!manifestInfo.exists) {
+			return err(new Error('Failed to copy HLS directory: manifest not found'));
+		}
+
+		// Calculate total size of directory contents
+		const files = await FileSystem.readDirectoryAsync(destDir);
+		let totalSize = 0;
+		for (const file of files) {
+			const info = await FileSystem.getInfoAsync(destDir + file);
+			if (info.exists && 'size' in info) {
+				totalSize += info.size as number;
+			}
+		}
+
+		logger.debug(`Copied HLS directory to downloads: ${destDir} (${totalSize} bytes)`);
+		return ok({ filePath: manifestPath, fileSize: totalSize });
+	} catch (error) {
+		logger.error(
+			'Copy directory to downloads error',
+			error instanceof Error ? error : undefined
+		);
+		return err(
+			error instanceof Error ? error : new Error(`Directory copy failed: ${String(error)}`)
+		);
+	}
+}
+
+export async function deleteDownloadDirectory(manifestPath: string): Promise<Result<void, Error>> {
+	try {
+		const dir = manifestPath.substring(0, manifestPath.lastIndexOf('/') + 1);
+		await FileSystem.deleteAsync(dir, { idempotent: true });
+		logger.debug(`Deleted download directory: ${dir}`);
+		return ok(undefined);
+	} catch (error) {
+		logger.error('Delete directory error', error instanceof Error ? error : undefined);
+		return err(
+			error instanceof Error ? error : new Error(`Delete directory failed: ${String(error)}`)
+		);
+	}
+}
+
 export async function deleteAudioFile(filePath: string): Promise<Result<void, Error>> {
 	try {
 		await FileSystem.deleteAsync(filePath, { idempotent: true });
@@ -136,20 +226,29 @@ export async function getFileInfo(filePath: string): Promise<{ exists: boolean; 
 	}
 }
 
+async function getDirectorySize(dirPath: string): Promise<number> {
+	const entries = await FileSystem.readDirectoryAsync(dirPath);
+	let totalSize = 0;
+
+	for (const entry of entries) {
+		const entryPath = dirPath + entry;
+		const info = await FileSystem.getInfoAsync(entryPath);
+		if (!info.exists) continue;
+
+		if (info.isDirectory) {
+			totalSize += await getDirectorySize(entryPath + '/');
+		} else if ('size' in info) {
+			totalSize += info.size as number;
+		}
+	}
+
+	return totalSize;
+}
+
 export async function getDownloadedFilesSize(): Promise<number> {
 	try {
 		const dir = await getDownloadsDirectory();
-		const files = await FileSystem.readDirectoryAsync(dir);
-
-		let totalSize = 0;
-		for (const file of files) {
-			const info = await getFileInfo(dir + file);
-			if (info.exists && info.size) {
-				totalSize += info.size;
-			}
-		}
-
-		return totalSize;
+		return await getDirectorySize(dir);
 	} catch {
 		return 0;
 	}

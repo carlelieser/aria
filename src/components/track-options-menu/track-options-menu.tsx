@@ -5,7 +5,7 @@
  * Opens the shared TrackOptionsSheet via track-options-store.
  */
 
-import React, { useCallback } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { MoreVertical, MoreHorizontal } from 'lucide-react-native';
 import { IconButton } from 'react-native-paper';
 import { Icon } from '@/src/components/ui/icon';
@@ -25,14 +25,17 @@ interface TrackOptionsMenuProps {
 	orientation?: Orientation;
 	playlistId?: string;
 	trackPosition?: number;
+	/** Override icon color (e.g. for player screen with artwork-derived theme) */
+	iconColor?: string;
 }
 
-export function TrackOptionsMenu({
+export const TrackOptionsMenu = memo(function TrackOptionsMenu({
 	track,
 	source,
 	orientation = 'vertical',
 	playlistId,
 	trackPosition,
+	iconColor: iconColorOverride,
 }: TrackOptionsMenuProps) {
 	const openTrackOptions = useOpenTrackOptions();
 	const { colors } = useAppTheme();
@@ -44,17 +47,14 @@ export function TrackOptionsMenu({
 		openTrackOptions(track, source, context);
 	}, [openTrackOptions, track, source, playlistId, trackPosition]);
 
-	return (
-		<IconButton
-			icon={() => (
-				<Icon
-					as={orientation === 'horizontal' ? MoreHorizontal : MoreVertical}
-					size={20}
-					color={colors.onSurfaceVariant}
-				/>
-			)}
-			onPress={handleOpen}
-			size={20}
-		/>
-	);
-}
+	const resolvedIconColor = iconColorOverride ?? colors.onSurfaceVariant;
+
+	const iconRenderer = useMemo(() => {
+		const IconComponent = orientation === 'horizontal' ? MoreHorizontal : MoreVertical;
+		const RenderedIcon = () => <Icon as={IconComponent} size={20} color={resolvedIconColor} />;
+		RenderedIcon.displayName = 'TrackOptionsIcon';
+		return RenderedIcon;
+	}, [orientation, resolvedIconColor]);
+
+	return <IconButton icon={iconRenderer} onPress={handleOpen} size={20} />;
+});

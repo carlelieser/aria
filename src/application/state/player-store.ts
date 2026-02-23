@@ -274,3 +274,37 @@ export const usePlaybackProgress = () =>
 				: (state.position.totalMilliseconds / state.duration.totalMilliseconds) * 100,
 		}))
 	);
+export const useActiveTrackFormattedPosition = (trackId: string) =>
+	usePlayerStore((state) => {
+		const isActive = state.currentTrack?.id.value === trackId;
+		return isActive ? state.position.format() : null;
+	});
+
+interface TrackPlaybackInfo {
+	readonly isActiveTrack: boolean;
+	readonly isCurrentlyPlaying: boolean;
+	readonly formattedPosition: string | null;
+}
+
+const INACTIVE_TRACK_INFO: TrackPlaybackInfo = {
+	isActiveTrack: false,
+	isCurrentlyPlaying: false,
+	formattedPosition: null,
+};
+
+/**
+ * Combined selector for TrackListItem that returns a stable reference
+ * for non-active tracks, preventing unnecessary re-renders.
+ */
+export const useTrackPlaybackInfo = (trackId: string): TrackPlaybackInfo =>
+	usePlayerStore(
+		useShallow((state) => {
+			const isActive = state.currentTrack?.id.value === trackId;
+			if (!isActive) return INACTIVE_TRACK_INFO;
+			return {
+				isActiveTrack: true,
+				isCurrentlyPlaying: state.status === 'playing',
+				formattedPosition: state.position.format(),
+			};
+		})
+	);

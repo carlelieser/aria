@@ -26,8 +26,16 @@ import {
 	CodeIcon,
 	GithubIcon,
 	CameraIcon,
+	MonitorPlayIcon,
+	AudioWaveformIcon,
+	PaintbrushIcon,
 } from 'lucide-react-native';
-import { THEME_OPTIONS, DEFAULT_TAB_OPTIONS } from '@/lib/settings-config';
+import {
+	THEME_OPTIONS,
+	DEFAULT_TAB_OPTIONS,
+	PROGRESS_BAR_OPTIONS,
+	PLAYER_BACKGROUND_OPTIONS,
+} from '@/lib/settings-config';
 import { useLibraryStore } from '@application/state/library-store';
 import { useLibraryFilterStore } from '@application/state/library-filter-store';
 import { useEqualizerStore } from '@application/state/equalizer-store';
@@ -49,6 +57,12 @@ export default function SettingsScreen() {
 		setDefaultTab,
 		accentColor,
 		setAccentColor,
+		openPlayerOnTrackClick,
+		setOpenPlayerOnTrackClick,
+		progressBarStyle,
+		setProgressBarStyle,
+		playerBackground,
+		setPlayerBackground,
 	} = useSettingsStore();
 	const { stats } = useDownloadQueue();
 	const { isEnabled: eqEnabled, currentPreset } = useEqualizer();
@@ -60,6 +74,10 @@ export default function SettingsScreen() {
 	const offlineModeSwitch = useMemo(
 		() => <Switch value={offlineMode} onValueChange={toggleOfflineMode} />,
 		[offlineMode, toggleOfflineMode]
+	);
+	const openPlayerSwitch = useMemo(
+		() => <Switch value={openPlayerOnTrackClick} onValueChange={setOpenPlayerOnTrackClick} />,
+		[openPlayerOnTrackClick, setOpenPlayerOnTrackClick]
 	);
 	const { success } = useToast();
 	const [equalizerSheetOpen, setEqualizerSheetOpen] = useState(false);
@@ -181,6 +199,32 @@ export default function SettingsScreen() {
 						portalName={'default-tab-select'}
 					/>
 					<TabOrderSetting />
+				</SettingsSection>
+
+				<SettingsSection title={'Player'}>
+					<SettingsItem
+						icon={MonitorPlayIcon}
+						title={'Open on track click'}
+						subtitle={'Automatically open player when a track is played'}
+						rightElement={openPlayerSwitch}
+						onPress={() => setOpenPlayerOnTrackClick(!openPlayerOnTrackClick)}
+					/>
+					<SettingsSelect
+						icon={AudioWaveformIcon}
+						title={'Progress bar style'}
+						options={PROGRESS_BAR_OPTIONS}
+						value={progressBarStyle}
+						onValueChange={setProgressBarStyle}
+						portalName={'progress-bar-style-select'}
+					/>
+					<SettingsSelect
+						icon={PaintbrushIcon}
+						title={'Background'}
+						options={PLAYER_BACKGROUND_OPTIONS}
+						value={playerBackground}
+						onValueChange={setPlayerBackground}
+						portalName={'player-background-select'}
+					/>
 				</SettingsSection>
 
 				<SettingsSection title={'Playback'}>

@@ -40,6 +40,9 @@ export interface StreamOptions {
 
 	/** When true, prefer direct downloadable URLs over streaming protocols like HLS */
 	readonly preferDownloadable?: boolean;
+
+	/** Progress callback for download operations (0-100) */
+	readonly onProgress?: (progress: number) => void;
 }
 
 export interface AudioSourceProvider extends BasePlugin {
@@ -52,6 +55,9 @@ export interface AudioSourceProvider extends BasePlugin {
 	getAvailableFormats?(trackId: TrackId): AsyncResult<AvailableFormat[], Error>;
 
 	preloadStream?(trackId: TrackId): AsyncResult<void, Error>;
+
+	/** Called when a playback error occurs so providers can invalidate stale clients/tokens. */
+	onStreamError?(): void;
 
 	hasAudioCapability(capability: AudioSourceCapability): boolean;
 }

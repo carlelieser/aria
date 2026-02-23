@@ -5,18 +5,36 @@ const logger = getLogger('YouTubeMusic:Cache');
 
 export const CACHE_DIR = 'audio/';
 
-export async function checkCache(videoId: string): Promise<string | null> {
-	const cacheDir = FileSystem.cacheDirectory + CACHE_DIR;
-	const cachedFilePath = cacheDir + `${videoId}.m4a`;
-	const fileInfo = await FileSystem.getInfoAsync(cachedFilePath);
+const CACHED_EXTENSIONS = ['m4a', 'ts', 'webm', 'ogg'] as const;
 
-	if (fileInfo.exists && 'size' in fileInfo && (fileInfo.size as number) > 10000) {
-		logger.debug(`Using cached file: ${cachedFilePath}`);
-		return cachedFilePath;
+export interface CachedFile {
+	readonly path: string;
+	readonly format: string;
+}
+
+export async function checkCache(videoId: string): Promise<CachedFile | null> {
+	const cacheDir = FileSystem.cacheDirectory + CACHE_DIR;
+
+	// Check for local HLS manifest (TS-based downloads with segment directory)
+	const manifestPath = getTempDirectory(videoId) + 'playlist.m3u8';
+	const manifestInfo = await FileSystem.getInfoAsync(manifestPath);
+	if (manifestInfo.exists) {
+		logger.debug(`Using cached HLS manifest: ${manifestPath}`);
+		return { path: manifestPath, format: 'm3u8' };
 	}
 
-	if (fileInfo.exists) {
-		await FileSystem.deleteAsync(cachedFilePath, { idempotent: true });
+	for (const ext of CACHED_EXTENSIONS) {
+		const filePath = cacheDir + `${videoId}.${ext}`;
+		const fileInfo = await FileSystem.getInfoAsync(filePath);
+
+		if (fileInfo.exists && 'size' in fileInfo && (fileInfo.size as number) > 10000) {
+			logger.debug(`Using cached file: ${filePath} (format: ${ext})`);
+			return { path: filePath, format: ext };
+		}
+
+		if (fileInfo.exists) {
+			await FileSystem.deleteAsync(filePath, { idempotent: true });
+		}
 	}
 
 	return null;
@@ -28,8 +46,8 @@ export async function ensureCacheDirectory(): Promise<string> {
 	return cacheDir;
 }
 
-export function getCachedFilePath(videoId: string): string {
-	return FileSystem.cacheDirectory + CACHE_DIR + `${videoId}.m4a`;
+export function getCachedFilePath(videoId: string, format: string = 'm4a'): string {
+	return FileSystem.cacheDirectory + CACHE_DIR + `${videoId}.${format}`;
 }
 
 export function getTempDirectory(videoId: string): string {

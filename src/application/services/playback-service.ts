@@ -458,6 +458,10 @@ export class PlaybackService {
 				case 'error':
 					logger.debug(`Error event: ${event.error.message}`);
 					store._setError(event.error.message);
+					this._streamCache.clear();
+					for (const provider of this.audioSourceProviders) {
+						provider.onStreamError?.();
+					}
 					break;
 			}
 		};

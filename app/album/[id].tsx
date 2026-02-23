@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useCallback } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, FlatList, StyleSheet } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DiscIcon, SearchIcon } from 'lucide-react-native';
@@ -22,13 +22,15 @@ import {
 } from '@/src/application/state/album-store';
 import { albumService } from '@/src/application/services/album-service';
 import { useAppTheme } from '@/lib/theme';
+import type { Track } from '@/src/domain/entities/track';
+import type { ReactNode } from 'react';
 import type { DetailsHeaderInfo, MetadataLine } from '@/src/components/details-page';
 
 export default function AlbumScreen() {
 	const insets = useSafeAreaInsets();
 	const { id, name } = useLocalSearchParams<{ id: string; name?: string }>();
 	const { colors } = useAppTheme();
-	const { downloadSelected, cancelDownload, isDownloading, downloadProgress } = useBatchActions();
+	const { downloadSelected, cancelDownload, isDownloading } = useBatchActions();
 
 	const libraryTracks = useLibraryAlbumTracks(id);
 
@@ -80,7 +82,6 @@ export default function AlbumScreen() {
 				<CollectionDownloadButton
 					tracks={enrichedTracks}
 					isDownloading={isDownloading}
-					progress={downloadProgress}
 					onDownload={handleDownloadAll}
 					onCancel={cancelDownload}
 				/>
@@ -112,49 +113,88 @@ export default function AlbumScreen() {
 		[colors.onSurfaceVariant]
 	);
 
-	const renderContent = () => {
+	const renderTrackItem = useCallback(
+		({ item, index }: { item: Track; index: number }) => (
+			<View style={styles.trackItem}>
+				<TrackListItem
+					track={item}
+					source={'search'}
+					queue={enrichedTracks}
+					queueIndex={index}
+				/>
+			</View>
+		),
+		[enrichedTracks]
+	);
+
+	const keyExtractor = useCallback((item: Track) => item.id.value, []);
+
+	const renderContent = ({
+		ListHeaderComponent,
+		onScroll,
+	}: {
+		ListHeaderComponent: ReactNode;
+		onScroll: (e: any) => void;
+	}) => {
 		if (error) {
 			return (
-				<View style={styles.emptyState}>
-					<Text variant={'bodyMedium'} style={errorTextStyle}>
-						{error}
-					</Text>
-					<Button mode={'text'} onPress={handleSearchAlbum}>
-						Search for tracks instead
-					</Button>
+				<View>
+					{ListHeaderComponent}
+					<View style={styles.emptyState}>
+						<Text variant={'bodyMedium'} style={errorTextStyle}>
+							{error}
+						</Text>
+						<Button mode={'text'} onPress={handleSearchAlbum}>
+							Search for tracks instead
+						</Button>
+					</View>
 				</View>
 			);
 		}
 
 		if (isLoading) {
-			return <AlbumTrackListSkeleton />;
+			return (
+				<View>
+					{ListHeaderComponent}
+					<View style={styles.loadingContainer}>
+						<AlbumTrackListSkeleton />
+					</View>
+				</View>
+			);
 		}
 
 		if (enrichedTracks.length === 0) {
 			return (
-				<View style={styles.emptyState}>
-					<Text variant={'bodyMedium'} style={emptyTextStyle}>
-						No tracks found for this album
-					</Text>
-					<Button mode={'text'} onPress={handleSearchAlbum}>
-						Search for tracks
-					</Button>
+				<View>
+					{ListHeaderComponent}
+					<View style={styles.emptyState}>
+						<Text variant={'bodyMedium'} style={emptyTextStyle}>
+							No tracks found for this album
+						</Text>
+						<Button mode={'text'} onPress={handleSearchAlbum}>
+							Search for tracks
+						</Button>
+					</View>
 				</View>
 			);
 		}
 
 		return (
-			<View style={styles.trackList}>
-				{enrichedTracks.map((track, index) => (
-					<TrackListItem
-						key={track.id.value}
-						track={track}
-						source={'search'}
-						queue={enrichedTracks}
-						queueIndex={index}
-					/>
-				))}
-			</View>
+			<FlatList
+				data={enrichedTracks}
+				renderItem={renderTrackItem}
+				keyExtractor={keyExtractor}
+				ListHeaderComponent={<>{ListHeaderComponent}</>}
+				contentContainerStyle={{
+					paddingBottom: insets.bottom + 80,
+				}}
+				onScroll={onScroll}
+				scrollEventThrottle={16}
+				removeClippedSubviews
+				maxToRenderPerBatch={10}
+				windowSize={5}
+				initialNumToRender={15}
+			/>
 		);
 	};
 
@@ -164,10 +204,9 @@ export default function AlbumScreen() {
 			headerRightActions={headerRightActions}
 			isLoading={isLoading}
 			loadingContent={<AlbumHeaderSkeleton />}
-			scrollContentStyle={{ paddingBottom: insets.bottom + 80 }}
-		>
-			<View style={styles.content}>{renderContent()}</View>
-		</DetailsPage>
+			disableScroll
+			renderContent={renderContent}
+		/>
 	);
 }
 
@@ -182,14 +221,15 @@ function SearchAction({ onPress }: { readonly onPress: () => void }) {
 }
 
 const styles = StyleSheet.create({
-	content: {
+	trackItem: {
 		paddingHorizontal: 24,
-	},
-	trackList: {
-		gap: 8,
 	},
 	emptyState: {
 		paddingVertical: 48,
 		alignItems: 'center',
+		paddingHorizontal: 24,
+	},
+	loadingContainer: {
+		paddingHorizontal: 24,
 	},
 });

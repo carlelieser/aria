@@ -1,8 +1,10 @@
-import type { Track } from '@domain/entities/track';
 import type { FeedSection, FeedItem, HomeFeedData } from '@domain/entities/feed-section';
 import type { Result } from '@shared/types/result';
 import { ok, err } from '@shared/types/result';
-import type { HomeFeedOperations } from '@plugins/core/interfaces/home-feed-provider';
+import type {
+	HomeFeedOperations,
+	PlaylistTracksPage,
+} from '@plugins/core/interfaces/home-feed-provider';
 import type { SpotifyClient } from './client';
 import type { SpotifySimplifiedAlbum, SpotifySimplifiedPlaylist } from './types';
 import {
@@ -117,12 +119,12 @@ export function createSpotifyHomeFeedOperations(client: SpotifyClient): HomeFeed
 			return ok({ sections: [], filterChips: [], hasContinuation: false });
 		},
 
-		async getPlaylistTracks(playlistId: string): Promise<Result<Track[], Error>> {
+		async getPlaylistTracks(playlistId: string): Promise<Result<PlaylistTracksPage, Error>> {
 			try {
 				const result = await client.getPlaylistTracks(playlistId, { limit: 50 });
 				if (!result.success) return result;
 
-				const tracks: Track[] = [];
+				const tracks = [];
 				for (const item of result.data.items) {
 					if (!item.track) continue;
 					const track = mapSpotifyTrack(item.track);
@@ -130,7 +132,7 @@ export function createSpotifyHomeFeedOperations(client: SpotifyClient): HomeFeed
 				}
 
 				logger.info(`Fetched ${tracks.length} tracks from Spotify playlist ${playlistId}`);
-				return ok(tracks);
+				return ok({ tracks, hasMore: false });
 			} catch (error) {
 				return err(
 					error instanceof Error
@@ -138,6 +140,10 @@ export function createSpotifyHomeFeedOperations(client: SpotifyClient): HomeFeed
 						: new Error(`Failed to fetch Spotify playlist tracks: ${String(error)}`)
 				);
 			}
+		},
+
+		async loadMorePlaylistTracks(): Promise<Result<PlaylistTracksPage, Error>> {
+			return ok({ tracks: [], hasMore: false });
 		},
 	};
 }

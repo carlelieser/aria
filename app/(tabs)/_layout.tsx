@@ -7,7 +7,7 @@ import { Text, IconButton } from 'react-native-paper';
 import { SettingsIcon } from 'lucide-react-native';
 import { ProfileAvatarButton } from '@/src/components/ui/profile-avatar-button';
 import { useAppTheme, resolveDisplayFont } from '@/lib/theme';
-import { useDownloadQueue } from '@/src/hooks/use-download-queue';
+import { useActiveDownloadsCount } from '@/src/application/state/download-store';
 import {
 	useTabOrder,
 	useEnabledTabs,
@@ -54,7 +54,7 @@ export default function TabLayout() {
 			headerShown: false,
 			animation: 'shift' as const,
 			lazy: false,
-			freezeOnBlur: false,
+			freezeOnBlur: true,
 			sceneStyle: {
 				borderTopLeftRadius: 48,
 				borderTopRightRadius: 48,
@@ -127,7 +127,7 @@ interface CustomTabBarProps extends BottomTabBarProps {
 function CustomTabBar({ state, navigation, tabOrder, onActiveTabChange }: CustomTabBarProps) {
 	const { colors } = useAppTheme();
 	const insets = useSafeAreaInsets();
-	const { stats } = useDownloadQueue();
+	const activeDownloadsCount = useActiveDownloadsCount();
 	const tabBarHeight = TAB_BAR_HEIGHT + insets.bottom;
 
 	const currentRouteName = state.routes[state.index]?.name as TabId;
@@ -207,7 +207,9 @@ function CustomTabBar({ state, navigation, tabOrder, onActiveTabChange }: Custom
 						const routeIndex = state.routes.indexOf(route);
 						const isFocused = state.index === routeIndex;
 						const isDownloadsTab = tabId === 'downloads';
-						const downloadBadgeCount = isDownloadsTab ? stats.activeCount : undefined;
+						const downloadBadgeCount = isDownloadsTab
+							? activeDownloadsCount || undefined
+							: undefined;
 
 						return (
 							<Pressable

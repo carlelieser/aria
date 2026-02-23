@@ -5,3 +5,5 @@ build
 android
 ios
 *.lock
+.claude
+.profiling

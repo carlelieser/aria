@@ -5,6 +5,7 @@ const logger = getLogger('YouTubeMusic:HLS:Parser');
 export interface HlsParseResult {
 	readonly initSegmentUrl: string | null;
 	readonly segmentUrls: readonly string[];
+	readonly segmentDurations: readonly number[];
 	readonly baseUrl: string;
 }
 
@@ -70,13 +71,23 @@ function parseSegmentUrl(line: string, baseUrl: string): string | null {
 	return trimmed.startsWith('http') ? trimmed : baseUrl + trimmed;
 }
 
+function parseExtinfDuration(line: string): number | null {
+	if (!line.startsWith('#EXTINF:')) {
+		return null;
+	}
+	const match = line.match(/#EXTINF:([\d.]+)/);
+	return match ? parseFloat(match[1]) : null;
+}
+
 function parseSegmentPlaylist(
 	text: string,
 	baseUrl: string
-): { initSegmentUrl: string | null; segmentUrls: string[] } {
+): { initSegmentUrl: string | null; segmentUrls: string[]; segmentDurations: number[] } {
 	const lines = text.split('\n');
 	const segmentUrls: string[] = [];
+	const segmentDurations: number[] = [];
 	let initSegmentUrl: string | null = null;
+	let pendingDuration: number | null = null;
 
 	for (const line of lines) {
 		const trimmed = line.trim();
@@ -87,13 +98,21 @@ function parseSegmentPlaylist(
 			continue;
 		}
 
+		const duration = parseExtinfDuration(trimmed);
+		if (duration !== null) {
+			pendingDuration = duration;
+			continue;
+		}
+
 		const segmentUrl = parseSegmentUrl(trimmed, baseUrl);
 		if (segmentUrl) {
 			segmentUrls.push(segmentUrl);
+			segmentDurations.push(pendingDuration ?? 0);
+			pendingDuration = null;
 		}
 	}
 
-	return { initSegmentUrl, segmentUrls };
+	return { initSegmentUrl, segmentUrls, segmentDurations };
 }
 
 export async function parseHlsManifest(
@@ -128,12 +147,15 @@ export async function parseHlsManifest(
 	}
 
 	const baseUrl = audioPlaylistUrl.substring(0, audioPlaylistUrl.lastIndexOf('/') + 1);
-	const { initSegmentUrl, segmentUrls } = parseSegmentPlaylist(segmentPlaylistText, baseUrl);
+	const { initSegmentUrl, segmentUrls, segmentDurations } = parseSegmentPlaylist(
+		segmentPlaylistText,
+		baseUrl
+	);
 
 	if (segmentUrls.length === 0) {
 		logger.warn('No segments found in playlist');
 		return null;
 	}
 
-	return { initSegmentUrl, segmentUrls, baseUrl };
+	return { initSegmentUrl, segmentUrls, segmentDurations, baseUrl };
 }

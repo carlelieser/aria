@@ -35,13 +35,13 @@ export function mapSpotifyImages(images?: SpotifyImage[]): Artwork[] {
 
 export function mapSpotifyArtistReference(artist: SpotifySimplifiedArtist): ArtistReference {
 	return {
-		id: artist.id,
+		id: `spotify:${artist.id}`,
 		name: artist.name,
 	};
 }
 
 export function mapSpotifyArtistReferences(artists?: SpotifySimplifiedArtist[]): ArtistReference[] {
-	return mapArtistReferences(artists, (a) => a.id);
+	return mapArtistReferences(artists, (a) => `spotify:${a.id}`);
 }
 
 function mapAlbumType(albumType: string): AlbumType {
@@ -199,7 +199,7 @@ export function mapSpotifyArtist(artist: SpotifyArtist): Artist | null {
 	const artwork = mapSpotifyImages(artist.images);
 
 	return {
-		id: artist.id,
+		id: `spotify:${artist.id}`,
 		name: artist.name,
 		artwork: artwork.length > 0 ? artwork : undefined,
 		genres: artist.genres,

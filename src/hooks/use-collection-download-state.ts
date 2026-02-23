@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useStoreWithEqualityFn } from 'zustand/traditional';
 import { useDownloadStore } from '@/src/application/state/download-store';
 import type { Track } from '@/src/domain/entities/track';
 
@@ -9,43 +10,44 @@ export function useCollectionDownloadState(tracks: readonly Track[]): {
 	downloadedCount: number;
 	totalCount: number;
 } {
-	const downloadedTracks = useDownloadStore((s) => s.downloadedTracks);
-	const downloads = useDownloadStore((s) => s.downloads);
+	const trackIds = useMemo(() => tracks.map((t) => t.id.value), [tracks]);
 
-	return useMemo(() => {
-		if (tracks.length === 0) {
-			return { state: 'none', downloadedCount: 0, totalCount: 0 };
-		}
+	const downloadedCount = useStoreWithEqualityFn(
+		useDownloadStore,
+		(state) => {
+			let count = 0;
+			for (const id of trackIds) {
+				if (state.downloadedTracks.has(id)) count++;
+			}
+			return count;
+		},
+		(a, b) => a === b
+	);
 
-		let downloadedCount = 0;
-		let downloadingCount = 0;
-
-		for (const track of tracks) {
-			const trackId = track.id.value;
-			if (downloadedTracks.has(trackId)) {
-				downloadedCount++;
-			} else {
-				const info = downloads.get(trackId);
+	const hasActiveDownload = useStoreWithEqualityFn(
+		useDownloadStore,
+		(state) => {
+			for (const id of trackIds) {
+				if (state.downloadedTracks.has(id)) continue;
+				const info = state.downloads.get(id);
 				if (info && (info.status === 'pending' || info.status === 'downloading')) {
-					downloadingCount++;
+					return true;
 				}
 			}
-		}
+			return false;
+		},
+		(a, b) => a === b
+	);
 
-		const totalCount = tracks.length;
+	const totalCount = tracks.length;
 
-		if (downloadingCount > 0) {
-			return { state: 'downloading', downloadedCount, totalCount };
-		}
+	const derivedState = useMemo((): DownloadState => {
+		if (totalCount === 0) return 'none';
+		if (hasActiveDownload) return 'downloading';
+		if (downloadedCount === totalCount) return 'complete';
+		if (downloadedCount > 0) return 'partial';
+		return 'none';
+	}, [totalCount, hasActiveDownload, downloadedCount]);
 
-		if (downloadedCount === totalCount) {
-			return { state: 'complete', downloadedCount, totalCount };
-		}
-
-		if (downloadedCount > 0) {
-			return { state: 'partial', downloadedCount, totalCount };
-		}
-
-		return { state: 'none', downloadedCount, totalCount };
-	}, [tracks, downloadedTracks, downloads]);
+	return { state: derivedState, downloadedCount, totalCount };
 }

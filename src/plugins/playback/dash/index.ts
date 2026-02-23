@@ -131,6 +131,7 @@ export class DashPlaybackProvider implements PlaybackProvider {
 			this.player = createVideoPlayer({
 				uri: streamUrl,
 				contentType,
+				...(headers && Object.keys(headers).length > 0 ? { headers } : {}),
 			});
 			this.player.volume = this.volume;
 
@@ -183,6 +184,11 @@ export class DashPlaybackProvider implements PlaybackProvider {
 				break;
 			case 'error':
 				this.updateStatus('error');
+				this.emitEvent({
+					type: 'error',
+					error: new Error('Playback failed: video player entered error state'),
+					timestamp: Date.now(),
+				});
 				break;
 			case 'idle':
 				if (this.player && this.position.totalSeconds >= this.duration.totalSeconds - 1) {

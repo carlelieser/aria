@@ -71,7 +71,6 @@ export default function PlaylistScreen() {
 		downloadSelected,
 		cancelDownload,
 		isDownloading,
-		downloadProgress,
 	} = useBatchActions();
 
 	const tracks = useMemo(() => playlist?.tracks.map((pt) => pt.track) ?? [], [playlist?.tracks]);
@@ -269,7 +268,6 @@ export default function PlaylistScreen() {
 			menuVisible={menuVisible}
 			trackCount={tracks.length}
 			isDownloading={isDownloading}
-			downloadProgress={downloadProgress}
 			tracks={tracks}
 			onToggleEditMode={toggleEditMode}
 			onShowMenu={() => setMenuVisible(true)}
@@ -425,7 +423,6 @@ interface PlaylistHeaderActionsProps {
 	readonly menuVisible: boolean;
 	readonly trackCount: number;
 	readonly isDownloading: boolean;
-	readonly downloadProgress: { completed: number; total: number };
 	readonly tracks: readonly Track[];
 	readonly onToggleEditMode: () => void;
 	readonly onShowMenu: () => void;
@@ -441,7 +438,6 @@ function PlaylistHeaderActions({
 	menuVisible,
 	trackCount,
 	isDownloading,
-	downloadProgress,
 	tracks,
 	onToggleEditMode,
 	onShowMenu,
@@ -468,7 +464,6 @@ function PlaylistHeaderActions({
 				<CollectionDownloadButton
 					tracks={tracks}
 					isDownloading={isDownloading}
-					progress={downloadProgress}
 					onDownload={onDownloadAll}
 					onCancel={onCancelDownload}
 				/>

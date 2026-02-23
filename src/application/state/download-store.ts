@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useStoreWithEqualityFn } from 'zustand/traditional';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {
@@ -69,12 +70,21 @@ export const useDownloadStore = create<DownloadState>()(
 			},
 
 			updateProgress: (trackId: string, progress: number) => {
+				const existing = get().downloads.get(trackId);
+				if (!existing) return;
+
+				const lastProgress = existing.progress ?? 0;
+				const isCompletion = progress >= 100;
+				const isMeaningfulChange = Math.abs(progress - lastProgress) >= 2;
+
+				if (!isCompletion && !isMeaningfulChange) return;
+
 				set((state) => {
-					const existing = state.downloads.get(trackId);
-					if (!existing) return state;
+					const current = state.downloads.get(trackId);
+					if (!current) return state;
 
 					const newDownloads = new Map(state.downloads);
-					newDownloads.set(trackId, createDownloadingInfo(existing, progress));
+					newDownloads.set(trackId, createDownloadingInfo(current, progress));
 					return { downloads: newDownloads };
 				});
 			},
@@ -228,3 +238,133 @@ export const useDownloadInfo = (trackId: string) =>
 	useDownloadStore((state) => state.getDownloadInfo(trackId));
 export const useDownloadProgress = (trackId: string) =>
 	useDownloadStore((state) => state.getDownloadInfo(trackId)?.progress ?? 0);
+export const useActiveDownloadsCount = () =>
+	useDownloadStore((state) => state.getActiveDownloadsCount());
+
+// --- Granular selectors with custom equality to prevent unnecessary re-renders ---
+
+interface DownloadStats {
+	readonly activeCount: number;
+	readonly completedCount: number;
+	readonly failedCount: number;
+	readonly pendingCount: number;
+	readonly totalSize: number;
+}
+
+function activeDownloadsSelector(state: DownloadState): DownloadInfo[] {
+	const result: DownloadInfo[] = [];
+	for (const info of state.downloads.values()) {
+		if (info.status === 'pending' || info.status === 'downloading') {
+			result.push(info);
+		}
+	}
+	return result;
+}
+
+function activeDownloadsEqual(a: DownloadInfo[], b: DownloadInfo[]): boolean {
+	if (a.length !== b.length) return false;
+	for (let i = 0; i < a.length; i++) {
+		if (
+			a[i].trackId !== b[i].trackId ||
+			a[i].status !== b[i].status ||
+			a[i].progress !== b[i].progress
+		)
+			return false;
+	}
+	return true;
+}
+
+export function useActiveDownloadsList(): DownloadInfo[] {
+	return useStoreWithEqualityFn(useDownloadStore, activeDownloadsSelector, activeDownloadsEqual);
+}
+
+function completedDownloadsSelector(state: DownloadState): DownloadInfo[] {
+	const result: DownloadInfo[] = [];
+	for (const info of state.downloads.values()) {
+		if (info.status === 'completed') {
+			result.push(info);
+		}
+	}
+	return result;
+}
+
+function completedDownloadsEqual(a: DownloadInfo[], b: DownloadInfo[]): boolean {
+	if (a.length !== b.length) return false;
+	for (let i = 0; i < a.length; i++) {
+		if (a[i].trackId !== b[i].trackId) return false;
+	}
+	return true;
+}
+
+export function useCompletedDownloadsList(): DownloadInfo[] {
+	return useStoreWithEqualityFn(
+		useDownloadStore,
+		completedDownloadsSelector,
+		completedDownloadsEqual
+	);
+}
+
+function failedDownloadsSelector(state: DownloadState): DownloadInfo[] {
+	const result: DownloadInfo[] = [];
+	for (const info of state.downloads.values()) {
+		if (info.status === 'failed') {
+			result.push(info);
+		}
+	}
+	return result;
+}
+
+function failedDownloadsEqual(a: DownloadInfo[], b: DownloadInfo[]): boolean {
+	if (a.length !== b.length) return false;
+	for (let i = 0; i < a.length; i++) {
+		if (a[i].trackId !== b[i].trackId) return false;
+	}
+	return true;
+}
+
+export function useFailedDownloadsList(): DownloadInfo[] {
+	return useStoreWithEqualityFn(useDownloadStore, failedDownloadsSelector, failedDownloadsEqual);
+}
+
+function downloadStatsSelector(state: DownloadState): DownloadStats {
+	let activeCount = 0;
+	let completedCount = 0;
+	let failedCount = 0;
+	let pendingCount = 0;
+	let totalSize = 0;
+
+	for (const info of state.downloads.values()) {
+		switch (info.status) {
+			case 'pending':
+				pendingCount++;
+				activeCount++;
+				break;
+			case 'downloading':
+				activeCount++;
+				break;
+			case 'completed':
+				completedCount++;
+				if (info.fileSize) totalSize += info.fileSize;
+				break;
+			case 'failed':
+				failedCount++;
+				break;
+		}
+	}
+
+	return { activeCount, completedCount, failedCount, pendingCount, totalSize };
+}
+
+function downloadStatsEqual(a: DownloadStats, b: DownloadStats): boolean {
+	return (
+		a.activeCount === b.activeCount &&
+		a.completedCount === b.completedCount &&
+		a.failedCount === b.failedCount &&
+		a.pendingCount === b.pendingCount &&
+		a.totalSize === b.totalSize
+	);
+}
+
+export function useDownloadStats(): DownloadStats {
+	return useStoreWithEqualityFn(useDownloadStore, downloadStatsSelector, downloadStatsEqual);
+}

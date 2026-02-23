@@ -13,13 +13,15 @@ import { Music } from 'lucide-react-native';
 
 import { Icon } from '@/src/components/ui/icon';
 import { AudioWaveform } from '@/src/components/ui/audio-waveform';
-import { usePlayer } from '@/src/hooks/use-player';
+import { usePlayerActions } from '@/src/hooks/use-player';
 import type { Track } from '@/src/domain/entities/track';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import { getArtistNames } from '@/src/domain/entities/track';
-import { useCurrentTrack, useIsPlaying } from '@/src/application/state/player-store';
+import { useTrackPlaybackInfo } from '@/src/application/state/player-store';
 import { DownloadIndicator } from './download-indicator';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
+import { useOpenPlayerOnTrackClick } from '@/src/application/state/settings-store';
+import { router } from 'expo-router';
 
 interface TrackCardProps {
 	track: Track;
@@ -36,12 +38,10 @@ export const TrackCard = memo(function TrackCard({
 	queue,
 	queueIndex,
 }: TrackCardProps) {
-	const { play, playQueue } = usePlayer();
+	const { play, playQueue } = usePlayerActions();
 	const { colors } = useAppTheme();
-	const currentTrack = useCurrentTrack();
-	const isPlaying = useIsPlaying();
-	const isActiveTrack = currentTrack !== null && currentTrack.id.value === track.id.value;
-	const isCurrentlyPlaying = isActiveTrack && isPlaying;
+	const { isActiveTrack, isCurrentlyPlaying } = useTrackPlaybackInfo(track.id.value);
+	const openPlayerOnTrackClick = useOpenPlayerOnTrackClick();
 
 	const handlePress = useCallback(() => {
 		if (onPress) {
@@ -53,7 +53,10 @@ export const TrackCard = memo(function TrackCard({
 		} else {
 			play(track);
 		}
-	}, [onPress, track, play, playQueue, queue, queueIndex]);
+		if (!onPress && openPlayerOnTrackClick) {
+			router.push('/player');
+		}
+	}, [onPress, track, play, playQueue, queue, queueIndex, openPlayerOnTrackClick]);
 
 	const artwork = getBestArtwork(track.artwork, 300);
 	const artworkUrl = artwork?.url;

@@ -1,4 +1,3 @@
-import * as FileSystem from 'expo-file-system/legacy';
 import type { Track } from '../../domain/entities/track';
 import { getArtistNames } from '../../domain/entities/track';
 import { getLargestArtwork } from '../../domain/value-objects/artwork';
@@ -14,11 +13,13 @@ import { createDownloadedTrackMetadata } from '../../domain/value-objects/downlo
 import { useDownloadStore } from '../state/download-store';
 import {
 	downloadAudioFile,
+	copyToDownloads,
+	copyDirectoryToDownloads,
 	deleteAudioFile,
+	deleteDownloadDirectory,
 	getFileInfo,
-	getDownloadFilePath,
-	getDownloadsDirectory,
 } from '../../infrastructure/filesystem/download-manager';
+import type { DownloadResult } from '../../infrastructure/filesystem/download-manager';
 import type { Result } from '../../shared/types/result';
 import { ok, err } from '../../shared/types/result';
 import { getLogger } from '../../shared/services/logger';
@@ -26,9 +27,30 @@ import { libraryService } from './library-service';
 
 const logger = getLogger('DownloadService');
 
+const NON_DOWNLOADABLE_FORMATS = new Set(['hls']);
+
+const BATCH_CONCURRENCY = 3;
+
+interface AudioStreamInfo {
+	readonly url: string;
+	readonly format?: string;
+	readonly headers?: Record<string, string>;
+}
+
+export interface BatchDownloadResult {
+	readonly completed: number;
+	readonly failed: number;
+	readonly cancelled: boolean;
+}
+
+function isLocalPath(url: string): boolean {
+	return url.startsWith('file://') || url.startsWith('/');
+}
+
 export class DownloadService {
 	private audioSourceProviders: AudioSourceProvider[] = [];
 	private activeDownloads: Map<string, boolean> = new Map();
+	private _batchCancelled = false;
 
 	setAudioSourceProviders(providers: AudioSourceProvider[]): void {
 		this.audioSourceProviders = providers;
@@ -50,175 +72,39 @@ export class DownloadService {
 		const trackId = track.id.value;
 		const store = useDownloadStore.getState();
 
-		if (!canDownload(track.source)) {
-			return false;
-		}
-
-		if (store.isDownloaded(trackId)) {
-			return false;
-		}
-
-		if (store.isDownloading(trackId) || this.activeDownloads.get(trackId)) {
-			return false;
-		}
-
-		return true;
+		return (
+			canDownload(track.source) &&
+			!store.isDownloaded(trackId) &&
+			!store.isDownloading(trackId) &&
+			!this.activeDownloads.get(trackId)
+		);
 	}
 
 	async downloadTrack(track: Track): Promise<Result<void, Error>> {
-		const trackId = track.id.value;
-		const store = useDownloadStore.getState();
-
-		if (!canDownload(track.source)) {
-			const reason =
-				track.source.type === 'local'
-					? 'Local library tracks are already on device'
-					: 'Track is already downloaded';
-			logger.debug(`Cannot download ${trackId}: ${reason}`);
-			return err(new Error(reason));
+		if (!this.canDownloadTrack(track)) {
+			return this._skipDownload(track);
 		}
 
-		if (store.isDownloaded(trackId)) {
-			logger.debug(`Track ${trackId} already downloaded`);
-			return ok(undefined);
+		this._enqueue(track);
+		return this._executeDownload(track);
+	}
+
+	async downloadTracks(tracks: readonly Track[]): Promise<BatchDownloadResult> {
+		const eligible = tracks.filter((t) => this.canDownloadTrack(t));
+		if (eligible.length === 0) {
+			return { completed: 0, failed: 0, cancelled: false };
 		}
 
-		if (store.isDownloading(trackId) || this.activeDownloads.get(trackId)) {
-			logger.debug(`Track ${trackId} already downloading`);
-			return ok(undefined);
+		for (const track of eligible) {
+			this._enqueue(track);
 		}
 
-		const artwork = getLargestArtwork(track.artwork);
-		this.activeDownloads.set(trackId, true);
-		store.startDownload(trackId, {
-			title: track.title,
-			artistName: getArtistNames(track),
-			artworkUrl: artwork?.url,
-			albumId: track.album?.id,
-			albumName: track.album?.name,
-		});
+		this._batchCancelled = false;
+		return this._processQueue(eligible);
+	}
 
-		try {
-			const streamResult = await this._getAudioStream(track);
-
-			if (!streamResult.success) {
-				store.failDownload(trackId, streamResult.error.message);
-				this.activeDownloads.delete(trackId);
-				return err(streamResult.error);
-			}
-
-			const audioStream = streamResult.data;
-			const format = audioStream.format ?? 'm4a';
-			const sourceUrl = audioStream.url;
-			logger.debug(`Got stream URL for download: ${sourceUrl.substring(0, 50)}...`);
-
-			let filePath: string;
-			let fileSize: number;
-
-			// Check if this is a local cached file (from HLS download or adaptive cache)
-			const isLocalFile = sourceUrl.startsWith('file://') || sourceUrl.startsWith('/');
-
-			if (isLocalFile) {
-				logger.debug('Source is a local cached file, copying to downloads...');
-				store.updateProgress(trackId, 50);
-
-				// Ensure downloads directory exists
-				await getDownloadsDirectory();
-
-				// Copy the cached file to permanent downloads location
-				const destPath = getDownloadFilePath(trackId, format);
-
-				// Normalize source path - copyAsync needs file:// URI
-				const sourcePath = sourceUrl.startsWith('file://')
-					? sourceUrl
-					: `file://${sourceUrl}`;
-
-				logger.debug(`Copying from: ${sourcePath}`);
-				logger.debug(`Copying to: ${destPath}`);
-
-				// Check if source exists first
-				const sourceInfo = await FileSystem.getInfoAsync(sourcePath);
-				if (!sourceInfo.exists) {
-					logger.error(`Source file does not exist: ${sourcePath}`);
-					store.failDownload(trackId, 'Cached file not found');
-					this.activeDownloads.delete(trackId);
-					return err(new Error('Cached file not found'));
-				}
-
-				logger.debug(
-					`Source file size: ${'size' in sourceInfo ? sourceInfo.size : 'unknown'}`
-				);
-
-				await FileSystem.copyAsync({
-					from: sourcePath,
-					to: destPath,
-				});
-
-				const fileInfo = await FileSystem.getInfoAsync(destPath);
-				if (!fileInfo.exists || !('size' in fileInfo)) {
-					store.failDownload(trackId, 'Failed to copy cached file');
-					this.activeDownloads.delete(trackId);
-					return err(new Error('Failed to copy cached file'));
-				}
-
-				filePath = destPath;
-				fileSize = fileInfo.size as number;
-				logger.debug(`Copy complete, size: ${fileSize}`);
-				store.updateProgress(trackId, 100);
-			} else {
-				// Download from remote URL
-				logger.debug(`Stream headers present: ${!!audioStream.headers}`);
-
-				const downloadResult = await downloadAudioFile(
-					sourceUrl,
-					trackId,
-					(progress) => {
-						store.updateProgress(trackId, progress);
-					},
-					audioStream.headers,
-					format
-				);
-
-				if (!downloadResult.success) {
-					store.failDownload(trackId, downloadResult.error.message);
-					this.activeDownloads.delete(trackId);
-					return err(downloadResult.error);
-				}
-
-				filePath = downloadResult.data.filePath;
-				fileSize = downloadResult.data.fileSize;
-			}
-
-			const metadata = createDownloadedTrackMetadata({
-				trackId,
-				filePath,
-				fileSize,
-				sourcePlugin: track.id.sourceType,
-				format,
-				title: track.title,
-				artistName: getArtistNames(track),
-				artworkUrl: artwork?.url,
-				albumId: track.album?.id,
-				albumName: track.album?.name,
-			});
-
-			store.completeDownload(trackId, metadata);
-			this.activeDownloads.delete(trackId);
-
-			// Auto-add downloaded track to library
-			if (!libraryService.isInLibrary(trackId)) {
-				libraryService.addTrack(track);
-				logger.debug(`Added to library: ${track.title}`);
-			}
-
-			logger.info(`Download complete: ${track.title}`);
-			return ok(undefined);
-		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-			store.failDownload(trackId, errorMessage);
-			this.activeDownloads.delete(trackId);
-			return err(error instanceof Error ? error : new Error(errorMessage));
-		}
+	cancelBatchDownload(): void {
+		this._batchCancelled = true;
 	}
 
 	async removeDownload(trackId: string): Promise<Result<void, Error>> {
@@ -229,14 +115,16 @@ export class DownloadService {
 			return ok(undefined);
 		}
 
-		const deleteResult = await deleteAudioFile(metadata.filePath);
+		const deleteResult =
+			metadata.format === 'm3u8'
+				? await deleteDownloadDirectory(metadata.filePath)
+				: await deleteAudioFile(metadata.filePath);
 
 		if (!deleteResult.success) {
 			logger.warn(`Failed to delete file: ${deleteResult.error.message}`);
 		}
 
 		store.removeDownload(trackId);
-
 		logger.info(`Download removed: ${trackId}`);
 		return ok(undefined);
 	}
@@ -280,13 +168,11 @@ export class DownloadService {
 
 	async verifyDownload(trackId: string): Promise<boolean> {
 		const filePath = this.getLocalFilePath(trackId);
-
 		if (!filePath) {
 			return false;
 		}
 
 		const fileInfo = await getFileInfo(filePath);
-
 		if (!fileInfo.exists) {
 			useDownloadStore.getState().removeDownload(trackId);
 			return false;
@@ -295,75 +181,193 @@ export class DownloadService {
 		return true;
 	}
 
-	private async _getAudioStream(
-		track: Track
-	): Promise<Result<{ url: string; format?: string; headers?: Record<string, string> }, Error>> {
-		logger.debug('Getting audio stream for download:', track.title);
-		logger.debug('Available providers:', this.audioSourceProviders.length);
+	private _enqueue(track: Track): void {
+		const trackId = track.id.value;
+		const artwork = getLargestArtwork(track.artwork);
 
-		const supportingProvider = this.audioSourceProviders.find((p) => {
-			const supports = p.supportsTrack(track);
-			logger.debug(`Provider ${p.manifest.id} supportsTrack: ${supports}`);
-			return supports;
+		this.activeDownloads.set(trackId, true);
+		useDownloadStore.getState().startDownload(trackId, {
+			title: track.title,
+			artistName: getArtistNames(track),
+			artworkUrl: artwork?.url,
+			albumId: track.album?.id,
+			albumName: track.album?.name,
+		});
+	}
+
+	private async _executeDownload(track: Track): Promise<Result<void, Error>> {
+		const trackId = track.id.value;
+		const store = useDownloadStore.getState();
+
+		try {
+			const onProgress = (progress: number): void => {
+				store.updateProgress(trackId, progress);
+			};
+
+			const streamResult = await this._getDownloadableStream(track, onProgress);
+			if (!streamResult.success) {
+				return this._failDownload(trackId, streamResult.error);
+			}
+
+			const fileResult = await this._acquireFile(trackId, streamResult.data, store);
+			if (!fileResult.success) {
+				return this._failDownload(trackId, fileResult.error);
+			}
+
+			const artwork = getLargestArtwork(track.artwork);
+			this._completeDownload(
+				track,
+				fileResult.data,
+				streamResult.data.format ?? 'm4a',
+				artwork
+			);
+			return ok(undefined);
+		} catch (error) {
+			const wrapped = error instanceof Error ? error : new Error(String(error));
+			return this._failDownload(trackId, wrapped);
+		}
+	}
+
+	private async _processQueue(tracks: readonly Track[]): Promise<BatchDownloadResult> {
+		let completed = 0;
+		let failed = 0;
+		let nextIndex = 0;
+
+		const worker = async (): Promise<void> => {
+			while (!this._batchCancelled) {
+				const i = nextIndex++;
+				if (i >= tracks.length) break;
+
+				const result = await this._executeDownload(tracks[i]);
+				if (result.success) {
+					completed++;
+				} else {
+					failed++;
+				}
+			}
+		};
+
+		const workerCount = Math.min(BATCH_CONCURRENCY, tracks.length);
+		await Promise.all(Array.from({ length: workerCount }, worker));
+
+		return { completed, failed, cancelled: this._batchCancelled };
+	}
+
+	private _skipDownload(track: Track): Result<void, Error> {
+		const trackId = track.id.value;
+
+		if (!canDownload(track.source)) {
+			const reason =
+				track.source.type === 'local'
+					? 'Local library tracks are already on device'
+					: 'Track is already downloaded';
+			logger.debug(`Cannot download ${trackId}: ${reason}`);
+			return err(new Error(reason));
+		}
+
+		logger.debug(`Download skipped for ${trackId}: already downloaded or in progress`);
+		return ok(undefined);
+	}
+
+	private _failDownload(trackId: string, error: Error): Result<void, Error> {
+		useDownloadStore.getState().failDownload(trackId, error.message);
+		this.activeDownloads.delete(trackId);
+		return err(error);
+	}
+
+	private _completeDownload(
+		track: Track,
+		file: DownloadResult,
+		format: string,
+		artwork: ReturnType<typeof getLargestArtwork>
+	): void {
+		const trackId = track.id.value;
+		const store = useDownloadStore.getState();
+
+		const metadata = createDownloadedTrackMetadata({
+			trackId,
+			filePath: file.filePath,
+			fileSize: file.fileSize,
+			sourcePlugin: track.id.sourceType,
+			format,
+			title: track.title,
+			artistName: getArtistNames(track),
+			artworkUrl: artwork?.url,
+			albumId: track.album?.id,
+			albumName: track.album?.name,
 		});
 
-		if (!supportingProvider) {
+		store.completeDownload(trackId, metadata);
+		this.activeDownloads.delete(trackId);
+
+		if (!libraryService.isInLibrary(trackId)) {
+			libraryService.addTrack(track);
+			logger.debug(`Added to library: ${track.title}`);
+		}
+
+		logger.info(`Download complete: ${track.title}`);
+	}
+
+	private async _acquireFile(
+		trackId: string,
+		stream: AudioStreamInfo,
+		store: ReturnType<typeof useDownloadStore.getState>
+	): Promise<Result<DownloadResult, Error>> {
+		const format = stream.format ?? 'm4a';
+
+		if (isLocalPath(stream.url)) {
+			if (format === 'm3u8') {
+				// m3u8 manifest lives inside a segment directory — copy the whole directory
+				const sourceDir = stream.url.substring(0, stream.url.lastIndexOf('/') + 1);
+				const result = await copyDirectoryToDownloads(sourceDir, trackId);
+				if (result.success) {
+					store.updateProgress(trackId, 100);
+				}
+				return result;
+			}
+
+			const result = await copyToDownloads(stream.url, trackId, format);
+			if (result.success) {
+				store.updateProgress(trackId, 100);
+			}
+			return result;
+		}
+
+		return downloadAudioFile(
+			stream.url,
+			trackId,
+			(progress) => store.updateProgress(trackId, progress),
+			stream.headers,
+			format
+		);
+	}
+
+	private async _getDownloadableStream(
+		track: Track,
+		onProgress?: (progress: number) => void
+	): Promise<Result<AudioStreamInfo, Error>> {
+		const provider = this.audioSourceProviders.find((p) => p.supportsTrack(track));
+		if (!provider) {
 			return err(new Error(`No audio source provider for track: ${track.title}`));
 		}
 
-		// First, try to get a downloadable format (direct URL, not HLS)
-		logger.debug('Trying downloadable format...');
-		const downloadableResult = await supportingProvider.getStreamUrl(track, {
+		const result = await provider.getStreamUrl(track, {
 			preferDownloadable: true,
+			onProgress,
 		});
-
-		if (downloadableResult.success) {
-			const url = downloadableResult.data.url;
-			// Check if it's a local file (already cached) or a remote URL
-			if (url.startsWith('file://') || url.startsWith('/')) {
-				logger.debug('Got cached local file for download');
-				return ok({
-					url: downloadableResult.data.url,
-					format: downloadableResult.data.format,
-					headers: downloadableResult.data.headers,
-				});
-			}
-			logger.debug('Got remote URL for download');
-			return ok({
-				url: downloadableResult.data.url,
-				format: downloadableResult.data.format,
-				headers: downloadableResult.data.headers,
-			});
+		if (!result.success) {
+			return err(new Error(`No downloadable audio source for track: ${track.title}`));
 		}
 
-		logger.debug('Downloadable format failed, trying streaming fallback...');
-
-		// Fallback: use regular streaming path which may cache the file
-		const streamResult = await supportingProvider.getStreamUrl(track);
-
-		if (streamResult.success) {
-			const url = streamResult.data.url;
-
-			// If it's a local cached file, we can use it directly
-			if (url.startsWith('file://') || url.startsWith('/')) {
-				logger.debug('Streaming fallback returned cached file');
-				return ok({
-					url: streamResult.data.url,
-					format: streamResult.data.format,
-					headers: streamResult.data.headers,
-				});
-			}
-
-			// Try to use whatever URL we got
-			logger.debug('Streaming fallback returned URL');
-			return ok({
-				url: streamResult.data.url,
-				format: streamResult.data.format,
-				headers: streamResult.data.headers,
-			});
+		if (NON_DOWNLOADABLE_FORMATS.has(result.data.format)) {
+			return err(new Error(`No downloadable audio source for track: ${track.title}`));
 		}
 
-		return err(new Error(`No audio source available for track: ${track.title}`));
+		return ok({
+			url: result.data.url,
+			format: result.data.format,
+			headers: result.data.headers,
+		});
 	}
 }
 

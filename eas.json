@@ -22,12 +22,13 @@
 			}
 		},
 		"preview": {
-			"distribution": "internal",
 			"android": {
+				"distribution": "internal",
 				"buildType": "apk",
 				"gradleCommand": ":app:assembleRelease"
 			},
 			"ios": {
+				"distribution": "store",
 				"simulator": false
 			}
 		},

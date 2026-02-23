@@ -6,6 +6,8 @@ export type ThemePreference = 'system' | 'light' | 'dark';
 export type TabId = 'feed' | 'library' | 'downloads' | 'search';
 export type DefaultTab = TabId;
 export type LibraryTabId = 'songs' | 'playlists' | 'artists' | 'albums';
+export type ProgressBarStyle = 'expressive' | 'expressive-variant' | 'basic';
+export type PlayerBackground = 'artwork-blur' | 'artwork-solid' | 'theme-color';
 
 export const DEFAULT_TAB_ORDER: TabId[] = ['feed', 'library', 'search', 'downloads'];
 export const DEFAULT_ENABLED_TABS: TabId[] = ['feed', 'library', 'search', 'downloads'];
@@ -18,6 +20,9 @@ interface SettingsState {
 	accentColor: string | null;
 	tabOrder: TabId[];
 	enabledTabs: TabId[];
+	openPlayerOnTrackClick: boolean;
+	progressBarStyle: ProgressBarStyle;
+	playerBackground: PlayerBackground;
 
 	setThemePreference: (preference: ThemePreference) => void;
 	setDefaultTab: (tab: DefaultTab) => void;
@@ -28,6 +33,9 @@ interface SettingsState {
 	setEnabledTabs: (tabs: TabId[]) => void;
 	toggleTab: (tabId: TabId) => void;
 	resetEnabledTabs: () => void;
+	setOpenPlayerOnTrackClick: (enabled: boolean) => void;
+	setProgressBarStyle: (style: ProgressBarStyle) => void;
+	setPlayerBackground: (background: PlayerBackground) => void;
 	resetAllSettings: () => void;
 }
 
@@ -52,6 +60,9 @@ export const useSettingsStore = create<SettingsState>()(
 			accentColor: null,
 			tabOrder: DEFAULT_TAB_ORDER,
 			enabledTabs: DEFAULT_ENABLED_TABS,
+			openPlayerOnTrackClick: false,
+			progressBarStyle: 'expressive',
+			playerBackground: 'artwork-blur',
 
 			setThemePreference: (preference: ThemePreference) => {
 				set({ themePreference: preference });
@@ -93,6 +104,15 @@ export const useSettingsStore = create<SettingsState>()(
 			resetEnabledTabs: () => {
 				set({ enabledTabs: DEFAULT_ENABLED_TABS });
 			},
+			setOpenPlayerOnTrackClick: (enabled: boolean) => {
+				set({ openPlayerOnTrackClick: enabled });
+			},
+			setProgressBarStyle: (style: ProgressBarStyle) => {
+				set({ progressBarStyle: style });
+			},
+			setPlayerBackground: (background: PlayerBackground) => {
+				set({ playerBackground: background });
+			},
 			resetAllSettings: () => {
 				set({
 					themePreference: 'system',
@@ -101,6 +121,9 @@ export const useSettingsStore = create<SettingsState>()(
 					accentColor: null,
 					tabOrder: DEFAULT_TAB_ORDER,
 					enabledTabs: DEFAULT_ENABLED_TABS,
+					openPlayerOnTrackClick: false,
+					progressBarStyle: 'expressive',
+					playerBackground: 'artwork-blur',
 				});
 			},
 		}),
@@ -143,3 +166,17 @@ export const useDefaultLibraryTab = () => useSettingsStore((state) => state.defa
 
 export const useSetDefaultLibraryTab = () =>
 	useSettingsStore((state) => state.setDefaultLibraryTab);
+
+export const useOpenPlayerOnTrackClick = () =>
+	useSettingsStore((state) => state.openPlayerOnTrackClick);
+
+export const useSetOpenPlayerOnTrackClick = () =>
+	useSettingsStore((state) => state.setOpenPlayerOnTrackClick);
+
+export const useProgressBarStyle = () => useSettingsStore((state) => state.progressBarStyle);
+
+export const useSetProgressBarStyle = () => useSettingsStore((state) => state.setProgressBarStyle);
+
+export const usePlayerBackground = () => useSettingsStore((state) => state.playerBackground);
+
+export const useSetPlayerBackground = () => useSettingsStore((state) => state.setPlayerBackground);

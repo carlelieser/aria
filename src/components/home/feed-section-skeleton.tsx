@@ -5,14 +5,14 @@ export function FeedSectionSkeleton() {
 	return (
 		<View style={styles.section}>
 			<View style={styles.header}>
-				<Skeleton width={'30%'} height={20} rounded={'sm'} />
+				<Skeleton width={'15%'} height={14} rounded={'sm'} />
 			</View>
 			<View style={styles.cards}>
 				{Array.from({ length: 4 }).map((_, index) => (
 					<View key={index} style={styles.card}>
 						<Skeleton width={128} height={128} rounded={'lg'} />
 						<Skeleton width={100} height={14} rounded={'sm'} />
-						<Skeleton width={72} height={12} rounded={'sm'} />
+						<Skeleton width={72} height={14} rounded={'sm'} />
 					</View>
 				))}
 			</View>

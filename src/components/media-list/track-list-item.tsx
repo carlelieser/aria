@@ -14,23 +14,21 @@ import { Text, IconButton, ProgressBar } from 'react-native-paper';
 
 import { Icon } from '@/src/components/ui/icon';
 import { AudioWaveform } from '@/src/components/ui/audio-waveform';
-import { usePlayer } from '@/src/hooks/use-player';
+import { usePlayerActions } from '@/src/hooks/use-player';
 import type { Track } from '@/src/domain/entities/track';
 import type { TrackActionSource } from '@/src/domain/actions/track-action';
 import type { DownloadInfo } from '@/src/domain/value-objects/download-state';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import { formatDate } from '@/src/domain/utils/formatting';
 import { getArtistNames } from '@/src/domain/entities/track';
-import {
-	useCurrentTrack,
-	useIsPlaying,
-	usePlaybackProgress,
-} from '@/src/application/state/player-store';
+import { useTrackPlaybackInfo } from '@/src/application/state/player-store';
 import { TrackOptionsMenu } from '@/src/components/track-options-menu';
 import { DownloadIndicator } from './download-indicator';
 import { useDownloadActions } from '@/src/hooks/use-download-actions';
 import { formatFileSize } from '@/src/hooks/use-download-queue';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
+import { useOpenPlayerOnTrackClick } from '@/src/application/state/settings-store';
+import { router } from 'expo-router';
 
 interface TrackListItemProps {
 	track: Track;
@@ -69,14 +67,13 @@ export const TrackListItem = memo(function TrackListItem({
 	trackPosition,
 	onRetry,
 }: TrackListItemProps) {
-	const { play, playQueue } = usePlayer();
+	const { play, playQueue } = usePlayerActions();
 	const { removeDownload } = useDownloadActions();
 	const { colors } = useAppTheme();
-	const currentTrack = useCurrentTrack();
-	const isPlaying = useIsPlaying();
-	const { position } = usePlaybackProgress();
-	const isActiveTrack = currentTrack !== null && currentTrack.id.value === track.id.value;
-	const isCurrentlyPlaying = isActiveTrack && isPlaying;
+	const openPlayerOnTrackClick = useOpenPlayerOnTrackClick();
+	const { isActiveTrack, isCurrentlyPlaying, formattedPosition } = useTrackPlaybackInfo(
+		track.id.value
+	);
 
 	const longPressedRef = useRef(false);
 
@@ -93,8 +90,11 @@ export const TrackListItem = memo(function TrackListItem({
 			} else {
 				play(track);
 			}
+			if (openPlayerOnTrackClick) {
+				router.push('/player');
+			}
 		}
-	}, [onPress, track, play, playQueue, queue, queueIndex]);
+	}, [onPress, track, play, playQueue, queue, queueIndex, openPlayerOnTrackClick]);
 
 	const handleLongPress = useCallback(() => {
 		longPressedRef.current = true;
@@ -112,7 +112,7 @@ export const TrackListItem = memo(function TrackListItem({
 	const artistNames = getArtistNames(track);
 	const albumName = track.album?.name;
 	const duration = track.duration.format();
-	const displayTime = isActiveTrack ? position.format() : duration;
+	const displayTime = formattedPosition ?? duration;
 
 	const isDownloading =
 		downloadInfo?.status === 'pending' || downloadInfo?.status === 'downloading';

@@ -104,9 +104,9 @@ export function FloatingPlayer() {
 	const playPauseIcon = useCallback(
 		({ size, color }: { size: number; color: string }) =>
 			isPlaying ? (
-				<Pause size={size} color={color} fill={color} />
+				<Pause size={size} color={color} fill={color} strokeWidth={0} />
 			) : (
-				<Play size={size} color={color} fill={color} />
+				<Play size={size} color={color} fill={color} strokeWidth={0} />
 			),
 		[isPlaying]
 	);
@@ -176,13 +176,11 @@ export function FloatingPlayer() {
 							size={24}
 							onPress={handlePlayPause}
 							disabled={isLoading}
-							iconColor={colors.onSurface}
 						/>
 						<IconButton
 							icon={skipForwardIcon}
 							size={24}
 							onPress={handleSkipNext}
-							iconColor={colors.onSurface}
 							accessibilityLabel={'Skip to next track'}
 						/>
 					</View>

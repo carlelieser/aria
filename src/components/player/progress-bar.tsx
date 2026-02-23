@@ -2,7 +2,8 @@
  * ProgressBar Component
  *
  * Seekable progress bar for audio playback.
- * Uses M3 Expressive wavy active indicator with SVG + Reanimated.
+ * Supports three style variants: expressive (wavy), expressive-variant (thick caret),
+ * and basic (linear). Uses PlayerThemeContext for colors.
  */
 
 import { View, LayoutChangeEvent, StyleSheet } from 'react-native';
@@ -24,8 +25,10 @@ import Animated, {
 	Easing,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Svg, { Path, Line, Circle } from 'react-native-svg';
-import { useAppTheme } from '@/lib/theme';
+import Svg, { Path, Line, Circle, Rect } from 'react-native-svg';
+import { usePlayerTheme } from '@/src/components/player/player-theme-context';
+import { useProgressBarStyle } from '@/src/application/state/settings-store';
+import type { ProgressBarStyle } from '@/src/application/state/settings-store';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
@@ -61,6 +64,18 @@ const CAP_INSET = ACTIVE_THICKNESS / 2;
 const WAVE_STEP = 2;
 const TWO_PI_OVER_WAVELENGTH = (2 * Math.PI) / WAVELENGTH;
 
+/** Expressive variant tokens (M3 Expressive slider L) */
+const VARIANT_TRACK_HEIGHT = 56;
+const VARIANT_TRACK_RADIUS = 16;
+const VARIANT_HANDLE_WIDTH = 4;
+const VARIANT_HANDLE_HEIGHT = 68;
+const VARIANT_HANDLE_RADIUS = 2;
+
+/** Basic style tokens */
+const BASIC_TRACK_THICKNESS = 4;
+const BASIC_THUMB_SIZE = 16;
+const BASIC_TRACK_HEIGHT = BASIC_TRACK_THICKNESS;
+
 /**
  * Builds a sine-wave polyline path from capInset to width-capInset.
  * Phase shifts the wave pattern. strokeLinecap="round" on the Path
@@ -90,9 +105,28 @@ function buildAnimatedWavePath(width: number, amp: number, phaseValue: number): 
 	return d;
 }
 
+/**
+ * Builds a rect path with rounded left corners and flat right edge
+ * so the active track connects flush with the caret handle.
+ */
+function buildVariantActiveTrackPath(width: number, height: number, radius: number): string {
+	const r = Math.min(radius, width, height / 2);
+	return [
+		`M ${r} 0`,
+		`L ${width} 0`,
+		`L ${width} ${height}`,
+		`L ${r} ${height}`,
+		`A ${r} ${r} 0 0 1 0 ${height - r}`,
+		`L 0 ${r}`,
+		`A ${r} ${r} 0 0 1 ${r} 0`,
+		'Z',
+	].join(' ');
+}
+
 export function ProgressBar({ seekable = true }: ProgressBarProps) {
 	const { position, duration, seekTo, isLoading, isBuffering, isPlaying } = usePlayer();
-	const { colors } = useAppTheme();
+	const { colors } = usePlayerTheme();
+	const barStyle = useProgressBarStyle();
 	const [isSeeking, setIsSeeking] = useState(false);
 	const [seekPosition, setSeekPosition] = useState(0);
 	const [trackWidth, setTrackWidth] = useState(0);
@@ -100,9 +134,12 @@ export function ProgressBar({ seekable = true }: ProgressBarProps) {
 	const thumbOpacity = useSharedValue(1);
 	const isDragging = useRef(false);
 
-	// Wave phase animation: only runs when animated prop is true AND track is playing
+	const isBasic = barStyle === 'basic';
+	const isVariant = barStyle === 'expressive-variant';
+
+	// Wave phase animation: only runs when not basic AND track is playing
 	const phase = useSharedValue(0);
-	const shouldAnimate = isPlaying;
+	const shouldAnimate = isPlaying && !isBasic;
 
 	useEffect(() => {
 		if (shouldAnimate) {
@@ -149,16 +186,16 @@ export function ProgressBar({ seekable = true }: ProgressBarProps) {
 	}, [targetAmplitude, animatedAmplitude]);
 
 	const activeEnd = progress * trackWidth;
-	const cy = TRACK_HEIGHT / 2;
 	const activeWidth = Math.max(0, activeEnd);
 
-	// Animated wave path: phase and amplitude drive animation on the UI thread,
-	// activeWidth updates on re-render via closure capture.
+	// Animated wave path for expressive style only
 	const waveAnimatedProps = useAnimatedProps(() => {
 		return {
 			d: buildAnimatedWavePath(activeWidth, animatedAmplitude.value, phase.value),
 		};
 	});
+
+	const cy = TRACK_HEIGHT / 2;
 
 	// Inactive track: starts INACTIVE_INSET after the GAP
 	const inactiveStart = activeEnd + GAP_SIZE + INACTIVE_INSET;
@@ -244,44 +281,37 @@ export function ProgressBar({ seekable = true }: ProgressBarProps) {
 			{/* Progress track */}
 			<GestureDetector gesture={composedGesture}>
 				<View onLayout={handleLayout} style={styles.trackContainer}>
-					{trackWidth > 0 && (
-						<Svg width={trackWidth} height={TRACK_HEIGHT} style={styles.trackSvg}>
-							{/* Inactive track */}
-							{inactiveStart < inactiveEnd && (
-								<Line
-									x1={inactiveStart}
-									y1={cy}
-									x2={inactiveEnd}
-									y2={cy}
-									stroke={colors.primaryContainer}
-									strokeWidth={TRACK_THICKNESS}
-									strokeLinecap={'round'}
-								/>
-							)}
-
-							{/* Stop indicator */}
-							<Circle cx={stopCx} cy={cy} r={STOP_RADIUS} fill={colors.primary} />
-
-							{/* Active indicator: animated wave */}
-							{activeWidth > ACTIVE_THICKNESS && (
-								<AnimatedPath
-									animatedProps={waveAnimatedProps}
-									stroke={colors.primary}
-									strokeWidth={ACTIVE_THICKNESS}
-									strokeLinecap={'round'}
-									fill={'none'}
-								/>
-							)}
-						</Svg>
-					)}
+					{trackWidth > 0 &&
+						renderTrack(barStyle, {
+							trackWidth,
+							activeWidth,
+							activeEnd,
+							cy,
+							inactiveStart,
+							inactiveEnd,
+							stopCx,
+							colors,
+							waveAnimatedProps,
+							isDisabled,
+						})}
 
 					{/* Thumb */}
 					<Animated.View
 						style={[
 							thumbAnimatedStyle,
-							styles.thumb,
+							isBasic
+								? styles.basicThumb
+								: isVariant
+									? styles.variantThumb
+									: styles.thumb,
 							{
-								left: activeEnd - THUMB_SIZE / 2,
+								left:
+									activeEnd -
+									(isBasic
+										? BASIC_THUMB_SIZE / 2
+										: isVariant
+											? VARIANT_HANDLE_WIDTH / 2
+											: THUMB_SIZE / 2),
 								backgroundColor: colors.primary,
 							},
 							isDisabled && styles.thumbDisabled,
@@ -317,6 +347,132 @@ export function ProgressBar({ seekable = true }: ProgressBarProps) {
 	);
 }
 
+interface TrackRenderParams {
+	readonly trackWidth: number;
+	readonly activeWidth: number;
+	readonly activeEnd: number;
+	readonly cy: number;
+	readonly inactiveStart: number;
+	readonly inactiveEnd: number;
+	readonly stopCx: number;
+	readonly colors: {
+		readonly primary: string;
+		readonly primaryContainer: string;
+		readonly onSurfaceVariant: string;
+	};
+	readonly waveAnimatedProps: ReturnType<typeof useAnimatedProps>;
+	readonly isDisabled: boolean;
+}
+
+function renderTrack(style: ProgressBarStyle, params: TrackRenderParams) {
+	const {
+		trackWidth,
+		activeWidth,
+		activeEnd,
+		cy,
+		inactiveStart,
+		inactiveEnd,
+		stopCx,
+		colors,
+		waveAnimatedProps,
+	} = params;
+
+	if (style === 'basic') {
+		const basicCy = BASIC_TRACK_HEIGHT / 2;
+		return (
+			<Svg width={trackWidth} height={BASIC_TRACK_HEIGHT} style={styles.basicTrackSvg}>
+				{/* Full inactive track */}
+				<Line
+					x1={0}
+					y1={basicCy}
+					x2={trackWidth}
+					y2={basicCy}
+					stroke={colors.primaryContainer}
+					strokeWidth={BASIC_TRACK_THICKNESS}
+					strokeLinecap={'round'}
+				/>
+				{/* Active track */}
+				{activeEnd > 0 && (
+					<Line
+						x1={0}
+						y1={basicCy}
+						x2={activeEnd}
+						y2={basicCy}
+						stroke={colors.primary}
+						strokeWidth={BASIC_TRACK_THICKNESS}
+						strokeLinecap={'round'}
+					/>
+				)}
+			</Svg>
+		);
+	}
+
+	if (style === 'expressive-variant') {
+		const vcy = VARIANT_TRACK_HEIGHT / 2;
+		return (
+			<Svg width={trackWidth} height={VARIANT_TRACK_HEIGHT} style={styles.variantTrackSvg}>
+				{/* Inactive track (full-width rounded rect) */}
+				<Rect
+					x={0}
+					y={0}
+					width={trackWidth}
+					height={VARIANT_TRACK_HEIGHT}
+					rx={VARIANT_TRACK_RADIUS}
+					ry={VARIANT_TRACK_RADIUS}
+					fill={colors.primaryContainer}
+				/>
+
+				{/* Active track (flat right edge meets the caret) */}
+				{activeEnd > 0 && (
+					<Path
+						d={buildVariantActiveTrackPath(
+							activeEnd,
+							VARIANT_TRACK_HEIGHT,
+							VARIANT_TRACK_RADIUS
+						)}
+						fill={colors.primary}
+					/>
+				)}
+
+				{/* Stop indicator */}
+				<Circle cx={stopCx} cy={vcy} r={STOP_RADIUS} fill={colors.primary} />
+			</Svg>
+		);
+	}
+
+	// Default: expressive
+	return (
+		<Svg width={trackWidth} height={TRACK_HEIGHT} style={styles.trackSvg}>
+			{/* Inactive track */}
+			{inactiveStart < inactiveEnd && (
+				<Line
+					x1={inactiveStart}
+					y1={cy}
+					x2={inactiveEnd}
+					y2={cy}
+					stroke={colors.primaryContainer}
+					strokeWidth={TRACK_THICKNESS}
+					strokeLinecap={'round'}
+				/>
+			)}
+
+			{/* Stop indicator */}
+			<Circle cx={stopCx} cy={cy} r={STOP_RADIUS} fill={colors.primary} />
+
+			{/* Active indicator: animated wave */}
+			{activeWidth > ACTIVE_THICKNESS && (
+				<AnimatedPath
+					animatedProps={waveAnimatedProps}
+					stroke={colors.primary}
+					strokeWidth={ACTIVE_THICKNESS}
+					strokeLinecap={'round'}
+					fill={'none'}
+				/>
+			)}
+		</Svg>
+	);
+}
+
 const styles = StyleSheet.create({
 	container: {
 		width: '100%',
@@ -333,12 +489,36 @@ const styles = StyleSheet.create({
 		top: HIT_SLOP + (THUMB_SIZE - TRACK_HEIGHT) / 2,
 		left: 0,
 	},
+	basicTrackSvg: {
+		position: 'absolute',
+		top: HIT_SLOP + (THUMB_SIZE - BASIC_TRACK_HEIGHT) / 2,
+		left: 0,
+	},
 	thumb: {
 		position: 'absolute',
 		top: (THUMB_SIZE + HIT_SLOP * 2) / 2 - THUMB_SIZE / 2,
 		width: THUMB_SIZE,
 		height: THUMB_SIZE,
 		borderRadius: THUMB_SIZE / 2,
+	},
+	variantTrackSvg: {
+		position: 'absolute',
+		top: HIT_SLOP + (THUMB_SIZE - VARIANT_TRACK_HEIGHT) / 2,
+		left: 0,
+	},
+	variantThumb: {
+		position: 'absolute',
+		top: (THUMB_SIZE + HIT_SLOP * 2) / 2 - VARIANT_HANDLE_HEIGHT / 2,
+		width: VARIANT_HANDLE_WIDTH,
+		height: VARIANT_HANDLE_HEIGHT,
+		borderRadius: VARIANT_HANDLE_RADIUS,
+	},
+	basicThumb: {
+		position: 'absolute',
+		top: (THUMB_SIZE + HIT_SLOP * 2) / 2 - BASIC_THUMB_SIZE / 2,
+		width: BASIC_THUMB_SIZE,
+		height: BASIC_THUMB_SIZE,
+		borderRadius: BASIC_THUMB_SIZE / 2,
 	},
 	thumbDisabled: {
 		opacity: 0.5,

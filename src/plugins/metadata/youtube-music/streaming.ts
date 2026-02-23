@@ -1,6 +1,6 @@
 import type { StreamOptions } from '@plugins/core/interfaces/audio-source-provider';
 import type { TrackId } from '@domain/value-objects/track-id';
-import type { AudioStream } from '@domain/value-objects/audio-stream';
+import type { AudioFormat, AudioStream } from '@domain/value-objects/audio-stream';
 import { createAudioStream } from '@domain/value-objects/audio-stream';
 import type { StreamQuality } from '@domain/value-objects/audio-source';
 import type { Result } from '@shared/types/result';
@@ -25,7 +25,8 @@ async function handleDownloadableStream(
 	clientManager: ClientManager,
 	videoId: string,
 	quality: StreamQuality,
-	cookies: string | undefined
+	cookies: string | undefined,
+	onProgress?: (progress: number) => void
 ): Promise<Result<AudioStream, Error>> {
 	let client = await clientManager.getClient();
 
@@ -62,6 +63,7 @@ async function handleDownloadableStream(
 		const cachedFile = await downloadToCache({
 			url: adaptiveStream.url,
 			videoId,
+			format: adaptiveStream.format,
 			headers: adaptiveStream.headers,
 			cookies,
 			expectedSize: contentLength,
@@ -87,12 +89,12 @@ async function handleDownloadableStream(
 
 	if (hlsUrl) {
 		logger.debug('Found HLS manifest, downloading segments...');
-		const cachedFile = await downloadHlsToCache(hlsUrl, videoId, cookies);
-		if (cachedFile) {
+		const hlsResult = await downloadHlsToCache(hlsUrl, videoId, cookies, onProgress);
+		if (hlsResult) {
 			return ok(
 				createAudioStream({
-					url: cachedFile,
-					format: 'm4a',
+					url: hlsResult.path,
+					format: hlsResult.format as AudioFormat,
 					quality,
 				})
 			);
@@ -155,19 +157,20 @@ export function createStreamingOperations(clientManager: ClientManager): Streami
 				const videoId = trackId.sourceId;
 				const quality: StreamQuality = options?.quality ?? 'high';
 				const preferDownloadable = options?.preferDownloadable ?? false;
+				const { onProgress } = options ?? {};
 
 				logger.debug('Getting stream URL for video:', videoId);
 
 				// Check file cache for both streaming and download paths.
 				// Background caching from previous plays means the file is
 				// already on-disk and can be served instantly.
-				const cachedPath = await checkCache(videoId);
-				if (cachedPath) {
-					logger.debug('Using cached audio file for playback');
+				const cached = await checkCache(videoId);
+				if (cached) {
+					logger.debug(`Using cached audio file for playback (format: ${cached.format})`);
 					return ok(
 						createAudioStream({
-							url: cachedPath,
-							format: 'm4a',
+							url: cached.path,
+							format: cached.format as AudioFormat,
 							quality,
 						})
 					);
@@ -181,7 +184,13 @@ export function createStreamingOperations(clientManager: ClientManager): Streami
 				// When preferDownloadable is set (for downloads), try adaptive format first
 				// HLS manifests can't be saved as files, so we need direct URLs for downloads
 				if (preferDownloadable) {
-					return handleDownloadableStream(clientManager, videoId, quality, cookies);
+					return handleDownloadableStream(
+						clientManager,
+						videoId,
+						quality,
+						cookies,
+						onProgress
+					);
 				}
 
 				return handleStreamingPlayback(clientManager, videoId, quality, cookies);

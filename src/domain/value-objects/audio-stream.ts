@@ -1,6 +1,17 @@
 import type { StreamQuality } from './audio-source';
 
-export type AudioFormat = 'mp3' | 'aac' | 'opus' | 'flac' | 'webm' | 'ogg' | 'm4a' | 'wav' | 'hls';
+export type AudioFormat =
+	| 'mp3'
+	| 'aac'
+	| 'opus'
+	| 'flac'
+	| 'webm'
+	| 'ogg'
+	| 'm4a'
+	| 'ts'
+	| 'wav'
+	| 'hls'
+	| 'm3u8';
 
 export interface AudioStream {
 	readonly url: string;
@@ -87,8 +98,10 @@ export function getFormatLabel(format: AudioFormat): string {
 		webm: 'WebM',
 		ogg: 'Ogg Vorbis',
 		m4a: 'M4A',
+		ts: 'MPEG-TS',
 		wav: 'WAV',
 		hls: 'HLS',
+		m3u8: 'HLS (Local)',
 	};
 	return labels[format] || format.toUpperCase();
 }

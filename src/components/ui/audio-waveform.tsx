@@ -78,7 +78,7 @@ function SyntheticBar({
 
 		animate();
 		return undefined;
-	}, [height, speed, delay]);
+	}, [height, speed, delay, peak]);
 
 	const animatedStyle = useAnimatedStyle(() => ({
 		height: height.value,
