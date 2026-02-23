@@ -13,7 +13,7 @@ import {
 	AlbumList,
 	LibrarySortFilterSheet,
 } from '@/src/components/library';
-import { SortFilterFAB } from '@/src/components/sort-filter/sort-filter-fab';
+import { SortFilterFAB } from '@/src/components/sort-filter';
 import { useLibraryFilter } from '@/src/hooks/use-library-filter';
 import { useTabShadow } from '@/src/hooks/use-tab-shadow';
 import { useAppTheme } from '@/lib/theme';
