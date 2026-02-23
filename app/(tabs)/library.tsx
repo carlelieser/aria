@@ -13,6 +13,7 @@ import {
 	AlbumList,
 	LibrarySortFilterSheet,
 } from '@/src/components/library';
+import { SortFilterFAB } from '@/src/components/sort-filter/sort-filter-fab';
 import { useLibraryFilter } from '@/src/hooks/use-library-filter';
 import { useTabShadow } from '@/src/hooks/use-tab-shadow';
 import { useAppTheme } from '@/lib/theme';
@@ -50,7 +51,9 @@ export default function HomeScreen() {
 	const {
 		tracks: filteredTracks,
 		hasFilters,
+		filterCount,
 		isFilterSheetOpen,
+		openFilterSheet,
 		closeFilterSheet,
 	} = useLibraryFilter();
 
@@ -114,6 +117,10 @@ export default function HomeScreen() {
 					</Tabs>
 				</TabsProvider>
 			</View>
+
+			{tabIndex === 0 && (
+				<SortFilterFAB filterCount={filterCount} onPress={openFilterSheet} />
+			)}
 
 			<LibrarySortFilterSheet isOpen={isFilterSheetOpen} onClose={closeFilterSheet} />
 		</PageLayout>
