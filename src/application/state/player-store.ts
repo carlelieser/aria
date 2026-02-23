@@ -32,6 +32,8 @@ interface PlayerState {
 	skipToNext: () => void;
 	skipToPrevious: () => void;
 	setQueue: (tracks: Track[], startIndex?: number) => void;
+	insertIntoQueue: (track: Track, index: number) => void;
+	appendToQueue: (track: Track) => void;
 	toggleShuffle: () => void;
 	cycleRepeatMode: () => void;
 	setVolume: (volume: number) => void;
@@ -173,7 +175,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 	setQueue: (tracks: Track[], startIndex = 0) => {
 		const state = get();
 		const effectiveQueue = state.isShuffled ? shuffleArray(tracks, startIndex) : tracks;
-
 		const effectiveIndex = state.isShuffled ? startIndex : startIndex;
 
 		set({
@@ -181,10 +182,31 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 			originalQueue: tracks,
 			queueIndex: effectiveIndex,
 			currentTrack: effectiveQueue[effectiveIndex] || null,
-			status: effectiveQueue[effectiveIndex] ? 'loading' : 'idle',
-			position: Duration.ZERO,
-			duration: Duration.ZERO,
-			error: null,
+		});
+	},
+
+	insertIntoQueue: (track: Track, index: number) => {
+		const state = get();
+		const newQueue = [...state.queue];
+		const clampedIndex = Math.max(0, Math.min(newQueue.length, index));
+		newQueue.splice(clampedIndex, 0, track);
+
+		const newOriginalQueue = [...state.originalQueue, track];
+		const adjustedQueueIndex =
+			clampedIndex <= state.queueIndex ? state.queueIndex + 1 : state.queueIndex;
+
+		set({
+			queue: newQueue,
+			originalQueue: newOriginalQueue,
+			queueIndex: adjustedQueueIndex,
+		});
+	},
+
+	appendToQueue: (track: Track) => {
+		const state = get();
+		set({
+			queue: [...state.queue, track],
+			originalQueue: [...state.originalQueue, track],
 		});
 	},
 

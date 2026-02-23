@@ -162,7 +162,7 @@ describe('PlayerStore', () => {
 	});
 
 	describe('setQueue', () => {
-		it('should set queue and start playing first track', () => {
+		it('should set queue and current track without changing playback status', () => {
 			const tracks = [createTestTrack('1'), createTestTrack('2'), createTestTrack('3')];
 			usePlayerStore.getState().setQueue(tracks);
 
@@ -170,10 +170,10 @@ describe('PlayerStore', () => {
 			expect(state.queue).toHaveLength(3);
 			expect(state.queueIndex).toBe(0);
 			expect(state.currentTrack?.title).toBe('Track 1');
-			expect(state.status).toBe('loading');
+			expect(state.status).toBe('idle');
 		});
 
-		it('should start playing at specified index', () => {
+		it('should set current track at specified index', () => {
 			const tracks = [createTestTrack('1'), createTestTrack('2'), createTestTrack('3')];
 			usePlayerStore.getState().setQueue(tracks, 1);
 
@@ -197,7 +197,69 @@ describe('PlayerStore', () => {
 			const state = usePlayerStore.getState();
 			expect(state.queue).toHaveLength(0);
 			expect(state.currentTrack).toBeNull();
-			expect(state.status).toBe('idle');
+		});
+	});
+
+	describe('insertIntoQueue', () => {
+		it('should insert track at specified position', () => {
+			const tracks = [createTestTrack('1'), createTestTrack('3')];
+			usePlayerStore.getState().setQueue(tracks, 0);
+			usePlayerStore.setState({ status: 'playing' });
+
+			usePlayerStore.getState().insertIntoQueue(createTestTrack('2'), 1);
+
+			const state = usePlayerStore.getState();
+			expect(state.queue).toHaveLength(3);
+			expect(state.queue[1].title).toBe('Track 2');
+			expect(state.status).toBe('playing');
+		});
+
+		it('should adjust queueIndex when inserting before current track', () => {
+			const tracks = [createTestTrack('2'), createTestTrack('3')];
+			usePlayerStore.getState().setQueue(tracks, 0);
+
+			usePlayerStore.getState().insertIntoQueue(createTestTrack('1'), 0);
+
+			const state = usePlayerStore.getState();
+			expect(state.queueIndex).toBe(1);
+			expect(state.currentTrack?.title).toBe('Track 2');
+		});
+
+		it('should not adjust queueIndex when inserting after current track', () => {
+			const tracks = [createTestTrack('1'), createTestTrack('2')];
+			usePlayerStore.getState().setQueue(tracks, 0);
+
+			usePlayerStore.getState().insertIntoQueue(createTestTrack('3'), 2);
+
+			const state = usePlayerStore.getState();
+			expect(state.queueIndex).toBe(0);
+		});
+
+		it('should clamp index to queue bounds', () => {
+			const tracks = [createTestTrack('1')];
+			usePlayerStore.getState().setQueue(tracks, 0);
+
+			usePlayerStore.getState().insertIntoQueue(createTestTrack('2'), 100);
+
+			const state = usePlayerStore.getState();
+			expect(state.queue).toHaveLength(2);
+			expect(state.queue[1].title).toBe('Track 2');
+		});
+	});
+
+	describe('appendToQueue', () => {
+		it('should append track to end of queue', () => {
+			const tracks = [createTestTrack('1'), createTestTrack('2')];
+			usePlayerStore.getState().setQueue(tracks, 0);
+			usePlayerStore.setState({ status: 'playing' });
+
+			usePlayerStore.getState().appendToQueue(createTestTrack('3'));
+
+			const state = usePlayerStore.getState();
+			expect(state.queue).toHaveLength(3);
+			expect(state.queue[2].title).toBe('Track 3');
+			expect(state.status).toBe('playing');
+			expect(state.queueIndex).toBe(0);
 		});
 	});
 
