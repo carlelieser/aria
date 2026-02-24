@@ -14,18 +14,15 @@ import { SettingsItem } from '@/src/components/settings/settings-item';
 import { Button } from '@/src/components/ui/button';
 import { getLoginWebView } from '@/src/components/plugin/login-webview-registry';
 import { useAppTheme } from '@/lib/theme';
-import { PluginRegistry } from '@/src/plugins/core/registry/plugin-registry';
-import {
-	isOAuthCapable,
-	type OAuthCapablePlugin,
-} from '@/src/plugins/core/interfaces/oauth-capable-plugin';
-import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plugin';
+import { useOAuthPlugin } from '@/src/hooks/use-plugin-registry';
+import type { OAuthCapablePlugin } from '@shared/types/oauth-capable-plugin';
+import type { PluginConfigSchema } from '@shared/types/plugin-config-schema';
 
 const DEFAULT_OAUTH_ICON = LinkIcon;
 
 interface PluginOAuthFieldProps {
-	schema: PluginConfigSchema;
-	pluginId: string;
+	readonly schema: PluginConfigSchema;
+	readonly pluginId: string;
 }
 
 export const PluginOAuthField = memo(function PluginOAuthField({
@@ -37,6 +34,7 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 	const [isLoading, setIsLoading] = useState(true);
 	const [showLoginModal, setShowLoginModal] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const { getOAuthPlugin } = useOAuthPlugin(pluginId);
 
 	const IconComponent = useMemo((): LucideIcon => {
 		const iconName = schema.icon ? `${schema.icon}Icon` : null;
@@ -50,15 +48,8 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 	const LoginComponent = useMemo(() => getLoginWebView(pluginId), [pluginId]);
 
 	const getPlugin = useCallback((): OAuthCapablePlugin | null => {
-		const registry = PluginRegistry.getInstance();
-		const plugin = registry.getPlugin(pluginId);
-
-		if (!plugin || !isOAuthCapable(plugin)) {
-			return null;
-		}
-
-		return plugin;
-	}, [pluginId]);
+		return getOAuthPlugin();
+	}, [getOAuthPlugin]);
 
 	useEffect(() => {
 		let cancelled = false;

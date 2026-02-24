@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { PluginRegistry } from '@/src/plugins/core/registry/plugin-registry';
+import { getPluginConfigSchema } from '@/src/application/services/plugin-registry-facade';
 import { usePluginSettingsStore } from '@/src/application/state/plugin-settings-store';
 import { validateConfigField } from '@/src/domain/utils/plugin-config-validation';
 
@@ -8,9 +8,7 @@ export function usePluginSettings(pluginId: string) {
 	const getPluginConfig = usePluginSettingsStore((state) => state.getPluginConfig);
 
 	const configSchema = useMemo(() => {
-		const registry = PluginRegistry.getInstance();
-		const plugin = registry.getPlugin(pluginId);
-		return plugin?.configSchema ?? [];
+		return getPluginConfigSchema(pluginId);
 	}, [pluginId]);
 
 	const [localValues, setLocalValues] = useState<Record<string, unknown>>({});

@@ -6,7 +6,7 @@
  */
 
 import { memo } from 'react';
-import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plugin';
+import type { PluginConfigSchema } from '@shared/types/plugin-config-schema';
 import { PluginTextField } from './plugin-text-field';
 import { PluginBooleanField } from './plugin-boolean-field';
 import { PluginSelectField } from './plugin-select-field';

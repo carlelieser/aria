@@ -15,9 +15,13 @@ import {
 	SparklesIcon,
 	WavesIcon,
 } from 'lucide-react-native';
-import { PluginRegistry } from '@/src/plugins/core/registry/plugin-registry';
-import { PluginManifestRegistry } from '@/src/plugins/core/registry/plugin-manifest-registry';
-import type { PluginStatus, PluginCategory } from '@/src/plugins/core/interfaces/base-plugin';
+import {
+	getPlugin,
+	getPluginStatus,
+	getAllPluginManifests,
+	subscribeToPluginEvents,
+} from '@/src/application/services/plugin-registry-facade';
+import type { PluginStatus, PluginCategory } from '@shared/types/plugin-types';
 import {
 	useIsPluginEnabled,
 	REQUIRED_PLUGINS,
@@ -84,15 +88,13 @@ export const statusConfig: Record<
 };
 
 function _buildPluginDisplayInfo(manifestId: string): PluginDisplayInfo | null {
-	const manifestRegistry = PluginManifestRegistry.getInstance();
-	const pluginRegistry = PluginRegistry.getInstance();
-
-	const manifest = manifestRegistry.getManifest(manifestId);
+	const allManifests = getAllPluginManifests();
+	const manifest = allManifests.find((m) => m.id === manifestId);
 	if (!manifest) {
 		return null;
 	}
 
-	const loadedPlugin = pluginRegistry.getPlugin(manifest.id);
+	const loadedPlugin = getPlugin(manifest.id);
 	const isLoaded = !!loadedPlugin;
 	const isRequired = REQUIRED_PLUGINS.includes(manifest.id);
 
@@ -103,7 +105,7 @@ function _buildPluginDisplayInfo(manifestId: string): PluginDisplayInfo | null {
 		description: manifest.description,
 		category: manifest.category,
 		status: loadedPlugin
-			? (pluginRegistry.getStatus(manifest.id) ?? 'uninitialized')
+			? (getPluginStatus(manifest.id) ?? 'uninitialized')
 			: 'uninitialized',
 		isLoaded,
 		isRequired,
@@ -156,8 +158,7 @@ export function usePluginList() {
 	const [isLoading, setIsLoading] = useState(true);
 
 	const loadPlugins = useCallback(() => {
-		const manifestRegistry = PluginManifestRegistry.getInstance();
-		const availableManifests = manifestRegistry.getAvailablePlugins();
+		const availableManifests = getAllPluginManifests();
 
 		const pluginInfos = availableManifests
 			.map((manifest) => _buildPluginDisplayInfo(manifest.id))
@@ -170,8 +171,7 @@ export function usePluginList() {
 	useEffect(() => {
 		loadPlugins();
 
-		const registry = PluginRegistry.getInstance();
-		const unsubscribe = registry.on(() => {
+		const unsubscribe = subscribeToPluginEvents(() => {
 			loadPlugins();
 		});
 

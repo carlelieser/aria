@@ -15,7 +15,7 @@ import { usePlayer } from '@/src/hooks/use-player';
 import { Duration } from '@/src/domain/value-objects/duration';
 import { useAppTheme } from '@/lib/theme';
 import { FontFamily } from '@/lib/theme/typography';
-import type { LyricsLine } from '@/src/plugins/core/interfaces/metadata-provider';
+import type { LyricsLine } from '@shared/types/lyrics';
 
 interface LyricsLineItemProps {
 	line: LyricsLine;

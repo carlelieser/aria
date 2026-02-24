@@ -12,8 +12,10 @@ import { SettingsSection } from '@/src/components/settings/settings-section';
 import { useAppTheme } from '@/lib/theme';
 import { useIsPluginEnabled } from '@/src/application/state/plugin-settings-store';
 import { useIsImporting, useLastImportedAt } from '@/src/application/state/library-import-store';
-import { PluginRegistry } from '@/src/plugins/core/registry/plugin-registry';
-import { PluginManifestRegistry } from '@/src/plugins/core/registry/plugin-manifest-registry';
+import {
+	getPluginHasImportCapability,
+	triggerPluginImport,
+} from '@/src/hooks/use-plugin-registry';
 
 interface LibraryImportSectionProps {
 	pluginId: string;
@@ -33,18 +35,13 @@ export const LibraryImportSection = memo(function LibraryImportSection({
 	const isImporting = useIsImporting();
 	const lastImportedAt = useLastImportedAt(pluginId);
 
-	const hasImportCapability = useMemo(() => {
-		const manifest = PluginManifestRegistry.getInstance().getManifest(pluginId);
-		return manifest?.capabilities?.includes('library-import') ?? false;
-	}, [pluginId]);
+	const hasImportCapability = useMemo(
+		() => getPluginHasImportCapability(pluginId),
+		[pluginId]
+	);
 
 	const handleImport = useCallback(async () => {
-		const registry = PluginRegistry.getInstance();
-		const plugin = registry.getPlugin(pluginId);
-		if (!plugin || !('import' in plugin)) return;
-
-		const importOps = (plugin as { import: { importLibrary: () => Promise<unknown> } }).import;
-		await importOps.importLibrary();
+		await triggerPluginImport(pluginId);
 	}, [pluginId]);
 
 	if (!hasImportCapability) {

@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useDownloadStore } from '@/src/application/state/download-store';
-import { clearAllDownloads } from '@/src/infrastructure/filesystem/download-manager';
+import { clearDownloadedFiles } from '@/src/application/services/download-cleanup-service';
 import { useToast } from '@/src/hooks/use-toast';
 
 export function useClearDownloads() {
@@ -8,7 +8,7 @@ export function useClearDownloads() {
 	const { success, error } = useToast();
 
 	const clearDownloads = useCallback(async () => {
-		const result = await clearAllDownloads();
+		const result = await clearDownloadedFiles();
 		if (result.success) {
 			clearAll();
 			success('Downloads cleared', 'All downloaded files have been removed');

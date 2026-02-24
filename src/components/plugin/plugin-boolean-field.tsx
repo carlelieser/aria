@@ -9,7 +9,7 @@ import { Switch } from 'react-native-paper';
 import * as LucideIcons from 'lucide-react-native';
 import { CircleDotIcon, type LucideIcon } from 'lucide-react-native';
 import { SettingsItem } from '@/src/components/settings/settings-item';
-import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plugin';
+import type { PluginConfigSchema } from '@shared/types/plugin-config-schema';
 
 const DEFAULT_BOOLEAN_ICON = CircleDotIcon;
 

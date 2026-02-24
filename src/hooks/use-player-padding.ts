@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import { useCurrentTrack } from '@/src/application/state/player-store';
-import { FLOATING_PLAYER_HEIGHT } from '@/src/components/floating-player';
+import { FLOATING_PLAYER_HEIGHT } from '@shared/constants/layout';
 
 const FLOATING_PLAYER_PADDING = FLOATING_PLAYER_HEIGHT + 80;
 

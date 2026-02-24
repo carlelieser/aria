@@ -1,4 +1,5 @@
-import type { MetadataProvider, Lyrics } from '../../plugins/core/interfaces/metadata-provider';
+import type { MetadataProvider } from '../../plugins/core/interfaces/metadata-provider';
+import type { Lyrics } from '@shared/types/lyrics';
 import type { TrackId } from '../../domain/value-objects/track-id';
 import { ok, type Result } from '../../shared/types/result';
 import { getLogger } from '../../shared/services/logger';

@@ -4,7 +4,7 @@
  * Validates plugin config values against their schema definitions.
  */
 
-import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plugin';
+import type { PluginConfigSchema } from '@shared/types/plugin-config-schema';
 
 /**
  * Validates a single config field value against its schema.
