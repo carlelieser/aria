@@ -5,6 +5,17 @@ import { UsersIcon } from 'lucide-react-native';
 import type { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import type { UniqueArtist } from '@/src/application/state/library-store';
 
+function renderArtistItem({ item }: { item: UniqueArtist }) {
+	return (
+		<ArtistListItem
+			id={item.id}
+			name={item.name}
+			artworkUrl={item.artworkUrl}
+			trackCount={item.trackCount}
+		/>
+	);
+}
+
 interface ArtistListProps {
 	readonly artists: UniqueArtist[];
 	readonly isLoading: boolean;
@@ -17,14 +28,7 @@ export function ArtistList({ artists, isLoading, onScroll }: ArtistListProps) {
 			data={artists}
 			isLoading={isLoading}
 			keyExtractor={(item) => item.id}
-			renderItem={({ item }) => (
-				<ArtistListItem
-					id={item.id}
-					name={item.name}
-					artworkUrl={item.artworkUrl}
-					trackCount={item.trackCount}
-				/>
-			)}
+			renderItem={renderArtistItem}
 			loadingSkeleton={<ArtistListSkeleton count={6} />}
 			emptyState={{
 				icon: UsersIcon,

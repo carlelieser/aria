@@ -1,4 +1,5 @@
 import type InnertubeClient from 'youtubei.js/react-native';
+import { Misc } from 'youtubei.js/react-native';
 import { getLogger } from '@shared/services/logger';
 import type { AudioStream } from '@domain/value-objects/audio-stream';
 import { createAudioStream } from '@domain/value-objects/audio-stream';
@@ -58,7 +59,10 @@ function buildStreamHeaders(
 	return headers;
 }
 
-async function extractFormatUrl(format: any, client: InnertubeClient): Promise<string | undefined> {
+async function extractFormatUrl(
+	format: Misc.Format,
+	client: InnertubeClient
+): Promise<string | undefined> {
 	if (format.url) {
 		logger.debug('[Adaptive] Format has direct URL');
 		return format.url;

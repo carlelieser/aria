@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { GenericListView } from '@/src/components/ui/generic-list-view';
 import { SelectableTrackListItem } from '@/src/components/media-list/selectable-track-list-item';
 import { TrackListSkeleton } from '@/src/components/skeletons';
@@ -26,23 +27,28 @@ export function SongList({
 	onSelectionToggle,
 	onScroll,
 }: SongListProps) {
+	const renderItem = useCallback(
+		({ item, index }: { item: Track; index: number }) => (
+			<SelectableTrackListItem
+				track={item}
+				source={'library'}
+				isSelectionMode={isSelectionMode}
+				isSelected={selectedTrackIds.has(item.id.value)}
+				onLongPress={onLongPress}
+				onSelectionToggle={onSelectionToggle}
+				queue={tracks}
+				queueIndex={index}
+			/>
+		),
+		[isSelectionMode, selectedTrackIds, onLongPress, onSelectionToggle, tracks]
+	);
+
 	return (
 		<GenericListView
 			data={tracks}
 			isLoading={isLoading}
 			keyExtractor={(item) => item.id.value}
-			renderItem={({ item, index }) => (
-				<SelectableTrackListItem
-					track={item}
-					source={'library'}
-					isSelectionMode={isSelectionMode}
-					isSelected={selectedTrackIds.has(item.id.value)}
-					onLongPress={onLongPress}
-					onSelectionToggle={onSelectionToggle}
-					queue={tracks}
-					queueIndex={index}
-				/>
-			)}
+			renderItem={renderItem}
 			loadingSkeleton={<TrackListSkeleton count={8} />}
 			emptyState={{
 				icon: MusicIcon,

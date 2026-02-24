@@ -5,6 +5,18 @@ import { DiscIcon } from 'lucide-react-native';
 import type { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import type { UniqueAlbum } from '@/src/application/state/library-store';
 
+function renderAlbumItem({ item }: { item: UniqueAlbum }) {
+	return (
+		<AlbumListItem
+			id={item.id}
+			name={item.name}
+			artistName={item.artistName}
+			artworkUrl={item.artworkUrl}
+			trackCount={item.trackCount}
+		/>
+	);
+}
+
 interface AlbumListProps {
 	readonly albums: UniqueAlbum[];
 	readonly isLoading: boolean;
@@ -17,15 +29,7 @@ export function AlbumList({ albums, isLoading, onScroll }: AlbumListProps) {
 			data={albums}
 			isLoading={isLoading}
 			keyExtractor={(item) => item.id}
-			renderItem={({ item }) => (
-				<AlbumListItem
-					id={item.id}
-					name={item.name}
-					artistName={item.artistName}
-					artworkUrl={item.artworkUrl}
-					trackCount={item.trackCount}
-				/>
-			)}
+			renderItem={renderAlbumItem}
 			loadingSkeleton={<AlbumListSkeleton count={6} />}
 			emptyState={{
 				icon: DiscIcon,
