@@ -17,8 +17,8 @@ const FLOATING_PLAYER_MARGIN = 8;
 const FAB_BASE_BOTTOM = 16;
 
 interface SortFilterFABProps {
-	filterCount: number;
-	onPress: () => void;
+	readonly filterCount: number;
+	readonly onPress: () => void;
 }
 
 export function SortFilterFAB({ filterCount, onPress }: SortFilterFABProps) {

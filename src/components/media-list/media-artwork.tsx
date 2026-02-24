@@ -17,15 +17,15 @@ const DEFAULT_SIZE = 48;
 
 export interface MediaArtworkProps {
 	/** Artwork URL (optional - shows fallback icon if missing) */
-	url?: string;
+	readonly url?: string;
 	/** Size in pixels (default: 48) */
-	size?: number;
+	readonly size?: number;
 	/** Shape variant */
-	shape?: 'rounded' | 'circular';
+	readonly shape?: 'rounded' | 'circular';
 	/** Fallback icon when no artwork */
-	fallbackIcon: LucideIcon;
+	readonly fallbackIcon: LucideIcon;
 	/** Unique key for image recycling (for FlashList optimization) */
-	recyclingKey?: string;
+	readonly recyclingKey?: string;
 }
 
 export const MediaArtwork = memo(function MediaArtwork({

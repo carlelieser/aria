@@ -10,8 +10,8 @@ import { FilterChip } from '@/src/components/sort-filter/filter-chip';
 import type { SearchContentType } from '@/src/domain/utils/search-filtering';
 
 interface ContentTypeChipsProps {
-	selected: SearchContentType;
-	onChange: (type: SearchContentType) => void;
+	readonly selected: SearchContentType;
+	readonly onChange: (type: SearchContentType) => void;
 }
 
 const CONTENT_TYPES: { type: SearchContentType; label: string }[] = [

@@ -17,9 +17,9 @@ import { createPlaylist } from '@/src/domain/entities/playlist';
 import { useAppTheme } from '@/lib/theme';
 
 interface CreatePlaylistSheetProps {
-	isOpen: boolean;
-	onClose: () => void;
-	onCreated: (playlistId: string, playlistName: string) => void;
+	readonly isOpen: boolean;
+	readonly onClose: () => void;
+	readonly onCreated: (playlistId: string, playlistName: string) => void;
 }
 
 export function CreatePlaylistSheet({ isOpen, onClose, onCreated }: CreatePlaylistSheetProps) {

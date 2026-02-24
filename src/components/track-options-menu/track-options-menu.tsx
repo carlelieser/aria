@@ -20,13 +20,13 @@ import {
 type Orientation = 'vertical' | 'horizontal';
 
 interface TrackOptionsMenuProps {
-	track: Track;
-	source: TrackActionSource;
-	orientation?: Orientation;
-	playlistId?: string;
-	trackPosition?: number;
+	readonly track: Track;
+	readonly source: TrackActionSource;
+	readonly orientation?: Orientation;
+	readonly playlistId?: string;
+	readonly trackPosition?: number;
 	/** Override icon color (e.g. for player screen with artwork-derived theme) */
-	iconColor?: string;
+	readonly iconColor?: string;
 }
 
 export const TrackOptionsMenu = memo(function TrackOptionsMenu({

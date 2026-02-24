@@ -15,9 +15,9 @@ import { useResolvedTrack } from '@/src/hooks/use-resolved-track';
 
 interface DownloadListItemProps {
 	/** The download info containing track reference and download status */
-	downloadInfo: DownloadInfo;
+	readonly downloadInfo: DownloadInfo;
 	/** Callback for retrying failed downloads */
-	onRetry?: (track: Track) => void;
+	readonly onRetry?: (track: Track) => void;
 }
 
 export const DownloadListItem = memo(function DownloadListItem({

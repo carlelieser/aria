@@ -13,21 +13,21 @@ import { MediaArtwork, type MediaArtworkProps } from './media-artwork';
 
 export interface MediaListItemProps {
 	/** Primary text (title/name) */
-	title: string;
+	readonly title: string;
 	/** Secondary text (subtitle) */
-	subtitle?: string;
+	readonly subtitle?: string;
 	/** Tertiary text (additional info) */
-	tertiaryText?: string;
+	readonly tertiaryText?: string;
 	/** Press handler */
-	onPress?: () => void;
+	readonly onPress?: () => void;
 	/** Long press handler */
-	onLongPress?: () => void;
+	readonly onLongPress?: () => void;
 	/** Disabled state */
-	disabled?: boolean;
+	readonly disabled?: boolean;
 	/** Artwork configuration */
-	artwork: Omit<MediaArtworkProps, 'size'>;
+	readonly artwork: Omit<MediaArtworkProps, 'size'>;
 	/** Right-side accessory content (duration, options menu, etc.) */
-	accessory?: React.ReactNode;
+	readonly accessory?: React.ReactNode;
 }
 
 export const MediaListItem = memo(function MediaListItem({

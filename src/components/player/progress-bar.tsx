@@ -15,7 +15,7 @@ import { usePlayerTheme } from '@/src/components/player/player-theme-context';
 import { useProgressBarStyle } from '@/src/application/state/settings-store';
 
 interface ProgressBarProps {
-	seekable?: boolean;
+	readonly seekable?: boolean;
 }
 
 export function ProgressBar({ seekable = true }: ProgressBarProps) {

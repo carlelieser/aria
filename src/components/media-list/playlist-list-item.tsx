@@ -14,8 +14,8 @@ import type { Playlist } from '@/src/domain/entities/playlist';
 import { MediaListItem } from './media-list-item';
 
 export interface PlaylistListItemProps {
-	playlist: Playlist;
-	onPress?: (playlist: Playlist) => void;
+	readonly playlist: Playlist;
+	readonly onPress?: (playlist: Playlist) => void;
 }
 
 export const PlaylistListItem = memo(function PlaylistListItem({

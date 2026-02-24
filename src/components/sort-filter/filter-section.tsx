@@ -20,14 +20,14 @@ interface ToggleConfig {
 }
 
 interface FilterSectionProps {
-	artists: ArtistReference[];
-	albums: AlbumReference[];
-	selectedArtistIds: readonly string[];
-	selectedAlbumIds: readonly string[];
-	onToggleArtist: (artistId: string) => void;
-	onToggleAlbum: (albumId: string) => void;
-	toggles: readonly ToggleConfig[];
-	headerContent?: React.ReactNode;
+	readonly artists: ArtistReference[];
+	readonly albums: AlbumReference[];
+	readonly selectedArtistIds: readonly string[];
+	readonly selectedAlbumIds: readonly string[];
+	readonly onToggleArtist: (artistId: string) => void;
+	readonly onToggleAlbum: (albumId: string) => void;
+	readonly toggles: readonly ToggleConfig[];
+	readonly headerContent?: React.ReactNode;
 }
 
 function FilterChipSection({

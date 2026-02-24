@@ -29,26 +29,26 @@ const AnimatedSurface = Animated.createAnimatedComponent(Surface);
 export type BatchActionContext = 'explore' | 'library' | 'downloads' | 'playlist';
 
 interface BatchActionBarProps {
-	context: BatchActionContext;
-	selectedCount: number;
-	onCancel: () => void;
-	onDownload?: () => void;
-	onAddToLibrary?: () => void;
-	onAddToQueue?: () => void;
-	onAddToPlaylist?: () => void;
-	onRemoveFromLibrary?: () => void;
-	onDeleteDownloads?: () => void;
-	onToggleFavorites?: () => void;
-	onRemoveFromPlaylist?: () => void;
-	isProcessing?: boolean;
+	readonly context: BatchActionContext;
+	readonly selectedCount: number;
+	readonly onCancel: () => void;
+	readonly onDownload?: () => void;
+	readonly onAddToLibrary?: () => void;
+	readonly onAddToQueue?: () => void;
+	readonly onAddToPlaylist?: () => void;
+	readonly onRemoveFromLibrary?: () => void;
+	readonly onDeleteDownloads?: () => void;
+	readonly onToggleFavorites?: () => void;
+	readonly onRemoveFromPlaylist?: () => void;
+	readonly isProcessing?: boolean;
 }
 
 interface ActionButtonProps {
-	icon: typeof Download;
-	label: string;
-	onPress: () => void;
-	disabled?: boolean;
-	destructive?: boolean;
+	readonly icon: typeof Download;
+	readonly label: string;
+	readonly onPress: () => void;
+	readonly disabled?: boolean;
+	readonly destructive?: boolean;
 }
 
 function ActionButton({ icon, label, onPress, disabled, destructive }: ActionButtonProps) {
@@ -81,10 +81,10 @@ function ActionButton({ icon, label, onPress, disabled, destructive }: ActionBut
 }
 
 interface ActionConfig {
-	icon: typeof Download;
-	label: string;
-	handler: (() => void) | undefined;
-	destructive?: boolean;
+	readonly icon: typeof Download;
+	readonly label: string;
+	readonly handler: (() => void) | undefined;
+	readonly destructive?: boolean;
 }
 
 function _getActionsForContext(

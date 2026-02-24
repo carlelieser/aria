@@ -24,12 +24,12 @@ import { useOpenPlayerOnTrackClick } from '@/src/application/state/settings-stor
 import { router } from 'expo-router';
 
 interface TrackCardProps {
-	track: Track;
-	onPress?: (track: Track) => void;
+	readonly track: Track;
+	readonly onPress?: (track: Track) => void;
 	/** Queue of tracks for skip next/previous functionality */
-	queue?: Track[];
+	readonly queue?: Track[];
 	/** Index of this track in the queue */
-	queueIndex?: number;
+	readonly queueIndex?: number;
 }
 
 export const TrackCard = memo(function TrackCard({
