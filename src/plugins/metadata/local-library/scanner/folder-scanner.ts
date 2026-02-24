@@ -121,34 +121,26 @@ async function _scanSafDirectory(
 
 		for (const entryUri of entries) {
 			try {
-				const info = await FileSystem.getInfoAsync(entryUri);
+				const decodedUri = decodeURIComponent(entryUri);
 				const fileName = _getFileNameFromUri(entryUri);
 
-				if (!info.exists) continue;
+				if (fileName.startsWith('.')) continue;
 
-				if (info.isDirectory) {
-					if (recursive) {
-						await _scanSafDirectory(entryUri, results, recursive, options);
-					}
-				} else {
-					const extension = _getExtensionFromUri(entryUri);
-					if (extension) {
-						options?.onProgress?.(results.length + 1, fileName);
+				const extension = _getExtensionFromUri(decodedUri);
 
-						const size = 'size' in info ? (info.size as number) : 0;
-						const modTime =
-							'modificationTime' in info
-								? (info.modificationTime as number) * 1000
-								: Date.now();
+				if (extension) {
+					logger.debug(`Audio file found: ${fileName} (${extension})`);
+					options?.onProgress?.(results.length + 1, fileName);
 
-						results.push({
-							uri: entryUri,
-							name: fileName,
-							size,
-							modifiedTime: modTime,
-							extension,
-						});
-					}
+					results.push({
+						uri: entryUri,
+						name: fileName,
+						size: 0,
+						modifiedTime: Date.now(),
+						extension,
+					});
+				} else if (recursive) {
+					await _scanSafDirectory(entryUri, results, recursive, options);
 				}
 			} catch (entryError) {
 				logger.warn(

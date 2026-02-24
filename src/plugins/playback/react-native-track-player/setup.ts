@@ -102,7 +102,7 @@ async function _doSetup(): Promise<boolean> {
 			],
 			progressUpdateEventInterval: PROGRESS_UPDATE_INTERVAL_SECONDS,
 			android: {
-				appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback,
+				appKilledPlaybackBehavior: AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
 			},
 		});
 

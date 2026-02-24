@@ -114,10 +114,11 @@ export class PlaybackOperations {
 	async stop(): AsyncResult<void, Error> {
 		return this._lock.withLock(async () => {
 			try {
+				await TrackPlayer.stop();
 				await TrackPlayer.reset();
 			} catch (error) {
 				logger.debug(
-					'Reset failed during stop',
+					'Stop/reset failed during stop',
 					error instanceof Error ? error : undefined
 				);
 			}

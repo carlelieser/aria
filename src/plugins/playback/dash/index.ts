@@ -1,5 +1,6 @@
 import { createVideoPlayer, VideoPlayer } from 'expo-video';
 import type { Track } from '@domain/entities/track';
+import { getArtistNames, getArtworkUrl } from '@domain/entities/track';
 import { Duration } from '@domain/value-objects/duration';
 import type { PlaybackStatus, RepeatMode } from '@domain/value-objects/playback-state';
 import type {
@@ -114,6 +115,7 @@ export class DashPlaybackProvider implements PlaybackProvider {
 			if (this._player) {
 				logger.debug('Stopping and releasing previous player...');
 				try {
+					this._player.showNowPlayingNotification = false;
 					this._player.pause();
 				} catch {}
 				this._statusSubscription?.remove();
@@ -131,6 +133,11 @@ export class DashPlaybackProvider implements PlaybackProvider {
 			this._player = createVideoPlayer({
 				uri: streamUrl,
 				contentType,
+				metadata: {
+					title: track.title,
+					artist: getArtistNames(track),
+					artwork: getArtworkUrl(track),
+				},
 				...(headers && Object.keys(headers).length > 0 ? { headers } : {}),
 			});
 			this._player.volume = this._volume;
@@ -222,6 +229,7 @@ export class DashPlaybackProvider implements PlaybackProvider {
 	async stop(): AsyncResult<void, Error> {
 		if (this._player) {
 			try {
+				this._player.showNowPlayingNotification = false;
 				this._player.pause();
 				this._statusSubscription?.remove();
 				this._player.release();

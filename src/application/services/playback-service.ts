@@ -168,6 +168,13 @@ export class PlaybackService {
 			);
 		}
 
+		if (this.activeProvider && this.activeProvider !== provider) {
+			logger.debug(
+				`Provider switch: ${this.activeProvider.manifest.id} → ${provider.manifest.id}`
+			);
+			await this._stopProvider(this.activeProvider);
+		}
+
 		this.activeProvider = provider;
 
 		try {
@@ -423,12 +430,18 @@ export class PlaybackService {
 
 	private async _stopActiveProvider(): Promise<void> {
 		if (!this.activeProvider) return;
+		await this._stopProvider(this.activeProvider);
+	}
 
-		logger.debug('Stopping current playback before starting new track...');
+	private async _stopProvider(provider: PlaybackProvider): Promise<void> {
+		logger.debug(`Stopping provider: ${provider.manifest.id}`);
 		try {
-			await this.activeProvider.stop();
+			await provider.stop();
 		} catch (e) {
-			logger.warn('Error stopping previous playback:', e instanceof Error ? e : undefined);
+			logger.warn(
+				`Error stopping provider ${provider.manifest.id}:`,
+				e instanceof Error ? e : undefined
+			);
 		}
 	}
 
