@@ -7,51 +7,29 @@
  */
 
 import { memo, useCallback, useRef } from 'react';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { Image } from 'expo-image';
-import { CheckCircle, AlertCircle, X, Trash2, Music, RotateCcw } from 'lucide-react-native';
-import { Text, IconButton, ProgressBar } from 'react-native-paper';
+import { Music } from 'lucide-react-native';
+import { Text, ProgressBar } from 'react-native-paper';
 
 import { Icon } from '@/src/components/ui/icon';
 import { AudioWaveform } from '@/src/components/ui/audio-waveform';
 import { usePlayerActions } from '@/src/hooks/use-player';
-import type { Track } from '@/src/domain/entities/track';
-import type { TrackActionSource } from '@/src/domain/actions/track-action';
-import type { DownloadInfo } from '@/src/domain/value-objects/download-state';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
-import { formatDate } from '@/src/domain/utils/formatting';
 import { getArtistNames } from '@/src/domain/entities/track';
 import { useTrackPlaybackInfo } from '@/src/application/state/player-store';
 import { TrackOptionsMenu } from '@/src/components/track-options-menu';
-import { DownloadIndicator } from './download-indicator';
+import { DownloadIndicator } from '../download-indicator';
 import { useDownloadActions } from '@/src/hooks/use-download-actions';
-import { formatFileSize } from '@/src/hooks/use-download-queue';
-import { useAppTheme, M3Shapes } from '@/lib/theme';
+import { useAppTheme } from '@/lib/theme';
 import { useOpenPlayerOnTrackClick } from '@/src/application/state/settings-store';
 import { router } from 'expo-router';
+import type { TrackListItemProps } from './types';
+import { DownloadStatus } from './download-status';
+import { DownloadActions } from './download-actions';
+import { styles } from './styles';
 
-interface TrackListItemProps {
-	readonly track: Track;
-	readonly source?: TrackActionSource;
-	readonly onPress?: (track: Track) => void;
-	readonly onLongPress?: (track: Track) => void;
-	/** When provided, shows download-specific UI (progress, status, actions) */
-	readonly downloadInfo?: DownloadInfo;
-	/** Hide the options menu (useful in download context) */
-	readonly hideOptionsMenu?: boolean;
-	/** Fallback artwork URL when track has no artwork (e.g., album artwork) */
-	readonly fallbackArtworkUrl?: string;
-	/** Queue of tracks for skip next/previous functionality */
-	readonly queue?: Track[];
-	/** Index of this track in the queue */
-	readonly queueIndex?: number;
-	/** Playlist ID when displaying tracks from a playlist */
-	readonly playlistId?: string;
-	/** Track position within the playlist */
-	readonly trackPosition?: number;
-	/** Callback for retrying failed downloads */
-	readonly onRetry?: (track: Track) => void;
-}
+export type { TrackListItemProps } from './types';
 
 export const TrackListItem = memo(function TrackListItem({
 	track,
@@ -116,90 +94,6 @@ export const TrackListItem = memo(function TrackListItem({
 
 	const isDownloading =
 		downloadInfo?.status === 'pending' || downloadInfo?.status === 'downloading';
-	const isDownloadCompleted = downloadInfo?.status === 'completed';
-	const isDownloadFailed = downloadInfo?.status === 'failed';
-
-	const renderDownloadStatus = () => {
-		if (!downloadInfo) return null;
-
-		if (isDownloading && downloadInfo.progress > 0) {
-			return (
-				<View style={styles.statusRow}>
-					<Text variant={'bodySmall'} style={{ color: colors.onSurfaceVariant }}>
-						{downloadInfo.progress}%
-					</Text>
-				</View>
-			);
-		}
-
-		if (isDownloadCompleted && downloadInfo.fileSize && downloadInfo.downloadedAt) {
-			return (
-				<View style={styles.statusRow}>
-					<Icon as={CheckCircle} size={12} color={colors.primary} />
-					<Text
-						variant={'bodySmall'}
-						style={[styles.statusText, { color: colors.onSurfaceVariant }]}
-					>
-						{formatFileSize(downloadInfo.fileSize)} ·{' '}
-						{formatDate(downloadInfo.downloadedAt)}
-					</Text>
-				</View>
-			);
-		}
-
-		if (isDownloadFailed) {
-			return (
-				<View style={styles.statusRow}>
-					<Icon as={AlertCircle} size={12} color={colors.error} />
-					<Text
-						variant={'bodySmall'}
-						numberOfLines={1}
-						style={[styles.statusText, { color: colors.error }]}
-					>
-						{downloadInfo.error ?? 'Download failed'}
-					</Text>
-				</View>
-			);
-		}
-
-		return null;
-	};
-
-	const renderDownloadActions = () => {
-		if (!downloadInfo) return null;
-
-		if (isDownloading) {
-			return (
-				<IconButton
-					icon={({ size }) => <X size={size} color={colors.onSurfaceVariant} />}
-					size={20}
-					onPress={handleRemoveDownload}
-				/>
-			);
-		}
-
-		if (isDownloadCompleted) {
-			return (
-				<IconButton
-					icon={({ size }) => <Trash2 size={size} color={colors.onSurfaceVariant} />}
-					size={20}
-					onPress={handleRemoveDownload}
-				/>
-			);
-		}
-
-		if (isDownloadFailed && onRetry) {
-			return (
-				<IconButton
-					icon={({ size }) => <RotateCcw size={size} color={colors.onSurfaceVariant} />}
-					size={20}
-					onPress={() => onRetry(track)}
-				/>
-			);
-		}
-
-		return null;
-	};
 
 	return (
 		<TouchableOpacity
@@ -250,7 +144,7 @@ export const TrackListItem = memo(function TrackListItem({
 					{albumName && !downloadInfo ? ` · ${albumName}` : ''}
 					{downloadInfo && !track.duration.isZero() ? ` · ${duration}` : ''}
 				</Text>
-				{renderDownloadStatus()}
+				{downloadInfo && <DownloadStatus downloadInfo={downloadInfo} colors={colors} />}
 				{isDownloading && (
 					<View style={styles.progressBarContainer}>
 						<ProgressBar
@@ -264,7 +158,13 @@ export const TrackListItem = memo(function TrackListItem({
 			</View>
 
 			{downloadInfo ? (
-				renderDownloadActions()
+				<DownloadActions
+					downloadInfo={downloadInfo}
+					track={track}
+					colors={colors}
+					onRemove={handleRemoveDownload}
+					onRetry={onRetry}
+				/>
 			) : (
 				<>
 					{!track.duration.isZero() && (
@@ -293,53 +193,4 @@ export const TrackListItem = memo(function TrackListItem({
 			)}
 		</TouchableOpacity>
 	);
-});
-
-const styles = StyleSheet.create({
-	container: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		width: '100%',
-		gap: 16,
-		paddingVertical: 12,
-	},
-	artworkWrapper: {
-		position: 'relative',
-	},
-	artworkContainer: {
-		width: 48,
-		height: 48,
-		borderRadius: M3Shapes.small,
-		justifyContent: 'center',
-		alignItems: 'center',
-		overflow: 'hidden',
-	},
-	artwork: {
-		width: 48,
-		height: 48,
-		borderRadius: M3Shapes.small,
-	},
-	infoContainer: {
-		flex: 1,
-		flexDirection: 'column',
-	},
-	statusRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 4,
-		marginTop: 2,
-	},
-	statusText: {
-		marginLeft: 4,
-	},
-	progressBarContainer: {
-		marginTop: 4,
-	},
-	progressBar: {
-		height: 3,
-		borderRadius: 9999,
-	},
-	duration: {
-		marginRight: 4,
-	},
 });
