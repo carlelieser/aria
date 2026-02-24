@@ -10,8 +10,8 @@ import { Text, Surface } from 'react-native-paper';
 import { useAppTheme } from '@/lib/theme';
 
 interface SettingsSectionProps {
-	title: string;
-	children: React.ReactNode;
+	readonly title: string;
+	readonly children: React.ReactNode;
 }
 
 export function SettingsSection({ title, children }: SettingsSectionProps) {

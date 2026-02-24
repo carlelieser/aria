@@ -13,21 +13,21 @@ type WidthValue = number | `${number}%`;
 
 export interface MediaListItemSkeletonProps {
 	/** Artwork shape */
-	shape?: 'rounded' | 'circular';
+	readonly shape?: 'rounded' | 'circular';
 	/** Artwork size (48 for tracks, 56 for albums/artists/playlists) */
-	artworkSize?: 48 | 56;
+	readonly artworkSize?: 48 | 56;
 	/** Number of text lines to show (1-3) */
-	lines?: 1 | 2 | 3;
+	readonly lines?: 1 | 2 | 3;
 	/** Width of primary text line */
-	primaryWidth?: WidthValue;
+	readonly primaryWidth?: WidthValue;
 	/** Width of secondary text line */
-	secondaryWidth?: WidthValue;
+	readonly secondaryWidth?: WidthValue;
 	/** Width of tertiary text line */
-	tertiaryWidth?: WidthValue;
+	readonly tertiaryWidth?: WidthValue;
 	/** Show right accessory placeholder */
-	showAccessory?: boolean;
+	readonly showAccessory?: boolean;
 	/** Vertical padding (12 for compact, 16 for standard) */
-	verticalPadding?: 12 | 16;
+	readonly verticalPadding?: 12 | 16;
 }
 
 export function MediaListItemSkeleton({
@@ -58,7 +58,7 @@ export function MediaListItemSkeleton({
 }
 
 interface MediaListSkeletonProps extends MediaListItemSkeletonProps {
-	count?: number;
+	readonly count?: number;
 }
 
 export function MediaListSkeleton({ count = 5, ...itemProps }: MediaListSkeletonProps) {

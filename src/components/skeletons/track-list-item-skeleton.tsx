@@ -24,7 +24,7 @@ export function TrackListItemSkeleton() {
 }
 
 interface TrackListSkeletonProps {
-	count?: number;
+	readonly count?: number;
 }
 
 export function TrackListSkeleton({ count = 6 }: TrackListSkeletonProps) {

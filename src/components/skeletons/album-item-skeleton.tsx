@@ -21,7 +21,7 @@ export function AlbumItemSkeleton() {
 }
 
 interface AlbumListSkeletonProps {
-	count?: number;
+	readonly count?: number;
 }
 
 export function AlbumListSkeleton({ count = 5 }: AlbumListSkeletonProps) {

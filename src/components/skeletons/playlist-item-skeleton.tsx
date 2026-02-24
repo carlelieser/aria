@@ -21,7 +21,7 @@ export function PlaylistItemSkeleton() {
 }
 
 interface PlaylistListSkeletonProps {
-	count?: number;
+	readonly count?: number;
 }
 
 export function PlaylistListSkeleton({ count = 5 }: PlaylistListSkeletonProps) {

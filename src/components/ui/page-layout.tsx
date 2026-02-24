@@ -8,30 +8,30 @@ import { useAppTheme, resolveDisplayFont } from '@/lib/theme';
 import type { ReactNode } from 'react';
 
 interface PageHeaderProps {
-	icon?: LucideIcon;
-	title?: string;
-	showBack?: boolean;
-	onBack?: () => void;
-	rightActions?: ReactNode;
-	showBorder?: boolean;
-	backgroundColor?: string;
-	tintColor?: string;
-	transparent?: boolean;
+	readonly icon?: LucideIcon;
+	readonly title?: string;
+	readonly showBack?: boolean;
+	readonly onBack?: () => void;
+	readonly rightActions?: ReactNode;
+	readonly showBorder?: boolean;
+	readonly backgroundColor?: string;
+	readonly tintColor?: string;
+	readonly transparent?: boolean;
 	/** Element rendered behind the header when transparent (e.g. animated background) */
-	transparentBackground?: ReactNode;
-	borderRadius?: number;
-	belowTitle?: ReactNode;
-	extended?: boolean;
-	topInset?: number;
+	readonly transparentBackground?: ReactNode;
+	readonly borderRadius?: number;
+	readonly belowTitle?: ReactNode;
+	readonly extended?: boolean;
+	readonly topInset?: number;
 }
 
 interface PageLayoutProps {
-	header?: PageHeaderProps;
-	edges?: Edge[];
-	contentPadding?: boolean;
-	style?: StyleProp<ViewStyle>;
-	contentStyle?: StyleProp<ViewStyle>;
-	children: ReactNode;
+	readonly header?: PageHeaderProps;
+	readonly edges?: Edge[];
+	readonly contentPadding?: boolean;
+	readonly style?: StyleProp<ViewStyle>;
+	readonly contentStyle?: StyleProp<ViewStyle>;
+	readonly children: ReactNode;
 }
 
 export function PageLayout({

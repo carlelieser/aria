@@ -23,7 +23,7 @@ export function AlbumHeaderSkeleton() {
 
 interface AlbumTrackListSkeletonProps {
 	/** Number of track skeletons to show */
-	count?: number;
+	readonly count?: number;
 }
 
 export function AlbumTrackListSkeleton({ count = 8 }: AlbumTrackListSkeletonProps) {

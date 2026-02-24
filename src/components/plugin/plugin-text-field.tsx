@@ -12,11 +12,11 @@ import { useAppTheme } from '@/lib/theme';
 import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plugin';
 
 interface PluginTextFieldProps {
-	schema: PluginConfigSchema;
-	value: string;
-	onChange: (key: string, value: string) => void;
-	onBlur: (key: string) => void;
-	error?: string;
+	readonly schema: PluginConfigSchema;
+	readonly value: string;
+	readonly onChange: (key: string, value: string) => void;
+	readonly onBlur: (key: string) => void;
+	readonly error?: string;
 }
 
 export const PluginTextField = memo(function PluginTextField({

@@ -14,17 +14,17 @@ type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | number;
 
 interface IconProps {
 	/** The Lucide icon component to render */
-	as: LucideIcon;
+	readonly as: LucideIcon;
 	/** Icon size (preset or number) */
-	size?: IconSize;
+	readonly size?: IconSize;
 	/** Icon color (defaults to onSurface) */
-	color?: string;
+	readonly color?: string;
 	/** Stroke width */
-	strokeWidth?: number;
+	readonly strokeWidth?: number;
 	/** Additional style */
-	style?: ViewStyle;
+	readonly style?: ViewStyle;
 	/** Accessibility label */
-	accessibilityLabel?: string;
+	readonly accessibilityLabel?: string;
 }
 
 /**

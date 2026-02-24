@@ -10,7 +10,7 @@ import { PluginConfigField } from './plugin-config-field';
 import { usePluginSettings } from '@/src/hooks/use-plugin-settings';
 
 interface PluginSettingsSectionProps {
-	pluginId: string;
+	readonly pluginId: string;
 }
 
 export const PluginSettingsSection = memo(function PluginSettingsSection({

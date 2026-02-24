@@ -17,11 +17,11 @@ import { useEqualizer, useEqualizerInit } from '@/src/hooks/use-equalizer';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 
 interface PresetButtonProps {
-	id: string;
-	name: string;
-	isSelected: boolean;
-	isEnabled: boolean;
-	onSelect: (presetId: string) => void;
+	readonly id: string;
+	readonly name: string;
+	readonly isSelected: boolean;
+	readonly isEnabled: boolean;
+	readonly onSelect: (presetId: string) => void;
 }
 
 const PresetButton = memo(function PresetButton({
@@ -69,8 +69,8 @@ const PresetButton = memo(function PresetButton({
 });
 
 interface EqualizerSheetProps {
-	isOpen: boolean;
-	onClose: () => void;
+	readonly isOpen: boolean;
+	readonly onClose: () => void;
 }
 
 export function EqualizerSheet({ isOpen, onClose }: EqualizerSheetProps) {
@@ -177,9 +177,9 @@ export function EqualizerSheet({ isOpen, onClose }: EqualizerSheetProps) {
 }
 
 interface EqualizerBandProps {
-	label: string;
-	gain: number;
-	isEnabled: boolean;
+	readonly label: string;
+	readonly gain: number;
+	readonly isEnabled: boolean;
 }
 
 function EqualizerBand({ label, gain, isEnabled }: EqualizerBandProps) {

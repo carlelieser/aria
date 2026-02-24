@@ -17,25 +17,25 @@ type ContentStyle = FlashListProps<unknown>['contentContainerStyle'];
 type ScrollHandler = (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
 interface EmptyStateConfig {
-	icon: LucideIcon;
-	title: string;
-	description: string;
+	readonly icon: LucideIcon;
+	readonly title: string;
+	readonly description: string;
 }
 
 interface GenericListViewProps<T> {
-	data: T[];
-	isLoading: boolean;
-	keyExtractor: (item: T) => string;
-	renderItem: ListRenderItem<T>;
-	loadingSkeleton: ReactNode;
-	emptyState: EmptyStateConfig;
-	filteredEmptyState?: EmptyStateConfig;
-	hasFilters?: boolean;
-	extraData?: unknown;
-	contentContainerStyle?: ContentStyle;
-	showsVerticalScrollIndicator?: boolean;
-	disablePlayerAwarePadding?: boolean;
-	onScroll?: ScrollHandler;
+	readonly data: T[];
+	readonly isLoading: boolean;
+	readonly keyExtractor: (item: T) => string;
+	readonly renderItem: ListRenderItem<T>;
+	readonly loadingSkeleton: ReactNode;
+	readonly emptyState: EmptyStateConfig;
+	readonly filteredEmptyState?: EmptyStateConfig;
+	readonly hasFilters?: boolean;
+	readonly extraData?: unknown;
+	readonly contentContainerStyle?: ContentStyle;
+	readonly showsVerticalScrollIndicator?: boolean;
+	readonly disablePlayerAwarePadding?: boolean;
+	readonly onScroll?: ScrollHandler;
 }
 
 export function GenericListView<T>({

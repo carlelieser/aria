@@ -21,13 +21,13 @@ import { Icon } from '@/src/components/ui/icon';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 
 interface SettingsBottomSheetProps {
-	isOpen: boolean;
-	onClose: () => void;
-	portalName: string;
-	title: string;
-	children: React.ReactNode;
-	showReset?: boolean;
-	onReset?: () => void;
+	readonly isOpen: boolean;
+	readonly onClose: () => void;
+	readonly portalName: string;
+	readonly title: string;
+	readonly children: React.ReactNode;
+	readonly showReset?: boolean;
+	readonly onReset?: () => void;
 }
 
 export function SettingsBottomSheet({

@@ -15,18 +15,18 @@ import { SettingsItem } from '@/src/components/settings/settings-item';
 import { useAppTheme } from '@/lib/theme';
 
 interface SelectOption<T extends string> {
-	value: T;
-	label: string;
-	icon?: LucideIcon;
+	readonly value: T;
+	readonly label: string;
+	readonly icon?: LucideIcon;
 }
 
 interface SettingsSelectProps<T extends string> {
-	icon: LucideIcon;
-	title: string;
-	options: SelectOption<T>[];
-	value: T;
-	onValueChange: (value: T) => void;
-	portalName: string;
+	readonly icon: LucideIcon;
+	readonly title: string;
+	readonly options: SelectOption<T>[];
+	readonly value: T;
+	readonly onValueChange: (value: T) => void;
+	readonly portalName: string;
 }
 
 export function SettingsSelect<T extends string>({

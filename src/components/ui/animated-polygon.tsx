@@ -16,18 +16,18 @@ const MIN_SEGMENTS = 3;
 const MAX_INTERPOLATION_POINTS = 360;
 
 interface AnimatedPolygonProps {
-	segments: number;
-	size?: number;
-	fill?: string;
-	stroke?: string;
-	strokeWidth?: number;
-	rotation?: number;
-	springConfig?: {
-		damping?: number;
-		stiffness?: number;
-		mass?: number;
+	readonly segments: number;
+	readonly size?: number;
+	readonly fill?: string;
+	readonly stroke?: string;
+	readonly strokeWidth?: number;
+	readonly rotation?: number;
+	readonly springConfig?: {
+		readonly damping?: number;
+		readonly stiffness?: number;
+		readonly mass?: number;
 	};
-	style?: ViewStyle;
+	readonly style?: ViewStyle;
 }
 
 export function AnimatedPolygonView({
@@ -90,19 +90,19 @@ export function AnimatedPolygonView({
 
 interface ControlledPolygonProps {
 	/** Shared value controlling the number of segments */
-	segments: SharedValue<number>;
+	readonly segments: SharedValue<number>;
 	/** Size of the SVG viewbox (width and height) */
-	size?: number;
+	readonly size?: number;
 	/** Fill color of the polygon */
-	fill?: string;
+	readonly fill?: string;
 	/** Stroke color of the polygon */
-	stroke?: string;
+	readonly stroke?: string;
 	/** Stroke width */
-	strokeWidth?: number;
+	readonly strokeWidth?: number;
 	/** Rotation in degrees */
-	rotation?: number;
+	readonly rotation?: number;
 	/** Container style */
-	style?: ViewStyle;
+	readonly style?: ViewStyle;
 }
 
 /**

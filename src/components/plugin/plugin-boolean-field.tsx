@@ -14,9 +14,9 @@ import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plug
 const DEFAULT_BOOLEAN_ICON = CircleDotIcon;
 
 interface PluginBooleanFieldProps {
-	schema: PluginConfigSchema;
-	value: boolean;
-	onChange: (key: string, value: boolean) => void;
+	readonly schema: PluginConfigSchema;
+	readonly value: boolean;
+	readonly onChange: (key: string, value: boolean) => void;
 }
 
 export const PluginBooleanField = memo(function PluginBooleanField({

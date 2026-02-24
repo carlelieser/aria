@@ -13,14 +13,14 @@ import { Icon } from '@/src/components/ui/icon';
 import { useAppTheme } from '@/lib/theme';
 
 interface SettingsItemProps {
-	icon: LucideIcon;
-	title: string;
-	subtitle?: string;
-	subtitleElement?: React.ReactNode;
-	onPress?: () => void;
-	destructive?: boolean;
-	showChevron?: boolean;
-	rightElement?: React.ReactNode;
+	readonly icon: LucideIcon;
+	readonly title: string;
+	readonly subtitle?: string;
+	readonly subtitleElement?: React.ReactNode;
+	readonly onPress?: () => void;
+	readonly destructive?: boolean;
+	readonly showChevron?: boolean;
+	readonly rightElement?: React.ReactNode;
 }
 
 export const SettingsItem = memo(function SettingsItem({

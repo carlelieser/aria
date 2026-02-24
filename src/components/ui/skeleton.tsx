@@ -20,17 +20,17 @@ type RoundedSize = 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
 
 interface SkeletonProps {
 	/** Width of the skeleton */
-	width?: number | `${number}%`;
+	readonly width?: number | `${number}%`;
 	/** Height of the skeleton */
-	height?: number;
+	readonly height?: number;
 	/** Border radius preset */
-	rounded?: RoundedSize;
+	readonly rounded?: RoundedSize;
 	/** Enable shimmer animation */
-	shimmer?: boolean;
+	readonly shimmer?: boolean;
 	/** Animation duration in ms */
-	duration?: number;
+	readonly duration?: number;
 	/** Additional style */
-	style?: ViewStyle;
+	readonly style?: ViewStyle;
 }
 
 /**

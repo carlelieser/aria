@@ -20,25 +20,25 @@ import type { LucideIcon } from 'lucide-react-native';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 
 export interface ActionSheetItem {
-	id: string;
-	label: string;
-	icon?: LucideIcon;
-	variant?: 'default' | 'destructive';
-	disabled?: boolean;
-	checked?: boolean;
+	readonly id: string;
+	readonly label: string;
+	readonly icon?: LucideIcon;
+	readonly variant?: 'default' | 'destructive';
+	readonly disabled?: boolean;
+	readonly checked?: boolean;
 }
 
 export interface ActionSheetGroup {
-	items: ActionSheetItem[];
+	readonly items: ActionSheetItem[];
 }
 
 interface ActionSheetProps {
-	isOpen: boolean;
-	groups: ActionSheetGroup[];
-	onSelect: (itemId: string) => void;
-	onClose: () => void;
-	header?: React.ReactNode;
-	portalName: string;
+	readonly isOpen: boolean;
+	readonly groups: ActionSheetGroup[];
+	readonly onSelect: (itemId: string) => void;
+	readonly onClose: () => void;
+	readonly header?: React.ReactNode;
+	readonly portalName: string;
 }
 
 export function ActionSheet({
@@ -143,9 +143,9 @@ export function ActionSheet({
 }
 
 interface ActionSheetItemComponentProps {
-	item: ActionSheetItem;
-	onSelect: (itemId: string) => void;
-	colors: ReturnType<typeof useAppTheme>['colors'];
+	readonly item: ActionSheetItem;
+	readonly onSelect: (itemId: string) => void;
+	readonly colors: ReturnType<typeof useAppTheme>['colors'];
 }
 
 const ActionSheetItemComponent = React.memo(function ActionSheetItemComponent({

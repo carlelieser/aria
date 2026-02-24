@@ -13,14 +13,14 @@ import { SmartphoneIcon, CpuIcon, PackageIcon, CodeIcon, GithubIcon } from 'luci
 import type { LucideIcon } from 'lucide-react-native';
 
 interface VersionDialogProps {
-	visible: boolean;
-	onDismiss: () => void;
+	readonly visible: boolean;
+	readonly onDismiss: () => void;
 }
 
 interface InfoRowProps {
-	icon: LucideIcon;
-	label: string;
-	value: string;
+	readonly icon: LucideIcon;
+	readonly label: string;
+	readonly value: string;
 }
 
 function InfoRow({ icon: IconComponent, label, value }: InfoRowProps) {

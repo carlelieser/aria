@@ -14,46 +14,46 @@ import { useAppTheme } from '@/lib/theme';
 
 interface MenuItemProps {
 	/** Item title */
-	title: string;
+	readonly title: string;
 	/** Optional leading icon */
-	leadingIcon?: LucideIcon;
+	readonly leadingIcon?: LucideIcon;
 	/** Optional trailing icon */
-	trailingIcon?: LucideIcon;
+	readonly trailingIcon?: LucideIcon;
 	/** Press handler */
-	onPress?: () => void;
+	readonly onPress?: () => void;
 	/** Disabled state */
-	disabled?: boolean;
+	readonly disabled?: boolean;
 	/** Destructive variant */
-	variant?: 'default' | 'destructive';
+	readonly variant?: 'default' | 'destructive';
 }
 
 interface MenuCheckboxItemProps extends Omit<MenuItemProps, 'trailingIcon'> {
 	/** Checked state */
-	checked: boolean;
+	readonly checked: boolean;
 	/** Change handler */
-	onCheckedChange?: (checked: boolean) => void;
+	readonly onCheckedChange?: (checked: boolean) => void;
 }
 
 interface MenuRadioItemProps extends Omit<MenuItemProps, 'trailingIcon'> {
 	/** Selected state */
-	selected: boolean;
+	readonly selected: boolean;
 }
 
 interface DropdownMenuProps {
 	/** The trigger element that opens the menu */
-	trigger: React.ReactNode;
+	readonly trigger: React.ReactNode;
 	/** Menu items */
-	children: React.ReactNode;
+	readonly children: React.ReactNode;
 	/** Anchor position */
-	anchor?: { x: number; y: number };
+	readonly anchor?: { x: number; y: number };
 	/** Container style */
-	style?: ViewStyle;
+	readonly style?: ViewStyle;
 }
 
 interface DropdownMenuContextValue {
-	visible: boolean;
-	closeMenu: () => void;
-	colors: ReturnType<typeof useAppTheme>['colors'];
+	readonly visible: boolean;
+	readonly closeMenu: () => void;
+	readonly colors: ReturnType<typeof useAppTheme>['colors'];
 }
 
 const DropdownMenuContext = React.createContext<DropdownMenuContextValue | null>(null);

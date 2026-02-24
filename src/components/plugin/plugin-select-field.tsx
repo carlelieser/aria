@@ -15,10 +15,10 @@ import { useAppTheme } from '@/lib/theme';
 import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plugin';
 
 interface PluginSelectFieldProps {
-	schema: PluginConfigSchema;
-	value: string;
-	onChange: (key: string, value: string) => void;
-	pluginId: string;
+	readonly schema: PluginConfigSchema;
+	readonly value: string;
+	readonly onChange: (key: string, value: string) => void;
+	readonly pluginId: string;
 }
 
 export const PluginSelectField = memo(function PluginSelectField({

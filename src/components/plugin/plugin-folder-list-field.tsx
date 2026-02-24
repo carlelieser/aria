@@ -27,8 +27,8 @@ import { getLogger } from '@shared/services/logger';
 const logger = getLogger('PluginFolderListField');
 
 interface PluginFolderListFieldProps {
-	schema: PluginConfigSchema;
-	pluginId: string;
+	readonly schema: PluginConfigSchema;
+	readonly pluginId: string;
 }
 
 export const PluginFolderListField = memo(function PluginFolderListField({
@@ -152,12 +152,12 @@ export const PluginFolderListField = memo(function PluginFolderListField({
 });
 
 interface FolderItemProps {
-	uri: string;
-	name: string;
-	trackCount: number;
-	onRemove: (uri: string) => void;
-	onRescan: (uri: string) => void;
-	disabled: boolean;
+	readonly uri: string;
+	readonly name: string;
+	readonly trackCount: number;
+	readonly onRemove: (uri: string) => void;
+	readonly onRescan: (uri: string) => void;
+	readonly disabled: boolean;
 }
 
 const FolderItem = memo(function FolderItem({

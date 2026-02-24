@@ -42,11 +42,11 @@ const DYNAMIC_COLOR = { value: null, label: 'Dynamic', color: SEED_COLOR } as co
 const ALL_COLORS = [...CUSTOM_COLORS.map((c) => ({ ...c, color: c.value })), DYNAMIC_COLOR];
 
 interface ColorOptionItemProps {
-	colorValue: string;
-	label: string;
-	isSelected: boolean;
-	onSelect: (color: string | null) => void;
-	colors: ReturnType<typeof useAppTheme>['colors'];
+	readonly colorValue: string;
+	readonly label: string;
+	readonly isSelected: boolean;
+	readonly onSelect: (color: string | null) => void;
+	readonly colors: ReturnType<typeof useAppTheme>['colors'];
 }
 
 const ColorOptionItem = memo(function ColorOptionItem({
@@ -86,10 +86,10 @@ const ColorOptionItem = memo(function ColorOptionItem({
 });
 
 interface DynamicColorOptionProps {
-	isSelected: boolean;
-	onSelect: (color: null) => void;
-	dynamicColor: string;
-	colors: ReturnType<typeof useAppTheme>['colors'];
+	readonly isSelected: boolean;
+	readonly onSelect: (color: null) => void;
+	readonly dynamicColor: string;
+	readonly colors: ReturnType<typeof useAppTheme>['colors'];
 }
 
 const DynamicColorOption = memo(function DynamicColorOption({
@@ -128,8 +128,8 @@ const DynamicColorOption = memo(function DynamicColorOption({
 });
 
 interface AccentColorPickerProps {
-	value: string | null;
-	onValueChange: (color: string | null) => void;
+	readonly value: string | null;
+	readonly onValueChange: (color: string | null) => void;
 }
 
 export function AccentColorPicker({ value, onValueChange }: AccentColorPickerProps) {

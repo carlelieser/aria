@@ -14,13 +14,13 @@ import type { LucideIcon } from 'lucide-react-native';
 
 interface EmptyStateProps {
 	/** Icon to display */
-	icon: LucideIcon;
+	readonly icon: LucideIcon;
 	/** Title text */
-	title: string;
+	readonly title: string;
 	/** Optional description text */
-	description?: string;
+	readonly description?: string;
 	/** Optional action element rendered below the description */
-	action?: ReactNode;
+	readonly action?: ReactNode;
 }
 
 export function EmptyState({ icon: IconComponent, title, description, action }: EmptyStateProps) {

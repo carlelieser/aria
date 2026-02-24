@@ -18,9 +18,9 @@ const logger = getLogger('SpotifyLogin');
 export type { WebViewNavigation };
 
 interface SpotifyLoginWebViewProps {
-	onSuccess: (authCode: string) => void;
-	onCancel: () => void;
-	onNavigate?: (navState: WebViewNavigation) => void;
+	readonly onSuccess: (authCode: string) => void;
+	readonly onCancel: () => void;
+	readonly onNavigate?: (navState: WebViewNavigation) => void;
 }
 
 function getSpotifyAuthManager() {

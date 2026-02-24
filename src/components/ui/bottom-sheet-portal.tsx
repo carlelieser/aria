@@ -13,8 +13,8 @@ import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/typ
 import { Portal } from '@rn-primitives/portal';
 
 interface BottomSheetPortalProps extends Omit<BottomSheetProps, 'onChange'> {
-	name: string;
-	onChange?: (index: number) => void;
+	readonly name: string;
+	readonly onChange?: (index: number) => void;
 }
 
 export const BottomSheetPortal = forwardRef<BottomSheetMethods, BottomSheetPortalProps>(

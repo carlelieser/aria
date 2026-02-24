@@ -9,14 +9,14 @@ import { Dialog, Portal, Text, Button } from 'react-native-paper';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 
 interface ConfirmationDialogProps {
-	visible: boolean;
-	title: string;
-	message: string;
-	confirmLabel?: string;
-	cancelLabel?: string;
-	destructive?: boolean;
-	onConfirm: () => void;
-	onCancel: () => void;
+	readonly visible: boolean;
+	readonly title: string;
+	readonly message: string;
+	readonly confirmLabel?: string;
+	readonly cancelLabel?: string;
+	readonly destructive?: boolean;
+	readonly onConfirm: () => void;
+	readonly onCancel: () => void;
 }
 
 export function ConfirmationDialog({

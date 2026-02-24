@@ -15,9 +15,9 @@ import type { WebViewNavigation } from 'react-native-webview';
 export type { WebViewNavigation };
 
 interface YouTubeMusicLoginWebViewProps {
-	onSuccess: (cookies: string) => void;
-	onCancel: () => void;
-	onNavigate?: (navState: WebViewNavigation) => void;
+	readonly onSuccess: (cookies: string) => void;
+	readonly onCancel: () => void;
+	readonly onNavigate?: (navState: WebViewNavigation) => void;
 }
 
 export const YouTubeMusicLoginWebView = memo(function YouTubeMusicLoginWebView({

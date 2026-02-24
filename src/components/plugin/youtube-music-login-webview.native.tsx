@@ -17,9 +17,9 @@ const YOUTUBE_MUSIC_LOGIN_URL =
 const REQUIRED_COOKIES = ['SID', 'HSID', 'SSID', 'SAPISID'] as const;
 
 interface YouTubeMusicLoginWebViewProps {
-	onSuccess: (cookies: string) => void;
-	onCancel: () => void;
-	onNavigate?: (navState: WebViewNavigation) => void;
+	readonly onSuccess: (cookies: string) => void;
+	readonly onCancel: () => void;
+	readonly onNavigate?: (navState: WebViewNavigation) => void;
 }
 
 export const YouTubeMusicLoginWebView = memo(function YouTubeMusicLoginWebView({

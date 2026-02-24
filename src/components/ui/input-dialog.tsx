@@ -10,15 +10,15 @@ import { Dialog, Portal, Text, Button, TextInput } from 'react-native-paper';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 
 interface InputDialogProps {
-	visible: boolean;
-	title: string;
-	message?: string;
-	placeholder?: string;
-	initialValue?: string;
-	confirmLabel?: string;
-	cancelLabel?: string;
-	onConfirm: (value: string) => void;
-	onCancel: () => void;
+	readonly visible: boolean;
+	readonly title: string;
+	readonly message?: string;
+	readonly placeholder?: string;
+	readonly initialValue?: string;
+	readonly confirmLabel?: string;
+	readonly cancelLabel?: string;
+	readonly onConfirm: (value: string) => void;
+	readonly onCancel: () => void;
 }
 
 export function InputDialog({

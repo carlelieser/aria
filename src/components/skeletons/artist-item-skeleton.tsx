@@ -21,7 +21,7 @@ export function ArtistItemSkeleton() {
 }
 
 interface ArtistListSkeletonProps {
-	count?: number;
+	readonly count?: number;
 }
 
 export function ArtistListSkeleton({ count = 5 }: ArtistListSkeletonProps) {

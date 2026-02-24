@@ -3,8 +3,8 @@ import { SpotifyLoginWebView } from './spotify-login-webview';
 import { YouTubeMusicLoginWebView } from './youtube-music-login-webview';
 
 export interface LoginWebViewProps {
-	onSuccess: (credential: string) => void;
-	onCancel: () => void;
+	readonly onSuccess: (credential: string) => void;
+	readonly onCancel: () => void;
 }
 
 type LoginWebViewComponent = ComponentType<LoginWebViewProps>;

@@ -12,9 +12,9 @@ import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 interface SelectableCheckboxProps {
 	/** Whether the item is selected */
-	isSelected: boolean;
+	readonly isSelected: boolean;
 	/** Callback when checkbox is pressed */
-	onToggle: () => void;
+	readonly onToggle: () => void;
 }
 
 export const SelectableCheckbox = memo(function SelectableCheckbox({

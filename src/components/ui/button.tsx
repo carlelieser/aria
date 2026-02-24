@@ -15,27 +15,27 @@ type ButtonSize = 'default' | 'sm' | 'lg' | 'icon';
 
 interface ButtonProps {
 	/** Button variant style */
-	variant?: ButtonVariant;
+	readonly variant?: ButtonVariant;
 	/** Button size */
-	size?: ButtonSize;
+	readonly size?: ButtonSize;
 	/** Button content (children) */
-	children?: React.ReactNode;
+	readonly children?: React.ReactNode;
 	/** Press handler */
-	onPress?: () => void;
+	readonly onPress?: () => void;
 	/** Disabled state */
-	disabled?: boolean;
+	readonly disabled?: boolean;
 	/** Loading state */
-	loading?: boolean;
+	readonly loading?: boolean;
 	/** Icon to display (for icon buttons or leading icon) */
-	icon?: string | React.ReactNode;
+	readonly icon?: string | React.ReactNode;
 	/** Additional style */
-	style?: ViewStyle;
+	readonly style?: ViewStyle;
 	/** Additional label style */
-	labelStyle?: TextStyle;
+	readonly labelStyle?: TextStyle;
 	/** Content description for accessibility */
-	accessibilityLabel?: string;
+	readonly accessibilityLabel?: string;
 	/** Compact mode (less padding) */
-	compact?: boolean;
+	readonly compact?: boolean;
 }
 
 /**

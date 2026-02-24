@@ -23,23 +23,23 @@ import { useAppTheme, M3Shapes } from '@/lib/theme';
 
 interface ManagedBottomSheetProps {
 	/** Unique portal name for this sheet */
-	portalName: string;
+	readonly portalName: string;
 	/** Whether the sheet is open */
-	isOpen: boolean;
+	readonly isOpen: boolean;
 	/** Callback when the sheet is closed */
-	onClose: () => void;
+	readonly onClose: () => void;
 	/** Snap points as percentages (e.g., ['60%', '85%']) */
-	snapPoints: string[];
+	readonly snapPoints: string[];
 	/** Sheet content */
-	children: ReactNode;
+	readonly children: ReactNode;
 	/** Use scrollable content view instead of fixed view */
-	scrollable?: boolean;
+	readonly scrollable?: boolean;
 	/** Callback when sheet is opened (after animation) */
-	onOpen?: () => void;
+	readonly onOpen?: () => void;
 	/** Keyboard behavior: 'extend' pushes sheet up, 'interactive' follows keyboard, 'fillParent' expands to full height */
-	keyboardBehavior?: 'extend' | 'interactive' | 'fillParent';
+	readonly keyboardBehavior?: 'extend' | 'interactive' | 'fillParent';
 	/** What happens when keyboard is dismissed by tapping outside the input */
-	keyboardBlurBehavior?: 'none' | 'restore';
+	readonly keyboardBlurBehavior?: 'none' | 'restore';
 }
 
 export function ManagedBottomSheet({

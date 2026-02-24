@@ -16,7 +16,7 @@ import { PluginRegistry } from '@/src/plugins/core/registry/plugin-registry';
 import { PluginManifestRegistry } from '@/src/plugins/core/registry/plugin-manifest-registry';
 
 interface LibraryImportSectionProps {
-	pluginId: string;
+	readonly pluginId: string;
 }
 
 function formatLastImported(timestamp: number | undefined): string | null {

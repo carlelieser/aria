@@ -14,12 +14,12 @@ import { PluginFolderListField } from './plugin-folder-list-field';
 import { PluginOAuthField } from './plugin-oauth-field';
 
 interface PluginConfigFieldProps {
-	schema: PluginConfigSchema;
-	value: unknown;
-	onChange: (key: string, value: unknown) => void;
-	onBlur: (key: string) => void;
-	error?: string;
-	pluginId: string;
+	readonly schema: PluginConfigSchema;
+	readonly value: unknown;
+	readonly onChange: (key: string, value: unknown) => void;
+	readonly onBlur: (key: string) => void;
+	readonly error?: string;
+	readonly pluginId: string;
 }
 
 export const PluginConfigField = memo(function PluginConfigField({

@@ -18,11 +18,11 @@ import { Text, Button } from 'react-native-paper';
 import { useAppTheme } from '@/lib/theme';
 
 interface SortFilterBottomSheetProps {
-	isOpen: boolean;
-	onClose: () => void;
-	onClearAll: () => void;
-	portalName: string;
-	children: React.ReactNode;
+	readonly isOpen: boolean;
+	readonly onClose: () => void;
+	readonly onClearAll: () => void;
+	readonly portalName: string;
+	readonly children: React.ReactNode;
 }
 
 export function SortFilterBottomSheet({

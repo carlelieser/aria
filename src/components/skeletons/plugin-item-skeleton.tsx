@@ -10,7 +10,7 @@ import { Skeleton } from '@/src/components/ui/skeleton';
 import { useAppTheme } from '@/lib/theme';
 
 interface PluginItemSkeletonProps {
-	isLast?: boolean;
+	readonly isLast?: boolean;
 }
 
 export function PluginItemSkeleton({ isLast = false }: PluginItemSkeletonProps) {
@@ -43,7 +43,7 @@ export function PluginItemSkeleton({ isLast = false }: PluginItemSkeletonProps) 
 }
 
 interface PluginListSkeletonProps {
-	count?: number;
+	readonly count?: number;
 }
 
 export function PluginListSkeleton({ count = 3 }: PluginListSkeletonProps) {

@@ -33,9 +33,9 @@ const PROGRESS_BAR_WIDTH = 200;
 const PROGRESS_TIMING_MS = 300;
 
 interface AnimatedSplashProps {
-	isReady: boolean;
-	onAnimationComplete?: () => void;
-	isDark?: boolean;
+	readonly isReady: boolean;
+	readonly onAnimationComplete?: () => void;
+	readonly isDark?: boolean;
 }
 
 function getRandomSegments(current: number): number {

@@ -24,8 +24,8 @@ import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plug
 const DEFAULT_OAUTH_ICON = LinkIcon;
 
 interface PluginOAuthFieldProps {
-	schema: PluginConfigSchema;
-	pluginId: string;
+	readonly schema: PluginConfigSchema;
+	readonly pluginId: string;
 }
 
 export const PluginOAuthField = memo(function PluginOAuthField({

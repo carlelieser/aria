@@ -51,23 +51,23 @@ type TextVariant = LegacyVariant | M3Variant;
 
 interface TextProps {
 	/** Typography variant */
-	variant?: TextVariant;
+	readonly variant?: TextVariant;
 	/** Text content */
-	children?: React.ReactNode;
+	readonly children?: React.ReactNode;
 	/** Additional style */
-	style?: TextStyle;
+	readonly style?: TextStyle;
 	/** Number of lines before truncation */
-	numberOfLines?: number;
+	readonly numberOfLines?: number;
 	/** Ellipsis mode */
-	ellipsizeMode?: 'head' | 'middle' | 'tail' | 'clip';
+	readonly ellipsizeMode?: 'head' | 'middle' | 'tail' | 'clip';
 	/** Text alignment */
-	align?: 'auto' | 'left' | 'right' | 'center' | 'justify';
+	readonly align?: 'auto' | 'left' | 'right' | 'center' | 'justify';
 	/** Accessibility role */
-	accessibilityRole?: 'text' | 'header' | 'link' | 'none';
+	readonly accessibilityRole?: 'text' | 'header' | 'link' | 'none';
 	/** Selectable text */
-	selectable?: boolean;
+	readonly selectable?: boolean;
 	/** Press handler (makes text tappable) */
-	onPress?: () => void;
+	readonly onPress?: () => void;
 }
 
 /**
