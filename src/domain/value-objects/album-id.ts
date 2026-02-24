@@ -1,3 +1,5 @@
+import { ok, err, type Result } from '@shared/types/result';
+
 export type AlbumSourceType =
 	| 'youtube-music'
 	| 'local-library'
@@ -21,28 +23,27 @@ export class AlbumId {
 		return new AlbumId(value, sourceType, sourceId);
 	}
 
-	static fromString(value: string): AlbumId {
+	static fromString(value: string): Result<AlbumId, Error> {
 		const colonIndex = value.indexOf(':');
 		if (colonIndex === -1) {
-			throw new Error(`Invalid AlbumId format: ${value}. Expected "source:id" format.`);
+			return err(new Error(`Invalid AlbumId format: ${value}. Expected "source:id" format.`));
 		}
 
 		const sourceType = value.substring(0, colonIndex) as AlbumSourceType;
 		const sourceId = value.substring(colonIndex + 1);
 
 		if (!sourceType || !sourceId) {
-			throw new Error(`Invalid AlbumId format: ${value}. Both source and id are required.`);
+			return err(
+				new Error(`Invalid AlbumId format: ${value}. Both source and id are required.`)
+			);
 		}
 
-		return new AlbumId(value, sourceType, sourceId);
+		return ok(new AlbumId(value, sourceType, sourceId));
 	}
 
 	static tryFromString(value: string): AlbumId | null {
-		try {
-			return AlbumId.fromString(value);
-		} catch {
-			return null;
-		}
+		const result = AlbumId.fromString(value);
+		return result.success ? result.data : null;
 	}
 
 	equals(other: AlbumId): boolean {

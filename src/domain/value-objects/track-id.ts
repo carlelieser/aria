@@ -1,3 +1,5 @@
+import { ok, err, type Result } from '@shared/types/result';
+
 export type SourceType = 'youtube-music' | 'local-file' | 'spotify' | 'apple-music' | string;
 
 export class TrackId {
@@ -16,28 +18,27 @@ export class TrackId {
 		return new TrackId(value, sourceType, sourceId);
 	}
 
-	static fromString(value: string): TrackId {
+	static fromString(value: string): Result<TrackId, Error> {
 		const colonIndex = value.indexOf(':');
 		if (colonIndex === -1) {
-			throw new Error(`Invalid TrackId format: ${value}. Expected "source:id" format.`);
+			return err(new Error(`Invalid TrackId format: ${value}. Expected "source:id" format.`));
 		}
 
 		const sourceType = value.substring(0, colonIndex) as SourceType;
 		const sourceId = value.substring(colonIndex + 1);
 
 		if (!sourceType || !sourceId) {
-			throw new Error(`Invalid TrackId format: ${value}. Both source and id are required.`);
+			return err(
+				new Error(`Invalid TrackId format: ${value}. Both source and id are required.`)
+			);
 		}
 
-		return new TrackId(value, sourceType, sourceId);
+		return ok(new TrackId(value, sourceType, sourceId));
 	}
 
 	static tryFromString(value: string): TrackId | null {
-		try {
-			return TrackId.fromString(value);
-		} catch {
-			return null;
-		}
+		const result = TrackId.fromString(value);
+		return result.success ? result.data : null;
 	}
 
 	equals(other: TrackId): boolean {
