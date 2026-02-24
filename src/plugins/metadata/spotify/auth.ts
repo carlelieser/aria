@@ -183,7 +183,11 @@ export class SpotifyAuthManager extends BaseAuthManager<StoredAuth, AuthState> {
 			logger.error('Failed to persist credentials', e instanceof Error ? e : undefined)
 		);
 
-		return ok(this.accessToken!);
+		if (!this.accessToken) {
+			return err(new Error('No access token available after refresh'));
+		}
+
+		return ok(this.accessToken);
 	}
 
 	private async _tokenRequest(params: Record<string, string>): Promise<Result<void, Error>> {

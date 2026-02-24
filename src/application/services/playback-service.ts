@@ -41,7 +41,7 @@ export class PlaybackService {
 	 */
 	private async withPlayLock<T>(operation: () => Promise<T>): Promise<T> {
 		const previousLock = this.playLock;
-		let resolve: () => void;
+		let resolve: () => void = () => {};
 		this.playLock = new Promise<void>((r) => {
 			resolve = r;
 		});
@@ -50,7 +50,7 @@ export class PlaybackService {
 			await previousLock;
 			return await operation();
 		} finally {
-			resolve!();
+			resolve();
 		}
 	}
 

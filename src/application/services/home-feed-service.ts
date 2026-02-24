@@ -23,7 +23,7 @@ interface ProviderState {
 export class HomeFeedService {
 	private _providers = new Map<string, ProviderState>();
 	private _readyPromise: Promise<void>;
-	private _resolveReady!: () => void;
+	private _resolveReady: (() => void) | null = null;
 
 	constructor() {
 		this._readyPromise = new Promise((resolve) => {
@@ -38,7 +38,7 @@ export class HomeFeedService {
 			filterChips: [],
 			hasContinuation: false,
 		});
-		this._resolveReady();
+		this._resolveReady?.();
 		logger.info(`Home feed provider added: ${id}`);
 	}
 
