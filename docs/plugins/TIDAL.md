@@ -16,25 +16,25 @@ Tidal does not publish a stable public REST API for third-party developers.
 
 ### Required Endpoints
 
-| Purpose | Endpoint |
-|---|---|
-| Search | `GET /v1/search` |
-| Track info | `GET /v1/tracks/{id}` |
-| Album info | `GET /v1/albums/{id}` |
-| Album tracks | `GET /v1/albums/{id}/tracks` |
-| Artist info | `GET /v1/artists/{id}` |
-| Artist top tracks | `GET /v1/artists/{id}/toptracks` |
-| Artist albums | `GET /v1/artists/{id}/albums` |
-| Playlist info | `GET /v1/playlists/{uuid}` |
-| Playlist tracks | `GET /v1/playlists/{uuid}/tracks` |
-| Stream resolution | `GET /v1/tracks/{id}/playbackinfopostpaywall` |
-| User favorites | `GET /v1/users/{userId}/favorites/tracks` |
-| User playlists | `GET /v1/users/{userId}/playlists` |
-| Home feed | `GET /v1/pages/home` |
-| Track credits | `GET /v1/tracks/{id}/credits` |
-| Track lyrics | `GET /v1/tracks/{id}/lyrics` |
-| OAuth2 token | `POST https://auth.tidal.com/v1/oauth2/token` |
-| Device auth | `GET https://auth.tidal.com/v1/oauth2/device_authorization` |
+| Purpose           | Endpoint                                                    |
+| ----------------- | ----------------------------------------------------------- |
+| Search            | `GET /v1/search`                                            |
+| Track info        | `GET /v1/tracks/{id}`                                       |
+| Album info        | `GET /v1/albums/{id}`                                       |
+| Album tracks      | `GET /v1/albums/{id}/tracks`                                |
+| Artist info       | `GET /v1/artists/{id}`                                      |
+| Artist top tracks | `GET /v1/artists/{id}/toptracks`                            |
+| Artist albums     | `GET /v1/artists/{id}/albums`                               |
+| Playlist info     | `GET /v1/playlists/{uuid}`                                  |
+| Playlist tracks   | `GET /v1/playlists/{uuid}/tracks`                           |
+| Stream resolution | `GET /v1/tracks/{id}/playbackinfopostpaywall`               |
+| User favorites    | `GET /v1/users/{userId}/favorites/tracks`                   |
+| User playlists    | `GET /v1/users/{userId}/playlists`                          |
+| Home feed         | `GET /v1/pages/home`                                        |
+| Track credits     | `GET /v1/tracks/{id}/credits`                               |
+| Track lyrics      | `GET /v1/tracks/{id}/lyrics`                                |
+| OAuth2 token      | `POST https://auth.tidal.com/v1/oauth2/token`               |
+| Device auth       | `GET https://auth.tidal.com/v1/oauth2/device_authorization` |
 
 ### Rate Limits
 
@@ -80,19 +80,19 @@ src/plugins/metadata/tidal/
 
 ```typescript
 export const METADATA_CAPABILITIES: MetadataCapability[] = [
-  'search-tracks',
-  'search-albums',
-  'search-artists',
-  'search-playlists',
-  'get-track-info',
-  'get-album-info',
-  'get-artist-info',
-  'get-playlist-info',
-  'get-album-tracks',
-  'get-artist-albums',
-  'get-lyrics',          // Built-in synced lyrics
-  'get-recommendations',
-  'get-charts',
+	'search-tracks',
+	'search-albums',
+	'search-artists',
+	'search-playlists',
+	'get-track-info',
+	'get-album-info',
+	'get-artist-info',
+	'get-playlist-info',
+	'get-album-tracks',
+	'get-artist-albums',
+	'get-lyrics', // Built-in synced lyrics
+	'get-recommendations',
+	'get-charts',
 ];
 ```
 
@@ -100,16 +100,17 @@ export const METADATA_CAPABILITIES: MetadataCapability[] = [
 
 ```typescript
 export const AUDIO_CAPABILITIES: AudioSourceCapability[] = [
-  'get-stream-url',
-  'get-formats',
-  'quality-selection',
-  'format-selection',
-  'adaptive-streaming',
-  'drm',                 // First plugin to declare this
+	'get-stream-url',
+	'get-formats',
+	'quality-selection',
+	'format-selection',
+	'adaptive-streaming',
+	'drm', // First plugin to declare this
 ];
 ```
 
 ### Other Interfaces
+
 - `OAuthCapablePlugin`: Full OAuth2 PKCE
 - `HomeFeedProvider`: Rich editorial content, mixes, personalized recommendations
 
@@ -120,23 +121,24 @@ export const AUDIO_CAPABILITIES: AudioSourceCapability[] = [
 ### Image URL Construction
 
 Tidal uses UUID-based template system:
+
 ```typescript
 // "ab12cd34-ef56-7890-abcd-ef1234567890" ->
 // "https://resources.tidal.com/images/ab12cd34/ef56/7890/abcd/ef1234567890/640x640.jpg"
-function buildTidalImageUrl(imageId: string | null, width: number, height: number): string | null
+function buildTidalImageUrl(imageId: string | null, width: number, height: number): string | null;
 ```
 
 ### Key Mappings
 
-| Tidal Field | Aria Field | Notes |
-|---|---|---|
-| `track.id` (number) | `TrackId.create('tidal', String(id))` | Cast to string |
-| `track.duration` (seconds) | `Duration.fromSeconds()` | NOT milliseconds |
-| `track.volumeNumber` | `metadata.discNumber` | Different field name |
-| `track.audioQuality` | Quality metadata | Tidal-specific |
-| `track.audioModes` | Audio mode metadata | `STEREO`, `DOLBY_ATMOS`, `SONY_360RA` |
-| `album.type` | `albumType` | `ALBUM` -> `album`, `SINGLE` -> `single`, etc. |
-| `playlist.uuid` | `Playlist.id` | Already a string UUID |
+| Tidal Field                | Aria Field                            | Notes                                          |
+| -------------------------- | ------------------------------------- | ---------------------------------------------- |
+| `track.id` (number)        | `TrackId.create('tidal', String(id))` | Cast to string                                 |
+| `track.duration` (seconds) | `Duration.fromSeconds()`              | NOT milliseconds                               |
+| `track.volumeNumber`       | `metadata.discNumber`                 | Different field name                           |
+| `track.audioQuality`       | Quality metadata                      | Tidal-specific                                 |
+| `track.audioModes`         | Audio mode metadata                   | `STEREO`, `DOLBY_ATMOS`, `SONY_360RA`          |
+| `album.type`               | `albumType`                           | `ALBUM` -> `album`, `SINGLE` -> `single`, etc. |
+| `playlist.uuid`            | `Playlist.id`                         | Already a string UUID                          |
 
 ---
 
@@ -144,13 +146,13 @@ function buildTidalImageUrl(imageId: string | null, width: number, height: numbe
 
 ### Quality Tiers
 
-| Tidal Quality | Codec | Bitrate | DRM Required |
-|---|---|---|---|
-| `LOW` | AAC-LC | 96 kbps | No |
-| `HIGH` | AAC-LC | 320 kbps | No |
-| `LOSSLESS` | FLAC | ~1411 kbps | Yes (Widevine) |
-| `HI_RES` | MQA (FLAC container) | ~24-bit | Yes (Widevine) |
-| `HI_RES_LOSSLESS` | FLAC | Up to 192 kHz | Yes (Widevine) |
+| Tidal Quality     | Codec                | Bitrate       | DRM Required   |
+| ----------------- | -------------------- | ------------- | -------------- |
+| `LOW`             | AAC-LC               | 96 kbps       | No             |
+| `HIGH`            | AAC-LC               | 320 kbps      | No             |
+| `LOSSLESS`        | FLAC                 | ~1411 kbps    | Yes (Widevine) |
+| `HI_RES`          | MQA (FLAC container) | ~24-bit       | Yes (Widevine) |
+| `HI_RES_LOSSLESS` | FLAC                 | Up to 192 kHz | Yes (Widevine) |
 
 Dolby Atmos: E-AC-3 JOC in MP4, always DRM-protected.
 Sony 360 Reality Audio: MPEG-H 3D Audio, always DRM-protected.
@@ -159,16 +161,18 @@ Sony 360 Reality Audio: MPEG-H 3D Audio, always DRM-protected.
 
 1. Call `GET /v1/tracks/{id}/playbackinfopostpaywall` with `audioquality`, `playbackmode=STREAM`, `assetpresentation=FULL`
 2. Parse `TidalPlaybackInfo` response:
-   - `manifestMimeType: 'application/vnd.tidal.bts'` -> BTS manifest (non-DRM, direct URL)
-   - `manifestMimeType: 'application/dash+xml'` -> DASH MPD (DRM-protected)
+    - `manifestMimeType: 'application/vnd.tidal.bts'` -> BTS manifest (non-DRM, direct URL)
+    - `manifestMimeType: 'application/dash+xml'` -> DASH MPD (DRM-protected)
 3. Decode base64 `manifest` field
 
 **BTS manifests (LOW/HIGH):**
+
 - Decode to JSON: `{ mimeType: "audio/mp4", codecs: "mp4a.40.2", urls: ["https://..."] }`
 - Extract direct URL from `urls[0]`
 - Directly playable by react-native-track-player
 
 **DASH manifests (LOSSLESS/HI_RES/HI_RES_LOSSLESS/ATMOS):**
+
 - Decode to DASH MPD XML
 - Extract PSSH (Widevine), segment URLs, codec info
 - Requires DRM license acquisition from `https://sp-licensing.dl.tidal.com/license`
@@ -181,11 +185,11 @@ Sony 360 Reality Audio: MPEG-H 3D Audio, always DRM-protected.
 
 ```typescript
 interface QualityConfig {
-  readonly preferredQuality: TidalAudioQuality;
-  readonly subscriptionTier: 'FREE' | 'HIFI' | 'HIFI_PLUS';
-  readonly allowDolbyAtmos: boolean;
-  readonly allow360RA: boolean;
-  readonly wifiOnlyHighRes: boolean;
+	readonly preferredQuality: TidalAudioQuality;
+	readonly subscriptionTier: 'FREE' | 'HIFI' | 'HIFI_PLUS';
+	readonly allowDolbyAtmos: boolean;
+	readonly allow360RA: boolean;
+	readonly wifiOnlyHighRes: boolean;
 }
 ```
 
@@ -200,6 +204,7 @@ Mapping: `'low'` -> `LOW`, `'medium'` -> `HIGH`, `'high'` -> `LOSSLESS`, `'lossl
 Extends `BaseAuthManager` using `expo-crypto` for PKCE (same as Spotify).
 
 **Auth endpoints:**
+
 - Token: `POST https://auth.tidal.com/v1/oauth2/token`
 - Authorization: `https://login.tidal.com/authorize`
 - Device auth: `POST https://auth.tidal.com/v1/oauth2/device_authorization`
@@ -208,6 +213,7 @@ Extends `BaseAuthManager` using `expo-crypto` for PKCE (same as Spotify).
 **Critical**: Token response includes `userId` and `countryCode` needed as parameters on almost every API call. These must be stored in auth state.
 
 **Alternative: Device Code Flow** (useful for TV apps, can be added later):
+
 1. POST to device_authorization, get `device_code` + `user_code`
 2. User visits `https://link.tidal.com/{user_code}`
 3. Poll token endpoint until approved
@@ -217,22 +223,27 @@ Extends `BaseAuthManager` using `expo-crypto` for PKCE (same as Spotify).
 ## 7. Unique Features
 
 ### Credits/Liner Notes
+
 - `/v1/tracks/{id}/credits` returns Producer, Songwriter, Mixer, Mastering Engineer, etc.
 - Surface via `ActionsProvider` ("View Credits" action) or dedicated credits view
 
 ### Synced Lyrics
+
 - `/v1/tracks/{id}/lyrics` returns lyrics with LRC-format `subtitles` field
 - Maps to the shared `Lyrics` type in `src/shared/types/lyrics.ts`
 
 ### Dolby Atmos / Sony 360 Reality Audio
+
 - Phase 1: Detect and report via metadata badges, do not attempt playback
 - Phase 2: Integrate with platform-level decoders (ExoPlayer on Android, AVPlayer on iOS)
 
 ### MQA (Master Quality Authenticated)
+
 - Stored in FLAC containers. Base quality is 16-bit/44.1 kHz FLAC
 - Software MQA unfolding is out of scope for Phase 1
 
 ### Editorial Content and Mixes
+
 - `/v1/pages/home` and `/v1/pages/explore` return rich curated content
 - Tidal Mixes: My Mix, Artist Mix, Track Mix, Mood Mix (dynamically generated playlists)
 
@@ -245,6 +256,7 @@ Extends `BaseAuthManager` using `expo-crypto` for PKCE (same as Spotify).
 License server: `https://sp-licensing.dl.tidal.com/license`
 
 **DRM Flow:**
+
 1. Get DASH MPD manifest (base64 encoded)
 2. Parse MPD XML, extract PSSH (ContentProtection element)
 3. Send PSSH to Widevine CDM to generate license request
@@ -253,10 +265,12 @@ License server: `https://sp-licensing.dl.tidal.com/license`
 6. Feed encrypted segments to CDM-aware player
 
 ### Widevine Security Levels
+
 - **L1** (hardware-backed): Highest quality streams available
 - **L3** (software): Sufficient for audio content up to lossless
 
 ### React Native Integration
+
 - Project already has `shaka-player` dependency and a DASH playback plugin
 - Android: ExoPlayer supports Widevine L1/L3 natively via `MediaDrmCallback`
 - iOS: Widevine requires proprietary CDM module (NDA from Google). Practical approach: cap at `HIGH` (320 kbps AAC) on iOS unless Widevine solution is implemented
@@ -265,15 +279,16 @@ License server: `https://sp-licensing.dl.tidal.com/license`
 
 ## 9. Subscription Tiers
 
-| Tier | Max Quality | Audio Modes |
-|---|---|---|
-| Free | `HIGH` (320 kbps AAC) | Stereo |
-| HiFi | `LOSSLESS` (CD FLAC) | Stereo |
-| HiFi Plus | `HI_RES_LOSSLESS` + Atmos + 360RA | All |
+| Tier      | Max Quality                       | Audio Modes |
+| --------- | --------------------------------- | ----------- |
+| Free      | `HIGH` (320 kbps AAC)             | Stereo      |
+| HiFi      | `LOSSLESS` (CD FLAC)              | Stereo      |
+| HiFi Plus | `HI_RES_LOSSLESS` + Atmos + 360RA | All         |
 
 Determined via `/v1/users/{userId}/subscription` endpoint.
 
 Plugin config exposes quality selection:
+
 ```typescript
 {
   key: 'quality',
@@ -295,6 +310,7 @@ Plugin config exposes quality selection:
 ## 10. Type System Updates
 
 ### Domain Value Objects
+
 - `track-id.ts`: Add `'tidal'` to `SourceType` union
 - `album-id.ts`: Add `'tidal'` to `AlbumSourceType` union
 - `audio-stream.ts`: Add `'dash'` to `AudioFormat` (Phase 2)
@@ -311,6 +327,7 @@ Key enums: `TidalAudioQuality` (`LOW` | `HIGH` | `LOSSLESS` | `HI_RES` | `HI_RES
 ## 11. Testing Strategy
 
 ### Unit Test Files
+
 ```
 src/plugins/metadata/tidal/__tests__/
   mappers.test.ts           # All Tidal -> Aria mappers, image URL construction
@@ -322,6 +339,7 @@ src/plugins/metadata/tidal/__tests__/
 ```
 
 ### Key Test Cases
+
 - `buildTidalImageUrl()`: UUID to URL conversion
 - BTS manifest parsing: base64 decode -> JSON -> URL extraction
 - DASH manifest detection for graceful degradation
@@ -331,6 +349,7 @@ src/plugins/metadata/tidal/__tests__/
 - Token refresh on 401
 
 ### Mock Fixtures
+
 ```
 __fixtures__/
   track-response.json

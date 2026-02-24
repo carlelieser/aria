@@ -239,10 +239,9 @@ export const useEqualizerStore = create<EqualizerState>()(
 				if (!state.isNativeAvailable) return;
 
 				try {
-					// Set enabled state
 					await AudioEqualizer.setEnabled(state.isEnabled);
 
-					// Set band levels (convert dB to millibels)
+					// Convert dB to millibels for native module
 					const millibels = state.customGains.map(dbToMillibels);
 					await AudioEqualizer.setBandLevels(millibels);
 

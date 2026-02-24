@@ -5,6 +5,9 @@ import { createStreamingSource } from '@domain/value-objects/audio-source';
 import type { Track } from '@domain/entities/track';
 import type { TrackActionContext } from '@domain/actions/track-action';
 
+import { TrackActionsService } from '@/src/application/services/track-actions-service';
+import { TRACK_ACTION_EVENTS } from '@/src/application/events/track-action-events';
+
 const { mockEventBus } = vi.hoisted(() => {
 	const mockEventBus = {
 		on: vi.fn().mockReturnValue(vi.fn()),
@@ -27,9 +30,6 @@ vi.mock('@plugins/core/registry/plugin-registry', () => ({
 		getEventBus: vi.fn().mockReturnValue(mockEventBus),
 	}),
 }));
-
-import { TrackActionsService } from '@/src/application/services/track-actions-service';
-import { TRACK_ACTION_EVENTS } from '@/src/application/events/track-action-events';
 
 function createTestTrack(id: string): Track {
 	return {

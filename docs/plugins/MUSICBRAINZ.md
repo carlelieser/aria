@@ -14,6 +14,7 @@ MusicBrainz does not fit into `MetadataProvider` (designed for primary data sour
 - **Event-driven communication**: Communicates with Local Library via EventBus (no cross-plugin imports)
 
 ### Why Not `MetadataProvider`?
+
 1. MusicBrainz does not own tracks -- no `TrackId` with source type `'musicbrainz'`
 2. `MetadataProvider.searchTracks()` returns full `Track` objects with `AudioSource`, not enrichment data
 3. Plugin isolation rules prohibit cross-plugin imports
@@ -23,15 +24,18 @@ MusicBrainz does not fit into `MetadataProvider` (designed for primary data sour
 ## 2. API Strategy
 
 ### MusicBrainz API (`musicbrainz.org/ws/2/`)
+
 - **Rate limit**: 1 request per second (strict -- 503 on violation)
 - **Auth**: None required. **User-Agent header is mandatory** (blocks without it)
 - **Format**: Append `fmt=json` to all URLs; set `Accept: application/json`
 
 ### Cover Art Archive (`coverartarchive.org`)
+
 - Separate service, more lenient rate limits
 - Returns cover art images by release MBID
 
 ### AcoustID (`api.acoustid.org/v2/`)
+
 - Requires free API key (register at acoustid.org)
 - Audio fingerprint -> MBID resolution
 - Phase 2 (requires native Chromaprint module)
@@ -96,35 +100,35 @@ type EnrichmentStatus = 'unenriched' | 'enriched' | 'partial' | 'failed' | 'skip
 
 /** Result of enriching a single track */
 interface EnrichmentResult {
-  readonly trackId: string;              // local-file track ID
-  readonly status: EnrichmentStatus;
-  readonly confidence: MatchConfidence;
-  readonly recordingMbid?: MBID;
-  readonly releaseMbid?: MBID;
-  readonly releaseGroupMbid?: MBID;
-  readonly artistMbids?: readonly MBID[];
-  readonly correctedTitle?: string;
-  readonly correctedArtist?: string;
-  readonly correctedAlbum?: string;
-  readonly correctedTrackNumber?: number;
-  readonly correctedDiscNumber?: number;
-  readonly correctedYear?: number;
-  readonly correctedGenres?: readonly string[];
-  readonly coverArtUrl?: string;
-  readonly isrc?: string;
-  readonly enrichedAt: number;
+	readonly trackId: string; // local-file track ID
+	readonly status: EnrichmentStatus;
+	readonly confidence: MatchConfidence;
+	readonly recordingMbid?: MBID;
+	readonly releaseMbid?: MBID;
+	readonly releaseGroupMbid?: MBID;
+	readonly artistMbids?: readonly MBID[];
+	readonly correctedTitle?: string;
+	readonly correctedArtist?: string;
+	readonly correctedAlbum?: string;
+	readonly correctedTrackNumber?: number;
+	readonly correctedDiscNumber?: number;
+	readonly correctedYear?: number;
+	readonly correctedGenres?: readonly string[];
+	readonly coverArtUrl?: string;
+	readonly isrc?: string;
+	readonly enrichedAt: number;
 }
 
 /** Batch enrichment progress */
 interface EnrichmentProgress {
-  readonly current: number;
-  readonly total: number;
-  readonly currentTrack?: string;
-  readonly phase: 'preparing' | 'looking-up' | 'fetching-art' | 'applying' | 'complete';
-  readonly estimatedRemainingMs?: number;
-  readonly enrichedCount: number;
-  readonly failedCount: number;
-  readonly skippedCount: number;
+	readonly current: number;
+	readonly total: number;
+	readonly currentTrack?: string;
+	readonly phase: 'preparing' | 'looking-up' | 'fetching-art' | 'applying' | 'complete';
+	readonly estimatedRemainingMs?: number;
+	readonly enrichedCount: number;
+	readonly failedCount: number;
+	readonly skippedCount: number;
 }
 ```
 
@@ -146,10 +150,10 @@ Token-bucket algorithm with a single token, refilling at 1 token/second. All Mus
 
 ```typescript
 class RateLimiter {
-  constructor(requestsPerSecond: number = 1)
-  async acquire(): Promise<void>    // Resolves when next request slot is available
-  get queueLength(): number         // Observable for UI progress estimation
-  dispose(): void                   // Clear timers and reject pending
+	constructor(requestsPerSecond: number = 1);
+	async acquire(): Promise<void>; // Resolves when next request slot is available
+	get queueLength(): number; // Observable for UI progress estimation
+	dispose(): void; // Clear timers and reject pending
 }
 ```
 
@@ -159,14 +163,26 @@ Queue length is observable, enabling UI to show "X requests pending" and estimat
 
 ```typescript
 class MusicBrainzClient {
-  constructor(rateLimiter: RateLimiter)
+	constructor(rateLimiter: RateLimiter);
 
-  searchRecordings(params: { title, artist?, release?, isrc?, duration?, limit? }): AsyncResult<MBSearchResponse<MBRecording>, Error>
-  searchReleases(params: { release, artist?, barcode?, limit? }): AsyncResult<MBSearchResponse<MBRelease>, Error>
-  getRecording(mbid: MBID, includes?: string[]): AsyncResult<MBRecording, Error>
-  getRelease(mbid: MBID, includes?: string[]): AsyncResult<MBRelease, Error>
-  getArtist(mbid: MBID, includes?: string[]): AsyncResult<MBArtist, Error>
-  lookupByISRC(isrc: string): AsyncResult<MBSearchResponse<MBRecording>, Error>
+	searchRecordings(params: {
+		title;
+		artist?;
+		release?;
+		isrc?;
+		duration?;
+		limit?;
+	}): AsyncResult<MBSearchResponse<MBRecording>, Error>;
+	searchReleases(params: {
+		release;
+		artist?;
+		barcode?;
+		limit?;
+	}): AsyncResult<MBSearchResponse<MBRelease>, Error>;
+	getRecording(mbid: MBID, includes?: string[]): AsyncResult<MBRecording, Error>;
+	getRelease(mbid: MBID, includes?: string[]): AsyncResult<MBRelease, Error>;
+	getArtist(mbid: MBID, includes?: string[]): AsyncResult<MBArtist, Error>;
+	lookupByISRC(isrc: string): AsyncResult<MBSearchResponse<MBRecording>, Error>;
 }
 ```
 
@@ -176,8 +192,8 @@ Every request must set `User-Agent` header and `fmt=json` parameter. MusicBrainz
 
 ```typescript
 class CoverArtClient {
-  getCoverArt(releaseMbid: MBID): AsyncResult<CAAResponse | null, Error>
-  getFrontCoverUrl(releaseMbid: MBID, size?: 250 | 500 | 1200): AsyncResult<string | null, Error>
+	getCoverArt(releaseMbid: MBID): AsyncResult<CAAResponse | null, Error>;
+	getFrontCoverUrl(releaseMbid: MBID, size?: 250 | 500 | 1200): AsyncResult<string | null, Error>;
 }
 ```
 
@@ -187,27 +203,34 @@ Scores MusicBrainz results against local track metadata for match confidence.
 
 ```typescript
 interface MatchScoreInput {
-  readonly localTitle: string;
-  readonly localArtist: string;
-  readonly localAlbum?: string;
-  readonly localDuration?: number;
-  readonly localYear?: number;
-  readonly localTrackNumber?: number;
-  readonly localIsrc?: string;
+	readonly localTitle: string;
+	readonly localArtist: string;
+	readonly localAlbum?: string;
+	readonly localDuration?: number;
+	readonly localYear?: number;
+	readonly localTrackNumber?: number;
+	readonly localIsrc?: string;
 }
 
 interface ScoredMatch<T> {
-  readonly item: T;
-  readonly score: number;           // 0.0 to 1.0
-  readonly confidence: MatchConfidence;
-  readonly breakdown: MatchBreakdown;
+	readonly item: T;
+	readonly score: number; // 0.0 to 1.0
+	readonly confidence: MatchConfidence;
+	readonly breakdown: MatchBreakdown;
 }
 
-function scoreRecordingMatch(input: MatchScoreInput, recording: MBRecording): ScoredMatch<MBRecording>
-function selectBestMatch<T>(matches: ScoredMatch<T>[], minConfidence?: MatchConfidence): ScoredMatch<T> | null
+function scoreRecordingMatch(
+	input: MatchScoreInput,
+	recording: MBRecording
+): ScoredMatch<MBRecording>;
+function selectBestMatch<T>(
+	matches: ScoredMatch<T>[],
+	minConfidence?: MatchConfidence
+): ScoredMatch<T> | null;
 ```
 
 **Scoring rules:**
+
 - ISRC exact match: instant `high` confidence (score = 1.0)
 - Title exact match (case-insensitive, normalized): +0.35
 - Title fuzzy match (Levenshtein distance < 3): +0.25
@@ -226,9 +249,13 @@ Coordinates the multi-step lookup strategy (analogous to `LyricsOrchestrator`):
 
 ```typescript
 class EnrichmentOrchestrator {
-  enrichTrack(track: LocalTrack): AsyncResult<EnrichmentResult | null, Error>
-  enrichBatch(tracks: LocalTrack[], onProgress?, signal?: AbortSignal): AsyncResult<EnrichmentResult[], Error>
-  clearCache(): void
+	enrichTrack(track: LocalTrack): AsyncResult<EnrichmentResult | null, Error>;
+	enrichBatch(
+		tracks: LocalTrack[],
+		onProgress?,
+		signal?: AbortSignal
+	): AsyncResult<EnrichmentResult[], Error>;
+	clearCache(): void;
 }
 ```
 
@@ -245,12 +272,12 @@ SQLite-backed, long-lived cache. MusicBrainz MBIDs are permanent.
 
 ```typescript
 class EnrichmentCache {
-  get(localTrackId: string): EnrichmentResult | undefined
-  set(localTrackId: string, result: EnrichmentResult): void
-  has(localTrackId: string): boolean
-  getUnenrichedTrackIds(trackIds: string[]): string[]
-  getStats(): EnrichmentStats
-  clear(trackIds?: string[]): void
+	get(localTrackId: string): EnrichmentResult | undefined;
+	set(localTrackId: string, result: EnrichmentResult): void;
+	has(localTrackId: string): boolean;
+	getUnenrichedTrackIds(trackIds: string[]): string[];
+	getStats(): EnrichmentStats;
+	clear(trackIds?: string[]): void;
 }
 ```
 
@@ -293,39 +320,39 @@ CREATE INDEX idx_enrichment_status ON enrichment_cache(status);
 
 ```typescript
 export const CONFIG_SCHEMA: PluginConfigSchema[] = [
-  {
-    key: 'autoEnrichOnScan',
-    type: 'boolean',
-    label: 'Auto-enrich after scan',
-    description: 'Automatically enrich new tracks after a library scan',
-    defaultValue: false,
-  },
-  {
-    key: 'minConfidence',
-    type: 'select',
-    label: 'Minimum Match Confidence',
-    description: 'Only apply corrections above this confidence level',
-    defaultValue: 'high',
-    options: [
-      { label: 'High (most accurate)', value: 'high' },
-      { label: 'Medium', value: 'medium' },
-      { label: 'Low (most results)', value: 'low' },
-    ],
-  },
-  {
-    key: 'acoustidApiKey',
-    type: 'string',
-    label: 'AcoustID API Key',
-    description: 'Optional API key for audio fingerprint matching',
-    defaultValue: '',
-  },
-  {
-    key: 'fetchCoverArt',
-    type: 'boolean',
-    label: 'Fetch Cover Art',
-    description: 'Automatically fetch missing cover art from Cover Art Archive',
-    defaultValue: true,
-  },
+	{
+		key: 'autoEnrichOnScan',
+		type: 'boolean',
+		label: 'Auto-enrich after scan',
+		description: 'Automatically enrich new tracks after a library scan',
+		defaultValue: false,
+	},
+	{
+		key: 'minConfidence',
+		type: 'select',
+		label: 'Minimum Match Confidence',
+		description: 'Only apply corrections above this confidence level',
+		defaultValue: 'high',
+		options: [
+			{ label: 'High (most accurate)', value: 'high' },
+			{ label: 'Medium', value: 'medium' },
+			{ label: 'Low (most results)', value: 'low' },
+		],
+	},
+	{
+		key: 'acoustidApiKey',
+		type: 'string',
+		label: 'AcoustID API Key',
+		description: 'Optional API key for audio fingerprint matching',
+		defaultValue: '',
+	},
+	{
+		key: 'fetchCoverArt',
+		type: 'boolean',
+		label: 'Fetch Cover Art',
+		description: 'Automatically fetch missing cover art from Cover Art Archive',
+		defaultValue: true,
+	},
 ];
 ```
 
@@ -337,17 +364,18 @@ Actions are only shown for local library tracks:
 
 ```typescript
 function getEnrichmentActions(context: TrackActionContext): TrackAction[] {
-  // Only for local-file / local-library tracks
-  if (track.id.sourceType !== 'local-file' && track.id.sourceType !== 'local-library') {
-    return [];
-  }
+	// Only for local-file / local-library tracks
+	if (track.id.sourceType !== 'local-file' && track.id.sourceType !== 'local-library') {
+		return [];
+	}
 
-  // "Fix Metadata" -- always available for local tracks
-  // "Fetch Cover Art" -- only if track has no artwork
+	// "Fix Metadata" -- always available for local tracks
+	// "Fetch Cover Art" -- only if track has no artwork
 }
 ```
 
 Action IDs:
+
 - `'fix-metadata'` -- Look up track on MusicBrainz and correct metadata
 - `'fetch-cover-art'` -- Fetch missing cover art from Cover Art Archive
 - `'view-on-musicbrainz'` -- Open track's MusicBrainz page in browser
@@ -362,10 +390,10 @@ The plugin listens for scan-completion events via EventBus and optionally trigge
 
 ```typescript
 const ENRICHMENT_EVENTS = {
-  ENRICH_TRACK_REQUEST: 'enrichment:enrich-track',
-  ENRICH_BATCH_REQUEST: 'enrichment:enrich-batch',
-  ENRICHMENT_COMPLETE: 'enrichment:complete',
-  ENRICHMENT_PROGRESS: 'enrichment:progress',
+	ENRICH_TRACK_REQUEST: 'enrichment:enrich-track',
+	ENRICH_BATCH_REQUEST: 'enrichment:enrich-batch',
+	ENRICHMENT_COMPLETE: 'enrichment:complete',
+	ENRICHMENT_PROGRESS: 'enrichment:progress',
 } as const;
 ```
 
@@ -376,15 +404,15 @@ Since plugins cannot import each other, an application-layer `EnrichmentService`
 ```typescript
 // src/application/services/enrichment-service.ts
 class EnrichmentService {
-  async enrichTrack(trackId: string): AsyncResult<EnrichmentResult | null, Error> {
-    const plugin = getMusicBrainzPlugin();
-    const localTrack = getLocalLibraryState().getTrack(trackId);
-    const result = await plugin.enrichTrack(localTrack);
-    if (result.success && result.data?.status === 'enriched') {
-      this._applyEnrichment(trackId, result.data);
-    }
-    return result;
-  }
+	async enrichTrack(trackId: string): AsyncResult<EnrichmentResult | null, Error> {
+		const plugin = getMusicBrainzPlugin();
+		const localTrack = getLocalLibraryState().getTrack(trackId);
+		const result = await plugin.enrichTrack(localTrack);
+		if (result.success && result.data?.status === 'enriched') {
+			this._applyEnrichment(trackId, result.data);
+		}
+		return result;
+	}
 }
 ```
 
@@ -397,6 +425,7 @@ class EnrichmentService {
 1000-track library at 1 req/sec = ~17 minutes minimum. Realistic: 15-25 minutes including follow-up release lookups.
 
 **Optimizations:**
+
 - ISRC lookup = 1 API call (instant match)
 - Group tracks by album (one release lookup enriches all tracks)
 - Cache eliminates re-lookups on subsequent runs
@@ -408,16 +437,17 @@ Batch enrichment runs as a background process. Progress tracked in Zustand store
 
 ```typescript
 interface EnrichmentState {
-  isRunning: boolean;
-  progress: EnrichmentProgress | null;
-  abortController: AbortController | null;
-  lastBatchResults: readonly EnrichmentResult[];
-  startBatch: (tracks: readonly LocalTrack[]) => void;
-  cancelBatch: () => void;
+	isRunning: boolean;
+	progress: EnrichmentProgress | null;
+	abortController: AbortController | null;
+	lastBatchResults: readonly EnrichmentResult[];
+	startBatch: (tracks: readonly LocalTrack[]) => void;
+	cancelBatch: () => void;
 }
 ```
 
 UI shows:
+
 - Persistent progress bar in library screen header
 - "Enriching library... 42/350 tracks (estimated 5 min remaining)"
 - Cancel button
@@ -427,13 +457,13 @@ UI shows:
 
 ## 10. Caching Strategy
 
-| Data | Location | TTL | Rationale |
-|---|---|---|---|
-| MBID mappings | SQLite | Indefinite | MBIDs never change |
-| Enrichment results | SQLite | Indefinite (enriched), 7 days (failed) | Stable data; retry failures |
-| Cover art URLs | SQLite | Indefinite | Archive URLs are permanent |
-| Raw API responses | In-memory Map | 10 minutes | Deduplicate rapid re-lookups |
-| Pending requests | In-memory Map | Duration of request | Deduplicate concurrent requests |
+| Data               | Location      | TTL                                    | Rationale                       |
+| ------------------ | ------------- | -------------------------------------- | ------------------------------- |
+| MBID mappings      | SQLite        | Indefinite                             | MBIDs never change              |
+| Enrichment results | SQLite        | Indefinite (enriched), 7 days (failed) | Stable data; retry failures     |
+| Cover art URLs     | SQLite        | Indefinite                             | Archive URLs are permanent      |
+| Raw API responses  | In-memory Map | 10 minutes                             | Deduplicate rapid re-lookups    |
+| Pending requests   | In-memory Map | Duration of request                    | Deduplicate concurrent requests |
 
 ---
 
@@ -457,12 +487,14 @@ modules/audio-fingerprint/
 ```
 
 Exposes:
+
 ```typescript
 async function generateFingerprint(fileUri: string): Promise<FingerprintResult>;
 function isNativeModuleAvailable(): boolean;
 ```
 
 ### When to Trigger
+
 - Never automatically (too expensive at scale)
 - On explicit "Identify Track" action
 - During batch enrichment: only for tracks where text-based lookup returned `failed` or `low` confidence
@@ -473,10 +505,13 @@ function isNativeModuleAvailable(): boolean;
 ## 12. Type System Updates
 
 ### `plugin-types.ts`
+
 Add `'enrichment-provider'` to `PluginCategory` union.
 
 ### `plugin-index.ts`
+
 Register plugin with lazy loading:
+
 ```typescript
 {
   manifest: MUSICBRAINZ_MANIFEST,
@@ -495,6 +530,7 @@ Note: MusicBrainz does NOT add a source type to `track-id.ts` or `album-id.ts` -
 ## 13. Testing Strategy
 
 ### Unit Test Files
+
 ```
 __tests__/
   match-scorer.test.ts          # Fuzzy matching, confidence, edge cases
@@ -508,6 +544,7 @@ __tests__/
 ```
 
 ### Key Test Cases
+
 - Fuzzy matching edge cases: "The Beatles" vs "Beatles", live/remix variants
 - ISRC instant match (score = 1.0)
 - Rate limiter: 3 requests should take >= 2 seconds
@@ -515,6 +552,7 @@ __tests__/
 - Actions only appear for `local-file` / `local-library` source types
 
 ### Mock Fixtures
+
 ```
 __fixtures__/
   recording-search-response.json  # "Yesterday" by The Beatles
@@ -528,6 +566,7 @@ __fixtures__/
 ## 14. Implementation Sequence
 
 ### Phase 1: Core Infrastructure
+
 1. Add `'enrichment-provider'` to `PluginCategory`
 2. Create directory structure under `src/plugins/enrichment/musicbrainz/`
 3. `rate-limiter.ts` with tests
@@ -536,6 +575,7 @@ __fixtures__/
 6. All type definitions
 
 ### Phase 2: Plugin Core
+
 7. `match-scorer.ts` with comprehensive tests
 8. `enrichment-database.ts` (SQLite schema)
 9. `enrichment-cache.ts` with tests
@@ -545,6 +585,7 @@ __fixtures__/
 13. Register in `plugin-index.ts`
 
 ### Phase 3: Actions and Integration
+
 14. `enrichment-actions.ts`
 15. `application/services/enrichment-service.ts`
 16. `application/state/enrichment-store.ts` (Zustand)
@@ -553,6 +594,7 @@ __fixtures__/
 19. Batch enrichment screen/flow
 
 ### Phase 4: AcoustID (Deferred)
+
 20. `modules/audio-fingerprint/` native module
 21. Chromaprint integration (Android + iOS)
 22. `acoustid-client.ts`
@@ -563,11 +605,11 @@ __fixtures__/
 
 ## 15. Potential Challenges
 
-| Challenge | Mitigation |
-|---|---|
-| Rate limit strictness (503 + IP block) | Hard 1 req/sec guarantee via `RateLimiter`. Check `Retry-After` on 503. |
-| Ambiguous matches (multiple releases) | Prefer `release.status === 'Official'`, highest track count (album over single) |
-| Internationalized text | Normalize before comparison: lowercase, strip diacritics, remove punctuation |
-| Large library batch (slow) | Prioritize ISRC tracks, group by album, allow cancellation, cache aggressively |
-| Plugin isolation | All cross-plugin communication via EventBus or application-layer service |
-| Cover art file storage | Store in cache dir under `musicbrainz/covers/{release-mbid}.jpg` |
+| Challenge                              | Mitigation                                                                      |
+| -------------------------------------- | ------------------------------------------------------------------------------- |
+| Rate limit strictness (503 + IP block) | Hard 1 req/sec guarantee via `RateLimiter`. Check `Retry-After` on 503.         |
+| Ambiguous matches (multiple releases)  | Prefer `release.status === 'Official'`, highest track count (album over single) |
+| Internationalized text                 | Normalize before comparison: lowercase, strip diacritics, remove punctuation    |
+| Large library batch (slow)             | Prioritize ISRC tracks, group by album, allow cancellation, cache aggressively  |
+| Plugin isolation                       | All cross-plugin communication via EventBus or application-layer service        |
+| Cover art file storage                 | Store in cache dir under `musicbrainz/covers/{release-mbid}.jpg`                |
