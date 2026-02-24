@@ -128,22 +128,20 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 
 				// Try header.strapline_text_one.runs first (this is where artist info typically lives)
 				if ((!artists || artists.length === 0) && info.header?.strapline_text_one?.runs) {
-					artists = info.header.strapline_text_one.runs
-						.filter((run) => getBrowseId(run.endpoint) && run.text)
-						.map((run) => ({
-							id: getBrowseId(run.endpoint)!,
-							name: run.text!,
-						}));
+					artists = info.header.strapline_text_one.runs.flatMap((run) => {
+						const id = getBrowseId(run.endpoint);
+						if (!id || !run.text) return [];
+						return [{ id, name: run.text }];
+					});
 				}
 
 				// Fallback: Try header.subtitle.runs (less common for artist info)
 				if ((!artists || artists.length === 0) && info.header?.subtitle?.runs) {
-					artists = info.header.subtitle.runs
-						.filter((run) => getBrowseId(run.endpoint) && run.text)
-						.map((run) => ({
-							id: getBrowseId(run.endpoint)!,
-							name: run.text!,
-						}));
+					artists = info.header.subtitle.runs.flatMap((run) => {
+						const id = getBrowseId(run.endpoint);
+						if (!id || !run.text) return [];
+						return [{ id, name: run.text }];
+					});
 				}
 
 				// Extract title from header if not available at top level
@@ -276,22 +274,20 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 					(!albumArtists || albumArtists.length === 0) &&
 					info.header?.strapline_text_one?.runs
 				) {
-					albumArtists = info.header.strapline_text_one.runs
-						.filter((run) => getBrowseId(run.endpoint) && run.text)
-						.map((run) => ({
-							id: getBrowseId(run.endpoint)!,
-							name: run.text!,
-						}));
+					albumArtists = info.header.strapline_text_one.runs.flatMap((run) => {
+						const id = getBrowseId(run.endpoint);
+						if (!id || !run.text) return [];
+						return [{ id, name: run.text }];
+					});
 				}
 
 				// Fallback: Try header.subtitle.runs (less common for artist info)
 				if ((!albumArtists || albumArtists.length === 0) && info.header?.subtitle?.runs) {
-					albumArtists = info.header.subtitle.runs
-						.filter((run) => getBrowseId(run.endpoint) && run.text)
-						.map((run) => ({
-							id: getBrowseId(run.endpoint)!,
-							name: run.text!,
-						}));
+					albumArtists = info.header.subtitle.runs.flatMap((run) => {
+						const id = getBrowseId(run.endpoint);
+						if (!id || !run.text) return [];
+						return [{ id, name: run.text }];
+					});
 				}
 
 				// Extract album-level thumbnails to use as fallback for tracks

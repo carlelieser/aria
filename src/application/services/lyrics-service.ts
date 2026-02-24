@@ -79,8 +79,9 @@ export class LyricsService {
 
 		for (const provider of providersWithLyrics) {
 			try {
+				if (!provider.getLyrics) continue;
 				logger.debug(`Fetching lyrics from provider: ${provider.manifest.id}`);
-				const result = await provider.getLyrics!(trackId);
+				const result = await provider.getLyrics(trackId);
 
 				if (result.success && result.data) {
 					logger.debug(`Got lyrics from provider: ${provider.manifest.id}`);

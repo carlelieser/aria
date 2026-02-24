@@ -295,7 +295,8 @@ async function _registerLegacyMetadataProviders(
 	registry: PluginRegistry,
 	options: BootstrapOptions
 ): Promise<void> {
-	const providers = options.metadataProviders!;
+	const providers = options.metadataProviders;
+	if (!providers) return;
 	const initializedProviders: MetadataProvider[] = [];
 
 	for (let i = 0; i < providers.length; i++) {

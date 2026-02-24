@@ -117,8 +117,9 @@ export class SpotifyClient {
 			offset: String(options.offset ?? 0),
 		});
 
-		if (options.market || this.config.market) {
-			params.set('market', options.market || this.config.market!);
+		const market = options.market ?? this.config.market;
+		if (market) {
+			params.set('market', market);
 		}
 
 		return this._request<SpotifySearchResponse>(`/search?${params.toString()}`);
@@ -421,8 +422,9 @@ export class SpotifyClient {
 			offset: String(options.offset ?? 0),
 		});
 
-		if (options.country || this.config.market) {
-			params.set('country', options.country || this.config.market!);
+		const country = options.country ?? this.config.market;
+		if (country) {
+			params.set('country', country);
 		}
 
 		return this._request<SpotifyNewReleasesResponse>(
