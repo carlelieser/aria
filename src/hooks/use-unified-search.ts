@@ -99,6 +99,8 @@ export function useUnifiedSearch() {
 			return;
 		}
 
+		useSearchStore.getState().setSearching(true);
+
 		debounceTimerRef.current = setTimeout(async () => {
 			await searchService.search(trimmed);
 		}, DEBOUNCE_MS);

@@ -201,7 +201,6 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		paddingTop: 32,
 		paddingBottom: 100,
-		paddingHorizontal: 24,
 	},
 	avatarContainer: {
 		width: AVATAR_SIZE,
@@ -221,11 +220,13 @@ const styles = StyleSheet.create({
 	fields: {
 		width: '100%',
 		marginTop: 32,
+		paddingHorizontal: 24,
 		gap: 24,
 	},
 	accountsContainer: {
 		width: '100%',
 		marginTop: 8,
+		paddingHorizontal: 10
 	},
 	fieldRow: {
 		gap: 6,
@@ -235,7 +236,7 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderRadius: 12,
 		justifyContent: 'center',
-		paddingHorizontal: 16,
+		paddingHorizontal: 14,
 	},
 	input: {
 		height: 48,

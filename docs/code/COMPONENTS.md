@@ -518,6 +518,17 @@ return <ContentView data={data} />;
 return <Text>{data?.title}</Text>;
 ```
 
+### State Transitions
+
+UI state changes SHOULD animate where possible and appropriate. Abrupt visual changes — elements appearing, disappearing, resizing, or changing state without transition — create a jarring experience.
+
+- SHOULD use `Animated` or `react-native-reanimated` to transition between visual states
+- SHOULD animate layout changes (appearing/disappearing elements, size changes)
+- SHOULD transition opacity, position, and color rather than snapping
+- MUST NOT block interaction during transitions — keep animations non-blocking
+- MUST NOT animate when `prefers-reduced-motion` is enabled (respect accessibility)
+- MAY skip animation for trivial or high-frequency updates (e.g., real-time progress, typing indicators)
+
 ---
 
 ## Performance
@@ -628,3 +639,4 @@ const headerStyle = useMemo(() => [styles.header, { height }], [height]);
 | Loading/error/empty states | MANDATORY for all data-driven screens |
 | List component | FlashList default, FlatList acceptable |
 | Inline `renderItem` | PROHIBITED |
+| State transitions | SHOULD animate — no jarring snaps |

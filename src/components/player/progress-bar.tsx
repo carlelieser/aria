@@ -5,8 +5,7 @@
  * Reads playback state and theme, then delegates all rendering to ProgressTrack.
  */
 
-import { View, StyleSheet } from 'react-native';
-import { Skeleton } from '@/src/components/ui/skeleton';
+import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { ProgressTrack } from '@/src/components/ui/progress-track';
 import { usePlayer } from '@/src/hooks/use-player';
 import { Duration } from '@/src/domain/value-objects/duration';
@@ -38,43 +37,25 @@ export function ProgressBar({ seekable = true }: ProgressBarProps) {
 
 	const isDisabled = !seekable || isLoading || duration.isZero();
 
-	if (isLoading) {
-		return (
-			<View style={styles.loadingContainer}>
-				<Skeleton width={'100%'} height={24} rounded={'sm'} />
-				<View style={styles.timeContainer}>
-					<Skeleton width={32} height={14} rounded={'sm'} />
-					<Skeleton width={32} height={14} rounded={'sm'} />
-				</View>
-			</View>
-		);
-	}
+	const animatedStyle = useAnimatedStyle(() => ({
+		opacity: withTiming(isLoading ? 0.4 : 1, { duration: 300 }),
+	}), [isLoading]);
 
 	return (
-		<ProgressTrack
-			variant={barStyle}
-			progress={progress}
-			colors={colors}
-			animated={isPlaying}
-			interactive={!isDisabled}
-			onSeek={handleSeek}
-			showTimeLabels
-			currentTime={currentTime}
-			totalTime={totalTime}
-			isBuffering={isBuffering}
-			disabled={isDisabled}
-		/>
+		<Animated.View style={animatedStyle}>
+			<ProgressTrack
+				variant={barStyle}
+				progress={progress}
+				colors={colors}
+				animated={isPlaying}
+				interactive={!isDisabled}
+				onSeek={handleSeek}
+				showTimeLabels
+				currentTime={currentTime}
+				totalTime={totalTime}
+				isBuffering={isBuffering}
+				disabled={isDisabled}
+			/>
+		</Animated.View>
 	);
 }
-
-const styles = StyleSheet.create({
-	loadingContainer: {
-		width: '100%',
-		gap: 12,
-	},
-	timeContainer: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-	},
-});
