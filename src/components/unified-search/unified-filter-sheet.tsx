@@ -22,6 +22,11 @@ import type {
 import type { ArtistReference } from '@/src/domain/entities/artist';
 import type { AlbumReference } from '@/src/domain/entities/album';
 
+interface ProviderOption {
+	readonly id: string;
+	readonly name: string;
+}
+
 interface UnifiedFilterSheetProps {
 	readonly isOpen: boolean;
 	readonly onClose: () => void;
@@ -30,11 +35,13 @@ interface UnifiedFilterSheetProps {
 	readonly activeFilters: UnifiedSearchFilters;
 	readonly artists: ArtistReference[];
 	readonly albums: AlbumReference[];
+	readonly providers?: readonly ProviderOption[];
 	readonly onSortFieldChange: (field: UnifiedSortField) => void;
 	readonly onToggleSortDirection: () => void;
 	readonly onContentTypeChange: (type: SearchContentType) => void;
 	readonly onToggleArtist: (artistId: string) => void;
 	readonly onToggleAlbum: (albumId: string) => void;
+	readonly onToggleProvider?: (providerId: string) => void;
 	readonly onToggleFavorites: () => void;
 	readonly onToggleDownloaded: () => void;
 	readonly onClearAll: () => void;
@@ -48,11 +55,13 @@ export function UnifiedFilterSheet({
 	activeFilters,
 	artists,
 	albums,
+	providers,
 	onSortFieldChange,
 	onToggleSortDirection,
 	onContentTypeChange,
 	onToggleArtist,
 	onToggleAlbum,
+	onToggleProvider,
 	onToggleFavorites,
 	onToggleDownloaded,
 	onClearAll,
@@ -123,10 +132,13 @@ export function UnifiedFilterSheet({
 				<FilterSection
 					artists={artists}
 					albums={albums}
+					providers={providers}
 					selectedArtistIds={activeFilters.artistIds}
 					selectedAlbumIds={activeFilters.albumIds}
+					selectedProviderIds={activeFilters.providerIds}
 					onToggleArtist={onToggleArtist}
 					onToggleAlbum={onToggleAlbum}
+					onToggleProvider={onToggleProvider}
 					toggles={toggles}
 					headerContent={headerContent}
 				/>

@@ -9,6 +9,7 @@ export interface ProviderConfig<T extends BasePlugin> {
 export interface ProviderAccessor<T extends BasePlugin> {
 	getActive(): T | undefined;
 	getAll(): T[];
+	getAllActive(): T[];
 	register(
 		provider: T,
 		options?: { priority?: number; autoActivate?: boolean; config?: Record<string, unknown> }
@@ -18,6 +19,7 @@ export interface ProviderAccessor<T extends BasePlugin> {
 export interface ProviderRegistryInterface {
 	getActiveProvider(category: string): BasePlugin | undefined;
 	getPluginsByCategory(category: string): BasePlugin[];
+	getActivePluginsByCategory(category: string): BasePlugin[];
 	register(registration: {
 		plugin: BasePlugin;
 		priority?: number;
@@ -43,6 +45,10 @@ export function createProviderAccessor<T extends BasePlugin>(
 
 		getAll(): T[] {
 			return registry.getPluginsByCategory(config.category).filter(config.typeGuard);
+		},
+
+		getAllActive(): T[] {
+			return registry.getActivePluginsByCategory(config.category).filter(config.typeGuard);
 		},
 
 		async register(

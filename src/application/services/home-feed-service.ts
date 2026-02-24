@@ -42,6 +42,11 @@ export class HomeFeedService {
 		logger.info(`Home feed provider added: ${id}`);
 	}
 
+	/** Signal that provider registration is complete so fetchHomeFeed can stop waiting. */
+	markReady(): void {
+		this._resolveReady?.();
+	}
+
 	removeHomeFeedProvider(id: string): void {
 		if (!this._providers.has(id)) return;
 

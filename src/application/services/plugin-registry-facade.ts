@@ -16,6 +16,7 @@ import { isOAuthCapable } from '@shared/types/oauth-capable-plugin';
 export interface PluginManifestInfo {
 	readonly id: string;
 	readonly name: string;
+	readonly shortName?: string;
 	readonly version: string;
 	readonly description?: string;
 	readonly category: PluginCategory;
@@ -23,6 +24,7 @@ export interface PluginManifestInfo {
 	readonly capabilitiesDetail?: {
 		readonly requiresAuth?: boolean;
 	};
+	readonly iconUrl?: string;
 }
 
 /**
@@ -76,11 +78,13 @@ export function getPluginManifest(pluginId: string): PluginManifestInfo | null {
 	return {
 		id: manifest.id,
 		name: manifest.name,
+		shortName: manifest.shortName,
 		version: manifest.version,
 		description: manifest.description,
 		category: manifest.category,
 		capabilities: manifest.capabilities || [],
 		capabilitiesDetail: manifest.capabilitiesDetail,
+		iconUrl: manifest.iconUrl,
 	};
 }
 
@@ -93,11 +97,13 @@ export function getAllPluginManifests(): PluginManifestInfo[] {
 		.map((manifest) => ({
 			id: manifest.id,
 			name: manifest.name,
+			shortName: manifest.shortName,
 			version: manifest.version,
 			description: manifest.description,
 			category: manifest.category,
 			capabilities: manifest.capabilities || [],
 			capabilitiesDetail: manifest.capabilitiesDetail,
+			iconUrl: manifest.iconUrl,
 		}));
 }
 

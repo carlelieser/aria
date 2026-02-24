@@ -22,6 +22,7 @@ export const SPOTIFY_LOGIN_URL = 'https://accounts.spotify.com/login';
 export const PLUGIN_MANIFEST: PluginManifest = {
 	id: 'spotify',
 	name: 'Spotify',
+	shortName: 'Spotify',
 	description:
 		'Access your Spotify library including playlists, saved tracks, albums, and followed artists',
 	version: '1.0.0',
@@ -48,7 +49,8 @@ export const PLUGIN_MANIFEST: PluginManifest = {
 		supportsBatch: true,
 	},
 	homepage: 'https://spotify.com',
-	icon: 'spotify',
+	iconUrl:
+		'https://storage.googleapis.com/pr-newsroom-wp/1/2023/05/Spotify_Primary_Logo_RGB_Green.png',
 };
 
 export const CONFIG_SCHEMA: PluginConfigSchema[] = [

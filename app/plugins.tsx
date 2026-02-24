@@ -89,6 +89,7 @@ function PluginItem({
 	return (
 		<SettingsItem
 			icon={PluginIcon}
+			iconUrl={plugin.iconUrl}
 			title={plugin.name}
 			subtitle={`v${plugin.version}`}
 			rightElement={toggle}

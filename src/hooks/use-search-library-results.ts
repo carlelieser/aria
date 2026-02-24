@@ -31,6 +31,7 @@ export function useSearchLibraryResults(
 		readonly favoritesOnly: boolean;
 		readonly artistIds: string[];
 		readonly albumIds: string[];
+		readonly providerIds: string[];
 		readonly downloadedOnly: boolean;
 	}
 ) {
@@ -61,6 +62,7 @@ export function useSearchLibraryResults(
 			favoritesOnly: activeFilters.favoritesOnly,
 			artistIds: activeFilters.artistIds,
 			albumIds: activeFilters.albumIds,
+			providerIds: activeFilters.providerIds,
 			downloadedOnly: false,
 		}),
 		[activeFilters]
@@ -74,7 +76,12 @@ export function useSearchLibraryResults(
 	const resolvedDownloadTracks = useResolvedTracks(matchingDownloadIds);
 
 	const downloadsTracks = useMemo(
-		() => resolveDownloadsTracks(matchingDownloadIds, resolvedDownloadTracks, downloadedTracksMap),
+		() =>
+			resolveDownloadsTracks(
+				matchingDownloadIds,
+				resolvedDownloadTracks,
+				downloadedTracksMap
+			),
 		[matchingDownloadIds, resolvedDownloadTracks, downloadedTracksMap]
 	);
 

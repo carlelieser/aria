@@ -19,10 +19,14 @@ export const YOUTUBE_MUSIC_LOGIN_URL =
 export const PLUGIN_MANIFEST: PluginManifest = {
 	id: 'youtube-music',
 	name: 'YouTube Music',
+	shortName: 'YTM',
 	description: 'Stream music from YouTube Music with rich metadata',
 	version: '1.0.0',
 	author: 'Aria',
 	category: 'metadata-provider',
+	homepage: 'https://music.youtube.com',
+	iconUrl:
+		'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Youtube_Music_icon.svg/960px-Youtube_Music_icon.svg.png',
 	capabilities: [
 		'search-tracks',
 		'search-albums',

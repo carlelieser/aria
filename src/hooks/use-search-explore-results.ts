@@ -18,8 +18,11 @@ import {
 import {
 	extractUniqueArtistsFromItems,
 	extractUniqueAlbumsFromItems,
+	extractUniqueProvidersFromItems,
 } from '@/src/domain/utils/core-filtering';
 import type { Track } from '@/src/domain/entities/track';
+import { getSourceDisplayName } from '@/src/domain/entities/track';
+import type { ProviderFilterOption } from './use-unique-filter-options';
 
 export function useSearchExploreResults(
 	exploreSortField: SearchSortField,
@@ -29,6 +32,7 @@ export function useSearchExploreResults(
 		readonly favoritesOnly: boolean;
 		readonly artistIds: string[];
 		readonly albumIds: string[];
+		readonly providerIds: string[];
 	},
 	libraryBaseTracks: Track[]
 ) {
@@ -49,6 +53,7 @@ export function useSearchExploreResults(
 			favoritesOnly: activeFilters.favoritesOnly,
 			artistIds: activeFilters.artistIds,
 			albumIds: activeFilters.albumIds,
+			providerIds: activeFilters.providerIds,
 		}),
 		[activeFilters]
 	);
@@ -68,12 +73,7 @@ export function useSearchExploreResults(
 			sortDirection,
 			relevanceOrderRef.current
 		);
-	}, [
-		exploreFilteredTracks,
-		exploreSortField,
-		sortDirection,
-		activeFilters.contentType,
-	]);
+	}, [exploreFilteredTracks, exploreSortField, sortDirection, activeFilters.contentType]);
 
 	const exploreAlbums = useMemo(() => {
 		const contentType = activeFilters.contentType;
@@ -133,6 +133,26 @@ export function useSearchExploreResults(
 		return Array.from(albumMap.values()).sort((a, b) => a.name.localeCompare(b.name));
 	}, [libraryBaseTracks, searchResults.tracks]);
 
+	const mergedFilterProviders = useMemo((): ProviderFilterOption[] => {
+		const providerSet = new Set<string>();
+
+		for (const track of libraryBaseTracks) {
+			providerSet.add(track.id.sourceType);
+		}
+
+		const exploreProviders = extractUniqueProvidersFromItems(searchResults.tracks);
+		for (const provider of exploreProviders) {
+			providerSet.add(provider);
+		}
+
+		return Array.from(providerSet)
+			.sort((a, b) => a.localeCompare(b))
+			.map((sourceType) => ({
+				id: sourceType,
+				name: getSourceDisplayName({ id: { sourceType } } as Track),
+			}));
+	}, [libraryBaseTracks, searchResults.tracks]);
+
 	return {
 		isSearching,
 		searchError,
@@ -141,5 +161,6 @@ export function useSearchExploreResults(
 		exploreArtists,
 		mergedFilterArtists,
 		mergedFilterAlbums,
+		mergedFilterProviders,
 	};
 }

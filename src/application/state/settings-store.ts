@@ -21,6 +21,7 @@ interface SettingsState {
 	tabOrder: TabId[];
 	enabledTabs: TabId[];
 	openPlayerOnTrackClick: boolean;
+	showProviderLabel: boolean;
 	progressBarStyle: ProgressBarStyle;
 	playerBackground: PlayerBackground;
 
@@ -34,6 +35,7 @@ interface SettingsState {
 	toggleTab: (tabId: TabId) => void;
 	resetEnabledTabs: () => void;
 	setOpenPlayerOnTrackClick: (enabled: boolean) => void;
+	setShowProviderLabel: (enabled: boolean) => void;
 	setProgressBarStyle: (style: ProgressBarStyle) => void;
 	setPlayerBackground: (background: PlayerBackground) => void;
 	resetAllSettings: () => void;
@@ -61,6 +63,7 @@ export const useSettingsStore = create<SettingsState>()(
 			tabOrder: DEFAULT_TAB_ORDER,
 			enabledTabs: DEFAULT_ENABLED_TABS,
 			openPlayerOnTrackClick: false,
+			showProviderLabel: true,
 			progressBarStyle: 'expressive',
 			playerBackground: 'artwork-blur',
 
@@ -107,6 +110,9 @@ export const useSettingsStore = create<SettingsState>()(
 			setOpenPlayerOnTrackClick: (enabled: boolean) => {
 				set({ openPlayerOnTrackClick: enabled });
 			},
+			setShowProviderLabel: (enabled: boolean) => {
+				set({ showProviderLabel: enabled });
+			},
 			setProgressBarStyle: (style: ProgressBarStyle) => {
 				set({ progressBarStyle: style });
 			},
@@ -122,6 +128,7 @@ export const useSettingsStore = create<SettingsState>()(
 					tabOrder: DEFAULT_TAB_ORDER,
 					enabledTabs: DEFAULT_ENABLED_TABS,
 					openPlayerOnTrackClick: false,
+					showProviderLabel: true,
 					progressBarStyle: 'expressive',
 					playerBackground: 'artwork-blur',
 				});
@@ -172,6 +179,11 @@ export const useOpenPlayerOnTrackClick = () =>
 
 export const useSetOpenPlayerOnTrackClick = () =>
 	useSettingsStore((state) => state.setOpenPlayerOnTrackClick);
+
+export const useShowProviderLabel = () => useSettingsStore((state) => state.showProviderLabel);
+
+export const useSetShowProviderLabel = () =>
+	useSettingsStore((state) => state.setShowProviderLabel);
 
 export const useProgressBarStyle = () => useSettingsStore((state) => state.progressBarStyle);
 

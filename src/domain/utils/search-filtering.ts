@@ -34,6 +34,7 @@ export const DEFAULT_SEARCH_FILTERS: SearchFilters = {
 	favoritesOnly: false,
 	artistIds: [],
 	albumIds: [],
+	providerIds: [],
 };
 
 export const DEFAULT_UNIFIED_FILTERS: UnifiedSearchFilters = {
@@ -42,6 +43,7 @@ export const DEFAULT_UNIFIED_FILTERS: UnifiedSearchFilters = {
 	downloadedOnly: false,
 	artistIds: [],
 	albumIds: [],
+	providerIds: [],
 };
 
 /**

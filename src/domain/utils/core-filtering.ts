@@ -16,6 +16,7 @@ export interface BaseFilters {
 	readonly favoritesOnly: boolean;
 	readonly artistIds: string[];
 	readonly albumIds: string[];
+	readonly providerIds: string[];
 }
 
 /**
@@ -23,7 +24,7 @@ export interface BaseFilters {
  * Uses structural typing to work with Track and similar types.
  */
 export interface Filterable {
-	readonly id: { readonly value: string };
+	readonly id: { readonly value: string; readonly sourceType: string };
 	readonly artists: readonly ArtistReference[];
 	readonly album?: { readonly id: string };
 }
@@ -76,6 +77,12 @@ export function matchesBaseFilters<T extends Filterable>(
 		}
 	}
 
+	if (filters.providerIds.length > 0) {
+		if (!filters.providerIds.includes(item.id.sourceType)) {
+			return false;
+		}
+	}
+
 	return true;
 }
 
@@ -118,13 +125,28 @@ export function extractUniqueAlbumsFromItems<T extends HasAlbum>(
 }
 
 /**
- * Counts active base filters (favorites + artist count + album count).
+ * Extracts unique source types (providers) from a collection of filterable items.
+ * Returns sorted by source type string.
+ */
+export function extractUniqueProvidersFromItems<T extends Filterable>(
+	items: readonly T[]
+): string[] {
+	const providers = new Set<string>();
+	for (const item of items) {
+		providers.add(item.id.sourceType);
+	}
+	return Array.from(providers).sort((a, b) => a.localeCompare(b));
+}
+
+/**
+ * Counts active base filters (favorites + artist count + album count + provider count).
  */
 export function countBaseActiveFilters(filters: BaseFilters): number {
 	let count = 0;
 	if (filters.favoritesOnly) count += 1;
 	count += filters.artistIds.length;
 	count += filters.albumIds.length;
+	count += filters.providerIds.length;
 	return count;
 }
 
@@ -132,5 +154,10 @@ export function countBaseActiveFilters(filters: BaseFilters): number {
  * Checks if any base filters are active.
  */
 export function hasBaseActiveFilters(filters: BaseFilters): boolean {
-	return filters.favoritesOnly || filters.artistIds.length > 0 || filters.albumIds.length > 0;
+	return (
+		filters.favoritesOnly ||
+		filters.artistIds.length > 0 ||
+		filters.albumIds.length > 0 ||
+		filters.providerIds.length > 0
+	);
 }

@@ -32,6 +32,7 @@ export class LocalFilesProvider implements MetadataProvider, AudioSourceProvider
 	readonly manifest: PluginManifest = {
 		id: 'local-files',
 		name: 'Local Files',
+		shortName: 'Local',
 		version: '1.0.0',
 		description: 'Local audio file support',
 		author: 'Aria',

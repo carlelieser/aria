@@ -3,6 +3,8 @@ export interface PluginManifest {
 
 	readonly name: string;
 
+	readonly shortName?: string;
+
 	readonly version: string;
 
 	readonly description?: string;

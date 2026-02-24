@@ -31,7 +31,7 @@ export interface ExtendedPluginManifest extends BasePluginManifest {
 
 	readonly homepage?: string;
 
-	readonly icon?: string;
+	readonly iconUrl?: string;
 }
 
 export type PluginManifest = ExtendedPluginManifest;

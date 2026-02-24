@@ -15,6 +15,7 @@ import { Button } from '@/src/components/ui/button';
 import { getLoginWebView } from '@/src/components/plugin/login-webview-registry';
 import { useAppTheme } from '@/lib/theme';
 import { useOAuthPlugin } from '@/src/hooks/use-plugin-registry';
+import { getPluginManifest } from '@/src/application/services/plugin-registry-facade';
 import type { OAuthCapablePlugin } from '@shared/types/oauth-capable-plugin';
 import type { PluginOAuthFieldProps } from './types';
 
@@ -30,6 +31,9 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 	const [showLoginModal, setShowLoginModal] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const { getOAuthPlugin } = useOAuthPlugin(pluginId);
+
+	const manifest = useMemo(() => getPluginManifest(pluginId), [pluginId]);
+	const pluginIconUrl = manifest?.iconUrl;
 
 	const IconComponent = useMemo((): LucideIcon => {
 		const iconName = schema.icon ? `${schema.icon}Icon` : null;
@@ -135,12 +139,13 @@ export const PluginOAuthField = memo(function PluginOAuthField({
 		}
 	}, [getPlugin]);
 
-	const StatusIcon = isAuthenticated ? CheckCircleIcon : IconComponent;
+	const StatusIcon = isAuthenticated && !pluginIconUrl ? CheckCircleIcon : IconComponent;
 
 	return (
 		<View style={styles.container}>
 			<SettingsItem
 				icon={StatusIcon}
+				iconUrl={pluginIconUrl}
 				title={schema.label}
 				subtitle={isAuthenticated ? 'Connected' : 'Not connected'}
 				rightElement={

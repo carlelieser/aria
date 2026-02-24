@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Text, Switch, Chip } from 'react-native-paper';
+import { Image } from 'expo-image';
 import CookieManager from '@react-native-cookies/cookies';
 import { Icon } from '@/src/components/ui/icon';
 import { PageLayout } from '@/src/components/ui/page-layout';
@@ -96,11 +97,20 @@ export default function PluginDetailScreen() {
 							{ backgroundColor: colors.surfaceContainerHighest },
 						]}
 					>
-						<Icon
-							as={categoryIcons[plugin.category] || DEFAULT_PLUGIN_ICON}
-							size={40}
-							color={colors.onSurface}
-						/>
+						{plugin.iconUrl ? (
+							<Image
+								source={{ uri: plugin.iconUrl }}
+								style={styles.detailIconImage}
+								contentFit={'contain'}
+								cachePolicy={'memory-disk'}
+							/>
+						) : (
+							<Icon
+								as={categoryIcons[plugin.category] || DEFAULT_PLUGIN_ICON}
+								size={40}
+								color={colors.onSurface}
+							/>
+						)}
 					</View>
 					<Text
 						variant={'headlineSmall'}
@@ -220,7 +230,12 @@ const styles = StyleSheet.create({
 		borderRadius: 40,
 		alignItems: 'center',
 		justifyContent: 'center',
+		overflow: 'hidden',
 		marginBottom: 16,
+	},
+	detailIconImage: {
+		width: 56,
+		height: 56,
 	},
 	detailTitle: {
 		fontWeight: '700',

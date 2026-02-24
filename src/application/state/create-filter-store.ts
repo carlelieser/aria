@@ -10,6 +10,7 @@
 export interface BaseFilterState {
 	readonly artistIds: string[];
 	readonly albumIds: string[];
+	readonly providerIds: string[];
 	readonly favoritesOnly: boolean;
 }
 

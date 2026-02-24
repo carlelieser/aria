@@ -22,6 +22,7 @@ interface LibraryFilterState {
 	toggleArtistFilter: (artistId: string) => void;
 	setAlbumFilter: (albumIds: string[]) => void;
 	toggleAlbumFilter: (albumId: string) => void;
+	toggleProviderFilter: (providerId: string) => void;
 	setFavoritesOnly: (enabled: boolean) => void;
 	toggleFavoritesOnly: () => void;
 	setDownloadedOnly: (enabled: boolean) => void;
@@ -66,6 +67,14 @@ export const useLibraryFilterStore = create<LibraryFilterState>()((set) => ({
 			activeFilters: {
 				...state.activeFilters,
 				albumIds: toggleIdInArray(state.activeFilters.albumIds, albumId),
+			},
+		})),
+
+	toggleProviderFilter: (providerId) =>
+		set((state) => ({
+			activeFilters: {
+				...state.activeFilters,
+				providerIds: toggleIdInArray(state.activeFilters.providerIds, providerId),
 			},
 		})),
 

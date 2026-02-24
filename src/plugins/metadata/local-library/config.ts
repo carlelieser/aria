@@ -5,6 +5,7 @@ import type { AudioSourceCapability } from '@plugins/core/interfaces/audio-sourc
 export const PLUGIN_MANIFEST: PluginManifest = {
 	id: 'local-library',
 	name: 'Local Library',
+	shortName: 'Local',
 	version: '1.0.0',
 	description: 'Scan and play local audio files with ID3 metadata',
 	author: 'Aria',

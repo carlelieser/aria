@@ -7,6 +7,7 @@
 
 import { memo, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import { List } from 'react-native-paper';
 import { ChevronRightIcon, type LucideIcon } from 'lucide-react-native';
 import { Icon } from '@/src/components/ui/icon';
@@ -14,6 +15,7 @@ import { useAppTheme } from '@/lib/theme';
 
 interface SettingsItemProps {
 	readonly icon: LucideIcon;
+	readonly iconUrl?: string;
 	readonly title: string;
 	readonly subtitle?: string;
 	readonly subtitleElement?: React.ReactNode;
@@ -25,6 +27,7 @@ interface SettingsItemProps {
 
 export const SettingsItem = memo(function SettingsItem({
 	icon: IconComponent,
+	iconUrl,
 	title,
 	subtitle,
 	subtitleElement,
@@ -41,10 +44,19 @@ export const SettingsItem = memo(function SettingsItem({
 	const renderLeft = useCallback(
 		() => (
 			<View style={[styles.iconContainer, { backgroundColor: iconBgColor }]}>
-				<Icon as={IconComponent} size={20} color={textColor} />
+				{iconUrl ? (
+					<Image
+						source={{ uri: iconUrl }}
+						style={styles.iconImage}
+						contentFit={'contain'}
+						cachePolicy={'memory-disk'}
+					/>
+				) : (
+					<Icon as={IconComponent} size={20} color={textColor} />
+				)}
 			</View>
 		),
-		[IconComponent, iconBgColor, textColor]
+		[IconComponent, iconUrl, iconBgColor, textColor]
 	);
 
 	const renderRight = useCallback(() => {
@@ -87,6 +99,11 @@ const styles = StyleSheet.create({
 		borderRadius: 20,
 		alignItems: 'center',
 		justifyContent: 'center',
+		overflow: 'hidden',
+	},
+	iconImage: {
+		width: 28,
+		height: 28,
 	},
 	rightContainer: {
 		flexDirection: 'row',

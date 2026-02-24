@@ -41,6 +41,7 @@ export interface PluginDisplayInfo {
 	isRequired: boolean;
 	capabilities: string[];
 	requiresAuth?: boolean;
+	iconUrl?: string;
 }
 
 export const categoryIcons: Record<PluginCategory, LucideIcon> = {
@@ -104,13 +105,12 @@ function _buildPluginDisplayInfo(manifestId: string): PluginDisplayInfo | null {
 		version: manifest.version,
 		description: manifest.description,
 		category: manifest.category,
-		status: loadedPlugin
-			? (getPluginStatus(manifest.id) ?? 'uninitialized')
-			: 'uninitialized',
+		status: loadedPlugin ? (getPluginStatus(manifest.id) ?? 'uninitialized') : 'uninitialized',
 		isLoaded,
 		isRequired,
 		capabilities: manifest.capabilities || [],
 		requiresAuth: manifest.capabilitiesDetail?.requiresAuth,
+		iconUrl: manifest.iconUrl,
 	};
 }
 

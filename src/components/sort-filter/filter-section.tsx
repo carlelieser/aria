@@ -19,13 +19,21 @@ interface ToggleConfig {
 	readonly onToggle: () => void;
 }
 
+interface ProviderOption {
+	readonly id: string;
+	readonly name: string;
+}
+
 interface FilterSectionProps {
 	readonly artists: ArtistReference[];
 	readonly albums: AlbumReference[];
+	readonly providers?: readonly ProviderOption[];
 	readonly selectedArtistIds: readonly string[];
 	readonly selectedAlbumIds: readonly string[];
+	readonly selectedProviderIds?: readonly string[];
 	readonly onToggleArtist: (artistId: string) => void;
 	readonly onToggleAlbum: (albumId: string) => void;
+	readonly onToggleProvider?: (providerId: string) => void;
 	readonly toggles: readonly ToggleConfig[];
 	readonly headerContent?: React.ReactNode;
 }
@@ -73,10 +81,13 @@ function FilterChipSection({
 export function FilterSection({
 	artists,
 	albums,
+	providers,
 	selectedArtistIds,
 	selectedAlbumIds,
+	selectedProviderIds,
 	onToggleArtist,
 	onToggleAlbum,
+	onToggleProvider,
 	toggles,
 	headerContent,
 }: FilterSectionProps) {
@@ -94,6 +105,15 @@ export function FilterSection({
 					<Switch value={toggle.value} onValueChange={toggle.onToggle} />
 				</View>
 			))}
+
+			{providers && providers.length > 1 && onToggleProvider && (
+				<FilterChipSection
+					label={'PROVIDER'}
+					items={providers}
+					selectedIds={selectedProviderIds ?? []}
+					onToggle={onToggleProvider}
+				/>
+			)}
 
 			{artists.length > 0 && (
 				<FilterChipSection

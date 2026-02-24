@@ -87,6 +87,18 @@ export function getArtistNames(track: Track): string {
 	return track.artists.map((a) => a.name).join(', ');
 }
 
+const SOURCE_DISPLAY_NAMES: Record<string, string> = {
+	'youtube-music': 'YouTube Music',
+	spotify: 'Spotify',
+	'apple-music': 'Apple Music',
+	'local-file': 'Local',
+	'local-library': 'Local',
+};
+
+export function getSourceDisplayName(track: Track): string {
+	return SOURCE_DISPLAY_NAMES[track.id.sourceType] ?? track.id.sourceType;
+}
+
 export function getArtworkUrl(track: Track, preferredSize?: number): string | undefined {
 	if (!track.artwork || track.artwork.length === 0) {
 		return undefined;

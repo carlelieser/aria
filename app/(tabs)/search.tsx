@@ -575,11 +575,13 @@ export default function SearchScreen() {
 				activeFilters={filterState.activeFilters}
 				artists={filterState.artists}
 				albums={filterState.albums}
+				providers={filterState.providers}
 				onSortFieldChange={filterState.setSortField}
 				onToggleSortDirection={filterState.toggleSortDirection}
 				onContentTypeChange={filterState.setContentType}
 				onToggleArtist={filterState.toggleArtistFilter}
 				onToggleAlbum={filterState.toggleAlbumFilter}
+				onToggleProvider={filterState.toggleProviderFilter}
 				onToggleFavorites={filterState.toggleFavoritesOnly}
 				onToggleDownloaded={filterState.toggleDownloadedOnly}
 				onClearAll={filterState.clearAll}

@@ -22,8 +22,12 @@ import { TrackOptionsMenu } from '@/src/components/track-options-menu';
 import { DownloadIndicator } from '../download-indicator';
 import { useDownloadActions } from '@/src/hooks/use-download-actions';
 import { useAppTheme } from '@/lib/theme';
-import { useOpenPlayerOnTrackClick } from '@/src/application/state/settings-store';
+import {
+	useOpenPlayerOnTrackClick,
+	useShowProviderLabel,
+} from '@/src/application/state/settings-store';
 import { router } from 'expo-router';
+import { usePluginManifest } from '@/src/hooks/use-plugin-registry';
 import type { TrackListItemProps } from './types';
 import { DownloadStatus } from './download-status';
 import { DownloadActions } from './download-actions';
@@ -49,6 +53,7 @@ export const TrackListItem = memo(function TrackListItem({
 	const { removeDownload } = useDownloadActions();
 	const { colors } = useAppTheme();
 	const openPlayerOnTrackClick = useOpenPlayerOnTrackClick();
+	const showProviderLabel = useShowProviderLabel();
 	const { isActiveTrack, isCurrentlyPlaying, formattedPosition } = useTrackPlaybackInfo(
 		track.id.value
 	);
@@ -84,6 +89,8 @@ export const TrackListItem = memo(function TrackListItem({
 			await removeDownload(downloadInfo.trackId);
 		}
 	}, [removeDownload, downloadInfo]);
+
+	const pluginManifest = usePluginManifest(track.id.sourceType);
 
 	const artwork = getBestArtwork(track.artwork, 300);
 	const artworkUrl = artwork?.url ?? fallbackArtworkUrl;
@@ -143,6 +150,9 @@ export const TrackListItem = memo(function TrackListItem({
 					{artistNames}
 					{albumName && !downloadInfo ? ` · ${albumName}` : ''}
 					{downloadInfo && !track.duration.isZero() ? ` · ${duration}` : ''}
+					{showProviderLabel && pluginManifest
+						? ` · ${pluginManifest.shortName ?? pluginManifest.name}`
+						: ''}
 				</Text>
 				{downloadInfo && <DownloadStatus downloadInfo={downloadInfo} colors={colors} />}
 				{isDownloading && (

@@ -23,7 +23,7 @@ interface LibrarySortFilterSheetProps {
 
 export function LibrarySortFilterSheet({ isOpen, onClose }: LibrarySortFilterSheetProps) {
 	const allTracks = useAggregatedTracks();
-	const { artists, albums } = useUniqueFilterOptions(allTracks);
+	const { artists, albums, providers } = useUniqueFilterOptions(allTracks);
 
 	const {
 		sortField,
@@ -33,6 +33,7 @@ export function LibrarySortFilterSheet({ isOpen, onClose }: LibrarySortFilterShe
 		toggleSortDirection,
 		toggleArtistFilter,
 		toggleAlbumFilter,
+		toggleProviderFilter,
 		toggleFavoritesOnly,
 		toggleDownloadedOnly,
 		clearAll,
@@ -82,10 +83,13 @@ export function LibrarySortFilterSheet({ isOpen, onClose }: LibrarySortFilterShe
 				<FilterSection
 					artists={artists}
 					albums={albums}
+					providers={providers}
 					selectedArtistIds={activeFilters.artistIds}
 					selectedAlbumIds={activeFilters.albumIds}
+					selectedProviderIds={activeFilters.providerIds}
 					onToggleArtist={toggleArtistFilter}
 					onToggleAlbum={toggleAlbumFilter}
+					onToggleProvider={toggleProviderFilter}
 					toggles={toggles}
 				/>
 			</View>

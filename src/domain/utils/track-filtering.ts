@@ -17,6 +17,7 @@ export interface LibraryFilters extends BaseFilters {
 export const DEFAULT_FILTERS: LibraryFilters = {
 	artistIds: [],
 	albumIds: [],
+	providerIds: [],
 	favoritesOnly: false,
 	downloadedOnly: false,
 };

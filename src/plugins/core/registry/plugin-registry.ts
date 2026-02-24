@@ -233,6 +233,18 @@ export class PluginRegistry implements ProviderRegistryInterface {
 			.map((r) => r.plugin);
 	}
 
+	getActivePluginsByCategory(category: string): BasePlugin[] {
+		const active = this._activeProviders.get(category);
+		if (!active || active.size === 0) return [];
+
+		return Array.from(this._plugins.values())
+			.filter(
+				(r) => r.plugin.manifest.category === category && active.has(r.plugin.manifest.id)
+			)
+			.sort((a, b) => b.priority - a.priority)
+			.map((r) => r.plugin);
+	}
+
 	getActiveProvider(category: string): BasePlugin | undefined {
 		const active = this._activeProviders.get(category);
 		if (!active || active.size === 0) return undefined;
@@ -248,6 +260,10 @@ export class PluginRegistry implements ProviderRegistryInterface {
 		return this._metadata.getAll();
 	}
 
+	getActiveMetadataProviders(): MetadataProvider[] {
+		return this._metadata.getAllActive();
+	}
+
 	registerMetadataProvider(
 		provider: MetadataProvider,
 		options: Omit<PluginRegistration, 'plugin'> = {}
@@ -261,6 +277,10 @@ export class PluginRegistry implements ProviderRegistryInterface {
 
 	getAllPlaybackProviders(): PlaybackProvider[] {
 		return this._playback.getAll();
+	}
+
+	getActivePlaybackProviders(): PlaybackProvider[] {
+		return this._playback.getAllActive();
 	}
 
 	registerPlaybackProvider(

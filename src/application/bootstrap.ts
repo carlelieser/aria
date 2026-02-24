@@ -186,10 +186,10 @@ async function initServices(registry: PluginRegistry): Promise<void> {
 }
 
 async function initPlaybackProviders(registry: PluginRegistry): Promise<void> {
-	const providers = registry.getAllPlaybackProviders();
+	const providers = registry.getActivePlaybackProviders();
 	if (providers.length === 0) return;
 
-	logger.info(`Wiring ${providers.length} playback provider(s)...`);
+	logger.info(`Wiring ${providers.length} active playback provider(s)...`);
 
 	for (const provider of providers) {
 		if (provider.status === 'uninitialized') {
@@ -206,12 +206,10 @@ async function initPlaybackProviders(registry: PluginRegistry): Promise<void> {
 }
 
 function initFeedService(registry: PluginRegistry) {
-	const providers = registry.getAllMetadataProviders();
+	const providers = registry.getActiveMetadataProviders();
 
 	for (const provider of providers) {
-		const hasHomeFeed = 'homeFeed' in provider;
-		const isActive = provider.status === 'active';
-		if (hasHomeFeed && isActive) {
+		if ('homeFeed' in provider) {
 			const providerWithFeed = provider as MetadataProvider & {
 				homeFeed: Parameters<typeof homeFeedService.addHomeFeedProvider>[1];
 			};
@@ -221,7 +219,7 @@ function initFeedService(registry: PluginRegistry) {
 }
 
 function initAudioServices(registry: PluginRegistry) {
-	const providers = registry.getAllMetadataProviders();
+	const providers = registry.getActiveMetadataProviders();
 
 	const audioSources = providers.filter(
 		hasAudioSourceCapability
@@ -235,14 +233,14 @@ function initAudioServices(registry: PluginRegistry) {
 }
 
 function initMetadataProviders(registry: PluginRegistry): void {
-	const providers = registry.getAllMetadataProviders();
+	const providers = registry.getActiveMetadataProviders();
 
 	if (providers.length === 0) {
-		logger.warn('No metadata providers loaded - search may not work');
+		logger.warn('No active metadata providers - search may not work');
 		return;
 	}
 
-	logger.info(`Wiring ${providers.length} metadata provider(s)...`);
+	logger.info(`Wiring ${providers.length} active metadata provider(s)...`);
 
 	searchService.setMetadataProviders(providers);
 	albumService.setMetadataProviders(providers);
@@ -250,6 +248,7 @@ function initMetadataProviders(registry: PluginRegistry): void {
 	lyricsService.setMetadataProviders(providers);
 
 	initFeedService(registry);
+	homeFeedService.markReady();
 	initAudioServices(registry);
 }
 

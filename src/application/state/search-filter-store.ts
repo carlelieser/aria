@@ -25,6 +25,7 @@ interface SearchFilterState {
 	setContentType: (type: SearchContentType) => void;
 	toggleArtistFilter: (artistId: string) => void;
 	toggleAlbumFilter: (albumId: string) => void;
+	toggleProviderFilter: (providerId: string) => void;
 	toggleFavoritesOnly: () => void;
 	toggleDownloadedOnly: () => void;
 	clearAll: () => void;
@@ -56,6 +57,14 @@ export const useSearchFilterStore = create<SearchFilterState>()((set) => ({
 			activeFilters: {
 				...state.activeFilters,
 				albumIds: toggleIdInArray(state.activeFilters.albumIds, albumId),
+			},
+		})),
+
+	toggleProviderFilter: (providerId) =>
+		set((state) => ({
+			activeFilters: {
+				...state.activeFilters,
+				providerIds: toggleIdInArray(state.activeFilters.providerIds, providerId),
 			},
 		})),
 

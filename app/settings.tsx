@@ -29,6 +29,7 @@ import {
 	CameraIcon,
 	MonitorPlayIcon,
 	PaintbrushIcon,
+	TagIcon,
 } from 'lucide-react-native';
 import {
 	THEME_OPTIONS,
@@ -58,6 +59,8 @@ export default function SettingsScreen() {
 		setAccentColor,
 		openPlayerOnTrackClick,
 		setOpenPlayerOnTrackClick,
+		showProviderLabel,
+		setShowProviderLabel,
 		progressBarStyle,
 		setProgressBarStyle,
 		playerBackground,
@@ -77,6 +80,10 @@ export default function SettingsScreen() {
 	const openPlayerSwitch = useMemo(
 		() => <Switch value={openPlayerOnTrackClick} onValueChange={setOpenPlayerOnTrackClick} />,
 		[openPlayerOnTrackClick, setOpenPlayerOnTrackClick]
+	);
+	const providerLabelSwitch = useMemo(
+		() => <Switch value={showProviderLabel} onValueChange={setShowProviderLabel} />,
+		[showProviderLabel, setShowProviderLabel]
 	);
 	const { success } = useToast();
 	const [equalizerSheetOpen, setEqualizerSheetOpen] = useState(false);
@@ -198,6 +205,13 @@ export default function SettingsScreen() {
 						portalName={'default-tab-select'}
 					/>
 					<TabOrderSetting />
+					<SettingsItem
+						icon={TagIcon}
+						title={'Show provider label'}
+						subtitle={'Display the source plugin on tracks'}
+						rightElement={providerLabelSwitch}
+						onPress={() => setShowProviderLabel(!showProviderLabel)}
+					/>
 				</SettingsSection>
 
 				<SettingsSection title={'Player'}>
