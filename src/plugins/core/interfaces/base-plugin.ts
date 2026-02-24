@@ -1,5 +1,8 @@
 import type { Result } from '@shared/types/result';
+import type { PluginConfigSchema } from '@shared/types/plugin-config-schema';
 import type { PluginManifest as BasePluginManifest } from './plugin';
+
+export type { PluginConfigSchema } from '@shared/types/plugin-config-schema';
 
 export type PluginStatus =
 	| 'uninitialized'
@@ -46,30 +49,6 @@ export interface ExtendedPluginManifest extends BasePluginManifest {
 }
 
 export type PluginManifest = ExtendedPluginManifest;
-
-export interface PluginConfigSchema {
-	readonly key: string;
-
-	readonly type: 'string' | 'number' | 'boolean' | 'select' | 'folder-list' | 'oauth';
-
-	readonly label: string;
-
-	readonly description?: string;
-
-	readonly defaultValue?: unknown;
-
-	readonly required?: boolean;
-
-	readonly options?: { label: string; value: unknown }[];
-
-	readonly pattern?: string;
-
-	readonly min?: number;
-
-	readonly max?: number;
-
-	readonly icon?: string;
-}
 
 export type PluginConfig = Record<string, unknown>;
 

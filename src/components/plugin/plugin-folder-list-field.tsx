@@ -14,7 +14,7 @@ import { Button } from '@/src/components/ui/button';
 import { Icon } from '@/src/components/ui/icon';
 import { EmptyState } from '@/src/components/ui/empty-state';
 import { useAppTheme } from '@/lib/theme';
-import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plugin';
+import type { PluginConfigSchema } from '@shared/types/plugin-config-schema';
 import {
 	useFolders,
 	useIsScanning,

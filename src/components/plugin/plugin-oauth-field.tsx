@@ -19,7 +19,7 @@ import {
 	isOAuthCapable,
 	type OAuthCapablePlugin,
 } from '@/src/plugins/core/interfaces/oauth-capable-plugin';
-import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plugin';
+import type { PluginConfigSchema } from '@shared/types/plugin-config-schema';
 
 const DEFAULT_OAUTH_ICON = LinkIcon;
 
