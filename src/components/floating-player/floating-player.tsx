@@ -5,8 +5,7 @@
  * Uses M3 Surface elevation and theming.
  */
 
-import { View, Pressable, ActivityIndicator, StyleSheet } from 'react-native';
-import { Image } from 'expo-image';
+import { View, Pressable, StyleSheet } from 'react-native';
 import { router, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
@@ -18,17 +17,16 @@ import Animated, {
 	runOnJS,
 } from 'react-native-reanimated';
 import { useEffect, useState, useMemo, useCallback } from 'react';
-import { IconButton, Text, Surface } from 'react-native-paper';
+import { Surface } from 'react-native-paper';
 
 import { FloatingProgressBar } from './floating-progress-bar';
+import { PlayerContent } from './player-content';
 
-import { Play, Pause, SkipForward } from 'lucide-react-native';
 import { usePlayer } from '@/src/hooks/use-player';
 import { useCurrentTrack, usePlaybackStatus } from '@/src/application/state/player-store';
 import { getArtistNames } from '@/src/domain/entities/track';
 import { getLargestArtwork } from '@/src/domain/value-objects/artwork';
-import { AudioWaveform } from '@/src/components/ui/audio-waveform';
-import { useAppTheme, M3Shapes } from '@/lib/theme';
+import { M3Shapes } from '@/lib/theme';
 import { TAB_BAR_HEIGHT, TAB_ROUTES } from '@/lib/tab-config';
 
 const AnimatedSurface = Animated.createAnimatedComponent(Surface);
@@ -41,7 +39,6 @@ export function FloatingPlayer() {
 	const currentTrack = useCurrentTrack();
 	const status = usePlaybackStatus();
 	const { togglePlayPause, skipToNext, isLoading, isBuffering } = usePlayer();
-	const { colors } = useAppTheme();
 	const shouldShow = pathname !== '/player' && currentTrack !== null;
 	const isTabRoute = TAB_ROUTES.includes(pathname);
 	const bottomOffset = isTabRoute ? TAB_BAR_HEIGHT + insets.bottom + 8 : insets.bottom + 8;
@@ -62,21 +59,19 @@ export function FloatingPlayer() {
 		}
 	}, [shouldShow, visibility]);
 
-	const animatedStyle = useAnimatedStyle(() => {
-		return {
-			opacity: visibility.value,
-			transform: [
-				{
-					translateY: interpolate(
-						visibility.value,
-						[0, 1],
-						[100, 0],
-						Extrapolation.CLAMP
-					),
-				},
-			],
-		};
-	});
+	const animatedStyle = useAnimatedStyle(() => ({
+		opacity: visibility.value,
+		transform: [
+			{
+				translateY: interpolate(
+					visibility.value,
+					[0, 1],
+					[100, 0],
+					Extrapolation.CLAMP
+				),
+			},
+		],
+	}));
 
 	const artwork = currentTrack ? getLargestArtwork(currentTrack.artwork) : null;
 	const artworkUrl = artwork?.url;
@@ -101,23 +96,6 @@ export function FloatingPlayer() {
 		[bottomOffset, animatedStyle]
 	);
 
-	const playPauseIcon = useCallback(
-		({ size, color }: { size: number; color: string }) =>
-			isPlaying ? (
-				<Pause size={size} color={color} fill={color} strokeWidth={0} />
-			) : (
-				<Play size={size} color={color} fill={color} strokeWidth={0} />
-			),
-		[isPlaying]
-	);
-
-	const skipForwardIcon = useCallback(
-		({ size, color }: { size: number; color: string }) => (
-			<SkipForward size={size} color={color} fill={color} />
-		),
-		[]
-	);
-
 	if (!isVisible && !shouldShow) {
 		return <View style={styles.hidden} />;
 	}
@@ -135,56 +113,17 @@ export function FloatingPlayer() {
 					<FloatingProgressBar />
 				</View>
 
-				<View style={styles.content}>
-					<View style={styles.artworkContainer}>
-						<Image
-							source={{ uri: artworkUrl }}
-							style={styles.artwork}
-							contentFit={'cover'}
-							transition={200}
-							cachePolicy={'memory-disk'}
-							recyclingKey={currentTrack?.id.value}
-						/>
-						{isPlaying && <AudioWaveform />}
-						{showLoadingIndicator && (
-							<View style={styles.loadingOverlay}>
-								<ActivityIndicator size={'small'} color={'white'} />
-							</View>
-						)}
-					</View>
-
-					<View style={styles.trackInfo}>
-						<Text
-							variant={'titleSmall'}
-							numberOfLines={1}
-							style={{ color: colors.onSurface }}
-						>
-							{currentTrack?.title}
-						</Text>
-						<Text
-							variant={'bodySmall'}
-							numberOfLines={1}
-							style={{ color: colors.onSurfaceVariant }}
-						>
-							{artistNames}
-						</Text>
-					</View>
-
-					<View style={styles.controls}>
-						<IconButton
-							icon={playPauseIcon}
-							size={24}
-							onPress={handlePlayPause}
-							disabled={isLoading}
-						/>
-						<IconButton
-							icon={skipForwardIcon}
-							size={24}
-							onPress={handleSkipNext}
-							accessibilityLabel={'Skip to next track'}
-						/>
-					</View>
-				</View>
+				<PlayerContent
+					artworkUrl={artworkUrl}
+					trackId={currentTrack?.id.value}
+					title={currentTrack?.title}
+					artistNames={artistNames}
+					isPlaying={isPlaying}
+					showLoadingIndicator={showLoadingIndicator}
+					isLoading={isLoading}
+					onPlayPause={handlePlayPause}
+					onSkipNext={handleSkipNext}
+				/>
 			</Pressable>
 		</AnimatedSurface>
 	);
@@ -213,38 +152,5 @@ const styles = StyleSheet.create({
 		left: 0,
 		right: 0,
 		zIndex: 10,
-	},
-	content: {
-		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-		paddingHorizontal: 12,
-		paddingTop: 4,
-	},
-	artworkContainer: {
-		position: 'relative',
-		overflow: 'hidden',
-		borderRadius: M3Shapes.small,
-	},
-	artwork: {
-		width: 48,
-		height: 48,
-		borderRadius: M3Shapes.small,
-	},
-	loadingOverlay: {
-		...StyleSheet.absoluteFillObject,
-		alignItems: 'center',
-		justifyContent: 'center',
-		backgroundColor: 'rgba(0,0,0,0.3)',
-		borderRadius: M3Shapes.small,
-	},
-	trackInfo: {
-		flex: 1,
-		marginHorizontal: 12,
-		justifyContent: 'center',
-	},
-	controls: {
-		flexDirection: 'row',
-		alignItems: 'center',
 	},
 });
