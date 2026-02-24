@@ -74,36 +74,61 @@ describe('Duration', () => {
 
 	describe('Parsing', () => {
 		describe('parse', () => {
-			it('should parse MM:SS format', () => {
-				const duration = Duration.parse('3:45');
-				expect(duration.totalSeconds).toBe(225);
+			it('should return success result when parsing MM:SS format', () => {
+				const result = Duration.parse('3:45');
+				expect(result.success).toBe(true);
+				if (result.success) {
+					expect(result.data.totalSeconds).toBe(225);
+				}
 			});
 
-			it('should parse HH:MM:SS format', () => {
-				const duration = Duration.parse('1:30:45');
-				expect(duration.totalSeconds).toBe(5445);
+			it('should return success result when parsing HH:MM:SS format', () => {
+				const result = Duration.parse('1:30:45');
+				expect(result.success).toBe(true);
+				if (result.success) {
+					expect(result.data.totalSeconds).toBe(5445);
+				}
 			});
 
-			it('should parse with leading zeros', () => {
-				const duration = Duration.parse('03:05');
-				expect(duration.minutes).toBe(3);
-				expect(duration.seconds).toBe(5);
+			it('should return success result when parsing with leading zeros', () => {
+				const result = Duration.parse('03:05');
+				expect(result.success).toBe(true);
+				if (result.success) {
+					expect(result.data.minutes).toBe(3);
+					expect(result.data.seconds).toBe(5);
+				}
 			});
 
-			it('should throw on invalid format with single part', () => {
-				expect(() => Duration.parse('123')).toThrow('Invalid duration format');
+			it('should return error result when format has single part', () => {
+				const result = Duration.parse('123');
+				expect(result.success).toBe(false);
+				if (!result.success) {
+					expect(result.error.message).toContain('Invalid duration format');
+				}
 			});
 
-			it('should throw on invalid characters', () => {
-				expect(() => Duration.parse('3:ab')).toThrow('Invalid duration format');
+			it('should return error result when format has invalid characters', () => {
+				const result = Duration.parse('3:ab');
+				expect(result.success).toBe(false);
+				if (!result.success) {
+					expect(result.error.message).toContain('Invalid duration format');
+				}
 			});
 
-			it('should throw on empty string', () => {
-				expect(() => Duration.parse('')).toThrow('Invalid duration format');
+			it('should return error result when string is empty', () => {
+				const result = Duration.parse('');
+				expect(result.success).toBe(false);
+				if (!result.success) {
+					expect(result.error.message).toContain('Invalid duration format');
+				}
 			});
 
-			it('should throw on four parts', () => {
-				expect(() => Duration.parse('1:2:3:4')).toThrow('Invalid duration format');
+			it('should return error result when format has four parts', () => {
+				const result = Duration.parse('1:2:3:4');
+				expect(result.success).toBe(false);
+				if (!result.success) {
+					expect(result.error.message).toContain('Invalid duration format');
+				}
 			});
 		});
 

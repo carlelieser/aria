@@ -1,3 +1,5 @@
+import { ok, err, type Result } from '@shared/types/result';
+
 export class Duration {
 	private constructor(public readonly totalMilliseconds: number) {
 		Object.freeze(this);
@@ -19,30 +21,27 @@ export class Duration {
 		return Duration.fromMilliseconds((hours * 3600 + minutes * 60 + seconds) * 1000);
 	}
 
-	static parse(value: string): Duration {
+	static parse(value: string): Result<Duration, Error> {
 		const parts = value.split(':').map(Number);
 
 		if (parts.some(isNaN)) {
-			throw new Error(`Invalid duration format: ${value}`);
+			return err(new Error(`Invalid duration format: ${value}`));
 		}
 
 		if (parts.length === 2) {
 			const [minutes, seconds] = parts;
-			return Duration.fromHMS(0, minutes, seconds);
+			return ok(Duration.fromHMS(0, minutes, seconds));
 		} else if (parts.length === 3) {
 			const [hours, minutes, seconds] = parts;
-			return Duration.fromHMS(hours, minutes, seconds);
+			return ok(Duration.fromHMS(hours, minutes, seconds));
 		}
 
-		throw new Error(`Invalid duration format: ${value}. Expected MM:SS or HH:MM:SS.`);
+		return err(new Error(`Invalid duration format: ${value}. Expected MM:SS or HH:MM:SS.`));
 	}
 
 	static tryParse(value: string): Duration | null {
-		try {
-			return Duration.parse(value);
-		} catch {
-			return null;
-		}
+		const result = Duration.parse(value);
+		return result.success ? result.data : null;
 	}
 
 	static readonly ZERO = new Duration(0);

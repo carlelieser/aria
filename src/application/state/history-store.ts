@@ -9,15 +9,17 @@ import { Duration } from '../../domain/value-objects/duration';
  * Rehydrates a track from JSON storage, converting serialized primitives
  * back to proper value object instances (TrackId, Duration).
  */
-function rehydrateTrack(serialized: unknown): Track {
+function rehydrateTrack(serialized: unknown): Track | null {
 	const raw = serialized as Record<string, unknown>;
 
 	const id =
 		typeof raw.id === 'string'
-			? TrackId.fromString(raw.id)
+			? TrackId.tryFromString(raw.id)
 			: raw.id instanceof TrackId
 				? raw.id
-				: TrackId.fromString((raw.id as { value: string }).value);
+				: TrackId.tryFromString((raw.id as { value: string }).value);
+
+	if (!id) return null;
 
 	const duration =
 		typeof raw.duration === 'number'
@@ -97,10 +99,13 @@ export const useHistoryStore = create<HistoryState>()(
 			storage: createJSONStorage(() => AsyncStorage),
 			onRehydrateStorage: () => (state) => {
 				if (state) {
-					state.recentlyPlayed = state.recentlyPlayed.map((entry) => ({
-						...entry,
-						track: rehydrateTrack(entry.track),
-					}));
+					state.recentlyPlayed = state.recentlyPlayed
+						.map((entry) => {
+							const track = rehydrateTrack(entry.track);
+							if (!track) return null;
+							return { ...entry, track };
+						})
+						.filter((entry): entry is HistoryEntry => entry !== null);
 				}
 			},
 		}
