@@ -67,6 +67,7 @@ export const OAuthLoginWebView = memo(function OAuthLoginWebView({
 	const [isLoading, setIsLoading] = useState(true);
 	const [menuVisible, setMenuVisible] = useState(false);
 	const hasSeenLoginPage = useRef(false);
+	const hasHandledRedirect = useRef(false);
 
 	const redirectScheme = config.redirectUri?.split('://')[0];
 
@@ -87,8 +88,11 @@ export const OAuthLoginWebView = memo(function OAuthLoginWebView({
 	const handleShouldStartLoad = useCallback(
 		(event: { url: string }): boolean => {
 			if (config.redirectUri && event.url.startsWith(config.redirectUri)) {
-				stopPolling();
-				onSuccess(event.url);
+				if (!hasHandledRedirect.current) {
+					hasHandledRedirect.current = true;
+					stopPolling();
+					onSuccess(event.url);
+				}
 				return false;
 			}
 			return true;
@@ -102,8 +106,11 @@ export const OAuthLoginWebView = memo(function OAuthLoginWebView({
 
 			// Redirect-based OAuth: intercept the redirect URI
 			if (config.redirectUri && url.startsWith(config.redirectUri)) {
-				stopPolling();
-				onSuccess(url);
+				if (!hasHandledRedirect.current) {
+					hasHandledRedirect.current = true;
+					stopPolling();
+					onSuccess(url);
+				}
 				return;
 			}
 
@@ -136,6 +143,7 @@ export const OAuthLoginWebView = memo(function OAuthLoginWebView({
 	const handleRetry = useCallback(() => {
 		reset();
 		hasSeenLoginPage.current = false;
+		hasHandledRedirect.current = false;
 		webViewRef.current?.reload();
 	}, [reset]);
 

@@ -116,14 +116,13 @@ export const useHistoryStore = create<HistoryState>()(
  * Memoized selector cache for useRecentlyPlayed.
  * Prevents creating new arrays on every render when underlying data hasn't changed.
  */
-const recentlyPlayedCache = new Map<number, { entriesLength: number; tracks: Track[] }>();
+const recentlyPlayedCache = new Map<number, { entries: HistoryEntry[]; tracks: Track[] }>();
 
 export const useRecentlyPlayed = (limit = 10) =>
 	useHistoryStore((state) => {
 		const cached = recentlyPlayedCache.get(limit);
 
-		// Return cached value if entries haven't changed
-		if (cached && cached.entriesLength === state.recentlyPlayed.length) {
+		if (cached && cached.entries === state.recentlyPlayed) {
 			return cached.tracks;
 		}
 
@@ -141,7 +140,7 @@ export const useRecentlyPlayed = (limit = 10) =>
 
 		// Cache the result
 		recentlyPlayedCache.set(limit, {
-			entriesLength: state.recentlyPlayed.length,
+			entries: state.recentlyPlayed,
 			tracks: uniqueTracks,
 		});
 
@@ -153,15 +152,14 @@ export const useRecentlyPlayed = (limit = 10) =>
  */
 const recentlyPlayedEntriesCache = new Map<
 	number,
-	{ entriesLength: number; entries: HistoryEntry[] }
+	{ source: HistoryEntry[]; entries: HistoryEntry[] }
 >();
 
 export const useRecentlyPlayedEntries = (limit = 10) =>
 	useHistoryStore((state) => {
 		const cached = recentlyPlayedEntriesCache.get(limit);
 
-		// Return cached value if entries haven't changed
-		if (cached && cached.entriesLength === state.recentlyPlayed.length) {
+		if (cached && cached.source === state.recentlyPlayed) {
 			return cached.entries;
 		}
 
@@ -179,7 +177,7 @@ export const useRecentlyPlayedEntries = (limit = 10) =>
 
 		// Cache the result
 		recentlyPlayedEntriesCache.set(limit, {
-			entriesLength: state.recentlyPlayed.length,
+			source: state.recentlyPlayed,
 			entries: uniqueEntries,
 		});
 

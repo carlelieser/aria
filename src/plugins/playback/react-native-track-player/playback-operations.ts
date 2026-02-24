@@ -132,8 +132,10 @@ export class PlaybackOperations {
 			const targetSeconds = position.totalSeconds;
 			logger.debug(`seek() called: target=${targetSeconds}s`);
 
+			this._state.isSeeking = true;
 			await TrackPlayer.seekTo(targetSeconds);
 			this._state.position = position;
+			this._state.isSeeking = false;
 
 			return ok(undefined);
 		});

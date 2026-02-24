@@ -20,6 +20,7 @@ export class PlaybackState {
 	private _isShuffled: boolean = false;
 	private _queue: Track[] = [];
 	private _currentIndex: number = -1;
+	private _isSeeking: boolean = false;
 
 	get playbackStatus(): PlaybackStatus {
 		return this._playbackStatus;
@@ -95,6 +96,14 @@ export class PlaybackState {
 
 	set currentIndex(index: number) {
 		this._currentIndex = index;
+	}
+
+	get isSeeking(): boolean {
+		return this._isSeeking;
+	}
+
+	set isSeeking(seeking: boolean) {
+		this._isSeeking = seeking;
 	}
 
 	reset(): void {

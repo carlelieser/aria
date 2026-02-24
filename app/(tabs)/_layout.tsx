@@ -28,6 +28,29 @@ const INDICATOR_TOP = 11;
 
 const TAB_SPRING_CONFIG = { damping: 20, stiffness: 200, mass: 0.5 };
 
+// Lightweight pub/sub so the tab bar can notify the header of active tab
+// changes without re-rendering the parent TabLayout (which would recreate
+// Tabs.Screen children and trigger full screen unmount/remount).
+type ActiveTabListener = (tabId: TabId) => void;
+const activeTabListeners = new Set<ActiveTabListener>();
+
+function emitActiveTab(tabId: TabId): void {
+	activeTabListeners.forEach((fn) => fn(tabId));
+}
+
+function useActiveTabListener(initial: TabId): TabId {
+	const [tabId, setTabId] = useState<TabId>(initial);
+
+	useEffect(() => {
+		activeTabListeners.add(setTabId);
+		return () => {
+			activeTabListeners.delete(setTabId);
+		};
+	}, []);
+
+	return tabId;
+}
+
 export default function TabLayout() {
 	const tabOrder = useTabOrder();
 	const enabledTabs = useEnabledTabs();
@@ -65,27 +88,23 @@ export default function TabLayout() {
 		[colors.background]
 	);
 
-	const [activeTabId, setActiveTabId] = useState<TabId>(validTabOrder[0]);
+	// Stabilize the tabBar render callback so the navigator never receives a
+	// new function reference on re-render.
+	const renderTabBar = useCallback(
+		(props: BottomTabBarProps) => (
+			<CustomTabBar {...props} tabOrder={validTabOrder} onActiveTabChange={emitActiveTab} />
+		),
+		[validTabOrder]
+	);
 
 	return (
 		<View style={styles.layoutRoot}>
-			<TabHeader currentTabId={activeTabId} />
-			<Tabs
-				screenOptions={screenOptions}
-				tabBar={(props) => (
-					<CustomTabBar
-						{...props}
-						tabOrder={validTabOrder}
-						onActiveTabChange={setActiveTabId}
-					/>
-				)}
-			>
+			<TabHeader initialTabId={validTabOrder[0]} />
+			<Tabs screenOptions={screenOptions} tabBar={renderTabBar}>
 				<Tabs.Screen name={'index'} options={{ href: null }} />
 				{validTabOrder.map((tabId) => {
 					const config = TAB_CONFIG[tabId];
-
 					if (!config) return null;
-
 					return <Tabs.Screen key={tabId} name={tabId} options={config} />;
 				})}
 			</Tabs>
@@ -93,7 +112,8 @@ export default function TabLayout() {
 	);
 }
 
-function TabHeader({ currentTabId }: { readonly currentTabId: TabId }) {
+function TabHeader({ initialTabId }: { readonly initialTabId: TabId }) {
+	const currentTabId = useActiveTabListener(initialTabId);
 	const { colors } = useAppTheme();
 	const insets = useSafeAreaInsets();
 	const title = TAB_CONFIG[currentTabId]?.title ?? '';

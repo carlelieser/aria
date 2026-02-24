@@ -120,9 +120,11 @@ export class EventHandler {
 
 	private _onPlaybackState(event: RNTPPlaybackState): void {
 		const newStatus = mapRNTPStateToStatus(event.state);
-		if (newStatus !== this._state.playbackStatus) {
-			this._updateStatus(newStatus);
-		}
+		if (newStatus === this._state.playbackStatus) return;
+
+		if (this._state.isSeeking && newStatus === 'paused') return;
+
+		this._updateStatus(newStatus);
 	}
 
 	private _onTrackChanged(event: PlaybackActiveTrackChangedEvent): void {
