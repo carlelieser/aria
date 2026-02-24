@@ -29,14 +29,14 @@ const SLOW_PLAYBACK_THRESHOLD_MS = 3000;
 export class PlaybackTimer {
 	private _startMs = 0;
 	private _trackTitle = '';
-	private readonly _phases: TimerPhase[] = [];
+	private _phases: TimerPhase[] = [];
 	private _currentPhase: TimerPhase | null = null;
 	private _active = false;
 
 	start(trackTitle: string): void {
 		this._startMs = Date.now();
 		this._trackTitle = trackTitle;
-		this._phases.length = 0;
+		this._phases = [];
 		this._currentPhase = null;
 		this._active = true;
 	}
@@ -80,13 +80,13 @@ export class PlaybackTimer {
 
 	cancel(): void {
 		this._active = false;
-		this._phases.length = 0;
+		this._phases = [];
 		this._currentPhase = null;
 	}
 
 	private _endCurrentPhase(): void {
 		if (this._currentPhase) {
-			this._phases.push({ ...this._currentPhase, endMs: Date.now() });
+			this._phases = [...this._phases, { ...this._currentPhase, endMs: Date.now() }];
 			this._currentPhase = null;
 		}
 	}

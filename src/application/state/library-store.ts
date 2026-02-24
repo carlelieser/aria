@@ -210,11 +210,13 @@ export const useLibraryStore = create<LibraryState>()(
 					playlists: state.playlists.map((p) => {
 						if (p.id !== playlistId) return p;
 
-						const tracks = [...p.tracks];
-						const [moved] = tracks.splice(fromIndex, 1);
-						tracks.splice(toIndex, 0, moved);
-
-						const reorderedTracks = tracks.map((t, index) => ({
+						const moved = p.tracks[fromIndex];
+						const withoutMoved = p.tracks.filter((_, i) => i !== fromIndex);
+						const reorderedTracks = [
+							...withoutMoved.slice(0, toIndex),
+							moved,
+							...withoutMoved.slice(toIndex),
+						].map((t, index) => ({
 							...t,
 							position: index,
 						}));

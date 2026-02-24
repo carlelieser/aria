@@ -31,12 +31,12 @@ export class QueueManager {
 		const currentIndex = this.state.currentIndex;
 
 		if (atIndex !== undefined && atIndex >= 0 && atIndex <= queue.length) {
-			queue.splice(atIndex, 0, ...tracks);
+			this.state.queue = [...queue.slice(0, atIndex), ...tracks, ...queue.slice(atIndex)];
 			if (currentIndex >= atIndex) {
 				this.state.currentIndex += tracks.length;
 			}
 		} else {
-			queue.push(...tracks);
+			this.state.queue = [...queue, ...tracks];
 		}
 
 		return ok(undefined);
@@ -47,7 +47,7 @@ export class QueueManager {
 		const currentIndex = this.state.currentIndex;
 
 		if (index >= 0 && index < queue.length) {
-			queue.splice(index, 1);
+			this.state.queue = queue.filter((_, i) => i !== index);
 
 			if (index < currentIndex) {
 				this.state.currentIndex--;

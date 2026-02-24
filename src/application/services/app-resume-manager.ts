@@ -138,7 +138,7 @@ class AppResumeManager {
 		// Remove existing operation with same id
 		this.pendingOperations = this.pendingOperations.filter((op) => op.id !== id);
 
-		this.pendingOperations.push({ id, priority, operation });
+		this.pendingOperations = [...this.pendingOperations, { id, priority, operation }];
 
 		// Sort by priority (descending)
 		this.pendingOperations.sort((a, b) => b.priority - a.priority);

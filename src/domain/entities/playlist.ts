@@ -125,11 +125,13 @@ export function reorderPlaylistTracks(
 	fromIndex: number,
 	toIndex: number
 ): Playlist {
-	const tracks = [...playlist.tracks];
-	const [moved] = tracks.splice(fromIndex, 1);
-	tracks.splice(toIndex, 0, moved);
-
-	const reorderedTracks = tracks.map((t, index) => ({
+	const moved = playlist.tracks[fromIndex];
+	const withoutMoved = playlist.tracks.filter((_, i) => i !== fromIndex);
+	const reorderedTracks = [
+		...withoutMoved.slice(0, toIndex),
+		moved,
+		...withoutMoved.slice(toIndex),
+	].map((t, index) => ({
 		...t,
 		position: index,
 	}));

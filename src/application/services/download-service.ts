@@ -58,7 +58,7 @@ export class DownloadService {
 
 	addAudioSourceProvider(provider: AudioSourceProvider): void {
 		if (!this.audioSourceProviders.includes(provider)) {
-			this.audioSourceProviders.push(provider);
+			this.audioSourceProviders = [...this.audioSourceProviders, provider];
 		}
 	}
 

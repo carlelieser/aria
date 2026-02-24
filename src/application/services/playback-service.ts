@@ -76,7 +76,7 @@ export class PlaybackService {
 		if (this.playbackProviders.some((p) => p.manifest.id === provider.manifest.id)) {
 			return;
 		}
-		this.playbackProviders.push(provider);
+		this.playbackProviders = [...this.playbackProviders, provider];
 		if (this.eventListener) {
 			provider.addEventListener(this.eventListener);
 		}
@@ -90,7 +90,7 @@ export class PlaybackService {
 			if (this.eventListener) {
 				provider.removeEventListener(this.eventListener);
 			}
-			this.playbackProviders.splice(index, 1);
+			this.playbackProviders = this.playbackProviders.filter((_, i) => i !== index);
 			logger.debug(`Removed playback provider: ${providerId}`);
 		}
 	}
@@ -118,7 +118,7 @@ export class PlaybackService {
 
 	addAudioSourceProvider(provider: AudioSourceProvider): void {
 		if (!this.audioSourceProviders.includes(provider)) {
-			this.audioSourceProviders.push(provider);
+			this.audioSourceProviders = [...this.audioSourceProviders, provider];
 		}
 	}
 

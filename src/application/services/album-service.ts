@@ -31,7 +31,7 @@ export class AlbumService {
 
 	addMetadataProvider(provider: MetadataProvider): void {
 		if (!this.metadataProviders.includes(provider)) {
-			this.metadataProviders.push(provider);
+			this.metadataProviders = [...this.metadataProviders, provider];
 			this.clearCache();
 		}
 	}
