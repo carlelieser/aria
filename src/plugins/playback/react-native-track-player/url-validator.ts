@@ -12,38 +12,38 @@ export class UrlValidator {
 			return false;
 		}
 
-		if (this.isHlsStream(url)) {
+		if (this._isHlsStream(url)) {
 			return false;
 		}
 
-		if (this.hasSupportedExtension(url)) {
+		if (this._hasSupportedExtension(url)) {
 			return true;
 		}
 
-		if (this.isLocalFile(url)) {
+		if (this._isLocalFile(url)) {
 			return true;
 		}
 
-		if (this.isHttpUrl(url)) {
+		if (this._isHttpUrl(url)) {
 			return true;
 		}
 
 		return false;
 	}
 
-	private isHlsStream(url: string): boolean {
+	private _isHlsStream(url: string): boolean {
 		return url.includes('.m3u8') || url.includes('manifest/hls');
 	}
 
-	private hasSupportedExtension(url: string): boolean {
+	private _hasSupportedExtension(url: string): boolean {
 		return SUPPORTED_EXTENSIONS.some((ext) => url.endsWith(ext));
 	}
 
-	private isLocalFile(url: string): boolean {
+	private _isLocalFile(url: string): boolean {
 		return url.startsWith('file://') || url.startsWith('/');
 	}
 
-	private isHttpUrl(url: string): boolean {
+	private _isHttpUrl(url: string): boolean {
 		return url.startsWith('http://') || url.startsWith('https://');
 	}
 }

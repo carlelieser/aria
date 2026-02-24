@@ -12,43 +12,43 @@ import type { PlaybackState } from './playback-state';
 
 export class QueueHandler {
 	constructor(
-		private readonly queueManager: QueueManager,
-		private readonly state: PlaybackState,
-		private readonly emitEvent: (event: PlaybackEvent) => void
+		private readonly _queueManager: QueueManager,
+		private readonly _state: PlaybackState,
+		private readonly _emitEvent: (event: PlaybackEvent) => void
 	) {}
 
 	getQueue(): QueueItem[] {
-		return this.queueManager.getQueue();
+		return this._queueManager.getQueue();
 	}
 
 	async setQueue(tracks: Track[], startIndex: number = 0): AsyncResult<void, Error> {
-		const result = this.queueManager.setQueue(tracks, startIndex);
+		const result = this._queueManager.setQueue(tracks, startIndex);
 		if (result.success) {
-			this.emitQueueChangeEvent();
+			this._emitQueueChangeEvent();
 		}
 		return result;
 	}
 
 	addToQueue(tracks: Track[], atIndex?: number): Result<void, Error> {
-		const result = this.queueManager.addToQueue(tracks, atIndex);
+		const result = this._queueManager.addToQueue(tracks, atIndex);
 		if (result.success) {
-			this.emitQueueChangeEvent();
+			this._emitQueueChangeEvent();
 		}
 		return result;
 	}
 
 	removeFromQueue(index: number): Result<void, Error> {
-		const result = this.queueManager.removeFromQueue(index);
+		const result = this._queueManager.removeFromQueue(index);
 		if (result.success) {
-			this.emitQueueChangeEvent();
+			this._emitQueueChangeEvent();
 		}
 		return result;
 	}
 
 	clearQueue(): Result<void, Error> {
-		const result = this.queueManager.clearQueue();
+		const result = this._queueManager.clearQueue();
 		if (result.success) {
-			this.emitEvent({
+			this._emitEvent({
 				type: 'queue-change',
 				tracks: [],
 				currentIndex: -1,
@@ -59,18 +59,18 @@ export class QueueHandler {
 	}
 
 	async skipToNext(): AsyncResult<void, Error> {
-		return this.queueManager.skipToNext();
+		return this._queueManager.skipToNext();
 	}
 
 	async skipToPrevious(): AsyncResult<void, Error> {
-		return this.queueManager.skipToPrevious();
+		return this._queueManager.skipToPrevious();
 	}
 
-	private emitQueueChangeEvent(): void {
-		this.emitEvent({
+	private _emitQueueChangeEvent(): void {
+		this._emitEvent({
 			type: 'queue-change',
-			tracks: this.state.queue,
-			currentIndex: this.state.currentIndex,
+			tracks: this._state.queue,
+			currentIndex: this._state.currentIndex,
 			timestamp: Date.now(),
 		});
 	}

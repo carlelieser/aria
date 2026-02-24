@@ -45,11 +45,11 @@ export type PluginRegistryEvent =
 	| { type: 'plugin-error'; pluginId: string; error: Error };
 
 export class PluginRegistry implements ProviderRegistryInterface {
-	private static instance: PluginRegistry | null = null;
+	private static _instance: PluginRegistry | null = null;
 
-	private plugins = new Map<string, RegisteredPlugin>();
-	private activeProviders = new Map<string, Set<string>>();
-	private eventBus: EventBus;
+	private _plugins = new Map<string, RegisteredPlugin>();
+	private _activeProviders = new Map<string, Set<string>>();
+	private _eventBus: EventBus;
 
 	private readonly _metadata: ProviderAccessor<MetadataProvider>;
 	private readonly _playback: ProviderAccessor<PlaybackProvider>;
@@ -57,7 +57,7 @@ export class PluginRegistry implements ProviderRegistryInterface {
 	private readonly _audioSource: ProviderAccessor<AudioSourceProvider>;
 
 	private constructor() {
-		this.eventBus = new EventBus();
+		this._eventBus = new EventBus();
 		this._metadata = createProviderAccessor(this, PROVIDER_CONFIGS.metadata);
 		this._playback = createProviderAccessor(this, PROVIDER_CONFIGS.playback);
 		this._sync = createProviderAccessor(this, PROVIDER_CONFIGS.sync);
@@ -65,16 +65,16 @@ export class PluginRegistry implements ProviderRegistryInterface {
 	}
 
 	static getInstance(): PluginRegistry {
-		if (!PluginRegistry.instance) {
-			PluginRegistry.instance = new PluginRegistry();
+		if (!PluginRegistry._instance) {
+			PluginRegistry._instance = new PluginRegistry();
 		}
-		return PluginRegistry.instance;
+		return PluginRegistry._instance;
 	}
 
 	static resetInstance(): void {
-		if (PluginRegistry.instance) {
-			PluginRegistry.instance.dispose();
-			PluginRegistry.instance = null;
+		if (PluginRegistry._instance) {
+			PluginRegistry._instance.dispose();
+			PluginRegistry._instance = null;
 		}
 	}
 
@@ -82,7 +82,7 @@ export class PluginRegistry implements ProviderRegistryInterface {
 		const { plugin, priority = 0, autoActivate = false, config = {} } = registration;
 		const pluginId = plugin.manifest.id;
 
-		if (this.plugins.has(pluginId)) {
+		if (this._plugins.has(pluginId)) {
 			return err(new Error(`Plugin "${pluginId}" is already registered`));
 		}
 
@@ -90,7 +90,7 @@ export class PluginRegistry implements ProviderRegistryInterface {
 			return err(new Error('Plugin manifest must have id and name'));
 		}
 
-		this.plugins.set(pluginId, {
+		this._plugins.set(pluginId, {
 			plugin,
 			priority,
 			autoActivate,
@@ -103,7 +103,7 @@ export class PluginRegistry implements ProviderRegistryInterface {
 	}
 
 	async unregister(pluginId: string): Promise<Result<void, Error>> {
-		const registered = this.plugins.get(pluginId);
+		const registered = this._plugins.get(pluginId);
 		if (!registered) {
 			return err(new Error(`Plugin "${pluginId}" is not registered`));
 		}
@@ -120,13 +120,13 @@ export class PluginRegistry implements ProviderRegistryInterface {
 			);
 		}
 
-		this.plugins.delete(pluginId);
+		this._plugins.delete(pluginId);
 		this._emitEvent({ type: 'plugin-unregistered', pluginId });
 		return ok(undefined);
 	}
 
 	async initialize(pluginId: string): Promise<Result<void, Error>> {
-		const registered = this.plugins.get(pluginId);
+		const registered = this._plugins.get(pluginId);
 		if (!registered) {
 			return err(new Error(`Plugin "${pluginId}" is not registered`));
 		}
@@ -139,7 +139,7 @@ export class PluginRegistry implements ProviderRegistryInterface {
 
 		const context: PluginInitContext = {
 			manifest: plugin.manifest,
-			eventBus: this.eventBus.scope(`plugin:${pluginId}`),
+			eventBus: this._eventBus.scope(`plugin:${pluginId}`),
 			config,
 			logger: createPluginLogger(pluginId),
 		};
@@ -160,7 +160,7 @@ export class PluginRegistry implements ProviderRegistryInterface {
 	}
 
 	async activate(pluginId: string): Promise<Result<void, Error>> {
-		const registered = this.plugins.get(pluginId);
+		const registered = this._plugins.get(pluginId);
 		if (!registered) {
 			return err(new Error(`Plugin "${pluginId}" is not registered`));
 		}
@@ -181,15 +181,15 @@ export class PluginRegistry implements ProviderRegistryInterface {
 			}
 		}
 
-		const active = this.activeProviders.get(category) ?? new Set<string>();
+		const active = this._activeProviders.get(category) ?? new Set<string>();
 		active.add(pluginId);
-		this.activeProviders.set(category, active);
+		this._activeProviders.set(category, active);
 		this._emitEvent({ type: 'plugin-activated', pluginId, category });
 		return ok(undefined);
 	}
 
 	async deactivate(pluginId: string): Promise<Result<void, Error>> {
-		const registered = this.plugins.get(pluginId);
+		const registered = this._plugins.get(pluginId);
 		if (!registered) {
 			return err(new Error(`Plugin "${pluginId}" is not registered`));
 		}
@@ -197,7 +197,7 @@ export class PluginRegistry implements ProviderRegistryInterface {
 		const { plugin } = registered;
 		const category = plugin.manifest.category;
 
-		const active = this.activeProviders.get(category);
+		const active = this._activeProviders.get(category);
 		if (!active?.has(pluginId)) {
 			return ok(undefined);
 		}
@@ -212,32 +212,32 @@ export class PluginRegistry implements ProviderRegistryInterface {
 
 		active.delete(pluginId);
 		if (active.size === 0) {
-			this.activeProviders.delete(category);
+			this._activeProviders.delete(category);
 		}
 		this._emitEvent({ type: 'plugin-deactivated', pluginId, category });
 		return ok(undefined);
 	}
 
 	getPlugin(pluginId: string): BasePlugin | undefined {
-		return this.plugins.get(pluginId)?.plugin;
+		return this._plugins.get(pluginId)?.plugin;
 	}
 
 	getAllPlugins(): BasePlugin[] {
-		return Array.from(this.plugins.values()).map((r) => r.plugin);
+		return Array.from(this._plugins.values()).map((r) => r.plugin);
 	}
 
 	getPluginsByCategory(category: string): BasePlugin[] {
-		return Array.from(this.plugins.values())
+		return Array.from(this._plugins.values())
 			.filter((r) => r.plugin.manifest.category === category)
 			.sort((a, b) => b.priority - a.priority)
 			.map((r) => r.plugin);
 	}
 
 	getActiveProvider(category: string): BasePlugin | undefined {
-		const active = this.activeProviders.get(category);
+		const active = this._activeProviders.get(category);
 		if (!active || active.size === 0) return undefined;
 		const firstId = active.values().next().value;
-		return firstId ? this.plugins.get(firstId)?.plugin : undefined;
+		return firstId ? this._plugins.get(firstId)?.plugin : undefined;
 	}
 
 	getActiveMetadataProvider(): MetadataProvider | undefined {
@@ -301,26 +301,26 @@ export class PluginRegistry implements ProviderRegistryInterface {
 	}
 
 	isActive(pluginId: string): boolean {
-		const registered = this.plugins.get(pluginId);
+		const registered = this._plugins.get(pluginId);
 		if (!registered) return false;
-		const active = this.activeProviders.get(registered.plugin.manifest.category);
+		const active = this._activeProviders.get(registered.plugin.manifest.category);
 		return active?.has(pluginId) ?? false;
 	}
 
 	getStatus(pluginId: string): PluginStatus | undefined {
-		return this.plugins.get(pluginId)?.plugin.status;
+		return this._plugins.get(pluginId)?.plugin.status;
 	}
 
 	on(handler: (event: PluginRegistryEvent) => void): () => void {
-		return this.eventBus.on('registry', handler);
+		return this._eventBus.on('registry', handler);
 	}
 
 	getEventBus(): EventBus {
-		return this.eventBus;
+		return this._eventBus;
 	}
 
 	async dispose(): Promise<void> {
-		for (const pluginId of Array.from(this.plugins.keys())) {
+		for (const pluginId of Array.from(this._plugins.keys())) {
 			try {
 				await this.unregister(pluginId);
 			} catch (error) {
@@ -330,13 +330,13 @@ export class PluginRegistry implements ProviderRegistryInterface {
 				);
 			}
 		}
-		this.plugins.clear();
-		this.activeProviders.clear();
-		this.eventBus.removeAllListeners();
+		this._plugins.clear();
+		this._activeProviders.clear();
+		this._eventBus.removeAllListeners();
 	}
 
 	private _emitEvent(event: PluginRegistryEvent): void {
-		this.eventBus.emit<PluginRegistryEvent>('registry', event);
+		this._eventBus.emit<PluginRegistryEvent>('registry', event);
 	}
 }
 
