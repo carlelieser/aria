@@ -12,14 +12,14 @@ import { X } from 'lucide-react-native';
 import { useAppTheme } from '@/lib/theme';
 
 interface FilterChipProps {
-	id?: string;
-	label: string;
-	selected?: boolean;
-	onPress?: () => void;
-	onToggle?: (id: string) => void;
-	onRemove?: () => void;
-	showRemoveIcon?: boolean;
-	disabled?: boolean;
+	readonly id?: string;
+	readonly label: string;
+	readonly selected?: boolean;
+	readonly onPress?: () => void;
+	readonly onToggle?: (id: string) => void;
+	readonly onRemove?: () => void;
+	readonly showRemoveIcon?: boolean;
+	readonly disabled?: boolean;
 }
 
 export const FilterChip = memo(function FilterChip({

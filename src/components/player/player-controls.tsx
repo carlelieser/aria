@@ -14,7 +14,7 @@ import { usePlayerTheme } from '@/src/components/player/player-theme-context';
 import { WavyPlayButton } from '@/src/components/player/wavy-play-button';
 
 interface PlayerControlsProps {
-	size?: 'sm' | 'md' | 'lg';
+	readonly size?: 'sm' | 'md' | 'lg';
 }
 
 const ICON_SIZES = {

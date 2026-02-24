@@ -23,21 +23,21 @@ import type { ArtistReference } from '@/src/domain/entities/artist';
 import type { AlbumReference } from '@/src/domain/entities/album';
 
 interface UnifiedFilterSheetProps {
-	isOpen: boolean;
-	onClose: () => void;
-	sortField: UnifiedSortField;
-	sortDirection: SearchSortDirection;
-	activeFilters: UnifiedSearchFilters;
-	artists: ArtistReference[];
-	albums: AlbumReference[];
-	onSortFieldChange: (field: UnifiedSortField) => void;
-	onToggleSortDirection: () => void;
-	onContentTypeChange: (type: SearchContentType) => void;
-	onToggleArtist: (artistId: string) => void;
-	onToggleAlbum: (albumId: string) => void;
-	onToggleFavorites: () => void;
-	onToggleDownloaded: () => void;
-	onClearAll: () => void;
+	readonly isOpen: boolean;
+	readonly onClose: () => void;
+	readonly sortField: UnifiedSortField;
+	readonly sortDirection: SearchSortDirection;
+	readonly activeFilters: UnifiedSearchFilters;
+	readonly artists: ArtistReference[];
+	readonly albums: AlbumReference[];
+	readonly onSortFieldChange: (field: UnifiedSortField) => void;
+	readonly onToggleSortDirection: () => void;
+	readonly onContentTypeChange: (type: SearchContentType) => void;
+	readonly onToggleArtist: (artistId: string) => void;
+	readonly onToggleAlbum: (albumId: string) => void;
+	readonly onToggleFavorites: () => void;
+	readonly onToggleDownloaded: () => void;
+	readonly onClearAll: () => void;
 }
 
 export function UnifiedFilterSheet({

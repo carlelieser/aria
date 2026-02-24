@@ -20,11 +20,11 @@ interface SortOption<T extends string> {
 }
 
 interface SortSectionProps<T extends string> {
-	sortField: T;
-	sortDirection: 'asc' | 'desc';
-	sortOptions: readonly SortOption<T>[];
-	onSortFieldChange: (field: T) => void;
-	onToggleDirection: () => void;
+	readonly sortField: T;
+	readonly sortDirection: 'asc' | 'desc';
+	readonly sortOptions: readonly SortOption<T>[];
+	readonly onSortFieldChange: (field: T) => void;
+	readonly onToggleDirection: () => void;
 }
 
 export const LIBRARY_SORT_OPTIONS: readonly SortOption<SortField>[] = [
@@ -50,10 +50,10 @@ export const UNIFIED_SORT_OPTIONS: readonly SortOption<UnifiedSortField>[] = [
 ] as const;
 
 interface SortOptionItemProps<T extends string> {
-	field: T;
-	label: string;
-	isSelected: boolean;
-	onSelect: (field: T) => void;
+	readonly field: T;
+	readonly label: string;
+	readonly isSelected: boolean;
+	readonly onSelect: (field: T) => void;
 }
 
 const SortOptionItem = memo(function SortOptionItem<T extends string>({

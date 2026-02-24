@@ -21,9 +21,9 @@ import { useSleepTimer, SLEEP_TIMER_PRESETS } from '@/src/hooks/use-sleep-timer'
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 
 interface TimerPresetButtonProps {
-	minutes: number;
-	label: string;
-	onSelect: (minutes: number) => void;
+	readonly minutes: number;
+	readonly label: string;
+	readonly onSelect: (minutes: number) => void;
 }
 
 const TimerPresetButton = memo(function TimerPresetButton({
@@ -58,8 +58,8 @@ const TimerPresetButton = memo(function TimerPresetButton({
 });
 
 interface SleepTimerSheetProps {
-	isOpen: boolean;
-	onClose: () => void;
+	readonly isOpen: boolean;
+	readonly onClose: () => void;
 }
 
 export function SleepTimerSheet({ isOpen, onClose }: SleepTimerSheetProps) {

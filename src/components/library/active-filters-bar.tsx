@@ -12,14 +12,14 @@ import type { AlbumReference } from '@/src/domain/entities/album';
 import type { LibraryFilters } from '@/src/domain/utils/track-filtering';
 
 interface ActiveFiltersBarProps {
-	activeFilters: LibraryFilters;
-	artists: ArtistReference[];
-	albums: AlbumReference[];
-	onToggleArtist: (artistId: string) => void;
-	onToggleAlbum: (albumId: string) => void;
-	onToggleFavorites: () => void;
-	onToggleDownloaded: () => void;
-	onClearAll: () => void;
+	readonly activeFilters: LibraryFilters;
+	readonly artists: ArtistReference[];
+	readonly albums: AlbumReference[];
+	readonly onToggleArtist: (artistId: string) => void;
+	readonly onToggleAlbum: (albumId: string) => void;
+	readonly onToggleFavorites: () => void;
+	readonly onToggleDownloaded: () => void;
+	readonly onClearAll: () => void;
 }
 
 export function ActiveFiltersBar({

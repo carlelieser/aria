@@ -8,15 +8,15 @@ import type { Track } from '@/src/domain/entities/track';
 import type { TrackActionSource } from '@/src/domain/actions/track-action';
 
 interface SelectableTrackListItemProps {
-	track: Track;
-	source?: TrackActionSource;
-	isSelectionMode: boolean;
-	isSelected: boolean;
-	onLongPress: (track: Track) => void;
-	onSelectionToggle: (track: Track) => void;
-	queue?: Track[];
-	queueIndex?: number;
-	style?: StyleProp<ViewStyle>;
+	readonly track: Track;
+	readonly source?: TrackActionSource;
+	readonly isSelectionMode: boolean;
+	readonly isSelected: boolean;
+	readonly onLongPress: (track: Track) => void;
+	readonly onSelectionToggle: (track: Track) => void;
+	readonly queue?: Track[];
+	readonly queueIndex?: number;
+	readonly style?: StyleProp<ViewStyle>;
 }
 
 export const SelectableTrackListItem = memo(function SelectableTrackListItem({

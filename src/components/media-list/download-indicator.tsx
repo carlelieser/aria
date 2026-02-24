@@ -21,8 +21,8 @@ import { useDownloadStatus } from '@/src/hooks/use-download-status';
 import { useAppTheme } from '@/lib/theme';
 
 interface DownloadIndicatorProps {
-	trackId: string;
-	size?: 'sm' | 'md' | 'lg';
+	readonly trackId: string;
+	readonly size?: 'sm' | 'md' | 'lg';
 }
 
 const SIZE_CONFIG = {

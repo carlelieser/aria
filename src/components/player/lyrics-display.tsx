@@ -24,8 +24,8 @@ import { useAppTheme } from '@/lib/theme';
 import { Skeleton } from '@/src/components/ui/skeleton';
 
 interface LyricsDisplayProps {
-	maxHeight?: number;
-	onLineTap?: (timeMs: number) => void;
+	readonly maxHeight?: number;
+	readonly onLineTap?: (timeMs: number) => void;
 }
 
 const LINE_HEIGHT = 32;
@@ -182,10 +182,10 @@ export function LyricsDisplay({ maxHeight, onLineTap }: LyricsDisplayProps) {
 }
 
 interface LyricLineProps {
-	text: string;
-	isActive: boolean;
-	isPast: boolean;
-	onPress: () => void;
+	readonly text: string;
+	readonly isActive: boolean;
+	readonly isPast: boolean;
+	readonly onPress: () => void;
 }
 
 function LyricLine({ text, isActive, isPast, onPress }: LyricLineProps) {

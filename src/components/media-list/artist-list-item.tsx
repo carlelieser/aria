@@ -15,23 +15,23 @@ import type { Artist } from '@/src/domain/entities/artist';
 import { MediaListItem } from './media-list-item';
 
 interface ArtistListItemBaseProps {
-	onPress?: () => void;
+	readonly onPress?: () => void;
 }
 
 interface ArtistListItemWithArtist extends ArtistListItemBaseProps {
-	artist: Artist;
-	id?: never;
-	name?: never;
-	artworkUrl?: never;
-	trackCount?: never;
+	readonly artist: Artist;
+	readonly id?: never;
+	readonly name?: never;
+	readonly artworkUrl?: never;
+	readonly trackCount?: never;
 }
 
 interface ArtistListItemWithProps extends ArtistListItemBaseProps {
-	artist?: never;
-	id: string;
-	name: string;
-	artworkUrl?: string;
-	trackCount?: number;
+	readonly artist?: never;
+	readonly id: string;
+	readonly name: string;
+	readonly artworkUrl?: string;
+	readonly trackCount?: number;
 }
 
 export type ArtistListItemProps = ArtistListItemWithArtist | ArtistListItemWithProps;

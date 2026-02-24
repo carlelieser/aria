@@ -31,26 +31,26 @@ import { useOpenPlayerOnTrackClick } from '@/src/application/state/settings-stor
 import { router } from 'expo-router';
 
 interface TrackListItemProps {
-	track: Track;
-	source?: TrackActionSource;
-	onPress?: (track: Track) => void;
-	onLongPress?: (track: Track) => void;
+	readonly track: Track;
+	readonly source?: TrackActionSource;
+	readonly onPress?: (track: Track) => void;
+	readonly onLongPress?: (track: Track) => void;
 	/** When provided, shows download-specific UI (progress, status, actions) */
-	downloadInfo?: DownloadInfo;
+	readonly downloadInfo?: DownloadInfo;
 	/** Hide the options menu (useful in download context) */
-	hideOptionsMenu?: boolean;
+	readonly hideOptionsMenu?: boolean;
 	/** Fallback artwork URL when track has no artwork (e.g., album artwork) */
-	fallbackArtworkUrl?: string;
+	readonly fallbackArtworkUrl?: string;
 	/** Queue of tracks for skip next/previous functionality */
-	queue?: Track[];
+	readonly queue?: Track[];
 	/** Index of this track in the queue */
-	queueIndex?: number;
+	readonly queueIndex?: number;
 	/** Playlist ID when displaying tracks from a playlist */
-	playlistId?: string;
+	readonly playlistId?: string;
 	/** Track position within the playlist */
-	trackPosition?: number;
+	readonly trackPosition?: number;
 	/** Callback for retrying failed downloads */
-	onRetry?: (track: Track) => void;
+	readonly onRetry?: (track: Track) => void;
 }
 
 export const TrackListItem = memo(function TrackListItem({

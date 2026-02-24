@@ -19,15 +19,15 @@ import { useAppTheme } from '@/lib/theme';
 import type { Playlist } from '@/src/domain/entities/playlist';
 
 interface BatchPlaylistPickerProps {
-	isOpen: boolean;
-	onClose: () => void;
-	onSelectPlaylist: (playlistId: string) => void;
-	selectedCount: number;
+	readonly isOpen: boolean;
+	readonly onClose: () => void;
+	readonly onSelectPlaylist: (playlistId: string) => void;
+	readonly selectedCount: number;
 }
 
 interface PlaylistItemProps {
-	playlist: Playlist;
-	onSelect: () => void;
+	readonly playlist: Playlist;
+	readonly onSelect: () => void;
 }
 
 function PlaylistItem({ playlist, onSelect }: PlaylistItemProps) {

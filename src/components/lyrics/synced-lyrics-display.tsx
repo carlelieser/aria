@@ -18,12 +18,12 @@ import { FontFamily } from '@/lib/theme/typography';
 import type { LyricsLine } from '@/src/plugins/core/interfaces/metadata-provider';
 
 interface LyricsLineItemProps {
-	line: LyricsLine;
-	index: number;
-	currentIndex: number;
-	onPress: (startTime: number) => void;
-	activeColor: string;
-	inactiveColor: string;
+	readonly line: LyricsLine;
+	readonly index: number;
+	readonly currentIndex: number;
+	readonly onPress: (startTime: number) => void;
+	readonly activeColor: string;
+	readonly inactiveColor: string;
 }
 
 const LyricsLineItem = memo(function LyricsLineItem({
@@ -79,8 +79,8 @@ const LyricsLineItem = memo(function LyricsLineItem({
 });
 
 interface SyncedLyricsDisplayProps {
-	lines: LyricsLine[];
-	attribution?: string;
+	readonly lines: LyricsLine[];
+	readonly attribution?: string;
 }
 
 export function SyncedLyricsDisplay({ lines, attribution }: SyncedLyricsDisplayProps) {

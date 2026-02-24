@@ -16,25 +16,25 @@ import { useAlbumStore } from '@/src/application/state/album-store';
 import { MediaListItem } from './media-list-item';
 
 interface AlbumListItemBaseProps {
-	onPress?: () => void;
+	readonly onPress?: () => void;
 }
 
 interface AlbumListItemWithAlbum extends AlbumListItemBaseProps {
-	album: Album;
-	id?: never;
-	name?: never;
-	artistName?: never;
-	artworkUrl?: never;
-	trackCount?: never;
+	readonly album: Album;
+	readonly id?: never;
+	readonly name?: never;
+	readonly artistName?: never;
+	readonly artworkUrl?: never;
+	readonly trackCount?: never;
 }
 
 interface AlbumListItemWithProps extends AlbumListItemBaseProps {
-	album?: never;
-	id: string;
-	name: string;
-	artistName: string;
-	artworkUrl?: string;
-	trackCount?: number;
+	readonly album?: never;
+	readonly id: string;
+	readonly name: string;
+	readonly artistName: string;
+	readonly artworkUrl?: string;
+	readonly trackCount?: number;
 }
 
 export type AlbumListItemProps = AlbumListItemWithAlbum | AlbumListItemWithProps;

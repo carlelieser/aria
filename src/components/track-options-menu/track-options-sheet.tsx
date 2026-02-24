@@ -111,11 +111,11 @@ export function TrackOptionsSheet() {
 }
 
 interface TrackOptionsContentProps {
-	track: NonNullable<ReturnType<typeof useTrackOptionsTrack>>;
-	source: ReturnType<typeof useTrackOptionsSource>;
-	playlistId?: string;
-	trackPosition?: number;
-	onClose: () => void;
+	readonly track: NonNullable<ReturnType<typeof useTrackOptionsTrack>>;
+	readonly source: ReturnType<typeof useTrackOptionsSource>;
+	readonly playlistId?: string;
+	readonly trackPosition?: number;
+	readonly onClose: () => void;
 }
 
 function TrackOptionsContent({
@@ -226,12 +226,12 @@ function TrackOptionsContent({
 }
 
 interface ActionItem {
-	id: string;
-	label: string;
-	icon?: LucideIcon;
-	variant?: 'default' | 'destructive';
-	disabled?: boolean;
-	checked?: boolean;
+	readonly id: string;
+	readonly label: string;
+	readonly icon?: LucideIcon;
+	readonly variant?: 'default' | 'destructive';
+	readonly disabled?: boolean;
+	readonly checked?: boolean;
 }
 
 function ActionSheetItem({

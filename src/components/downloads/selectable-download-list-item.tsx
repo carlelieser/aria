@@ -17,19 +17,19 @@ import { useResolvedTrack } from '@/src/hooks/use-resolved-track';
 
 interface SelectableDownloadListItemProps {
 	/** The download info containing track reference and download status */
-	downloadInfo: DownloadInfo;
+	readonly downloadInfo: DownloadInfo;
 	/** Whether selection mode is active */
-	isSelectionMode: boolean;
+	readonly isSelectionMode: boolean;
 	/** Whether this item is selected */
-	isSelected: boolean;
+	readonly isSelected: boolean;
 	/** Callback when item is long pressed (to enter selection mode) */
-	onLongPress: (track: Track) => void;
+	readonly onLongPress: (track: Track) => void;
 	/** Callback when selection is toggled */
-	onSelectionToggle: (track: Track) => void;
+	readonly onSelectionToggle: (track: Track) => void;
 	/** Queue of tracks for playback */
-	queue?: Track[];
+	readonly queue?: Track[];
 	/** Index of this track in the queue */
-	queueIndex?: number;
+	readonly queueIndex?: number;
 }
 
 export const SelectableDownloadListItem = memo(function SelectableDownloadListItem({
