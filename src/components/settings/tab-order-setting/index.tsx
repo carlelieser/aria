@@ -6,12 +6,10 @@
  */
 
 import { useState, useCallback } from 'react';
-import { View, Pressable, StyleSheet } from 'react-native';
-import { Text, Switch } from 'react-native-paper';
-import { GripVerticalIcon, ChevronUpIcon, ChevronDownIcon } from 'lucide-react-native';
+import { View, StyleSheet } from 'react-native';
+import { GripVerticalIcon } from 'lucide-react-native';
 import { SettingsItem } from '@/src/components/settings/settings-item';
 import { SettingsBottomSheet } from '@/src/components/settings/settings-bottom-sheet';
-import { useAppTheme, M3Shapes } from '@/lib/theme';
 import { TAB_CONFIG } from '@/lib/tab-config';
 import {
 	type TabId,
@@ -25,9 +23,9 @@ import {
 	useToggleTab,
 	useResetEnabledTabs,
 } from '@/src/application/state/settings-store';
+import { TabItemRow } from './tab-item-row';
 
 export function TabOrderSetting() {
-	const { colors } = useAppTheme();
 	const [isOpen, setIsOpen] = useState(false);
 	const tabOrder = useTabOrder();
 	const setTabOrder = useSetTabOrder();
@@ -111,83 +109,22 @@ export function TabOrderSetting() {
 					{tabOrder.map((tabId, index) => {
 						const config = TAB_CONFIG[tabId];
 						if (!config?.icon) return null;
-						const TabIcon = config.icon;
-						const isFirst = index === 0;
-						const isLast = index === tabOrder.length - 1;
-						const isEnabled = enabledTabs.includes(tabId);
-						const isRequired = REQUIRED_TABS.includes(tabId);
 
 						return (
-							<View
+							<TabItemRow
 								key={tabId}
-								style={[
-									styles.tabItem,
-									{ backgroundColor: colors.surfaceContainerHighest },
-									!isEnabled && styles.disabledTab,
-								]}
-							>
-								<View style={styles.tabInfo}>
-									<TabIcon
-										size={20}
-										color={isEnabled ? colors.onSurface : colors.outlineVariant}
-									/>
-									<Text
-										variant={'bodyMedium'}
-										style={[
-											styles.tabLabel,
-											{
-												color: isEnabled
-													? colors.onSurface
-													: colors.outlineVariant,
-											},
-										]}
-									>
-										{config.title}
-									</Text>
-								</View>
-								<View style={styles.tabActions}>
-									<Switch
-										value={isEnabled}
-										onValueChange={() => handleToggleTab(tabId)}
-										disabled={isRequired}
-										style={styles.switch}
-									/>
-									<Pressable
-										onPress={() => handleMoveUp(index)}
-										disabled={isFirst}
-										style={({ pressed }) => [
-											styles.arrowButton,
-											{ backgroundColor: colors.surfaceContainer },
-											pressed && !isFirst && styles.pressed,
-											isFirst && styles.disabledButton,
-										]}
-									>
-										<ChevronUpIcon
-											size={18}
-											color={
-												isFirst ? colors.outlineVariant : colors.onSurface
-											}
-										/>
-									</Pressable>
-									<Pressable
-										onPress={() => handleMoveDown(index)}
-										disabled={isLast}
-										style={({ pressed }) => [
-											styles.arrowButton,
-											{ backgroundColor: colors.surfaceContainer },
-											pressed && !isLast && styles.pressed,
-											isLast && styles.disabledButton,
-										]}
-									>
-										<ChevronDownIcon
-											size={18}
-											color={
-												isLast ? colors.outlineVariant : colors.onSurface
-											}
-										/>
-									</Pressable>
-								</View>
-							</View>
+								tabId={tabId}
+								title={config.title ?? tabId}
+								icon={config.icon}
+								index={index}
+								isFirst={index === 0}
+								isLast={index === tabOrder.length - 1}
+								isEnabled={enabledTabs.includes(tabId)}
+								isRequired={REQUIRED_TABS.includes(tabId)}
+								onMoveUp={handleMoveUp}
+								onMoveDown={handleMoveDown}
+								onToggle={handleToggleTab}
+							/>
 						);
 					})}
 				</View>
@@ -197,46 +134,7 @@ export function TabOrderSetting() {
 }
 
 const styles = StyleSheet.create({
-	pressed: {
-		opacity: 0.7,
-	},
 	tabList: {
 		gap: 8,
-	},
-	tabItem: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-		paddingVertical: 12,
-		paddingHorizontal: 16,
-		borderRadius: M3Shapes.medium,
-	},
-	tabInfo: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 12,
-	},
-	tabLabel: {
-		fontWeight: '500',
-	},
-	tabActions: {
-		flexDirection: 'row',
-		gap: 8,
-	},
-	arrowButton: {
-		width: 36,
-		height: 36,
-		borderRadius: 18,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	disabledButton: {
-		opacity: 0.5,
-	},
-	disabledTab: {
-		opacity: 0.6,
-	},
-	switch: {
-		marginRight: 4,
 	},
 });

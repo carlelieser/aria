@@ -1,34 +1,23 @@
+/**
+ * AnimatedPolygon Components
+ *
+ * SVG polygon components with spring animation, external SharedValue control,
+ * and static (non-animated) variants.
+ */
+
 import React, { useMemo } from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import {
 	useSharedValue,
 	useDerivedValue,
 	useAnimatedReaction,
 	withSpring,
 	runOnJS,
-	SharedValue,
 } from 'react-native-reanimated';
 import Svg, { Polygon } from 'react-native-svg';
-
-const DEFAULT_SIZE = 100;
-const DEFAULT_STROKE_WIDTH = 2;
-const MIN_SEGMENTS = 3;
-const MAX_INTERPOLATION_POINTS = 360;
-
-interface AnimatedPolygonProps {
-	readonly segments: number;
-	readonly size?: number;
-	readonly fill?: string;
-	readonly stroke?: string;
-	readonly strokeWidth?: number;
-	readonly rotation?: number;
-	readonly springConfig?: {
-		readonly damping?: number;
-		readonly stiffness?: number;
-		readonly mass?: number;
-	};
-	readonly style?: ViewStyle;
-}
+import { DEFAULT_SIZE, DEFAULT_STROKE_WIDTH } from './types';
+import type { AnimatedPolygonProps, ControlledPolygonProps } from './types';
+import { generateInterpolatedPointsWorklet } from './generate-points';
 
 export function AnimatedPolygonView({
 	segments,
@@ -88,23 +77,6 @@ export function AnimatedPolygonView({
 	);
 }
 
-interface ControlledPolygonProps {
-	/** Shared value controlling the number of segments */
-	readonly segments: SharedValue<number>;
-	/** Size of the SVG viewbox (width and height) */
-	readonly size?: number;
-	/** Fill color of the polygon */
-	readonly fill?: string;
-	/** Stroke color of the polygon */
-	readonly stroke?: string;
-	/** Stroke width */
-	readonly strokeWidth?: number;
-	/** Rotation in degrees */
-	readonly rotation?: number;
-	/** Container style */
-	readonly style?: ViewStyle;
-}
-
 /**
  * Polygon controlled by an external SharedValue.
  * Use this when you want to control the animation yourself.
@@ -142,63 +114,6 @@ export function ControlledPolygon({
 			</Svg>
 		</View>
 	);
-}
-
-/**
- * Worklet version of point generation for use in animated props.
- */
-function generateInterpolatedPointsWorklet(
-	segments: number,
-	size: number,
-	rotation: number,
-	strokeWidth: number = DEFAULT_STROKE_WIDTH
-): string {
-	'worklet';
-
-	// Guard against NaN or invalid values
-	const safeSegments = Number.isFinite(segments) ? segments : MIN_SEGMENTS;
-	const safeSize = Number.isFinite(size) ? size : DEFAULT_SIZE;
-	const safeRotation = Number.isFinite(rotation) ? rotation : 0;
-	const safeStrokeWidth = Number.isFinite(strokeWidth) ? strokeWidth : DEFAULT_STROKE_WIDTH;
-
-	const validSegments = Math.max(MIN_SEGMENTS, safeSegments);
-	const center = safeSize / 2;
-	const radius = (safeSize - safeStrokeWidth) / 2;
-	const rotationRad = (safeRotation * Math.PI) / 180;
-
-	let points = '';
-	const pointCount = MAX_INTERPOLATION_POINTS;
-
-	for (let i = 0; i < pointCount; i++) {
-		const t = i / pointCount;
-		const segmentIndex = t * validSegments;
-		const currentVertex = Math.floor(segmentIndex);
-		const nextVertex = (currentVertex + 1) % Math.ceil(validSegments);
-		const localT = segmentIndex - currentVertex;
-
-		const angle1 = (2 * Math.PI * currentVertex) / validSegments - Math.PI / 2 + rotationRad;
-		const angle2 = (2 * Math.PI * nextVertex) / validSegments - Math.PI / 2 + rotationRad;
-
-		let adjustedAngle2 = angle2;
-		if (nextVertex === 0 && currentVertex === Math.floor(validSegments)) {
-			adjustedAngle2 = angle1 + (2 * Math.PI) / validSegments;
-		}
-
-		const x1 = center + radius * Math.cos(angle1);
-		const y1 = center + radius * Math.sin(angle1);
-		const x2 = center + radius * Math.cos(adjustedAngle2);
-		const y2 = center + radius * Math.sin(adjustedAngle2);
-
-		const x = x1 + (x2 - x1) * localT;
-		const y = y1 + (y2 - y1) * localT;
-
-		if (i > 0) {
-			points += ' ';
-		}
-		points += `${x.toFixed(2)},${y.toFixed(2)}`;
-	}
-
-	return points;
 }
 
 /**
@@ -240,4 +155,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export type { AnimatedPolygonProps, ControlledPolygonProps };
+export type { AnimatedPolygonProps, ControlledPolygonProps } from './types';

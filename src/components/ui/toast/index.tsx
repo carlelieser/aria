@@ -6,7 +6,7 @@
  * Supports swipe-to-dismiss gestures.
  */
 
-import React, { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text, Surface } from 'react-native-paper';
 import { Portal } from '@rn-primitives/portal';
@@ -24,51 +24,12 @@ import {
 	useCurrentToast,
 	useToastStore,
 	type Toast,
-	type ToastVariant,
 } from '@/src/application/state/toast-store';
 import { useAppTheme } from '@/lib/theme';
 import { useToastPosition } from '@/src/hooks/use-toast-position';
+import { getVariantColors, SWIPE_THRESHOLD, DISMISS_VELOCITY } from './types';
 
 const AnimatedSurface = Animated.createAnimatedComponent(Surface);
-
-const SWIPE_THRESHOLD = 50;
-const DISMISS_VELOCITY = 500;
-
-/**
- * Get snackbar colors based on variant
- */
-function getVariantColors(
-	variant: ToastVariant,
-	colors: ReturnType<typeof useAppTheme>['colors']
-): { backgroundColor: string; textColor: string } {
-	switch (variant) {
-		case 'error':
-			return {
-				backgroundColor: colors.errorContainer,
-				textColor: colors.onErrorContainer,
-			};
-		case 'success':
-			return {
-				backgroundColor: colors.primaryContainer,
-				textColor: colors.onPrimaryContainer,
-			};
-		case 'warning':
-			return {
-				backgroundColor: colors.tertiaryContainer,
-				textColor: colors.onTertiaryContainer,
-			};
-		case 'info':
-			return {
-				backgroundColor: colors.secondaryContainer,
-				textColor: colors.onSecondaryContainer,
-			};
-		default:
-			return {
-				backgroundColor: colors.inverseSurface,
-				textColor: colors.inverseOnSurface,
-			};
-	}
-}
 
 export function ToastContainer() {
 	const currentToast = useCurrentToast();
