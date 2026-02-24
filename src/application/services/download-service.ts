@@ -301,8 +301,12 @@ export class DownloadService {
 		this.activeDownloads.delete(trackId);
 
 		if (!libraryService.isInLibrary(trackId)) {
-			libraryService.addTrack(track);
-			logger.debug(`Added to library: ${track.title}`);
+			const result = libraryService.addTrack(track);
+			if (result.success) {
+				logger.debug(`Added to library: ${track.title}`);
+			} else {
+				logger.warn(`Failed to add track to library: ${result.error.message}`);
+			}
 		}
 
 		logger.info(`Download complete: ${track.title}`);
