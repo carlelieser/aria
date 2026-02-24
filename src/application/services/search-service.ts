@@ -1,4 +1,4 @@
-import type { Track, Album } from '@/src/domain';
+import type { Track, Album, Artist } from '@/src/domain';
 import type { MetadataProvider, SearchOptions } from '@plugins/core';
 import {
 	useSearchStore,
@@ -16,6 +16,14 @@ interface CacheEntry {
 }
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
+
+interface ProviderSearchResult {
+	readonly tracks: Track[];
+	readonly albums: Album[];
+	readonly artists: Artist[];
+}
+
+const EMPTY_PROVIDER_RESULT: ProviderSearchResult = { tracks: [], albums: [], artists: [] };
 
 export class SearchService {
 	private metadataProviders: MetadataProvider[] = [];
@@ -55,22 +63,11 @@ export class SearchService {
 
 	async search(query: string, options?: SearchOptions): Promise<Result<AppSearchResults, Error>> {
 		this._cancelCurrentSearch();
-
-		const abortController = new AbortController();
-		this._currentAbortController = abortController;
 		this._searchVersion++;
-		const searchVersion = this._searchVersion;
 
-		const store = useSearchStore.getState();
 		const cacheKey = this._getCacheKey(query, options);
-
-		const cachedEntry = this.searchCache.get(cacheKey);
-		if (cachedEntry && Date.now() - cachedEntry.timestamp < CACHE_TTL_MS) {
-			logger.debug(`Returning cached results for query: ${query}`);
-			store.setQuery(query);
-			store.setResults(cachedEntry.results);
-			return ok(cachedEntry.results);
-		}
+		const cachedResult = this._tryReturnCached(query, cacheKey);
+		if (cachedResult) return cachedResult;
 
 		const pendingSearch = this.pendingSearches.get(cacheKey);
 		if (pendingSearch) {
@@ -78,17 +75,34 @@ export class SearchService {
 			return pendingSearch;
 		}
 
-		const optionsWithSignal: SearchOptions = {
-			...options,
-			signal: abortController.signal,
-		};
+		return this._startNewSearch(query, options, cacheKey);
+	}
 
-		const searchPromise = this._executeSearch(
-			query,
-			optionsWithSignal,
-			cacheKey,
-			searchVersion
-		);
+	private _tryReturnCached(
+		query: string,
+		cacheKey: string
+	): Result<AppSearchResults, Error> | null {
+		const cachedEntry = this.searchCache.get(cacheKey);
+		if (!cachedEntry || Date.now() - cachedEntry.timestamp >= CACHE_TTL_MS) return null;
+
+		logger.debug(`Returning cached results for query: ${query}`);
+		const store = useSearchStore.getState();
+		store.setQuery(query);
+		store.setResults(cachedEntry.results);
+		return ok(cachedEntry.results);
+	}
+
+	private async _startNewSearch(
+		query: string,
+		options: SearchOptions | undefined,
+		cacheKey: string
+	): Promise<Result<AppSearchResults, Error>> {
+		const abortController = new AbortController();
+		this._currentAbortController = abortController;
+		const searchVersion = this._searchVersion;
+
+		const optionsWithSignal: SearchOptions = { ...options, signal: abortController.signal };
+		const searchPromise = this._executeSearch(query, optionsWithSignal, cacheKey, searchVersion);
 		this.pendingSearches.set(cacheKey, searchPromise);
 
 		try {
@@ -130,94 +144,129 @@ export class SearchService {
 		const store = useSearchStore.getState();
 		store.setSearching(true);
 		store.setQuery(query);
-
-		const signal = options?.signal;
-
 		if (this.metadataProviders.length === 0) {
-			const error = new Error('No metadata providers available');
-			store.setError(error.message);
-			return err(error);
+			store.setError('No metadata providers available');
+			return err(new Error('No metadata providers available'));
 		}
-
 		try {
-			const searchPromises = this.metadataProviders.map(async (provider) => {
-				if (signal?.aborted) {
-					return { tracks: [], albums: [], artists: [] };
-				}
-
-				try {
-					const [tracksResult, albumsResult, artistsResult] = await Promise.all([
-						provider.searchTracks(query, options),
-						provider.searchAlbums(query, options),
-						provider.searchArtists(query, options),
-					]);
-
-					if (signal?.aborted) {
-						return { tracks: [], albums: [], artists: [] };
-					}
-
-					return {
-						tracks: tracksResult.success ? tracksResult.data.items : [],
-						albums: albumsResult.success ? albumsResult.data.items : [],
-						artists: artistsResult.success ? artistsResult.data.items : [],
-					};
-				} catch (error) {
-					if (signal?.aborted) {
-						return { tracks: [], albums: [], artists: [] };
-					}
-					logger.warn(
-						`Search failed for provider ${provider.manifest.id}`,
-						error instanceof Error ? error : undefined
-					);
-					return { tracks: [], albums: [], artists: [] };
-				}
-			});
-
-			const results = await Promise.all(searchPromises);
-
-			if (signal?.aborted || searchVersion !== this._searchVersion) {
-				logger.debug(`Search for "${query}" was cancelled or superseded`);
-				return err(new Error('Search cancelled'));
-			}
-
-			const aggregated: AppSearchResults = {
-				tracks: [],
-				albums: [],
-				artists: [],
-			};
-
-			for (const result of results) {
-				aggregated.tracks.push(...result.tracks);
-				aggregated.albums.push(...result.albums);
-				aggregated.artists.push(...result.artists);
-			}
-
-			aggregated.tracks = this.deduplicateTracks(aggregated.tracks);
-			aggregated.albums = this.deduplicateAlbums(aggregated.albums);
-			aggregated.artists = this.deduplicateById(aggregated.artists);
-
-			this.searchCache.set(cacheKey, {
-				results: aggregated,
-				timestamp: Date.now(),
-			});
-
-			if (searchVersion !== this._searchVersion) {
-				logger.debug(`Search for "${query}" superseded, not updating store`);
-				return ok(aggregated);
-			}
-
-			store.setResults(aggregated);
-			store.addRecentSearch(query);
-
-			return ok(aggregated);
+			return await this._searchAndAggregate(query, options, cacheKey, searchVersion, store);
 		} catch (error) {
-			if (signal?.aborted || searchVersion !== this._searchVersion) {
-				return err(new Error('Search cancelled'));
-			}
-			const errorMessage = error instanceof Error ? error.message : 'Search failed';
-			store.setError(errorMessage);
-			return err(error instanceof Error ? error : new Error(errorMessage));
+			return this._handleSearchError(error, options?.signal, searchVersion, store);
 		}
+	}
+
+	private async _searchAndAggregate(
+		query: string,
+		options: SearchOptions | undefined,
+		cacheKey: string,
+		searchVersion: number,
+		store: ReturnType<typeof useSearchStore.getState>
+	): Promise<Result<AppSearchResults, Error>> {
+		const signal = options?.signal;
+		const results = await this._searchAllProviders(query, options, signal);
+
+		if (signal?.aborted || searchVersion !== this._searchVersion) {
+			logger.debug(`Search for "${query}" was cancelled or superseded`);
+			return err(new Error('Search cancelled'));
+		}
+
+		const aggregated = this._aggregateResults(results);
+		this._cacheResults(cacheKey, aggregated);
+
+		return this._publishResults(query, aggregated, searchVersion, store);
+	}
+
+	private async _searchAllProviders(
+		query: string,
+		options: SearchOptions | undefined,
+		signal: AbortSignal | undefined
+	): Promise<ProviderSearchResult[]> {
+		const promises = this.metadataProviders.map((provider) =>
+			this._searchProvider(provider, query, options, signal)
+		);
+		return Promise.all(promises);
+	}
+
+	private async _searchProvider(
+		provider: MetadataProvider,
+		query: string,
+		options: SearchOptions | undefined,
+		signal: AbortSignal | undefined
+	): Promise<ProviderSearchResult> {
+		if (signal?.aborted) return EMPTY_PROVIDER_RESULT;
+		try {
+			return await this._fetchProviderResults(provider, query, options, signal);
+		} catch (error) {
+			if (signal?.aborted) return EMPTY_PROVIDER_RESULT;
+			logger.warn(`Search failed for provider ${provider.manifest.id}`,
+				error instanceof Error ? error : undefined);
+			return EMPTY_PROVIDER_RESULT;
+		}
+	}
+
+	private async _fetchProviderResults(
+		provider: MetadataProvider,
+		query: string,
+		options: SearchOptions | undefined,
+		signal: AbortSignal | undefined
+	): Promise<ProviderSearchResult> {
+		const [tracksResult, albumsResult, artistsResult] = await Promise.all([
+			provider.searchTracks(query, options),
+			provider.searchAlbums(query, options),
+			provider.searchArtists(query, options),
+		]);
+		if (signal?.aborted) return EMPTY_PROVIDER_RESULT;
+		return {
+			tracks: tracksResult.success ? tracksResult.data.items : [],
+			albums: albumsResult.success ? albumsResult.data.items : [],
+			artists: artistsResult.success ? artistsResult.data.items : [],
+		};
+	}
+
+	private _aggregateResults(results: ProviderSearchResult[]): AppSearchResults {
+		const aggregated: AppSearchResults = { tracks: [], albums: [], artists: [] };
+		for (const result of results) {
+			aggregated.tracks.push(...result.tracks);
+			aggregated.albums.push(...result.albums);
+			aggregated.artists.push(...result.artists);
+		}
+		aggregated.tracks = this.deduplicateTracks(aggregated.tracks);
+		aggregated.albums = this.deduplicateAlbums(aggregated.albums);
+		aggregated.artists = this.deduplicateById(aggregated.artists);
+		return aggregated;
+	}
+
+	private _cacheResults(cacheKey: string, results: AppSearchResults): void {
+		this.searchCache.set(cacheKey, { results, timestamp: Date.now() });
+	}
+
+	private _publishResults(
+		query: string,
+		aggregated: AppSearchResults,
+		searchVersion: number,
+		store: ReturnType<typeof useSearchStore.getState>
+	): Result<AppSearchResults, Error> {
+		if (searchVersion !== this._searchVersion) {
+			logger.debug(`Search for "${query}" superseded, not updating store`);
+			return ok(aggregated);
+		}
+		store.setResults(aggregated);
+		store.addRecentSearch(query);
+		return ok(aggregated);
+	}
+
+	private _handleSearchError(
+		error: unknown,
+		signal: AbortSignal | undefined,
+		searchVersion: number,
+		store: ReturnType<typeof useSearchStore.getState>
+	): Result<AppSearchResults, Error> {
+		if (signal?.aborted || searchVersion !== this._searchVersion) {
+			return err(new Error('Search cancelled'));
+		}
+		const errorMessage = error instanceof Error ? error.message : 'Search failed';
+		store.setError(errorMessage);
+		return err(error instanceof Error ? error : new Error(errorMessage));
 	}
 
 	async getSuggestions(query: string): Promise<Result<SearchSuggestion[], Error>> {

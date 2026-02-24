@@ -131,71 +131,73 @@ export class PlaybackService {
 	async play(track: Track): Promise<Result<void, Error>> {
 		return this.withPlayLock(async () => {
 			playbackTimer.start(track.title);
-
-			// Update UI state immediately so the user sees loading state
 			usePlayerStore.getState().play(track);
 
-			// Run stop and stream resolution in parallel to reduce latency.
-			// Stream resolution is the slowest part; overlapping it with
-			// stopping the previous track saves significant time.
-			playbackTimer.beginPhase('stop+resolve');
-
-			const stopPromise = this._stopActiveProvider();
-			const streamPromise = this.getAudioStream(track);
-
-			const [, streamResult] = await Promise.all([stopPromise, streamPromise]);
-
-			playbackTimer.endPhase();
-
+			const streamResult = await this._resolveStreamForTrack(track);
 			if (!streamResult.success) {
-				playbackTimer.cancel();
-				usePlayerStore.getState()._setError(streamResult.error.message);
-				return err(streamResult.error);
+				return this._handlePlayError(streamResult.error);
 			}
 
-			try {
-				const audioStream = streamResult.data;
-				const provider = this.getProviderForUrl(audioStream.url);
-
-				if (!provider) {
-					playbackTimer.cancel();
-					const error = new Error('No playback provider available for this stream type');
-					usePlayerStore.getState()._setError(error.message);
-					return err(error);
-				}
-
-				this.activeProvider = provider;
-
-				playbackTimer.beginPhase('provider-play');
-
-				const playResult = await provider.play(
-					track,
-					audioStream.url,
-					undefined,
-					audioStream.headers
-				);
-
-				playbackTimer.endPhase();
-
-				if (!playResult.success) {
-					playbackTimer.cancel();
-					usePlayerStore.getState()._setError(playResult.error.message);
-					return err(playResult.error);
-				}
-
-				playbackTimer.finish();
-
-				// Preload next track's stream URL in background
-				this._preloadNextTrackStream();
-
-				return ok(undefined);
-			} catch (error) {
-				playbackTimer.cancel();
-				const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-				usePlayerStore.getState()._setError(errorMessage);
-				return err(error instanceof Error ? error : new Error(errorMessage));
-			}
+			return this._startPlaybackWithProvider(track, streamResult.data);
 		});
+	}
+
+	/**
+	 * Stops the active provider and resolves the audio stream in parallel
+	 * to reduce latency when switching tracks.
+	 */
+	private async _resolveStreamForTrack(track: Track): Promise<Result<AudioStream, Error>> {
+		playbackTimer.beginPhase('stop+resolve');
+
+		const stopPromise = this._stopActiveProvider();
+		const streamPromise = this._getAudioStream(track);
+		const [, streamResult] = await Promise.all([stopPromise, streamPromise]);
+
+		playbackTimer.endPhase();
+		return streamResult;
+	}
+
+	private async _startPlaybackWithProvider(
+		track: Track,
+		audioStream: AudioStream
+	): Promise<Result<void, Error>> {
+		const provider = this.getProviderForUrl(audioStream.url);
+		if (!provider) {
+			return this._handlePlayError(
+				new Error('No playback provider available for this stream type')
+			);
+		}
+
+		this.activeProvider = provider;
+
+		try {
+			return await this._invokeProviderPlay(track, audioStream, provider);
+		} catch (error) {
+			const wrapped = error instanceof Error ? error : new Error('Unknown error');
+			return this._handlePlayError(wrapped);
+		}
+	}
+
+	private async _invokeProviderPlay(
+		track: Track,
+		audioStream: AudioStream,
+		provider: PlaybackProvider
+	): Promise<Result<void, Error>> {
+		playbackTimer.beginPhase('provider-play');
+		const playResult = await provider.play(track, audioStream.url, undefined, audioStream.headers);
+		playbackTimer.endPhase();
+
+		if (!playResult.success) return this._handlePlayError(playResult.error);
+
+		playbackTimer.finish();
+		this._preloadNextTrackStream();
+		return ok(undefined);
+	}
+
+	private _handlePlayError(error: Error): Result<void, Error> {
+		playbackTimer.cancel();
+		usePlayerStore.getState()._setError(error.message);
+		return err(error);
 	}
 
 	async pause(): Promise<Result<void, Error>> {
@@ -313,77 +315,105 @@ export class PlaybackService {
 		}
 	}
 
-	private async getAudioStream(track: Track): Promise<Result<AudioStream, Error>> {
+	private async _getAudioStream(track: Track): Promise<Result<AudioStream, Error>> {
 		logger.debug('getAudioStream called for track:', track.title);
 
-		// Check stream cache first for instant resolution
 		const cachedStream = this._getCachedStream(track.id.value);
-		if (cachedStream) {
-			return ok(cachedStream);
-		}
+		if (cachedStream) return ok(cachedStream);
 
+		const localResult = await this._tryLocalSource(track);
+		if (localResult) return localResult;
+
+		const providerResult = await this._tryAudioSourceProviders(track);
+		if (providerResult) return providerResult;
+
+		return err(new Error(`No audio source available for track: ${track.title}`));
+	}
+
+	private async _tryLocalSource(track: Track): Promise<Result<AudioStream, Error> | null> {
 		const resolvedSource = downloadService.resolveTrackSource(track);
 		logger.debug('Resolved source type:', resolvedSource.type);
+		if (!isLocallyAvailable(resolvedSource)) return null;
 
-		if (isLocallyAvailable(resolvedSource)) {
-			const filePath = getPlaybackUri(resolvedSource);
-			if (filePath) {
-				const fileInfo = await getFileInfo(filePath);
-				if (fileInfo.exists) {
-					logger.debug(`Using local file: ${filePath}`);
-					let format: AudioFormat = 'm4a';
-					if (resolvedSource.type === 'downloaded') {
-						format = resolvedSource.fileType as AudioFormat;
-					} else if (resolvedSource.type === 'local' && resolvedSource.fileType) {
-						format = resolvedSource.fileType as AudioFormat;
-					}
-					const stream = createAudioStream({
-						url: filePath,
-						format,
-						quality: 'high',
-					});
-					return ok(stream);
-				} else if (resolvedSource.type === 'downloaded') {
-					logger.warn(`Downloaded file missing, removing: ${filePath}`);
-					await downloadService.removeDownload(track.id.value);
-				}
-			}
+		const filePath = getPlaybackUri(resolvedSource);
+		if (!filePath) return null;
+
+		const fileInfo = await getFileInfo(filePath);
+		if (fileInfo.exists) return ok(this._createLocalStream(resolvedSource, filePath));
+
+		if (resolvedSource.type === 'downloaded') {
+			logger.warn(`Downloaded file missing, removing: ${filePath}`);
+			await downloadService.removeDownload(track.id.value);
+		}
+		return null;
+	}
+
+	private _createLocalStream(
+		resolvedSource: ReturnType<typeof downloadService.resolveTrackSource>,
+		filePath: string
+	): AudioStream {
+		logger.debug(`Using local file: ${filePath}`);
+		let format: AudioFormat = 'm4a';
+		if (resolvedSource.type === 'downloaded') {
+			format = resolvedSource.fileType as AudioFormat;
+		} else if (resolvedSource.type === 'local' && resolvedSource.fileType) {
+			format = resolvedSource.fileType as AudioFormat;
+		}
+		return createAudioStream({ url: filePath, format, quality: 'high' });
+	}
+
+	private async _tryAudioSourceProviders(
+		track: Track
+	): Promise<Result<AudioStream, Error> | null> {
+		const preferred = this._findPreferredProvider(track);
+
+		if (preferred) {
+			const result = await this._tryProvider(preferred, track);
+			if (result) return result;
 		}
 
-		const supportingProvider = this.audioSourceProviders.find((p) => {
+		return this._tryFallbackProviders(track, preferred);
+	}
+
+	private _findPreferredProvider(track: Track): AudioSourceProvider | undefined {
+		return this.audioSourceProviders.find((p) => {
 			const supports = p.supportsTrack(track);
 			logger.debug(`Provider ${p.manifest.id} supportsTrack: ${supports}`);
 			return supports;
 		});
+	}
 
-		if (supportingProvider) {
-			logger.debug('Found supporting provider:', supportingProvider.manifest.id);
-			const result = await supportingProvider.getStreamUrl(track);
-			if (result.success) {
-				logger.debug('Got audio stream successfully');
-				this._cacheStream(track.id.value, result.data);
-				return ok(result.data);
-			} else {
-				logger.debug('getStreamUrl failed:', result.error);
-			}
-		} else {
-			logger.debug('No supporting provider found');
+	private async _tryProvider(
+		provider: AudioSourceProvider,
+		track: Track
+	): Promise<Result<AudioStream, Error> | null> {
+		logger.debug('Found supporting provider:', provider.manifest.id);
+		const result = await provider.getStreamUrl(track);
+		if (result.success) {
+			logger.debug('Got audio stream successfully');
+			this._cacheStream(track.id.value, result.data);
+			return ok(result.data);
 		}
+		logger.debug('getStreamUrl failed:', result.error);
+		return null;
+	}
 
+	private async _tryFallbackProviders(
+		track: Track,
+		exclude?: AudioSourceProvider
+	): Promise<Result<AudioStream, Error> | null> {
 		for (const provider of this.audioSourceProviders) {
-			if (provider === supportingProvider) continue;
+			if (provider === exclude) continue;
 			try {
-				if (provider.supportsTrack(track)) {
-					const result = await provider.getStreamUrl(track);
-					if (result.success) {
-						this._cacheStream(track.id.value, result.data);
-						return ok(result.data);
-					}
+				if (!provider.supportsTrack(track)) continue;
+				const result = await provider.getStreamUrl(track);
+				if (result.success) {
+					this._cacheStream(track.id.value, result.data);
+					return ok(result.data);
 				}
 			} catch {}
 		}
-
-		return err(new Error(`No audio source available for track: ${track.title}`));
+		return null;
 	}
 
 	private async _stopActiveProvider(): Promise<void> {
@@ -402,19 +432,11 @@ export class PlaybackService {
 	 * skipping to it is near-instant.
 	 */
 	private _preloadNextTrackStream(): void {
-		const state = usePlayerStore.getState();
-		const nextIndex = state.queueIndex + 1;
-
-		if (nextIndex >= state.queue.length) return;
-
-		const nextTrack = state.queue[nextIndex];
+		const nextTrack = this._getNextQueueTrack();
 		if (!nextTrack) return;
-
-		// Skip if already cached
 		if (this._getCachedStream(nextTrack.id.value)) return;
 
-		// Resolve in background without blocking current playback
-		this.getAudioStream(nextTrack)
+		this._getAudioStream(nextTrack)
 			.then((result) => {
 				if (result.success) {
 					logger.debug(`Preloaded stream for next track: ${nextTrack.title}`);
@@ -425,46 +447,48 @@ export class PlaybackService {
 			});
 	}
 
+	private _getNextQueueTrack(): Track | null {
+		const state = usePlayerStore.getState();
+		const nextIndex = state.queueIndex + 1;
+		if (nextIndex >= state.queue.length) return null;
+		return state.queue[nextIndex] ?? null;
+	}
+
 	private setupEventListener(): void {
 		this.eventListener = (event: PlaybackEvent) => {
-			const store = usePlayerStore.getState();
-
-			switch (event.type) {
-				case 'status-change':
-					logger.debug(`Status change: ${event.status}`);
-					store._setStatus(event.status);
-					break;
-				case 'position-change':
-					store._setPosition(event.position);
-					break;
-				case 'duration-change':
-					store._setDuration(event.duration);
-					break;
-				case 'ended':
-					logger.debug('Ended event received - calling skipToNext');
-					// Defer to next tick to avoid threading issues on Android
-					// The callback may fire on a background thread, and ExoPlayer
-					// requires all operations to happen on the main thread
-					setTimeout(() => this.skipToNext(), 0);
-					break;
-				case 'remote-skip-next':
-					logger.debug('Remote skip next received - calling skipToNext');
-					setTimeout(() => this.skipToNext(), 0);
-					break;
-				case 'remote-skip-previous':
-					logger.debug('Remote skip previous received - calling skipToPrevious');
-					setTimeout(() => this.skipToPrevious(), 0);
-					break;
-				case 'error':
-					logger.debug(`Error event: ${event.error.message}`);
-					store._setError(event.error.message);
-					this._streamCache.clear();
-					for (const provider of this.audioSourceProviders) {
-						provider.onStreamError?.();
-					}
-					break;
-			}
+			this._handlePlaybackEvent(event);
 		};
+	}
+
+	private _handlePlaybackEvent(event: PlaybackEvent): void {
+		const store = usePlayerStore.getState();
+		switch (event.type) {
+			case 'status-change':
+				logger.debug(`Status change: ${event.status}`);
+				store._setStatus(event.status); break;
+			case 'position-change': store._setPosition(event.position); break;
+			case 'duration-change': store._setDuration(event.duration); break;
+			case 'ended':
+			case 'remote-skip-next':
+				logger.debug(`${event.type} received - calling skipToNext`);
+				setTimeout(() => this.skipToNext(), 0); break;
+			case 'remote-skip-previous':
+				logger.debug('Remote skip previous - calling skipToPrevious');
+				setTimeout(() => this.skipToPrevious(), 0); break;
+			case 'error': this._handlePlaybackErrorEvent(event, store); break;
+		}
+	}
+
+	private _handlePlaybackErrorEvent(
+		event: PlaybackEvent & { readonly type: 'error' },
+		store: ReturnType<typeof usePlayerStore.getState>
+	): void {
+		logger.debug(`Error event: ${event.error.message}`);
+		store._setError(event.error.message);
+		this._streamCache.clear();
+		for (const provider of this.audioSourceProviders) {
+			provider.onStreamError?.();
+		}
 	}
 
 	async dispose(): Promise<void> {
