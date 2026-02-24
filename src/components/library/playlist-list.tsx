@@ -5,6 +5,10 @@ import { ListMusicIcon } from 'lucide-react-native';
 import type { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import type { Playlist } from '@/src/domain/entities/playlist';
 
+function renderPlaylistItem({ item }: { item: Playlist }) {
+	return <PlaylistListItem playlist={item} />;
+}
+
 interface PlaylistListProps {
 	readonly playlists: Playlist[];
 	readonly isLoading: boolean;
@@ -17,7 +21,7 @@ export function PlaylistList({ playlists, isLoading, onScroll }: PlaylistListPro
 			data={playlists}
 			isLoading={isLoading}
 			keyExtractor={(item) => item.id}
-			renderItem={({ item }) => <PlaylistListItem playlist={item} />}
+			renderItem={renderPlaylistItem}
 			loadingSkeleton={<PlaylistListSkeleton count={6} />}
 			emptyState={{
 				icon: ListMusicIcon,
