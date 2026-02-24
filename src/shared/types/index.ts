@@ -13,3 +13,5 @@ export {
 	tryCatch,
 	tryCatchAsync,
 } from './result';
+
+export type { PluginConfigSchema } from './plugin-config-schema';

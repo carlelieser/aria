@@ -9,7 +9,7 @@ import { View, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import { Input } from '@/src/components/ui/input';
 import { useAppTheme } from '@/lib/theme';
-import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plugin';
+import type { PluginConfigSchema } from '@shared/types/plugin-config-schema';
 
 interface PluginTextFieldProps {
 	readonly schema: PluginConfigSchema;
