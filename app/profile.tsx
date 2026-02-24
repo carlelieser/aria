@@ -7,6 +7,7 @@ import { UserIcon, PencilIcon, CheckIcon } from 'lucide-react-native';
 import { PageLayout } from '@/src/components/ui/page-layout';
 import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
 import { Icon } from '@/src/components/ui/icon';
+import { AccountsSection } from '@/src/components/profile/accounts-section';
 import { FLOATING_PLAYER_HEIGHT } from '@/src/components/floating-player';
 import { useProfileStore } from '@/src/application/state/profile-store';
 import { useCurrentTrack } from '@/src/application/state/player-store';
@@ -101,6 +102,10 @@ export default function ProfileScreen() {
 						onChangeText={setDraftEmail}
 						keyboardType={'email-address'}
 					/>
+				</View>
+
+				<View style={styles.accountsContainer}>
+					<AccountsSection />
 				</View>
 			</PlayerAwareScrollView>
 
@@ -217,6 +222,10 @@ const styles = StyleSheet.create({
 		width: '100%',
 		marginTop: 32,
 		gap: 24,
+	},
+	accountsContainer: {
+		width: '100%',
+		marginTop: 8,
 	},
 	fieldRow: {
 		gap: 6,

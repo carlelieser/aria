@@ -1,5 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TrackId } from '@domain/value-objects/track-id';
+import type { MetadataProvider } from '@plugins/core/interfaces/metadata-provider';
+import type { Lyrics } from '@shared/types/lyrics';
 
 vi.mock('@shared/services/logger', () => ({
 	getLogger: () => ({
@@ -28,7 +30,7 @@ function createMockProvider(
 		getArtistInfo: vi.fn(),
 		getArtistAlbums: vi.fn(),
 		...overrides,
-	};
+	} as unknown as MetadataProvider;
 }
 
 describe('LyricsService', () => {
@@ -94,7 +96,9 @@ describe('LyricsService', () => {
 			const result = await service.getLyrics(trackId);
 
 			expect(result.success).toBe(true);
-			expect(result.data).toBeNull();
+			if (result.success) {
+				expect(result.data).toBeNull();
+			}
 		});
 
 		it('should return lyrics when provider has them', async () => {
@@ -119,7 +123,9 @@ describe('LyricsService', () => {
 			const result = await service.getLyrics(trackId);
 
 			expect(result.success).toBe(true);
-			expect(result.data).toEqual(mockLyrics);
+			if (result.success) {
+				expect(result.data).toEqual(mockLyrics);
+			}
 		});
 
 		it('should return cached lyrics on subsequent calls', async () => {
@@ -139,8 +145,10 @@ describe('LyricsService', () => {
 			const result = await service.getLyrics(trackId);
 
 			expect(result.success).toBe(true);
-			expect(result.data).toEqual(mockLyrics);
-			expect(provider.getLyrics).toHaveBeenCalledTimes(1);
+			if (result.success) {
+				expect(result.data).toEqual(mockLyrics);
+			}
+			expect(vi.mocked(provider.getLyrics)).toHaveBeenCalledTimes(1);
 		});
 
 		it('should try next provider when first fails', async () => {
@@ -163,7 +171,9 @@ describe('LyricsService', () => {
 			const result = await service.getLyrics(trackId);
 
 			expect(result.success).toBe(true);
-			expect(result.data).toEqual(mockLyrics);
+			if (result.success) {
+				expect(result.data).toEqual(mockLyrics);
+			}
 		});
 
 		it('should return null when all providers fail', async () => {
@@ -177,7 +187,9 @@ describe('LyricsService', () => {
 			const result = await service.getLyrics(trackId);
 
 			expect(result.success).toBe(true);
-			expect(result.data).toBeNull();
+			if (result.success) {
+				expect(result.data).toBeNull();
+			}
 		});
 
 		it('should cache null results', async () => {
@@ -192,7 +204,7 @@ describe('LyricsService', () => {
 			await service.getLyrics(trackId);
 			await service.getLyrics(trackId);
 
-			expect(provider.getLyrics).toHaveBeenCalledTimes(1);
+			expect(vi.mocked(provider.getLyrics)).toHaveBeenCalledTimes(1);
 		});
 
 		it('should deduplicate concurrent requests for the same track', async () => {
@@ -215,7 +227,7 @@ describe('LyricsService', () => {
 
 			expect(result1.success).toBe(true);
 			expect(result2.success).toBe(true);
-			expect(provider.getLyrics).toHaveBeenCalledTimes(1);
+			expect(vi.mocked(provider.getLyrics)).toHaveBeenCalledTimes(1);
 		});
 	});
 
@@ -237,13 +249,15 @@ describe('LyricsService', () => {
 			service.clearCache();
 			await service.getLyrics(trackId);
 
-			expect(provider.getLyrics).toHaveBeenCalledTimes(2);
+			expect(vi.mocked(provider.getLyrics)).toHaveBeenCalledTimes(2);
 		});
 	});
 
 	describe('findCurrentLineIndex', () => {
-		const lyrics = {
-			plainText: 'line 1\nline 2\nline 3',
+		const lyricsTrackId = TrackId.create('youtube-music', 'lyrics-test');
+		const lyrics: Lyrics = {
+			trackId: lyricsTrackId,
+			plainLyrics: 'line 1\nline 2\nline 3',
 			syncedLyrics: [
 				{ text: 'line 1', startTime: 0, endTime: 1000 },
 				{ text: 'line 2', startTime: 1000, endTime: 2000 },
@@ -252,15 +266,15 @@ describe('LyricsService', () => {
 		};
 
 		it('should return -1 when synced lyrics are empty', () => {
-			const emptyLyrics = { plainText: 'text', syncedLyrics: [] };
+			const emptyLyrics: Lyrics = { trackId: lyricsTrackId, plainLyrics: 'text', syncedLyrics: [] };
 			const result = service.findCurrentLineIndex(emptyLyrics, 500);
 
 			expect(result).toBe(-1);
 		});
 
 		it('should return -1 when synced lyrics are undefined', () => {
-			const noSyncLyrics = { plainText: 'text' };
-			const result = service.findCurrentLineIndex(noSyncLyrics as any, 500);
+			const noSyncLyrics: Lyrics = { trackId: lyricsTrackId, plainLyrics: 'text' };
+			const result = service.findCurrentLineIndex(noSyncLyrics, 500);
 
 			expect(result).toBe(-1);
 		});
@@ -284,8 +298,9 @@ describe('LyricsService', () => {
 		});
 
 		it('should return -1 when position is before all lines', () => {
-			const lyricsWithOffset = {
-				plainText: 'text',
+			const lyricsWithOffset: Lyrics = {
+				trackId: lyricsTrackId,
+				plainLyrics: 'text',
 				syncedLyrics: [
 					{ text: 'line 1', startTime: 5000, endTime: 6000 },
 				],

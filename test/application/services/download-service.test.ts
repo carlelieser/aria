@@ -4,6 +4,7 @@ import { TrackId } from '@domain/value-objects/track-id';
 import { Duration } from '@domain/value-objects/duration';
 import { createStreamingSource, createLocalSource } from '@domain/value-objects/audio-source';
 import type { Track } from '@domain/entities/track';
+import type { AudioSourceProvider } from '@plugins/core/interfaces/audio-source-provider';
 
 vi.mock('@shared/services/logger', () => ({
 	getLogger: () => ({
@@ -35,7 +36,7 @@ vi.mock('@infrastructure/filesystem/download-manager', () => ({
 vi.mock('@/src/application/services/library-service', () => ({
 	libraryService: {
 		isInLibrary: vi.fn().mockReturnValue(false),
-		addTrack: vi.fn(),
+		addTrack: vi.fn().mockReturnValue({ success: true, data: undefined }),
 	},
 }));
 
@@ -81,7 +82,7 @@ function createMockAudioSourceProvider(id: string) {
 				headers: {},
 			},
 		}),
-	};
+	} as unknown as AudioSourceProvider;
 }
 
 describe('DownloadService', () => {
@@ -232,9 +233,9 @@ describe('DownloadService', () => {
 
 		it('should return error when stream format is non-downloadable', async () => {
 			const provider = createMockAudioSourceProvider('youtube-music');
-			provider.getStreamUrl.mockResolvedValue({
+			vi.mocked(provider.getStreamUrl).mockResolvedValue({
 				success: true,
-				data: { url: 'https://example.com/stream.m3u8', format: 'hls', headers: {} },
+				data: { url: 'https://example.com/stream.m3u8', format: 'hls', quality: 'medium' as const, headers: {} },
 			});
 			service.setAudioSourceProviders([provider]);
 

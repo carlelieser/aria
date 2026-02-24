@@ -6,6 +6,7 @@ import { AlbumId } from '@domain/value-objects/album-id';
 import { createStreamingSource } from '@domain/value-objects/audio-source';
 import type { Track } from '@domain/entities/track';
 import type { Album } from '@domain/entities/album';
+import type { MetadataProvider } from '@plugins/core/interfaces/metadata-provider';
 
 vi.mock('@shared/services/logger', () => ({
 	getLogger: () => ({
@@ -44,8 +45,13 @@ function createMockProvider(
 	overrides: Record<string, unknown> = {}
 ) {
 	return {
-		manifest: { id, name: id, version: '1.0.0' },
+		manifest: { id, name: id, version: '1.0.0', category: 'metadata-provider' as const, capabilities: ['search'] },
+		status: 'active' as const,
+		configSchema: [],
+		capabilities: new Set(['search-tracks', 'search-albums', 'search-artists'] as const),
 		hasCapability: vi.fn().mockReturnValue(true),
+		onInit: vi.fn().mockResolvedValue({ success: true, data: undefined }),
+		onDestroy: vi.fn().mockResolvedValue({ success: true, data: undefined }),
 		searchTracks: vi.fn().mockResolvedValue({
 			success: true,
 			data: {
@@ -73,12 +79,13 @@ function createMockProvider(
 				hasMore: false,
 			},
 		}),
+		getTrackInfo: vi.fn(),
 		getAlbumInfo: vi.fn(),
 		getAlbumTracks: vi.fn(),
 		getArtistInfo: vi.fn(),
 		getArtistAlbums: vi.fn(),
 		...overrides,
-	};
+	} as unknown as MetadataProvider;
 }
 
 describe('SearchService', () => {
@@ -246,7 +253,7 @@ describe('SearchService', () => {
 			const result = await service.search('test query');
 
 			expect(result.success).toBe(true);
-			expect(provider.searchTracks).toHaveBeenCalledTimes(1);
+			expect(vi.mocked(provider.searchTracks)).toHaveBeenCalledTimes(1);
 		});
 
 		it('should handle provider search failure gracefully', async () => {
@@ -321,7 +328,7 @@ describe('SearchService', () => {
 			service.clearCache();
 			await service.search('test query');
 
-			expect(provider.searchTracks).toHaveBeenCalledTimes(2);
+			expect(vi.mocked(provider.searchTracks)).toHaveBeenCalledTimes(2);
 		});
 	});
 

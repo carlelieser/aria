@@ -8,6 +8,7 @@
 import { View, Text, Image } from 'react-native';
 import Animated from 'react-native-reanimated';
 import type { AnimatedStyle } from 'react-native-reanimated';
+import type { ViewStyle } from 'react-native';
 import { AnimatedPolygonView } from '../animated-polygon';
 import { POLYGON_SIZE, ICON_SIZE } from './types';
 import { styles } from './styles';
@@ -21,11 +22,11 @@ interface SplashNativeProps {
 		readonly surfaceVariant: string;
 		readonly onSurfaceVariant: string;
 	};
-	readonly containerStyle: AnimatedStyle;
-	readonly backgroundStyle: AnimatedStyle;
-	readonly polygonContainerStyle: AnimatedStyle;
-	readonly progressFillStyle: AnimatedStyle;
-	readonly progressSectionStyle: AnimatedStyle;
+	readonly containerStyle: AnimatedStyle<ViewStyle>;
+	readonly backgroundStyle: AnimatedStyle<ViewStyle>;
+	readonly polygonContainerStyle: AnimatedStyle<ViewStyle>;
+	readonly progressFillStyle: AnimatedStyle<ViewStyle>;
+	readonly progressSectionStyle: AnimatedStyle<ViewStyle>;
 }
 
 export function SplashNative({

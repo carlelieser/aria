@@ -4,6 +4,7 @@ import { TrackId } from '@domain/value-objects/track-id';
 import { Duration } from '@domain/value-objects/duration';
 import { createStreamingSource, createLocalSource } from '@domain/value-objects/audio-source';
 import type { Track } from '@domain/entities/track';
+import type { PlaybackProvider, AudioSourceProvider } from '@plugins/core';
 
 vi.mock('@shared/services/logger', () => ({
 	getLogger: () => ({
@@ -64,7 +65,7 @@ function createMockPlaybackProvider(id: string) {
 		addEventListener: vi.fn(),
 		removeEventListener: vi.fn(),
 		onDestroy: vi.fn().mockResolvedValue(undefined),
-	};
+	} as unknown as PlaybackProvider;
 }
 
 function createMockAudioSourceProvider(id: string) {
@@ -80,7 +81,7 @@ function createMockAudioSourceProvider(id: string) {
 			},
 		}),
 		onStreamError: vi.fn(),
-	};
+	} as unknown as AudioSourceProvider;
 }
 
 describe('PlaybackService', () => {
@@ -107,7 +108,7 @@ describe('PlaybackService', () => {
 			const provider = createMockPlaybackProvider('dash-player');
 			service.setPlaybackProviders([provider]);
 
-			expect(provider.addEventListener).toHaveBeenCalled();
+			expect(vi.mocked(provider.addEventListener)).toHaveBeenCalled();
 		});
 
 		it('should remove event listener from old providers', () => {
@@ -117,8 +118,8 @@ describe('PlaybackService', () => {
 			service.setPlaybackProviders([provider1]);
 			service.setPlaybackProviders([provider2]);
 
-			expect(provider1.removeEventListener).toHaveBeenCalled();
-			expect(provider2.addEventListener).toHaveBeenCalled();
+			expect(vi.mocked(provider1.removeEventListener)).toHaveBeenCalled();
+			expect(vi.mocked(provider2.addEventListener)).toHaveBeenCalled();
 		});
 	});
 
@@ -127,7 +128,7 @@ describe('PlaybackService', () => {
 			const provider = createMockPlaybackProvider('dash-player');
 			service.addPlaybackProvider(provider);
 
-			expect(provider.addEventListener).toHaveBeenCalled();
+			expect(vi.mocked(provider.addEventListener)).toHaveBeenCalled();
 		});
 
 		it('should not add duplicate playback provider', () => {
@@ -135,7 +136,7 @@ describe('PlaybackService', () => {
 			service.addPlaybackProvider(provider);
 			service.addPlaybackProvider(provider);
 
-			expect(provider.addEventListener).toHaveBeenCalledTimes(1);
+			expect(vi.mocked(provider.addEventListener)).toHaveBeenCalledTimes(1);
 		});
 	});
 
@@ -145,7 +146,7 @@ describe('PlaybackService', () => {
 			service.addPlaybackProvider(provider);
 			service.removePlaybackProvider('dash-player');
 
-			expect(provider.removeEventListener).toHaveBeenCalled();
+			expect(vi.mocked(provider.removeEventListener)).toHaveBeenCalled();
 		});
 
 		it('should do nothing when provider does not exist', () => {
@@ -204,7 +205,7 @@ describe('PlaybackService', () => {
 			const result = await service.play(track);
 
 			expect(result.success).toBe(true);
-			expect(playbackProvider.play).toHaveBeenCalled();
+			expect(vi.mocked(playbackProvider.play)).toHaveBeenCalled();
 		});
 
 		it('should update player store to loading state', async () => {
@@ -235,7 +236,7 @@ describe('PlaybackService', () => {
 
 		it('should return error when no playback provider can handle the stream', async () => {
 			const playbackProvider = createMockPlaybackProvider('dash-player');
-			playbackProvider.canHandle.mockReturnValue(false);
+			vi.mocked(playbackProvider.canHandle!).mockReturnValue(false);
 			const audioSourceProvider = createMockAudioSourceProvider('youtube-music');
 			service.setPlaybackProviders([]);
 			service.setAudioSourceProviders([audioSourceProvider]);
@@ -251,7 +252,7 @@ describe('PlaybackService', () => {
 
 		it('should return error when playback provider fails to play', async () => {
 			const playbackProvider = createMockPlaybackProvider('dash-player');
-			playbackProvider.play.mockResolvedValue({
+			vi.mocked(playbackProvider.play).mockResolvedValue({
 				success: false,
 				error: new Error('Playback failed'),
 			});
@@ -268,7 +269,7 @@ describe('PlaybackService', () => {
 		it('should return error when stream resolution fails', async () => {
 			const playbackProvider = createMockPlaybackProvider('dash-player');
 			const audioSourceProvider = createMockAudioSourceProvider('youtube-music');
-			audioSourceProvider.getStreamUrl.mockResolvedValue({
+			vi.mocked(audioSourceProvider.getStreamUrl).mockResolvedValue({
 				success: false,
 				error: new Error('Stream resolution failed'),
 			});
@@ -304,7 +305,7 @@ describe('PlaybackService', () => {
 			const result = await service.pause();
 
 			expect(result.success).toBe(true);
-			expect(playbackProvider.pause).toHaveBeenCalled();
+			expect(vi.mocked(playbackProvider.pause)).toHaveBeenCalled();
 		});
 
 		it('should return error when no active provider', async () => {
@@ -330,7 +331,7 @@ describe('PlaybackService', () => {
 			const result = await service.resume();
 
 			expect(result.success).toBe(true);
-			expect(playbackProvider.resume).toHaveBeenCalled();
+			expect(vi.mocked(playbackProvider.resume)).toHaveBeenCalled();
 		});
 
 		it('should return error when no active provider', async () => {
@@ -352,7 +353,7 @@ describe('PlaybackService', () => {
 			const result = await service.stop();
 
 			expect(result.success).toBe(true);
-			expect(playbackProvider.stop).toHaveBeenCalled();
+			expect(vi.mocked(playbackProvider.stop)).toHaveBeenCalled();
 		});
 
 		it('should return error when no active provider', async () => {
@@ -374,7 +375,7 @@ describe('PlaybackService', () => {
 			const result = await service.seekTo(Duration.fromSeconds(30));
 
 			expect(result.success).toBe(true);
-			expect(playbackProvider.seek).toHaveBeenCalled();
+			expect(vi.mocked(playbackProvider.seek)).toHaveBeenCalled();
 		});
 
 		it('should return error when no active provider', async () => {
@@ -429,7 +430,7 @@ describe('PlaybackService', () => {
 			const result = await service.skipToPrevious();
 
 			expect(result.success).toBe(true);
-			expect(playbackProvider.seek).toHaveBeenCalled();
+			expect(vi.mocked(playbackProvider.seek)).toHaveBeenCalled();
 		});
 
 		it('should seek to start when only one track in queue', async () => {
@@ -445,7 +446,7 @@ describe('PlaybackService', () => {
 			const result = await service.skipToPrevious();
 
 			expect(result.success).toBe(true);
-			expect(playbackProvider.seek).toHaveBeenCalled();
+			expect(vi.mocked(playbackProvider.seek)).toHaveBeenCalled();
 		});
 	});
 
@@ -461,7 +462,7 @@ describe('PlaybackService', () => {
 
 			// Wait for async play to complete
 			await vi.waitFor(() => {
-				expect(playbackProvider.play).toHaveBeenCalled();
+				expect(vi.mocked(playbackProvider.play)).toHaveBeenCalled();
 			});
 		});
 
@@ -475,7 +476,7 @@ describe('PlaybackService', () => {
 			service.setQueue(tracks, 1);
 
 			await vi.waitFor(() => {
-				expect(playbackProvider.play).toHaveBeenCalled();
+				expect(vi.mocked(playbackProvider.play)).toHaveBeenCalled();
 			});
 
 			expect(usePlayerStore.getState().queueIndex).toBe(1);
@@ -492,7 +493,7 @@ describe('PlaybackService', () => {
 			await service.play(createTestTrack('t1'));
 			service.setRepeatMode('all');
 
-			expect(playbackProvider.setRepeatMode).toHaveBeenCalledWith('all');
+			expect(vi.mocked(playbackProvider.setRepeatMode)).toHaveBeenCalledWith('all');
 		});
 
 		it('should do nothing when no active provider', () => {
@@ -514,7 +515,7 @@ describe('PlaybackService', () => {
 			const result = await service.setVolume(0.5);
 
 			expect(result.success).toBe(true);
-			expect(playbackProvider.setVolume).toHaveBeenCalledWith(0.5);
+			expect(vi.mocked(playbackProvider.setVolume)).toHaveBeenCalledWith(0.5);
 		});
 
 		it('should return error when no active provider', async () => {
@@ -534,8 +535,8 @@ describe('PlaybackService', () => {
 			await service.play(createTestTrack('t1'));
 			await service.dispose();
 
-			expect(playbackProvider.removeEventListener).toHaveBeenCalled();
-			expect(playbackProvider.onDestroy).toHaveBeenCalled();
+			expect(vi.mocked(playbackProvider.removeEventListener)).toHaveBeenCalled();
+			expect(vi.mocked(playbackProvider.onDestroy)).toHaveBeenCalled();
 		});
 	});
 });

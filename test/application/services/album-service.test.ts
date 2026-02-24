@@ -6,6 +6,7 @@ import { Duration } from '@domain/value-objects/duration';
 import { createStreamingSource } from '@domain/value-objects/audio-source';
 import type { Track } from '@domain/entities/track';
 import type { Album } from '@domain/entities/album';
+import type { MetadataProvider } from '@plugins/core/interfaces/metadata-provider';
 
 vi.mock('@shared/services/logger', () => ({
 	getLogger: () => ({
@@ -65,7 +66,7 @@ function createMockProvider(
 		getArtistInfo: vi.fn(),
 		getArtistAlbums: vi.fn(),
 		...overrides,
-	};
+	} as unknown as MetadataProvider;
 }
 
 describe('AlbumService', () => {
@@ -233,7 +234,7 @@ describe('AlbumService', () => {
 
 			expect(result.success).toBe(true);
 			// Only one actual fetch should have happened
-			expect(provider.getAlbumTracks).toHaveBeenCalledTimes(1);
+			expect(vi.mocked(provider.getAlbumTracks)).toHaveBeenCalledTimes(1);
 		});
 
 		it('should handle provider throwing an error', async () => {
@@ -258,7 +259,7 @@ describe('AlbumService', () => {
 			service.clearCache();
 			await service.getAlbumDetail('youtube-music:album-1');
 
-			expect(provider.getAlbumTracks).toHaveBeenCalledTimes(2);
+			expect(vi.mocked(provider.getAlbumTracks)).toHaveBeenCalledTimes(2);
 		});
 	});
 });

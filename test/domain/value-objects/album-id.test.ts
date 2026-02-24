@@ -29,39 +29,61 @@ describe('AlbumId', () => {
 	});
 
 	describe('fromString', () => {
-		it('should parse valid album id string', () => {
-			const albumId = AlbumId.fromString('youtube-music:abc123');
+		it('should return success result for valid album id string', () => {
+			const result = AlbumId.fromString('youtube-music:abc123');
 
-			expect(albumId.sourceType).toBe('youtube-music');
-			expect(albumId.sourceId).toBe('abc123');
-			expect(albumId.value).toBe('youtube-music:abc123');
+			expect(result.success).toBe(true);
+			if (result.success) {
+				expect(result.data.sourceType).toBe('youtube-music');
+				expect(result.data.sourceId).toBe('abc123');
+				expect(result.data.value).toBe('youtube-music:abc123');
+			}
 		});
 
 		it('should handle source id with colons', () => {
-			const albumId = AlbumId.fromString('spotify:album:abc123');
+			const result = AlbumId.fromString('spotify:album:abc123');
 
-			expect(albumId.sourceType).toBe('spotify');
-			expect(albumId.sourceId).toBe('album:abc123');
+			expect(result.success).toBe(true);
+			if (result.success) {
+				expect(result.data.sourceType).toBe('spotify');
+				expect(result.data.sourceId).toBe('album:abc123');
+			}
 		});
 
-		it('should throw on string without colon', () => {
-			expect(() => AlbumId.fromString('nocolon')).toThrow('Invalid AlbumId format');
+		it('should return error result on string without colon', () => {
+			const result = AlbumId.fromString('nocolon');
+
+			expect(result.success).toBe(false);
+			if (!result.success) {
+				expect(result.error.message).toContain('Invalid AlbumId format');
+			}
 		});
 
-		it('should throw on string with colon at start', () => {
-			expect(() => AlbumId.fromString(':abc')).toThrow(
-				'Both source and id are required'
-			);
+		it('should return error result on string with colon at start', () => {
+			const result = AlbumId.fromString(':abc');
+
+			expect(result.success).toBe(false);
+			if (!result.success) {
+				expect(result.error.message).toContain('Both source and id are required');
+			}
 		});
 
-		it('should throw on string with colon at end', () => {
-			expect(() => AlbumId.fromString('source:')).toThrow(
-				'Both source and id are required'
-			);
+		it('should return error result on string with colon at end', () => {
+			const result = AlbumId.fromString('source:');
+
+			expect(result.success).toBe(false);
+			if (!result.success) {
+				expect(result.error.message).toContain('Both source and id are required');
+			}
 		});
 
-		it('should throw on empty string', () => {
-			expect(() => AlbumId.fromString('')).toThrow('Invalid AlbumId format');
+		it('should return error result on empty string', () => {
+			const result = AlbumId.fromString('');
+
+			expect(result.success).toBe(false);
+			if (!result.success) {
+				expect(result.error.message).toContain('Invalid AlbumId format');
+			}
 		});
 	});
 

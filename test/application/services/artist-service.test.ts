@@ -3,6 +3,7 @@ import { useArtistStore } from '@application/state/artist-store';
 import { AlbumId } from '@domain/value-objects/album-id';
 import type { Album } from '@domain/entities/album';
 import type { Artist } from '@domain/entities/artist';
+import type { MetadataProvider } from '@plugins/core/interfaces/metadata-provider';
 
 vi.mock('@shared/services/logger', () => ({
 	getLogger: () => ({
@@ -61,7 +62,7 @@ function createMockProvider(
 			},
 		}),
 		...overrides,
-	};
+	} as unknown as MetadataProvider;
 }
 
 describe('ArtistService', () => {
@@ -151,8 +152,8 @@ describe('ArtistService', () => {
 
 			await service.getArtistDetail('youtube-music:artist-1');
 
-			expect(ytProvider.getArtistInfo).toHaveBeenCalled();
-			expect(spotifyProvider.getArtistInfo).not.toHaveBeenCalled();
+			expect(vi.mocked(ytProvider.getArtistInfo)).toHaveBeenCalled();
+			expect(vi.mocked(spotifyProvider.getArtistInfo)).not.toHaveBeenCalled();
 		});
 
 		it('should try all providers when no provider prefix matches', async () => {
@@ -162,7 +163,7 @@ describe('ArtistService', () => {
 			const result = await service.getArtistDetail('unknown-source:artist-1');
 
 			// The service will try all providers since the prefix doesn't match
-			expect(provider.getArtistInfo).toHaveBeenCalled();
+			expect(vi.mocked(provider.getArtistInfo)).toHaveBeenCalled();
 		});
 
 		it('should return error when no provider matches the artist prefix', async () => {
@@ -212,7 +213,7 @@ describe('ArtistService', () => {
 			const result = await service.getArtistDetail('youtube-music:artist-1');
 
 			expect(result.success).toBe(true);
-			expect(provider.getArtistInfo).toHaveBeenCalledTimes(1);
+			expect(vi.mocked(provider.getArtistInfo)).toHaveBeenCalledTimes(1);
 		});
 
 		it('should handle provider throwing an error gracefully', async () => {
@@ -234,7 +235,7 @@ describe('ArtistService', () => {
 			const result = await service.getArtistDetail('plain-artist-id');
 
 			// Should try all providers with the raw ID
-			expect(provider.getArtistInfo).toHaveBeenCalledWith('plain-artist-id');
+			expect(vi.mocked(provider.getArtistInfo)).toHaveBeenCalledWith('plain-artist-id');
 		});
 
 		it('should return empty albums when provider does not support get-artist-albums', async () => {
@@ -264,7 +265,7 @@ describe('ArtistService', () => {
 			service.clearCache();
 			await service.getArtistDetail('youtube-music:artist-1');
 
-			expect(provider.getArtistInfo).toHaveBeenCalledTimes(2);
+			expect(vi.mocked(provider.getArtistInfo)).toHaveBeenCalledTimes(2);
 		});
 	});
 });
