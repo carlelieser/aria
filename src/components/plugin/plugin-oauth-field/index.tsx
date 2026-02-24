@@ -2,7 +2,7 @@
  * Plugin OAuth Field Component
  *
  * Handles OAuth authentication flow for plugins using a WebView-based login.
- * Fully generic — uses OAuthCapablePlugin interface and login component registry.
+ * Fully generic -- uses OAuthCapablePlugin interface and login component registry.
  */
 
 import { memo, useCallback, useState, useEffect, useMemo } from 'react';
@@ -19,14 +19,9 @@ import {
 	isOAuthCapable,
 	type OAuthCapablePlugin,
 } from '@/src/plugins/core/interfaces/oauth-capable-plugin';
-import type { PluginConfigSchema } from '@/src/plugins/core/interfaces/base-plugin';
+import type { PluginOAuthFieldProps } from './types';
 
 const DEFAULT_OAUTH_ICON = LinkIcon;
-
-interface PluginOAuthFieldProps {
-	schema: PluginConfigSchema;
-	pluginId: string;
-}
 
 export const PluginOAuthField = memo(function PluginOAuthField({
 	schema,

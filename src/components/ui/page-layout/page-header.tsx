@@ -1,76 +1,18 @@
-import { View, StyleSheet, type ViewStyle, type StyleProp } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets, type Edge } from 'react-native-safe-area-context';
+/**
+ * PageHeader Component
+ *
+ * Header bar with optional back button, title, icon, and right actions.
+ */
+
+import { View, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { router } from 'expo-router';
 import { Text, IconButton } from 'react-native-paper';
 import { Icon } from '@/src/components/ui/icon';
-import { ChevronLeftIcon, type LucideIcon } from 'lucide-react-native';
+import { ChevronLeftIcon } from 'lucide-react-native';
 import { useAppTheme, resolveDisplayFont } from '@/lib/theme';
-import type { ReactNode } from 'react';
+import type { PageHeaderProps } from './types';
 
-interface PageHeaderProps {
-	icon?: LucideIcon;
-	title?: string;
-	showBack?: boolean;
-	onBack?: () => void;
-	rightActions?: ReactNode;
-	showBorder?: boolean;
-	backgroundColor?: string;
-	tintColor?: string;
-	transparent?: boolean;
-	/** Element rendered behind the header when transparent (e.g. animated background) */
-	transparentBackground?: ReactNode;
-	borderRadius?: number;
-	belowTitle?: ReactNode;
-	extended?: boolean;
-	topInset?: number;
-}
-
-interface PageLayoutProps {
-	header?: PageHeaderProps;
-	edges?: Edge[];
-	contentPadding?: boolean;
-	style?: StyleProp<ViewStyle>;
-	contentStyle?: StyleProp<ViewStyle>;
-	children: ReactNode;
-}
-
-export function PageLayout({
-	header,
-	edges = ['top'],
-	contentPadding = false,
-	style,
-	contentStyle,
-	children,
-}: PageLayoutProps) {
-	const { colors } = useAppTheme();
-	const insets = useSafeAreaInsets();
-
-	const isExtended = header?.extended ?? false;
-	const isTransparent = header?.transparent ?? false;
-	const effectiveEdges = isExtended ? edges.filter((e) => e !== 'top') : edges;
-
-	return (
-		<SafeAreaView
-			style={[styles.container, { backgroundColor: colors.background }, style]}
-			edges={effectiveEdges}
-		>
-			{header && !isTransparent && (
-				<PageHeader {...header} topInset={isExtended ? insets.top : 0} />
-			)}
-			<View style={[styles.content, contentPadding && styles.contentPadding, contentStyle]}>
-				{children}
-			</View>
-			{header && isTransparent && (
-				<View style={styles.transparentHeaderOverlay} pointerEvents={'box-none'}>
-					{header.transparentBackground}
-					<PageHeader {...header} topInset={isExtended ? insets.top : 0} />
-				</View>
-			)}
-		</SafeAreaView>
-	);
-}
-
-function PageHeader({
+export function PageHeader({
 	icon: IconComponent,
 	title,
 	showBack = false,
@@ -155,9 +97,6 @@ function PageHeader({
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-	},
 	headerContainer: {
 		paddingTop: 4,
 		paddingBottom: 16,
@@ -188,18 +127,5 @@ const styles = StyleSheet.create({
 	rightActions: {
 		flexDirection: 'row',
 		alignItems: 'center',
-	},
-	transparentHeaderOverlay: {
-		position: 'absolute',
-		top: 0,
-		left: 0,
-		right: 0,
-		zIndex: 1,
-	},
-	content: {
-		flex: 1,
-	},
-	contentPadding: {
-		paddingHorizontal: 16,
 	},
 });
