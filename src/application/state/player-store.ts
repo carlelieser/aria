@@ -187,9 +187,12 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
 	insertIntoQueue: (track: Track, index: number) => {
 		const state = get();
-		const newQueue = [...state.queue];
-		const clampedIndex = Math.max(0, Math.min(newQueue.length, index));
-		newQueue.splice(clampedIndex, 0, track);
+		const clampedIndex = Math.max(0, Math.min(state.queue.length, index));
+		const newQueue = [
+			...state.queue.slice(0, clampedIndex),
+			track,
+			...state.queue.slice(clampedIndex),
+		];
 
 		const newOriginalQueue = [...state.originalQueue, track];
 		const adjustedQueueIndex =

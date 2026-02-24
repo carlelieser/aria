@@ -296,10 +296,10 @@ export class DashPlaybackProvider implements PlaybackProvider {
 
 	addToQueue(tracks: Track[], atIndex?: number): Result<void, Error> {
 		if (atIndex !== undefined && atIndex >= 0 && atIndex <= this._queue.length) {
-			this._queue.splice(atIndex, 0, ...tracks);
+			this._queue = [...this._queue.slice(0, atIndex), ...tracks, ...this._queue.slice(atIndex)];
 			if (this._currentIndex >= atIndex) this._currentIndex += tracks.length;
 		} else {
-			this._queue.push(...tracks);
+			this._queue = [...this._queue, ...tracks];
 		}
 		this._emitEvent({
 			type: 'queue-change',
@@ -312,7 +312,7 @@ export class DashPlaybackProvider implements PlaybackProvider {
 
 	removeFromQueue(index: number): Result<void, Error> {
 		if (index >= 0 && index < this._queue.length) {
-			this._queue.splice(index, 1);
+			this._queue = this._queue.filter((_, i) => i !== index);
 			if (index < this._currentIndex) this._currentIndex--;
 			else if (index === this._currentIndex) this.stop();
 			this._emitEvent({

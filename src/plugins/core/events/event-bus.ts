@@ -166,17 +166,13 @@ export class EventBus {
 	}
 
 	private _addToHistory(event: string, data: unknown): void {
-		let history = this._eventHistory.get(event);
-		if (!history) {
-			history = [];
-			this._eventHistory.set(event, history);
-		}
+		const existing = this._eventHistory.get(event) ?? [];
+		const updated = [...existing, data];
 
-		history.push(data);
-
-		if (history.length > this._maxHistorySize) {
-			history.shift();
-		}
+		this._eventHistory.set(
+			event,
+			updated.length > this._maxHistorySize ? updated.slice(-this._maxHistorySize) : updated
+		);
 	}
 }
 
