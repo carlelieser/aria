@@ -16,6 +16,8 @@ import { PLUGIN_MANIFEST as CORE_LIBRARY_MANIFEST } from './library/core-library
 import { PLUGIN_MANIFEST as LYRICS_MANIFEST } from './lyrics/core/config';
 import { PLUGIN_MANIFEST as YOUTUBE_MUSIC_MANIFEST } from './metadata/youtube-music/config';
 import { PLUGIN_MANIFEST as SPOTIFY_MANIFEST } from './metadata/spotify/config';
+// TODO: Re-enable once SoundCloud API credentials are restored
+// import { PLUGIN_MANIFEST as SOUNDCLOUD_MANIFEST } from './metadata/soundcloud/config';
 import { PLUGIN_MANIFEST as LOCAL_LIBRARY_MANIFEST } from './metadata/local-library/config';
 import { PLUGIN_MANIFEST as RNTP_MANIFEST } from './playback/react-native-track-player/config';
 import { PLUGIN_MANIFEST as DASH_MANIFEST } from './playback/dash/config';
@@ -68,6 +70,15 @@ export const PLUGIN_ENTRIES: PluginManifestEntry[] = [
 		},
 		isBuiltIn: false,
 	},
+	// TODO: Re-enable once SoundCloud API credentials are restored
+	// {
+	// 	manifest: SOUNDCLOUD_MANIFEST,
+	// 	load: async () => {
+	// 		const { SoundCloudPluginModule } = await import('./metadata/soundcloud/plugin-module');
+	// 		return SoundCloudPluginModule;
+	// 	},
+	// 	isBuiltIn: false,
+	// },
 	{
 		manifest: LOCAL_LIBRARY_MANIFEST,
 		load: async () => {
