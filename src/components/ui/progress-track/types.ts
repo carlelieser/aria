@@ -57,7 +57,6 @@ export interface ProgressTrackProps {
 	readonly showTimeLabels?: boolean;
 	readonly currentTime?: string;
 	readonly totalTime?: string;
-	readonly isBuffering?: boolean;
 	readonly disabled?: boolean;
 }
 

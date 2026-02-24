@@ -4,7 +4,12 @@
  * Worklet function that generates interpolated SVG polygon points.
  */
 
-import { DEFAULT_SIZE, DEFAULT_STROKE_WIDTH, MIN_SEGMENTS, MAX_INTERPOLATION_POINTS } from './types';
+import {
+	DEFAULT_SIZE,
+	DEFAULT_STROKE_WIDTH,
+	MIN_SEGMENTS,
+	MAX_INTERPOLATION_POINTS,
+} from './types';
 
 /**
  * Worklet version of point generation for use in animated props.

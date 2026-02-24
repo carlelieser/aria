@@ -3,21 +3,21 @@
  *
  * SVG polygon components with spring animation, external SharedValue control,
  * and static (non-animated) variants.
+ *
+ * Animation runs entirely on the UI thread via useAnimatedProps, avoiding
+ * React re-renders during spring transitions. The points string is computed
+ * in a worklet and applied directly to the native SVG element.
  */
 
 import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import {
-	useSharedValue,
-	useDerivedValue,
-	useAnimatedReaction,
-	withSpring,
-	runOnJS,
-} from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedProps, withSpring } from 'react-native-reanimated';
 import Svg, { Polygon } from 'react-native-svg';
 import { DEFAULT_SIZE, DEFAULT_STROKE_WIDTH } from './types';
 import type { AnimatedPolygonProps, ControlledPolygonProps } from './types';
 import { generateInterpolatedPointsWorklet } from './generate-points';
+
+const AnimatedPolygon = Animated.createAnimatedComponent(Polygon);
 
 export function AnimatedPolygonView({
 	segments,
@@ -30,9 +30,6 @@ export function AnimatedPolygonView({
 	style,
 }: AnimatedPolygonProps) {
 	const animatedSegments = useSharedValue(segments);
-	const [currentPoints, setCurrentPoints] = React.useState(() =>
-		generateInterpolatedPointsWorklet(segments, size, rotation, strokeWidth)
-	);
 
 	React.useEffect(() => {
 		animatedSegments.value = withSpring(segments, {
@@ -48,25 +45,20 @@ export function AnimatedPolygonView({
 		springConfig.mass,
 	]);
 
-	useAnimatedReaction(
-		() => animatedSegments.value,
-		(currentValue) => {
-			const pts = generateInterpolatedPointsWorklet(
-				currentValue,
-				size,
-				rotation,
-				strokeWidth
-			);
-			runOnJS(setCurrentPoints)(pts);
-		},
-		[size, rotation, strokeWidth]
-	);
+	const animatedProps = useAnimatedProps(() => ({
+		points: generateInterpolatedPointsWorklet(
+			animatedSegments.value,
+			size,
+			rotation,
+			strokeWidth
+		),
+	}));
 
 	return (
 		<View style={[styles.container, { width: size, height: size }, style]}>
 			<Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-				<Polygon
-					points={currentPoints}
+				<AnimatedPolygon
+					animatedProps={animatedProps}
 					fill={fill}
 					stroke={stroke}
 					strokeWidth={strokeWidth}
@@ -90,21 +82,15 @@ export function ControlledPolygon({
 	rotation = 0,
 	style,
 }: ControlledPolygonProps) {
-	const [currentPoints, setCurrentPoints] = React.useState(() =>
-		generateInterpolatedPointsWorklet(segments.value, size, rotation, strokeWidth)
-	);
-
-	useDerivedValue(() => {
-		const pts = generateInterpolatedPointsWorklet(segments.value, size, rotation, strokeWidth);
-		runOnJS(setCurrentPoints)(pts);
-		return pts;
-	}, [size, rotation, strokeWidth]);
+	const animatedProps = useAnimatedProps(() => ({
+		points: generateInterpolatedPointsWorklet(segments.value, size, rotation, strokeWidth),
+	}));
 
 	return (
 		<View style={[styles.container, { width: size, height: size }, style]}>
 			<Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-				<Polygon
-					points={currentPoints}
+				<AnimatedPolygon
+					animatedProps={animatedProps}
 					fill={fill}
 					stroke={stroke}
 					strokeWidth={strokeWidth}

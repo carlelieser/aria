@@ -1,4 +1,5 @@
 import { useEffect, useCallback, useMemo } from 'react';
+import { InteractionManager } from 'react-native';
 import {
 	useHomeFeedSections,
 	useHomeFeedFilterChips,
@@ -68,7 +69,12 @@ export function useHomeFeed(): HomeFeedResult {
 	const curated = useCuratedContent(10);
 
 	useEffect(() => {
-		homeFeedService.fetchHomeFeed();
+		// Defer the network fetch until after mount animations/interactions
+		// complete so the feed screen paints without blocking on async I/O.
+		const task = InteractionManager.runAfterInteractions(() => {
+			homeFeedService.fetchHomeFeed();
+		});
+		return () => task.cancel();
 	}, []);
 
 	const localSections = useMemo(() => buildLocalSections(curated), [curated]);

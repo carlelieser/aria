@@ -63,9 +63,6 @@ export const styles = StyleSheet.create({
 		height: BASIC_THUMB_SIZE,
 		borderRadius: BASIC_THUMB_SIZE / 2,
 	},
-	thumbDisabled: {
-		opacity: 0.5,
-	},
 	timeContainer: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',

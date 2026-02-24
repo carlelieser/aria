@@ -2,30 +2,40 @@
  * FloatingProgressBar Component
  *
  * Thin progress bar for the floating mini player.
- * Uses M3 theming.
+ * Driven entirely by Reanimated shared values so progress updates
+ * animate on the UI thread without triggering React re-renders.
  */
 
-import { StyleSheet } from 'react-native';
-import { ProgressBar } from 'react-native-paper';
-import { usePlaybackProgress } from '@/src/application/state/player-store';
+import { View, StyleSheet } from 'react-native';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import { useAnimatedProgress } from '@/src/hooks/use-animated-progress';
 import { useAppTheme } from '@/lib/theme';
 
 export function FloatingProgressBar() {
-	const { percentage } = usePlaybackProgress();
+	const progress = useAnimatedProgress();
 	const { colors } = useAppTheme();
 
+	const progressStyle = useAnimatedStyle(() => ({
+		width: `${progress.value * 100}%`,
+	}));
+
 	return (
-		<ProgressBar
-			progress={percentage / 100}
-			color={colors.primary}
-			style={styles.progressBar}
-		/>
+		<View style={styles.track}>
+			<Animated.View
+				style={[styles.fill, { backgroundColor: colors.primary }, progressStyle]}
+			/>
+		</View>
 	);
 }
 
 const styles = StyleSheet.create({
-	progressBar: {
+	track: {
 		height: 3,
+		borderRadius: 1.5,
+		overflow: 'hidden',
+	},
+	fill: {
+		height: '100%',
 		borderRadius: 1.5,
 	},
 });

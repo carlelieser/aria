@@ -8,7 +8,7 @@
 
 import { View } from 'react-native';
 import { Text } from 'react-native-paper';
-import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import { GestureDetector } from 'react-native-gesture-handler';
 import type { ProgressTrackProps } from './types';
 import {
@@ -23,7 +23,6 @@ import {
 } from './types';
 import {
 	useWaveAnimation,
-	useBufferingPulse,
 	useAmplitude,
 	useWaveAnimatedProps,
 	useTrackLayout,
@@ -44,7 +43,6 @@ export function ProgressTrack({
 	showTimeLabels = false,
 	currentTime,
 	totalTime,
-	isBuffering = false,
 	disabled = false,
 }: ProgressTrackProps) {
 	const { trackWidth, handleLayout } = useTrackLayout();
@@ -53,14 +51,13 @@ export function ProgressTrack({
 	const shouldAnimate = animated && !isBasic;
 	const isDisabled = disabled || !interactive;
 
-	const { localProgress, isDragging, composedGesture, thumbAnimatedStyle } = useSeekGesture(
+	const { localProgress, composedGesture, thumbAnimatedStyle } = useSeekGesture(
 		trackWidth,
 		isDisabled,
 		onSeek
 	);
 
 	const phase = useWaveAnimation(shouldAnimate);
-	const thumbOpacity = useBufferingPulse(isBuffering, isDragging);
 
 	const displayProgress = localProgress ?? progress;
 	const activeEnd = displayProgress * trackWidth;
@@ -73,10 +70,6 @@ export function ProgressTrack({
 	const inactiveStart = activeEnd + GAP_SIZE + INACTIVE_INSET;
 	const stopCx = trackWidth - STOP_GAP - STOP_RADIUS;
 	const inactiveEnd = stopCx - STOP_GAP;
-
-	const thumbOpacityStyle = useAnimatedStyle(() => ({
-		opacity: thumbOpacity.value,
-	}));
 
 	const thumbOffset = computeThumbOffset(activeEnd, isBasic, isVariant);
 
@@ -98,10 +91,8 @@ export function ProgressTrack({
 			<Animated.View
 				style={[
 					thumbAnimatedStyle,
-					thumbOpacityStyle,
 					isBasic ? styles.basicThumb : isVariant ? styles.variantThumb : styles.thumb,
 					{ left: thumbOffset, backgroundColor: colors.primary },
-					isDisabled && styles.thumbDisabled,
 				]}
 			/>
 		</View>

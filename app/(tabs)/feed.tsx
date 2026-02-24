@@ -53,9 +53,10 @@ export default function HomeScreen() {
 	const visibleLocalSections = localSections.filter((s) => s.items.length > 0);
 	const visibleRemoteSections = remoteSections.filter((s) => s.items.length > 0);
 	const totalVisible = visibleLocalSections.length + visibleRemoteSections.length;
-	const skeletonCount = !hasCompletedInitialLoad
-		? Math.max(0, MIN_VISIBLE_SECTIONS - totalVisible)
-		: 0;
+	const skeletonCount =
+		!hasCompletedInitialLoad && isLoading
+			? Math.max(0, MIN_VISIBLE_SECTIONS - totalVisible)
+			: 0;
 	const hasData = localSections.length > 0 || remoteSections.length > 0;
 	const showSkeleton = isLoading && !hasData;
 	const showError = !isLoading && !hasData && error !== null;

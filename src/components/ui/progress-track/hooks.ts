@@ -1,7 +1,7 @@
 /**
  * ProgressTrack Hooks
  *
- * Custom hooks for wave animation, buffering pulse, amplitude, and gesture handling.
+ * Custom hooks for wave animation, amplitude, and gesture handling.
  */
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
@@ -12,7 +12,6 @@ import {
 	useAnimatedProps,
 	withSpring,
 	withRepeat,
-	withSequence,
 	withTiming,
 	cancelAnimation,
 	runOnJS,
@@ -39,25 +38,6 @@ export function useWaveAnimation(shouldAnimate: boolean) {
 	}, [phase, shouldAnimate]);
 
 	return phase;
-}
-
-export function useBufferingPulse(isBuffering: boolean, isDragging: React.RefObject<boolean>) {
-	const thumbOpacity = useSharedValue(1);
-
-	useEffect(() => {
-		if (isBuffering && !isDragging.current) {
-			thumbOpacity.value = withRepeat(
-				withSequence(withTiming(0.4, { duration: 500 }), withTiming(1, { duration: 500 })),
-				-1,
-				false
-			);
-		} else {
-			cancelAnimation(thumbOpacity);
-			thumbOpacity.value = withTiming(1, { duration: 200 });
-		}
-	}, [isBuffering, thumbOpacity]);
-
-	return thumbOpacity;
 }
 
 export function useAmplitude(displayProgress: number, shouldAnimate: boolean) {
