@@ -91,6 +91,38 @@ interface ExtendedDetailsPageProps extends Omit<DetailsPageProps, 'sections'> {
 	readonly disableScroll?: boolean;
 }
 
+interface DetailsSectionProps {
+	readonly section: DetailsPageSection;
+	readonly titleColor: string;
+}
+
+function SectionContent({ section }: { readonly section: DetailsPageSection }) {
+	if (!section.horizontal) return <>{section.content}</>;
+	return (
+		<ScrollView
+			horizontal
+			showsHorizontalScrollIndicator={false}
+			style={styles.horizontalScrollView}
+			contentContainerStyle={styles.horizontalContent}
+		>
+			{section.content}
+		</ScrollView>
+	);
+}
+
+function DetailsSection({ section, titleColor }: DetailsSectionProps) {
+	return (
+		<View style={styles.section}>
+			{section.title && (
+				<Text variant="titleMedium" style={[styles.sectionTitle, { color: titleColor }]}>
+					{section.title}
+				</Text>
+			)}
+			<SectionContent section={section} />
+		</View>
+	);
+}
+
 export function DetailsPage({
 	headerInfo,
 	headerRightActions,
@@ -164,33 +196,10 @@ export function DetailsPage({
 
 	const renderSections = () => {
 		if (!sections) return null;
-
 		const hasContent = sections.some((section) => section.content !== null);
 		if (!hasContent && emptyContent) return emptyContent;
-
 		return sections.map((section) => (
-			<View key={section.key} style={styles.section}>
-				{section.title && (
-					<Text
-						variant={'titleMedium'}
-						style={[styles.sectionTitle, { color: colors.onSurface }]}
-					>
-						{section.title}
-					</Text>
-				)}
-				{section.horizontal ? (
-					<ScrollView
-						horizontal
-						showsHorizontalScrollIndicator={false}
-						style={styles.horizontalScrollView}
-						contentContainerStyle={styles.horizontalContent}
-					>
-						{section.content}
-					</ScrollView>
-				) : (
-					section.content
-				)}
-			</View>
+			<DetailsSection key={section.key} section={section} titleColor={colors.onSurface} />
 		));
 	};
 
@@ -201,35 +210,28 @@ export function DetailsPage({
 		hasCustomColors: pageTheme.hasCustomColors,
 	};
 
-	const renderMainContent = () => {
-		if (disableScroll) {
-			if (renderContent) {
-				return renderContent({
-					ListHeaderComponent: scrollableHeader,
-					onScroll: handleScroll,
-				});
-			}
-			return (
-				<View style={styles.disabledScrollContainer}>
-					{scrollableHeader}
-					{children ?? renderSections()}
-				</View>
-			);
+	const renderDisabledScrollContent = () => {
+		if (renderContent) {
+			return renderContent({ ListHeaderComponent: scrollableHeader, onScroll: handleScroll });
 		}
-
-		const content = children ?? renderSections();
-
 		return (
-			<PlayerAwareScrollView
-				contentContainerStyle={[styles.scrollContent, scrollContentStyle]}
-				onScroll={handleScroll}
-				scrollEventThrottle={16}
-			>
+			<View style={styles.disabledScrollContainer}>
 				{scrollableHeader}
-				<View style={styles.contentSection}>{content}</View>
-			</PlayerAwareScrollView>
+				{children ?? renderSections()}
+			</View>
 		);
 	};
+
+	const renderScrollableContent = () => (
+		<PlayerAwareScrollView
+			contentContainerStyle={[styles.scrollContent, scrollContentStyle]}
+			onScroll={handleScroll}
+			scrollEventThrottle={16}
+		>
+			{scrollableHeader}
+			<View style={styles.contentSection}>{children ?? renderSections()}</View>
+		</PlayerAwareScrollView>
+	);
 
 	return (
 		<DetailsPageContext.Provider value={contextValue}>
@@ -255,7 +257,7 @@ export function DetailsPage({
 					showBorder: false,
 				}}
 			>
-				{renderMainContent()}
+				{disableScroll ? renderDisabledScrollContent() : renderScrollableContent()}
 				{bottomContent}
 			</PageLayout>
 		</DetailsPageContext.Provider>
