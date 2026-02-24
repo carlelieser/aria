@@ -31,21 +31,27 @@ export async function executeLibraryAction(
 	const { track } = context;
 
 	switch (actionId) {
-		case CORE_ACTION_IDS.ADD_TO_LIBRARY:
-			libraryService.addTrack(track);
+		case CORE_ACTION_IDS.ADD_TO_LIBRARY: {
+			const result = libraryService.addTrack(track);
 			return {
 				handled: true,
-				success: true,
-				feedback: { message: 'Added to library', description: track.title },
+				success: result.success,
+				feedback: result.success
+					? { message: 'Added to library', description: track.title }
+					: { message: 'Failed to add to library', type: 'error' as const },
 			};
+		}
 
-		case CORE_ACTION_IDS.REMOVE_FROM_LIBRARY:
-			libraryService.removeTrack(track.id.value);
+		case CORE_ACTION_IDS.REMOVE_FROM_LIBRARY: {
+			const result = libraryService.removeTrack(track.id.value);
 			return {
 				handled: true,
-				success: true,
-				feedback: { message: 'Removed from library', description: track.title },
+				success: result.success,
+				feedback: result.success
+					? { message: 'Removed from library', description: track.title }
+					: { message: 'Failed to remove from library', type: 'error' as const },
 			};
+		}
 
 		default:
 			return { handled: false };

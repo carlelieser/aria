@@ -49,11 +49,13 @@ export async function executePlaylistAction(
 
 		case CORE_ACTION_IDS.REMOVE_FROM_PLAYLIST:
 			if (playlistId && trackPosition !== undefined) {
-				libraryService.removeTrackFromPlaylist(playlistId, trackPosition);
+				const result = libraryService.removeTrackFromPlaylist(playlistId, trackPosition);
 				return {
 					handled: true,
-					success: true,
-					feedback: { message: 'Removed from playlist', description: track.title },
+					success: result.success,
+					feedback: result.success
+						? { message: 'Removed from playlist', description: track.title }
+						: { message: 'Failed to remove from playlist', type: 'error' as const },
 				};
 			}
 			return { handled: false };

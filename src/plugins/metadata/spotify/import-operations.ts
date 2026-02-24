@@ -77,7 +77,11 @@ export function createImportOperations(
 							Math.min(offset + items.length, totalCount),
 							totalCount
 						);
-						libraryService.addTracks(items);
+						const addResult = libraryService.addTracks(items);
+						if (!addResult.success) {
+							store.addError(`Tracks page ${offset}`, addResult.error.message);
+							logger.warn('Failed to add tracks to library', addResult.error);
+						}
 						tracksImported += items.length;
 						hasMore = result.data.hasMore;
 						offset += limit;
@@ -115,8 +119,16 @@ export function createImportOperations(
 								limit: 50,
 							});
 							if (tracksResult.success) {
-								libraryService.addTracks(tracksResult.data.items);
-								albumsImported++;
+								const addResult = libraryService.addTracks(tracksResult.data.items);
+								if (addResult.success) {
+									albumsImported++;
+								} else {
+									store.addError(album.name, addResult.error.message);
+									logger.warn(
+										'Failed to add album tracks to library',
+										addResult.error
+									);
+								}
 							} else {
 								store.addError(album.name, tracksResult.error.message);
 							}
@@ -159,8 +171,18 @@ export function createImportOperations(
 
 							const fullPlaylistResult = await library.getPlaylist(playlist.id);
 							if (fullPlaylistResult.success) {
-								libraryService.addPlaylist(fullPlaylistResult.data);
-								playlistsImported++;
+								const addResult = libraryService.addPlaylist(
+									fullPlaylistResult.data
+								);
+								if (addResult.success) {
+									playlistsImported++;
+								} else {
+									store.addError(playlist.name, addResult.error.message);
+									logger.warn(
+										'Failed to add playlist to library',
+										addResult.error
+									);
+								}
 							} else {
 								store.addError(playlist.name, fullPlaylistResult.error.message);
 							}

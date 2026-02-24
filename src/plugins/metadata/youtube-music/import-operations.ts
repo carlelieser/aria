@@ -46,7 +46,11 @@ export function createImportOperations(library: YouTubeMusicLibraryOperations): 
 					if (tracksResult.success) {
 						const tracks = tracksResult.data;
 						store.updateProgress('tracks', tracks.length, tracks.length);
-						libraryService.addTracks(tracks);
+						const addResult = libraryService.addTracks(tracks);
+						if (!addResult.success) {
+							store.addError('Liked tracks', addResult.error.message);
+							logger.warn('Failed to add tracks to library', addResult.error);
+						}
 						tracksImported = tracks.length;
 					} else {
 						store.addError('Liked tracks', tracksResult.error.message);
@@ -85,8 +89,16 @@ export function createImportOperations(library: YouTubeMusicLibraryOperations): 
 									})),
 									updatedAt: new Date(),
 								};
-								libraryService.addPlaylist(playlistWithTracks);
-								playlistsImported++;
+								const addResult = libraryService.addPlaylist(playlistWithTracks);
+								if (addResult.success) {
+									playlistsImported++;
+								} else {
+									store.addError(playlist.name, addResult.error.message);
+									logger.warn(
+										'Failed to add playlist to library',
+										addResult.error
+									);
+								}
 							} else {
 								store.addError(playlist.name, tracksResult.error.message);
 							}
