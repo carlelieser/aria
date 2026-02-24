@@ -6,72 +6,19 @@
  * Uses M3 theming.
  */
 
-import React, { useCallback, memo } from 'react';
-import { View, Pressable, StyleSheet } from 'react-native';
+import { useCallback } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { Text, Divider, Switch } from 'react-native-paper';
-import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
 import { ManagedBottomSheet } from '@/src/components/ui/managed-bottom-sheet';
 import { Icon } from '@/src/components/ui/icon';
-import { SlidersHorizontal, Check, Info, CheckCircle } from 'lucide-react-native';
+import { SlidersHorizontal, Info, CheckCircle } from 'lucide-react-native';
 import { useEqualizer, useEqualizerInit } from '@/src/hooks/use-equalizer';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
+import { PresetButton } from './preset-button';
+import { EqualizerBand } from './equalizer-band';
+import type { EqualizerSheetProps } from './types';
 
-interface PresetButtonProps {
-	readonly id: string;
-	readonly name: string;
-	readonly isSelected: boolean;
-	readonly isEnabled: boolean;
-	readonly onSelect: (presetId: string) => void;
-}
-
-const PresetButton = memo(function PresetButton({
-	id,
-	name,
-	isSelected,
-	isEnabled,
-	onSelect,
-}: PresetButtonProps) {
-	const { colors } = useAppTheme();
-
-	const handlePress = useCallback(() => {
-		onSelect(id);
-	}, [onSelect, id]);
-
-	return (
-		<Pressable
-			onPress={handlePress}
-			disabled={!isEnabled}
-			style={({ pressed }) => [
-				styles.presetButton,
-				{
-					backgroundColor: isSelected
-						? colors.primaryContainer
-						: pressed
-							? colors.surfaceContainerHighest
-							: colors.surfaceContainer,
-					borderColor: isSelected ? colors.primary : colors.outline,
-					opacity: isEnabled ? 1 : 0.5,
-				},
-			]}
-		>
-			<Text
-				variant={'bodyMedium'}
-				style={{
-					color: isSelected ? colors.onPrimaryContainer : colors.onSurface,
-					fontWeight: isSelected ? '600' : '400',
-				}}
-			>
-				{name}
-			</Text>
-			{isSelected && <Icon as={Check} size={16} color={colors.onPrimaryContainer} />}
-		</Pressable>
-	);
-});
-
-interface EqualizerSheetProps {
-	readonly isOpen: boolean;
-	readonly onClose: () => void;
-}
+export type { EqualizerSheetProps } from './types';
 
 export function EqualizerSheet({ isOpen, onClose }: EqualizerSheetProps) {
 	const { colors } = useAppTheme();
@@ -176,58 +123,6 @@ export function EqualizerSheet({ isOpen, onClose }: EqualizerSheetProps) {
 	);
 }
 
-interface EqualizerBandProps {
-	readonly label: string;
-	readonly gain: number;
-	readonly isEnabled: boolean;
-}
-
-function EqualizerBand({ label, gain, isEnabled }: EqualizerBandProps) {
-	const { colors } = useAppTheme();
-	const animatedHeight = useSharedValue(gain);
-
-	React.useEffect(() => {
-		animatedHeight.value = withSpring(gain, { damping: 15, stiffness: 200 });
-	}, [gain, animatedHeight]);
-
-	const barAnimatedStyle = useAnimatedStyle(() => {
-		const normalizedGain = (animatedHeight.value + 12) / 24;
-		const height = Math.max(4, normalizedGain * 100);
-
-		return {
-			height: `${height}%`,
-		};
-	});
-
-	return (
-		<View style={styles.bandContainer}>
-			<View style={[styles.bandTrack, { backgroundColor: colors.surfaceContainerHighest }]}>
-				<Animated.View
-					style={[
-						styles.bandBar,
-						barAnimatedStyle,
-						{
-							backgroundColor: isEnabled ? colors.primary : colors.outline,
-						},
-					]}
-				/>
-			</View>
-			<Text variant={'labelSmall'} style={{ color: colors.onSurfaceVariant, marginTop: 4 }}>
-				{label}
-			</Text>
-			<Text
-				variant={'labelSmall'}
-				style={{
-					color: gain === 0 ? colors.onSurfaceVariant : colors.primary,
-					fontWeight: '600',
-				}}
-			>
-				{gain > 0 ? `+${gain}` : gain}
-			</Text>
-		</View>
-	);
-}
-
 const styles = StyleSheet.create({
 	header: {
 		flexDirection: 'row',
@@ -257,21 +152,6 @@ const styles = StyleSheet.create({
 	disabled: {
 		opacity: 0.5,
 	},
-	bandContainer: {
-		alignItems: 'center',
-		flex: 1,
-	},
-	bandTrack: {
-		width: 8,
-		flex: 1,
-		borderRadius: 4,
-		justifyContent: 'flex-end',
-		overflow: 'hidden',
-	},
-	bandBar: {
-		width: '100%',
-		borderRadius: 4,
-	},
 	sectionLabel: {
 		marginTop: 8,
 		marginBottom: 12,
@@ -281,15 +161,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		flexWrap: 'wrap',
 		gap: 8,
-	},
-	presetButton: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 8,
-		paddingVertical: 10,
-		paddingHorizontal: 16,
-		borderRadius: M3Shapes.medium,
-		borderWidth: 1,
 	},
 	bottomPadding: {
 		height: 34,

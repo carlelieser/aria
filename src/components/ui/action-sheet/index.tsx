@@ -4,8 +4,8 @@
  * Bottom sheet menu using @gorhom/bottom-sheet with M3 theming.
  */
 
-import React, { useCallback, useRef, useEffect } from 'react';
-import { View, Pressable, StyleSheet } from 'react-native';
+import { useCallback, useRef, useEffect } from 'react';
+import { View, StyleSheet } from 'react-native';
 import BottomSheet, {
 	BottomSheetBackdrop,
 	BottomSheetView,
@@ -13,33 +13,12 @@ import BottomSheet, {
 } from '@gorhom/bottom-sheet';
 import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { Portal } from '@rn-primitives/portal';
-import { Text, Divider } from 'react-native-paper';
-import { Icon } from '@/src/components/ui/icon';
-import { Check } from 'lucide-react-native';
-import type { LucideIcon } from 'lucide-react-native';
+import { Divider } from 'react-native-paper';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
+import { ActionSheetItemComponent } from './action-sheet-item';
+import type { ActionSheetProps } from './types';
 
-export interface ActionSheetItem {
-	readonly id: string;
-	readonly label: string;
-	readonly icon?: LucideIcon;
-	readonly variant?: 'default' | 'destructive';
-	readonly disabled?: boolean;
-	readonly checked?: boolean;
-}
-
-export interface ActionSheetGroup {
-	readonly items: ActionSheetItem[];
-}
-
-interface ActionSheetProps {
-	readonly isOpen: boolean;
-	readonly groups: ActionSheetGroup[];
-	readonly onSelect: (itemId: string) => void;
-	readonly onClose: () => void;
-	readonly header?: React.ReactNode;
-	readonly portalName: string;
-}
+export type { ActionSheetItem, ActionSheetGroup, ActionSheetProps } from './types';
 
 export function ActionSheet({
 	isOpen,
@@ -142,61 +121,6 @@ export function ActionSheet({
 	);
 }
 
-interface ActionSheetItemComponentProps {
-	readonly item: ActionSheetItem;
-	readonly onSelect: (itemId: string) => void;
-	readonly colors: ReturnType<typeof useAppTheme>['colors'];
-}
-
-const ActionSheetItemComponent = React.memo(function ActionSheetItemComponent({
-	item,
-	onSelect,
-	colors,
-}: ActionSheetItemComponentProps) {
-	const handlePress = useCallback(() => {
-		onSelect(item.id);
-	}, [onSelect, item.id]);
-	const isDestructive = item.variant === 'destructive';
-	const IconComponent = item.icon;
-
-	const textColor = isDestructive ? colors.error : colors.onSurface;
-	const iconColor = isDestructive ? colors.error : colors.onSurfaceVariant;
-
-	return (
-		<Pressable
-			onPress={handlePress}
-			disabled={item.disabled}
-			style={({ pressed }) => [
-				styles.itemContainer,
-				{
-					backgroundColor: pressed ? colors.surfaceContainerHighest : 'transparent',
-					opacity: item.disabled ? 0.5 : 1,
-				},
-			]}
-		>
-			<View style={styles.itemContent}>
-				{IconComponent && (
-					<View style={styles.iconWrapper}>
-						<Icon as={IconComponent} size={22} color={iconColor} />
-					</View>
-				)}
-				<Text
-					variant={'bodyLarge'}
-					style={[styles.itemText, { color: textColor }]}
-					numberOfLines={1}
-				>
-					{item.label}
-				</Text>
-				{item.checked && (
-					<View style={styles.checkWrapper}>
-						<Icon as={Check} size={20} color={colors.primary} />
-					</View>
-				)}
-			</View>
-		</Pressable>
-	);
-});
-
 const styles = StyleSheet.create({
 	background: {
 		borderTopLeftRadius: M3Shapes.extraLarge,
@@ -218,32 +142,5 @@ const styles = StyleSheet.create({
 	},
 	bottomPadding: {
 		height: 34,
-	},
-	itemContainer: {
-		borderRadius: M3Shapes.medium,
-		marginHorizontal: 8,
-	},
-	itemContent: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		paddingVertical: 14,
-		paddingHorizontal: 14,
-	},
-	iconWrapper: {
-		width: 24,
-		height: 24,
-		alignItems: 'center',
-		justifyContent: 'center',
-		marginRight: 16,
-	},
-	itemText: {
-		flex: 1,
-	},
-	checkWrapper: {
-		width: 24,
-		height: 24,
-		alignItems: 'center',
-		justifyContent: 'center',
-		marginLeft: 8,
 	},
 });

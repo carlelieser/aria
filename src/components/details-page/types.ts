@@ -6,6 +6,7 @@
  */
 
 import type { ReactNode } from 'react';
+import type { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import type { LucideIcon } from 'lucide-react-native';
 
 export type ArtworkShape = 'square' | 'circular';
@@ -41,4 +42,17 @@ export interface DetailsPageProps {
 	readonly loadingContent?: ReactNode;
 	readonly emptyContent?: ReactNode;
 	readonly bottomContent?: ReactNode;
+}
+
+export interface RenderContentProps {
+	readonly ListHeaderComponent: ReactNode;
+	readonly onScroll: (e: NativeSyntheticEvent<NativeScrollEvent>) => void;
+}
+
+export interface ExtendedDetailsPageProps extends Omit<DetailsPageProps, 'sections'> {
+	readonly sections?: readonly DetailsPageSection[];
+	readonly children?: ReactNode;
+	readonly renderContent?: (props: RenderContentProps) => ReactNode;
+	readonly scrollContentStyle?: object;
+	readonly disableScroll?: boolean;
 }
