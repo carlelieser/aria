@@ -18,12 +18,7 @@ import {
 	useBootstrapProgress,
 	useBootstrapMessage,
 } from '@application/state/bootstrap-progress-store';
-import {
-	MORPH_INTERVAL,
-	ROTATION_DURATION,
-	PROGRESS_TIMING_MS,
-	getRandomSegments,
-} from './types';
+import { MORPH_INTERVAL, ROTATION_DURATION, PROGRESS_TIMING_MS, getRandomSegments } from './types';
 
 export function usePolygonMorph() {
 	const [segments, setSegments] = useState(3);

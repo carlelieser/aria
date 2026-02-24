@@ -28,8 +28,10 @@ export function LyricsDisplay({ maxHeight, onLineTap }: LyricsDisplayProps) {
 	const { colors } = useAppTheme();
 	const { lyrics, currentLineIndex, isLoading, hasAnyLyrics, hasSyncedLyrics } = useLyrics();
 	const { seekTo } = usePlayer();
-	const { scrollViewRef, handleScrollBegin, handleScrollEnd } =
-		useLyricsScroll(currentLineIndex, hasSyncedLyrics);
+	const { scrollViewRef, handleScrollBegin, handleScrollEnd } = useLyricsScroll(
+		currentLineIndex,
+		hasSyncedLyrics
+	);
 
 	const handleLineTap = useCallback(
 		async (timeMs: number) => {

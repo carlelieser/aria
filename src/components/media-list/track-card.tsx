@@ -20,7 +20,11 @@ import { getArtistNames } from '@/src/domain/entities/track';
 import { useTrackPlaybackInfo } from '@/src/application/state/player-store';
 import { DownloadIndicator } from './download-indicator';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
-import { useOpenPlayerOnTrackClick } from '@/src/application/state/settings-store';
+import { usePluginManifest } from '@/src/hooks/use-plugin-registry';
+import {
+	useOpenPlayerOnTrackClick,
+	useShowProviderLabel,
+} from '@/src/application/state/settings-store';
 import { router } from 'expo-router';
 
 interface TrackCardProps {
@@ -42,6 +46,7 @@ export const TrackCard = memo(function TrackCard({
 	const { colors } = useAppTheme();
 	const { isActiveTrack, isCurrentlyPlaying } = useTrackPlaybackInfo(track.id.value);
 	const openPlayerOnTrackClick = useOpenPlayerOnTrackClick();
+	const showProviderLabel = useShowProviderLabel();
 
 	const handlePress = useCallback(() => {
 		if (onPress) {
@@ -57,6 +62,8 @@ export const TrackCard = memo(function TrackCard({
 			router.push('/player');
 		}
 	}, [onPress, track, play, playQueue, queue, queueIndex, openPlayerOnTrackClick]);
+
+	const pluginManifest = usePluginManifest(track.id.sourceType);
 
 	const artwork = getBestArtwork(track.artwork, 300);
 	const artworkUrl = artwork?.url;
@@ -101,6 +108,9 @@ export const TrackCard = memo(function TrackCard({
 					style={{ color: colors.onSurfaceVariant }}
 				>
 					{artistNames}
+					{showProviderLabel && pluginManifest
+						? ` · ${pluginManifest.shortName ?? pluginManifest.name}`
+						: ''}
 				</Text>
 			</View>
 		</TouchableOpacity>

@@ -28,7 +28,6 @@ export function parseSyncedLyrics(syncedLyricsText: string): LyricsLine[] {
 		}
 	}
 
-	// Add end times based on next line's start time
 	for (let i = 0; i < lines.length - 1; i++) {
 		lines[i] = {
 			...lines[i],

@@ -28,9 +28,6 @@ export class PluginLoader {
 		private readonly manifestRegistry: PluginManifestRegistry
 	) {}
 
-	/**
-	 * Load a single plugin by ID
-	 */
 	async loadPlugin(
 		pluginId: string,
 		options: PluginLoaderOptions = {}
@@ -38,30 +35,24 @@ export class PluginLoader {
 		const { configs = {}, autoActivate = true } = options;
 
 		try {
-			// Check if already loaded
 			if (this.pluginRegistry.getPlugin(pluginId)) {
 				logger.debug(`Plugin "${pluginId}" already loaded, skipping`);
 				return { pluginId, success: true };
 			}
 
-			// Load the plugin module
 			const module = await this.manifestRegistry.loadPlugin(pluginId);
 
-			// Validate if validation function exists
 			if (module.validate) {
 				await module.validate();
 			}
 
-			// Merge default config with provided config
 			const config = {
 				...module.defaultConfig,
 				...configs[pluginId],
 			};
 
-			// Create the plugin instance
 			const plugin = await module.create(config);
 
-			// Register with the plugin registry
 			const result = await this.pluginRegistry.register({
 				plugin,
 				config,
@@ -72,7 +63,6 @@ export class PluginLoader {
 				throw result.error;
 			}
 
-			// Initialize the plugin
 			const initResult = await this.pluginRegistry.initialize(pluginId);
 			if (!initResult.success) {
 				throw initResult.error;
@@ -87,9 +77,6 @@ export class PluginLoader {
 		}
 	}
 
-	/**
-	 * Load multiple plugins by their IDs
-	 */
 	async loadPlugins(
 		pluginIds: string[],
 		options: PluginLoaderOptions = {}
@@ -112,9 +99,6 @@ export class PluginLoader {
 		return { loaded, failed };
 	}
 
-	/**
-	 * Load all enabled plugins from the enabled set
-	 */
 	async loadEnabledPlugins(
 		enabledPluginIds: Set<string>,
 		options: PluginLoaderOptions = {}
@@ -128,9 +112,6 @@ export class PluginLoader {
 		return this.loadPlugins(toLoad, options);
 	}
 
-	/**
-	 * Load all available plugins (useful for debugging)
-	 */
 	async loadAllPlugins(options: PluginLoaderOptions = {}): Promise<PluginBatchLoadResult> {
 		const available = this.manifestRegistry.getAvailablePlugins();
 		const pluginIds = available.map((manifest) => manifest.id);
@@ -139,9 +120,6 @@ export class PluginLoader {
 		return this.loadPlugins(pluginIds, options);
 	}
 
-	/**
-	 * Unload a plugin by ID
-	 */
 	async unloadPlugin(pluginId: string): Promise<PluginLoadResult> {
 		try {
 			const result = await this.pluginRegistry.unregister(pluginId);
@@ -159,9 +137,6 @@ export class PluginLoader {
 		}
 	}
 
-	/**
-	 * Reload a plugin (unload and load again)
-	 */
 	async reloadPlugin(
 		pluginId: string,
 		options: PluginLoaderOptions = {}
@@ -171,9 +146,6 @@ export class PluginLoader {
 	}
 }
 
-/**
- * Create a plugin loader with default registries
- */
 export function createPluginLoader(): PluginLoader {
 	return new PluginLoader(PluginRegistry.getInstance(), PluginManifestRegistry.getInstance());
 }

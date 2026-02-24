@@ -166,7 +166,6 @@ export async function copyDirectoryToDownloads(
 			return err(new Error('Failed to copy HLS directory: manifest not found'));
 		}
 
-		// Calculate total size of directory contents
 		const files = await FileSystem.readDirectoryAsync(destDir);
 		let totalSize = 0;
 		for (const file of files) {

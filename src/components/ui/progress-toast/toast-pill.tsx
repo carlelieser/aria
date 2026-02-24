@@ -31,10 +31,7 @@ export function ToastPill({
 
 	return (
 		<Portal name={portalName}>
-			<View
-				style={[styles.container, { bottom: bottomOffset }]}
-				pointerEvents={'box-none'}
-			>
+			<View style={[styles.container, { bottom: bottomOffset }]} pointerEvents={'box-none'}>
 				<Animated.View style={animatedStyle}>
 					<Pressable
 						onPress={onExpand}

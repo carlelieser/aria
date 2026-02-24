@@ -136,7 +136,6 @@ export async function parseHlsManifest(
 
 	logger.debug(`Using audio playlist: ${audioPlaylistUrl.substring(0, 50)}...`);
 
-	// Fetch the audio segment playlist if different from master
 	let segmentPlaylistText = manifestText;
 	if (audioPlaylistUrl !== manifestUrl) {
 		const text = await fetchManifestText(audioPlaylistUrl, fetchHeaders);

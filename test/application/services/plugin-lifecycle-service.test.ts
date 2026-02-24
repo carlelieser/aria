@@ -1,5 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { usePluginSettingsStore, REQUIRED_PLUGINS } from '@application/state/plugin-settings-store';
+
+import { PluginLifecycleService } from '@/src/application/services/plugin-lifecycle-service';
 
 vi.mock('@shared/services/logger', () => ({
 	getLogger: () => ({
@@ -10,10 +12,8 @@ vi.mock('@shared/services/logger', () => ({
 	}),
 }));
 
-import { PluginLifecycleService } from '@/src/application/services/plugin-lifecycle-service';
-
 function createMockPluginRegistry() {
-	const listeners: Array<(event: { type: string; pluginId: string }) => void> = [];
+	const listeners: ((event: { type: string; pluginId: string }) => void)[] = [];
 	return {
 		on: vi.fn().mockImplementation((handler) => {
 			listeners.push(handler);
@@ -85,7 +85,12 @@ describe('PluginLifecycleService', () => {
 		mockServices = createMockServices();
 
 		usePluginSettingsStore.setState({
-			enabledPlugins: ['youtube-music', 'react-native-track-player', 'core-library', 'dash-player'],
+			enabledPlugins: [
+				'youtube-music',
+				'react-native-track-player',
+				'core-library',
+				'dash-player',
+			],
 			pluginConfigs: {},
 		});
 	});

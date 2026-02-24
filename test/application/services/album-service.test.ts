@@ -8,6 +8,8 @@ import type { Track } from '@domain/entities/track';
 import type { Album } from '@domain/entities/album';
 import type { MetadataProvider } from '@plugins/core/interfaces/metadata-provider';
 
+import { AlbumService } from '@/src/application/services/album-service';
+
 vi.mock('@shared/services/logger', () => ({
 	getLogger: () => ({
 		debug: vi.fn(),
@@ -16,8 +18,6 @@ vi.mock('@shared/services/logger', () => ({
 		error: vi.fn(),
 	}),
 }));
-
-import { AlbumService } from '@/src/application/services/album-service';
 
 function createMockAlbum(id: string, name: string): Album {
 	return {
@@ -40,10 +40,7 @@ function createMockTrack(id: string, trackNumber?: number): Track {
 	};
 }
 
-function createMockProvider(
-	id: string,
-	overrides: Record<string, unknown> = {}
-) {
+function createMockProvider(id: string, overrides: Record<string, unknown> = {}) {
 	return {
 		manifest: { id, name: id, version: '1.0.0' },
 		hasCapability: vi.fn().mockReturnValue(true),

@@ -34,18 +34,13 @@ export function TabItemRow({
 			]}
 		>
 			<View style={styles.tabInfo}>
-				<TabIcon
-					size={20}
-					color={isEnabled ? colors.onSurface : colors.outlineVariant}
-				/>
+				<TabIcon size={20} color={isEnabled ? colors.onSurface : colors.outlineVariant} />
 				<Text
 					variant={'bodyMedium'}
 					style={[
 						styles.tabLabel,
 						{
-							color: isEnabled
-								? colors.onSurface
-								: colors.outlineVariant,
+							color: isEnabled ? colors.onSurface : colors.outlineVariant,
 						},
 					]}
 				>

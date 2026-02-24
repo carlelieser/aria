@@ -12,13 +12,15 @@ import {
 	type HasAlbum,
 } from '@domain/utils/core-filtering';
 
-function makeFilterable(overrides: {
-	id?: string;
-	artists?: { id: string; name: string }[];
-	albumId?: string;
-} = {}): Filterable {
+function makeFilterable(
+	overrides: {
+		id?: string;
+		artists?: { id: string; name: string }[];
+		albumId?: string;
+	} = {}
+): Filterable {
 	return {
-		id: { value: overrides.id ?? 'track-1' },
+		id: { value: overrides.id ?? 'track-1', sourceType: 'youtube-music' },
 		artists: overrides.artists ?? [{ id: 'a1', name: 'Artist A' }],
 		album: overrides.albumId ? { id: overrides.albumId } : undefined,
 	};
@@ -29,6 +31,7 @@ function makeBaseFilters(overrides: Partial<BaseFilters> = {}): BaseFilters {
 		favoritesOnly: false,
 		artistIds: [],
 		albumIds: [],
+		providerIds: [],
 		...overrides,
 	};
 }

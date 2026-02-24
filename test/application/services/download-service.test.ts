@@ -6,6 +6,10 @@ import { createStreamingSource, createLocalSource } from '@domain/value-objects/
 import type { Track } from '@domain/entities/track';
 import type { AudioSourceProvider } from '@plugins/core/interfaces/audio-source-provider';
 
+import { DownloadService } from '@/src/application/services/download-service';
+import { libraryService } from '@/src/application/services/library-service';
+import { getFileInfo } from '@infrastructure/filesystem/download-manager';
+
 vi.mock('@shared/services/logger', () => ({
 	getLogger: () => ({
 		debug: vi.fn(),
@@ -39,10 +43,6 @@ vi.mock('@/src/application/services/library-service', () => ({
 		addTrack: vi.fn().mockReturnValue({ success: true, data: undefined }),
 	},
 }));
-
-import { DownloadService } from '@/src/application/services/download-service';
-import { libraryService } from '@/src/application/services/library-service';
-import { getFileInfo } from '@infrastructure/filesystem/download-manager';
 
 function createStreamingTrack(id: string): Track {
 	return {
@@ -235,7 +235,12 @@ describe('DownloadService', () => {
 			const provider = createMockAudioSourceProvider('youtube-music');
 			vi.mocked(provider.getStreamUrl).mockResolvedValue({
 				success: true,
-				data: { url: 'https://example.com/stream.m3u8', format: 'hls', quality: 'medium' as const, headers: {} },
+				data: {
+					url: 'https://example.com/stream.m3u8',
+					format: 'hls',
+					quality: 'medium' as const,
+					headers: {},
+				},
 			});
 			service.setAudioSourceProviders([provider]);
 

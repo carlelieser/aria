@@ -18,14 +18,16 @@ import { TrackId } from '@domain/value-objects/track-id';
 import { Duration } from '@domain/value-objects/duration';
 import type { Track } from '@domain/entities/track';
 
-function makeTrack(overrides: {
-	id?: string;
-	title?: string;
-	artistName?: string;
-	artistId?: string;
-	albumId?: string;
-	durationMs?: number;
-} = {}): Track {
+function makeTrack(
+	overrides: {
+		id?: string;
+		title?: string;
+		artistName?: string;
+		artistId?: string;
+		albumId?: string;
+		durationMs?: number;
+	} = {}
+): Track {
 	const id = overrides.id ?? 'track-1';
 	return createTrack({
 		id: TrackId.create('youtube-music', id),
@@ -136,10 +138,7 @@ describe('search-filtering', () => {
 		});
 
 		it('should not mutate the original array', () => {
-			const tracks = [
-				makeTrack({ id: '1', title: 'B' }),
-				makeTrack({ id: '2', title: 'A' }),
-			];
+			const tracks = [makeTrack({ id: '1', title: 'B' }), makeTrack({ id: '2', title: 'A' })];
 			const originalFirst = tracks[0];
 
 			sortSearchResults(tracks, 'title', 'asc');
@@ -223,6 +222,7 @@ describe('search-filtering', () => {
 				favoritesOnly: true,
 				artistIds: ['a1'],
 				albumIds: ['al1', 'al2'],
+				providerIds: [],
 			};
 
 			const result = countActiveSearchFilters(filters);
@@ -286,6 +286,7 @@ describe('search-filtering', () => {
 				downloadedOnly: true,
 				artistIds: ['a1'],
 				albumIds: [],
+				providerIds: [],
 			};
 
 			const result = countActiveUnifiedFilters(filters);

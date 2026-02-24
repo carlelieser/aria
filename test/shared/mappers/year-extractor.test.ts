@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-	extractYearFromDateString,
-	extractYearFromSubtitle,
-} from '@shared/mappers/year-extractor';
+import { extractYearFromDateString, extractYearFromSubtitle } from '@shared/mappers/year-extractor';
 
 describe('year-extractor', () => {
 	describe('extractYearFromDateString', () => {

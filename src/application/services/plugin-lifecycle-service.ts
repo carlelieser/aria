@@ -70,9 +70,6 @@ export class PluginLifecycleService {
 		return PluginLifecycleService.instance;
 	}
 
-	/**
-	 * Initialize the lifecycle service with required dependencies
-	 */
 	initialize(pluginRegistry: PluginRegistry, services: ServiceRefs): void {
 		this.pluginRegistry = pluginRegistry;
 		this.services = services;
@@ -81,9 +78,6 @@ export class PluginLifecycleService {
 		logger.info('Plugin lifecycle service initialized');
 	}
 
-	/**
-	 * Toggle a plugin's enabled state and load/unload accordingly
-	 */
 	async togglePlugin(pluginId: string): Promise<void> {
 		if (REQUIRED_PLUGINS.includes(pluginId)) {
 			logger.warn(`Cannot toggle required plugin: ${pluginId}`);
@@ -133,9 +127,6 @@ export class PluginLifecycleService {
 		}
 	}
 
-	/**
-	 * Handle registry events to update services
-	 */
 	private _handleRegistryEvent(event: PluginRegistryEvent): void {
 		if (!this.services || !this.pluginRegistry) return;
 
@@ -149,34 +140,24 @@ export class PluginLifecycleService {
 		}
 	}
 
-	/**
-	 * Remove a provider from all services
-	 */
 	private _removeProviderFromServices(pluginId: string): void {
 		if (!this.services) return;
 
 		logger.debug(`Removing provider from services: ${pluginId}`);
 
-		// Remove from metadata-consuming services
 		this.services.searchService.removeMetadataProvider(pluginId);
 		this.services.albumService.removeMetadataProvider(pluginId);
 		this.services.artistService.removeMetadataProvider(pluginId);
 		this.services.lyricsService.removeMetadataProvider(pluginId);
 
-		// Remove home feed provider
 		this.services.homeFeedService.removeHomeFeedProvider(pluginId);
 
-		// Remove from audio source services
 		this.services.playbackService.removeAudioSourceProvider(pluginId);
 		this.services.downloadService.removeAudioSourceProvider(pluginId);
 
-		// Remove from playback providers
 		this.services.playbackService.removePlaybackProvider(pluginId);
 	}
 
-	/**
-	 * Add a provider to all relevant services
-	 */
 	private _addProviderToServices(pluginId: string): void {
 		if (!this.services || !this.pluginRegistry) return;
 
@@ -185,7 +166,6 @@ export class PluginLifecycleService {
 
 		logger.debug(`Adding provider to services: ${pluginId}`);
 
-		// Check if it's a metadata provider
 		const metadataProviders = this.pluginRegistry.getAllMetadataProviders();
 		const metadataProvider = metadataProviders.find((p) => p.manifest.id === pluginId);
 
@@ -222,7 +202,6 @@ export class PluginLifecycleService {
 			}
 		}
 
-		// Check if it's a playback provider
 		const playbackProviders = this.pluginRegistry.getAllPlaybackProviders();
 		const playbackProvider = playbackProviders.find((p) => p.manifest.id === pluginId);
 
@@ -231,9 +210,6 @@ export class PluginLifecycleService {
 		}
 	}
 
-	/**
-	 * Dispose the service
-	 */
 	dispose(): void {
 		if (this.unsubscribe) {
 			this.unsubscribe();
@@ -246,9 +222,6 @@ export class PluginLifecycleService {
 
 export const pluginLifecycleService = PluginLifecycleService.getInstance();
 
-/**
- * Toggle a plugin at runtime (convenience function)
- */
 export async function togglePluginRuntime(pluginId: string): Promise<void> {
 	return pluginLifecycleService.togglePlugin(pluginId);
 }

@@ -42,18 +42,12 @@ class AppResumeManager {
 	private resumeCallbacks: Set<() => void> = new Set();
 	private isLongBackground = false;
 
-	/**
-	 * Records when the app goes to background
-	 */
 	onBackground(): void {
 		this.lastBackgroundTime = Date.now();
 		this.isLongBackground = false;
 		logger.debug('App went to background');
 	}
 
-	/**
-	 * Handle app resume with deferred operations
-	 */
 	async onResume(): Promise<void> {
 		this.lastResumeTime = Date.now();
 		const backgroundDuration =
@@ -70,18 +64,13 @@ class AppResumeManager {
 			await this.waitForUIStabilization();
 		}
 
-		// Process any pending operations
 		if (this.pendingOperations.length > 0) {
 			await this.processOperationsDeferred();
 		}
 
-		// Notify all resume callbacks
 		this.notifyResumeCallbacks();
 	}
 
-	/**
-	 * Wait for UI to stabilize before heavy operations
-	 */
 	private waitForUIStabilization(): Promise<void> {
 		return new Promise((resolve) => {
 			// Use requestAnimationFrame to wait for next frame, then setTimeout
@@ -102,9 +91,6 @@ class AppResumeManager {
 		};
 	}
 
-	/**
-	 * Notify all registered resume callbacks
-	 */
 	private notifyResumeCallbacks(): void {
 		if (this.resumeCallbacks.size === 0) return;
 
@@ -123,9 +109,6 @@ class AppResumeManager {
 		});
 	}
 
-	/**
-	 * Check if the app resumed from a long background period
-	 */
 	wasLongBackground(): boolean {
 		return this.isLongBackground;
 	}
@@ -135,43 +118,29 @@ class AppResumeManager {
 	 * Operations are sorted by priority (higher = run first)
 	 */
 	queueOperation(id: string, operation: () => Promise<void> | void, priority = 0): void {
-		// Remove existing operation with same id
 		this.pendingOperations = this.pendingOperations.filter((op) => op.id !== id);
 
 		this.pendingOperations = [...this.pendingOperations, { id, priority, operation }];
 
-		// Sort by priority (descending)
 		this.pendingOperations.sort((a, b) => b.priority - a.priority);
 
 		logger.debug(`Queued resume operation: ${id} (priority: ${priority})`);
 	}
 
-	/**
-	 * Remove a queued operation
-	 */
 	removeOperation(id: string): void {
 		this.pendingOperations = this.pendingOperations.filter((op) => op.id !== id);
 	}
 
-	/**
-	 * Check if stores are stale and need refresh
-	 */
 	isStale(): boolean {
 		if (this.lastBackgroundTime === 0) return false;
 		return Date.now() - this.lastBackgroundTime > STALE_THRESHOLD_MS;
 	}
 
-	/**
-	 * Get time spent in background (ms)
-	 */
 	getBackgroundDuration(): number {
 		if (this.lastBackgroundTime === 0) return 0;
 		return this.lastResumeTime - this.lastBackgroundTime;
 	}
 
-	/**
-	 * Process queued operations after interactions complete
-	 */
 	private async processOperationsDeferred(): Promise<void> {
 		if (this.isProcessing) return;
 		this.isProcessing = true;
@@ -202,7 +171,6 @@ class AppResumeManager {
 
 		logger.info(`Processing ${operations.length} resume operations`);
 
-		// Process in batches
 		for (let i = 0; i < operations.length; i += MAX_CONCURRENT_OPERATIONS) {
 			const batch = operations.slice(i, i + MAX_CONCURRENT_OPERATIONS);
 
@@ -286,5 +254,4 @@ export async function processInChunks<T, R>(
 	return results;
 }
 
-// Export singleton instance
 export const appResumeManager = new AppResumeManager();

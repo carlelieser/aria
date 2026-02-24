@@ -135,7 +135,6 @@ export function Button({
 	const mode = getButtonMode(variant);
 	const sizeStyles = getSizeStyles(size);
 
-	// Get variant-specific colors
 	let buttonColor: string | undefined;
 	let textColor: string | undefined;
 

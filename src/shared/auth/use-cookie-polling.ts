@@ -68,20 +68,17 @@ export function useCookiePolling({
 		pollStartTimeRef.current = Date.now();
 
 		const pollForCookies = async () => {
-			// Check for timeout
 			if (pollStartTimeRef.current && Date.now() - pollStartTimeRef.current > pollTimeoutMs) {
 				stopPolling();
 				setPollingTimedOut(true);
 				return;
 			}
 
-			// Stop if already found
 			if (hasFoundCookies.current) {
 				stopPolling();
 				return;
 			}
 
-			// Check for cookies
 			const cookies = await checkCookies();
 			if (cookies && !hasFoundCookies.current) {
 				hasFoundCookies.current = true;
@@ -116,7 +113,6 @@ export function useCookiePolling({
 		return false;
 	}, [checkCookies, stopPolling, onSuccess]);
 
-	// Cleanup on unmount
 	useEffect(() => {
 		return () => {
 			if (pollIntervalRef.current) {

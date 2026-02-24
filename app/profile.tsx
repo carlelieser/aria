@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
 	accountsContainer: {
 		width: '100%',
 		marginTop: 8,
-		paddingHorizontal: 10
+		paddingHorizontal: 10,
 	},
 	fieldRow: {
 		gap: 6,

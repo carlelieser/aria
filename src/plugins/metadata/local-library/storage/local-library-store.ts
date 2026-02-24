@@ -322,7 +322,6 @@ function _buildArtistsFromTracks(
 		}
 	}
 
-	// Update album counts
 	for (const [artistId, albumSet] of Object.entries(albumsByArtist)) {
 		if (artists[artistId]) {
 			artists[artistId] = {

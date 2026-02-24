@@ -8,10 +8,7 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { OAuthLoginWebView, type OAuthLoginConfig, type WebViewNavigation } from '@shared/auth';
-import {
-	SPOTIFY_OAUTH_REDIRECT_URI,
-	getSpotifyAuthManager,
-} from '@/src/hooks/use-spotify-auth';
+import { SPOTIFY_OAUTH_REDIRECT_URI, getSpotifyAuthManager } from '@/src/hooks/use-spotify-auth';
 import { getLogger } from '@shared/services/logger';
 
 const logger = getLogger('SpotifyLogin');

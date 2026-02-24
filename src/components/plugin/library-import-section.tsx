@@ -12,10 +12,7 @@ import { SettingsSection } from '@/src/components/settings/settings-section';
 import { useAppTheme } from '@/lib/theme';
 import { useIsPluginEnabled } from '@/src/application/state/plugin-settings-store';
 import { useIsImporting, useLastImportedAt } from '@/src/application/state/library-import-store';
-import {
-	getPluginHasImportCapability,
-	triggerPluginImport,
-} from '@/src/hooks/use-plugin-registry';
+import { getPluginHasImportCapability, triggerPluginImport } from '@/src/hooks/use-plugin-registry';
 
 interface LibraryImportSectionProps {
 	readonly pluginId: string;
@@ -35,10 +32,7 @@ export const LibraryImportSection = memo(function LibraryImportSection({
 	const isImporting = useIsImporting();
 	const lastImportedAt = useLastImportedAt(pluginId);
 
-	const hasImportCapability = useMemo(
-		() => getPluginHasImportCapability(pluginId),
-		[pluginId]
-	);
+	const hasImportCapability = useMemo(() => getPluginHasImportCapability(pluginId), [pluginId]);
 
 	const handleImport = useCallback(async () => {
 		await triggerPluginImport(pluginId);

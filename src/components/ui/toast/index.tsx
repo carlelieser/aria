@@ -20,11 +20,7 @@ import Animated, {
 	interpolate,
 	Extrapolation,
 } from 'react-native-reanimated';
-import {
-	useCurrentToast,
-	useToastStore,
-	type Toast,
-} from '@/src/application/state/toast-store';
+import { useCurrentToast, useToastStore, type Toast } from '@/src/application/state/toast-store';
 import { useAppTheme } from '@/lib/theme';
 import { useToastPosition } from '@/src/hooks/use-toast-position';
 import { getVariantColors, SWIPE_THRESHOLD, DISMISS_VELOCITY } from './types';

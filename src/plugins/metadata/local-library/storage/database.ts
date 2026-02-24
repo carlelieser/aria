@@ -10,7 +10,6 @@ export async function initializeDatabase(): AsyncResult<void, Error> {
 	try {
 		db = await SQLite.openDatabaseAsync(DB_NAME);
 
-		// Create tables
 		await db.execAsync(`
 			CREATE TABLE IF NOT EXISTS tracks (
 				id TEXT PRIMARY KEY,
@@ -110,7 +109,6 @@ export async function indexTrack(track: LocalTrack): AsyncResult<void, Error> {
 			]
 		);
 
-		// Update FTS index
 		await db.runAsync(
 			`INSERT OR REPLACE INTO tracks_fts (id, title, artist_name, album_name)
 			 VALUES (?, ?, ?, ?)`,
@@ -200,7 +198,6 @@ export async function removeTracksForFolder(folderUri: string): AsyncResult<void
 	}
 
 	try {
-		// Get track IDs first for FTS cleanup
 		const rows = await db.getAllAsync<{ id: string }>(
 			'SELECT id FROM tracks WHERE file_path LIKE ?',
 			[`${folderUri}%`]

@@ -241,8 +241,6 @@ export const useDownloadProgress = (trackId: string) =>
 export const useActiveDownloadsCount = () =>
 	useDownloadStore((state) => state.getActiveDownloadsCount());
 
-// --- Granular selectors with custom equality to prevent unnecessary re-renders ---
-
 interface DownloadStats {
 	readonly activeCount: number;
 	readonly completedCount: number;

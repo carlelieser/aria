@@ -40,7 +40,6 @@ export async function concatenateSegmentsToFile(
 		logger.debug(`Added init segment: ${initBytes.length} bytes`);
 	}
 
-	// Add media segments
 	for (const segmentPath of segmentPaths) {
 		const segmentBytes = await readSegmentAsBytes(segmentPath);
 		allBytes.push(...segmentBytes);
@@ -48,7 +47,6 @@ export async function concatenateSegmentsToFile(
 
 	logger.debug(`Total bytes from segments: ${allBytes.length}`);
 
-	// Convert to Uint8Array and write as base64
 	const uint8 = new Uint8Array(allBytes);
 	const finalB64 = convertBytesToBase64(uint8);
 

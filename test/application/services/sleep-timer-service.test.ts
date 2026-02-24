@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+import { playbackService } from '@/src/application/services/playback-service';
+
 vi.mock('@shared/services/logger', () => ({
 	getLogger: () => ({
 		debug: vi.fn(),
@@ -15,12 +17,8 @@ vi.mock('@/src/application/services/playback-service', () => ({
 	},
 }));
 
-import { playbackService } from '@/src/application/services/playback-service';
-
 // Must import after mocks are set up
-const { sleepTimerService } = await import(
-	'@/src/application/services/sleep-timer-service'
-);
+const { sleepTimerService } = await import('@/src/application/services/sleep-timer-service');
 
 describe('SleepTimerService', () => {
 	beforeEach(() => {

@@ -5,6 +5,8 @@ import type { Album } from '@domain/entities/album';
 import type { Artist } from '@domain/entities/artist';
 import type { MetadataProvider } from '@plugins/core/interfaces/metadata-provider';
 
+import { ArtistService } from '@/src/application/services/artist-service';
+
 vi.mock('@shared/services/logger', () => ({
 	getLogger: () => ({
 		debug: vi.fn(),
@@ -13,8 +15,6 @@ vi.mock('@shared/services/logger', () => ({
 		error: vi.fn(),
 	}),
 }));
-
-import { ArtistService } from '@/src/application/services/artist-service';
 
 function createMockArtist(id: string, name: string): Artist {
 	return {
@@ -32,10 +32,7 @@ function createMockAlbum(id: string, name: string): Album {
 	};
 }
 
-function createMockProvider(
-	id: string,
-	overrides: Record<string, unknown> = {}
-) {
+function createMockProvider(id: string, overrides: Record<string, unknown> = {}) {
 	return {
 		manifest: { id, name: id, version: '1.0.0' },
 		hasCapability: vi.fn().mockImplementation((cap: string) => {
@@ -160,7 +157,7 @@ describe('ArtistService', () => {
 			const provider = createMockProvider('youtube-music');
 			service.setMetadataProviders([provider]);
 
-			const result = await service.getArtistDetail('unknown-source:artist-1');
+			await service.getArtistDetail('unknown-source:artist-1');
 
 			// The service will try all providers since the prefix doesn't match
 			expect(vi.mocked(provider.getArtistInfo)).toHaveBeenCalled();
@@ -232,7 +229,7 @@ describe('ArtistService', () => {
 			const provider = createMockProvider('youtube-music');
 			service.setMetadataProviders([provider]);
 
-			const result = await service.getArtistDetail('plain-artist-id');
+			await service.getArtistDetail('plain-artist-id');
 
 			// Should try all providers with the raw ID
 			expect(vi.mocked(provider.getArtistInfo)).toHaveBeenCalledWith('plain-artist-id');

@@ -3,6 +3,8 @@ import { TrackId } from '@domain/value-objects/track-id';
 import type { MetadataProvider } from '@plugins/core/interfaces/metadata-provider';
 import type { Lyrics } from '@shared/types/lyrics';
 
+import { LyricsService } from '@/src/application/services/lyrics-service';
+
 vi.mock('@shared/services/logger', () => ({
 	getLogger: () => ({
 		debug: vi.fn(),
@@ -12,12 +14,7 @@ vi.mock('@shared/services/logger', () => ({
 	}),
 }));
 
-import { LyricsService } from '@/src/application/services/lyrics-service';
-
-function createMockProvider(
-	id: string,
-	overrides: Record<string, unknown> = {}
-) {
+function createMockProvider(id: string, overrides: Record<string, unknown> = {}) {
 	return {
 		manifest: { id, name: id, version: '1.0.0' },
 		hasCapability: vi.fn().mockReturnValue(false),
@@ -266,7 +263,11 @@ describe('LyricsService', () => {
 		};
 
 		it('should return -1 when synced lyrics are empty', () => {
-			const emptyLyrics: Lyrics = { trackId: lyricsTrackId, plainLyrics: 'text', syncedLyrics: [] };
+			const emptyLyrics: Lyrics = {
+				trackId: lyricsTrackId,
+				plainLyrics: 'text',
+				syncedLyrics: [],
+			};
 			const result = service.findCurrentLineIndex(emptyLyrics, 500);
 
 			expect(result).toBe(-1);
@@ -301,9 +302,7 @@ describe('LyricsService', () => {
 			const lyricsWithOffset: Lyrics = {
 				trackId: lyricsTrackId,
 				plainLyrics: 'text',
-				syncedLyrics: [
-					{ text: 'line 1', startTime: 5000, endTime: 6000 },
-				],
+				syncedLyrics: [{ text: 'line 1', startTime: 5000, endTime: 6000 }],
 			};
 			const result = service.findCurrentLineIndex(lyricsWithOffset, 100);
 

@@ -25,10 +25,7 @@ function makePlaylist(overrides: Partial<Playlist> = {}): Playlist {
 describe('library-filtering', () => {
 	describe('filterPlaylists', () => {
 		it('should return all playlists when search query is empty', () => {
-			const playlists = [
-				makePlaylist({ name: 'Rock' }),
-				makePlaylist({ name: 'Jazz' }),
-			];
+			const playlists = [makePlaylist({ name: 'Rock' }), makePlaylist({ name: 'Jazz' })];
 
 			const result = filterPlaylists(playlists, '');
 
@@ -205,10 +202,7 @@ describe('library-filtering', () => {
 		});
 
 		it('should return false when neither name nor artist matches', () => {
-			const result = matchesAlbumSearch(
-				{ name: 'Rock Album', artistName: 'Alice' },
-				'jazz'
-			);
+			const result = matchesAlbumSearch({ name: 'Rock Album', artistName: 'Alice' }, 'jazz');
 
 			expect(result).toBe(false);
 		});

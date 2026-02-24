@@ -4,12 +4,7 @@
  * Pure helper functions for building SVG paths used by the progress track variants.
  */
 
-import {
-	CAP_INSET,
-	TRACK_HEIGHT,
-	TWO_PI_OVER_WAVELENGTH,
-	WAVE_STEP,
-} from './types';
+import { CAP_INSET, TRACK_HEIGHT, TWO_PI_OVER_WAVELENGTH, WAVE_STEP } from './types';
 
 /**
  * Builds a sine-wave polyline path from capInset to width-capInset.

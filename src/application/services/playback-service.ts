@@ -184,7 +184,12 @@ export class PlaybackService {
 		provider: PlaybackProvider
 	): Promise<Result<void, Error>> {
 		playbackTimer.beginPhase('provider-play');
-		const playResult = await provider.play(track, audioStream.url, undefined, audioStream.headers);
+		const playResult = await provider.play(
+			track,
+			audioStream.url,
+			undefined,
+			audioStream.headers
+		);
 		playbackTimer.endPhase();
 
 		if (!playResult.success) return this._handlePlayError(playResult.error);
@@ -465,17 +470,26 @@ export class PlaybackService {
 		switch (event.type) {
 			case 'status-change':
 				logger.debug(`Status change: ${event.status}`);
-				store._setStatus(event.status); break;
-			case 'position-change': store._setPosition(event.position); break;
-			case 'duration-change': store._setDuration(event.duration); break;
+				store._setStatus(event.status);
+				break;
+			case 'position-change':
+				store._setPosition(event.position);
+				break;
+			case 'duration-change':
+				store._setDuration(event.duration);
+				break;
 			case 'ended':
 			case 'remote-skip-next':
 				logger.debug(`${event.type} received - calling skipToNext`);
-				setTimeout(() => this.skipToNext(), 0); break;
+				setTimeout(() => this.skipToNext(), 0);
+				break;
 			case 'remote-skip-previous':
 				logger.debug('Remote skip previous - calling skipToPrevious');
-				setTimeout(() => this.skipToPrevious(), 0); break;
-			case 'error': this._handlePlaybackErrorEvent(event, store); break;
+				setTimeout(() => this.skipToPrevious(), 0);
+				break;
+			case 'error':
+				this._handlePlaybackErrorEvent(event, store);
+				break;
 		}
 	}
 

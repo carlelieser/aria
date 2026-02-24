@@ -8,6 +8,8 @@ import type { Track } from '@domain/entities/track';
 import type { Album } from '@domain/entities/album';
 import type { MetadataProvider } from '@plugins/core/interfaces/metadata-provider';
 
+import { SearchService } from '@/src/application/services/search-service';
+
 vi.mock('@shared/services/logger', () => ({
 	getLogger: () => ({
 		debug: vi.fn(),
@@ -16,8 +18,6 @@ vi.mock('@shared/services/logger', () => ({
 		error: vi.fn(),
 	}),
 }));
-
-import { SearchService } from '@/src/application/services/search-service';
 
 function createMockTrack(id: string): Track {
 	return {
@@ -40,12 +40,15 @@ function createMockAlbum(id: string): Album {
 	};
 }
 
-function createMockProvider(
-	id: string,
-	overrides: Record<string, unknown> = {}
-) {
+function createMockProvider(id: string, overrides: Record<string, unknown> = {}) {
 	return {
-		manifest: { id, name: id, version: '1.0.0', category: 'metadata-provider' as const, capabilities: ['search'] },
+		manifest: {
+			id,
+			name: id,
+			version: '1.0.0',
+			category: 'metadata-provider' as const,
+			capabilities: ['search'],
+		},
 		status: 'active' as const,
 		configSchema: [],
 		capabilities: new Set(['search-tracks', 'search-albums', 'search-artists'] as const),
@@ -178,7 +181,12 @@ describe('SearchService', () => {
 			const provider1 = createMockProvider('youtube-music', {
 				searchTracks: vi.fn().mockResolvedValue({
 					success: true,
-					data: { items: [createMockTrack('yt-1')], offset: 0, limit: 50, hasMore: false },
+					data: {
+						items: [createMockTrack('yt-1')],
+						offset: 0,
+						limit: 50,
+						hasMore: false,
+					},
 				}),
 				searchAlbums: vi.fn().mockResolvedValue({
 					success: true,
@@ -192,7 +200,12 @@ describe('SearchService', () => {
 			const provider2 = createMockProvider('spotify', {
 				searchTracks: vi.fn().mockResolvedValue({
 					success: true,
-					data: { items: [createMockTrack('sp-1')], offset: 0, limit: 50, hasMore: false },
+					data: {
+						items: [createMockTrack('sp-1')],
+						offset: 0,
+						limit: 50,
+						hasMore: false,
+					},
 				}),
 				searchAlbums: vi.fn().mockResolvedValue({
 					success: true,
@@ -217,13 +230,23 @@ describe('SearchService', () => {
 			const provider1 = createMockProvider('youtube-music', {
 				searchTracks: vi.fn().mockResolvedValue({
 					success: true,
-					data: { items: [createMockTrack('same-id')], offset: 0, limit: 50, hasMore: false },
+					data: {
+						items: [createMockTrack('same-id')],
+						offset: 0,
+						limit: 50,
+						hasMore: false,
+					},
 				}),
 			});
 			const provider2 = createMockProvider('spotify', {
 				searchTracks: vi.fn().mockResolvedValue({
 					success: true,
-					data: { items: [createMockTrack('same-id')], offset: 0, limit: 50, hasMore: false },
+					data: {
+						items: [createMockTrack('same-id')],
+						offset: 0,
+						limit: 50,
+						hasMore: false,
+					},
 				}),
 				searchAlbums: vi.fn().mockResolvedValue({
 					success: true,

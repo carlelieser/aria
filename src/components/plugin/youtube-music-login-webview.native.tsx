@@ -29,7 +29,6 @@ export const YouTubeMusicLoginWebView = memo(function YouTubeMusicLoginWebView({
 }: YouTubeMusicLoginWebViewProps) {
 	const checkCookies = useCallback(async (): Promise<string | null> => {
 		try {
-			// Get cookies from both Google and YouTube domains
 			const [googleCookies, youtubeCookies] = await Promise.all([
 				CookieManager.get('https://www.google.com'),
 				CookieManager.get('https://www.youtube.com'),
@@ -38,7 +37,6 @@ export const YouTubeMusicLoginWebView = memo(function YouTubeMusicLoginWebView({
 			// Merge cookies, preferring YouTube-specific ones
 			const allCookies = { ...googleCookies, ...youtubeCookies };
 
-			// Check if all required cookies are present
 			const hasAllRequired = REQUIRED_COOKIES.every((name) => allCookies[name]?.value);
 
 			if (!hasAllRequired) {

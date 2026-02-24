@@ -44,10 +44,7 @@ export const SelectableDownloadListItem = memo(function SelectableDownloadListIt
 	// Try to resolve full track data from library or history
 	const resolvedTrack = useResolvedTrack(downloadInfo.trackId);
 
-	// Create fallback track from download info
 	const fallbackTrack = useMemo(() => createTrackFromDownloadInfo(downloadInfo), [downloadInfo]);
-
-	// Use resolved track if available, otherwise use fallback
 	const track = resolvedTrack ?? fallbackTrack;
 
 	const handlePress = useCallback(

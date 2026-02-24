@@ -115,7 +115,6 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 					};
 				};
 
-				// Extract artists from various possible locations
 				let artists: import('./types').YouTubeArtist[] | undefined = info.artists as
 					| import('./types').YouTubeArtist[]
 					| undefined;
@@ -144,10 +143,8 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 					});
 				}
 
-				// Extract title from header if not available at top level
 				const title = info.title?.text || info.name || info.header?.title?.text;
 
-				// Extract thumbnails from various locations
 				let thumbnails = info.thumbnails as
 					| import('./types').YouTubeThumbnail[]
 					| undefined;
@@ -203,7 +200,6 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 					};
 				};
 
-				// Extract from header (primary) or top-level (fallback)
 				const name = info.header?.title?.text || info.name || info.title?.text;
 				const thumbnails = info.header?.thumbnail?.contents || info.thumbnails;
 
@@ -266,7 +262,6 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 					payload?: { browseId?: string };
 				}) => endpoint?.browseId || endpoint?.payload?.browseId;
 
-				// Extract album-level artists to use as fallback for tracks
 				let albumArtists: import('./types').YouTubeArtist[] | undefined = info.artists;
 
 				// Try header.strapline_text_one.runs first (this is where artist info typically lives)
@@ -290,7 +285,6 @@ export function createInfoOperations(clientManager: ClientManager): InfoOperatio
 					});
 				}
 
-				// Extract album-level thumbnails to use as fallback for tracks
 				const albumThumbnails = info.thumbnails ?? info.header?.thumbnails;
 
 				const tracks: Track[] = [];

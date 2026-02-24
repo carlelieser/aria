@@ -33,7 +33,6 @@ export function EqualizerSheet({ isOpen, onClose }: EqualizerSheetProps) {
 		isNativeAvailable,
 	} = useEqualizer();
 
-	// Initialize native equalizer when sheet is opened
 	useEqualizerInit();
 
 	const handlePresetSelect = useCallback(

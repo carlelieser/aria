@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useHomeFeedStore } from '@application/state/home-feed-store';
 
+import { HomeFeedService } from '@/src/application/services/home-feed-service';
+
 vi.mock('@shared/services/logger', () => ({
 	getLogger: () => ({
 		debug: vi.fn(),
@@ -9,8 +11,6 @@ vi.mock('@shared/services/logger', () => ({
 		error: vi.fn(),
 	}),
 }));
-
-import { HomeFeedService } from '@/src/application/services/home-feed-service';
 
 function createMockHomeFeedOps(overrides: Record<string, unknown> = {}) {
 	return {
@@ -412,7 +412,9 @@ describe('HomeFeedService', () => {
 
 			expect(result.success).toBe(false);
 			if (!result.success) {
-				expect(result.error.message).toContain('No provider could load more playlist tracks');
+				expect(result.error.message).toContain(
+					'No provider could load more playlist tracks'
+				);
 			}
 		});
 	});

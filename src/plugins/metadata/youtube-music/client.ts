@@ -161,7 +161,6 @@ export function createClientManager(
 	let initPromise: Promise<InnertubeClient> | null = null;
 
 	async function createClient(): Promise<InnertubeClient> {
-		// Get cookies from auth manager if available
 		let cookie: string | undefined;
 		if (authManager) {
 			const cookiesResult = await authManager.getCookies();
@@ -194,7 +193,6 @@ export function createClientManager(
 
 	return {
 		async getClient(): Promise<InnertubeClient> {
-			// Return cached client if available
 			if (client) {
 				logger.debug(`Returning cached client - logged_in: ${client.session.logged_in}`);
 				return client;

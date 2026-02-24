@@ -353,12 +353,10 @@ let cachedFavoriteTracksArray: Track[] | null = null;
 
 export const useFavoriteTracks = () =>
 	useLibraryStore((state) => {
-		// Return cached if underlying data hasn't changed (reference equality)
 		if (state.favorites === cachedFavoritesSet && state.tracks === cachedFavoriteTracksArray) {
 			return cachedFavoriteTracks;
 		}
 
-		// Recompute only when favorites or tracks change
 		cachedFavoriteTracks = state.tracks.filter((t) => state.favorites.has(t.id.value));
 		cachedFavoritesSet = state.favorites;
 		cachedFavoriteTracksArray = state.tracks;
@@ -374,7 +372,6 @@ export const useIsFavorite = (trackId: string) =>
 
 export const useUniqueArtists = () =>
 	useLibraryStore((state) => {
-		// Use reference equality - tracks array only changes when modified
 		if (state.tracks === cachedArtistsTracksRef) {
 			return cachedArtists;
 		}
@@ -406,12 +403,10 @@ let cachedRecentlyAddedLimit = -1;
 
 export const useRecentlyAddedTracks = (limit = 10) =>
 	useLibraryStore((state) => {
-		// Use reference equality and check limit parameter
 		if (state.tracks === cachedRecentlyAddedTracksRef && limit === cachedRecentlyAddedLimit) {
 			return cachedRecentlyAdded;
 		}
 
-		// Sort by addedAt descending and take first `limit` tracks
 		cachedRecentlyAdded = [...state.tracks]
 			.sort((a, b) => {
 				const dateA = a.addedAt ? new Date(a.addedAt).getTime() : 0;

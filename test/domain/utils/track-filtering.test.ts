@@ -15,16 +15,18 @@ import { TrackId } from '@domain/value-objects/track-id';
 import { Duration } from '@domain/value-objects/duration';
 import type { Track } from '@domain/entities/track';
 
-function makeTrack(overrides: {
-	id?: string;
-	title?: string;
-	artistName?: string;
-	artistId?: string;
-	albumId?: string;
-	albumName?: string;
-	durationMs?: number;
-	addedAt?: Date;
-} = {}): Track {
+function makeTrack(
+	overrides: {
+		id?: string;
+		title?: string;
+		artistName?: string;
+		artistId?: string;
+		albumId?: string;
+		albumName?: string;
+		durationMs?: number;
+		addedAt?: Date;
+	} = {}
+): Track {
 	const id = overrides.id ?? 'track-1';
 	const track = createTrack({
 		id: TrackId.create('youtube-music', id),
@@ -118,10 +120,7 @@ describe('track-filtering', () => {
 		});
 
 		it('should not mutate the original array', () => {
-			const tracks = [
-				makeTrack({ id: '1', title: 'B' }),
-				makeTrack({ id: '2', title: 'A' }),
-			];
+			const tracks = [makeTrack({ id: '1', title: 'B' }), makeTrack({ id: '2', title: 'A' })];
 			const originalFirst = tracks[0];
 
 			sortTracks(tracks, 'title', 'asc');
@@ -327,6 +326,7 @@ describe('track-filtering', () => {
 				downloadedOnly: true,
 				artistIds: ['a1'],
 				albumIds: ['al1', 'al2'],
+				providerIds: [],
 			};
 
 			const result = countActiveFilters(filters);

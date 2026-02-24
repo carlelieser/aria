@@ -1,10 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { usePlayerStore } from '@application/state/player-store';
 import { TrackId } from '@domain/value-objects/track-id';
 import { Duration } from '@domain/value-objects/duration';
-import { createStreamingSource, createLocalSource } from '@domain/value-objects/audio-source';
+import { createStreamingSource } from '@domain/value-objects/audio-source';
 import type { Track } from '@domain/entities/track';
 import type { PlaybackProvider, AudioSourceProvider } from '@plugins/core';
+
+import { PlaybackService } from '@/src/application/services/playback-service';
 
 vi.mock('@shared/services/logger', () => ({
 	getLogger: () => ({
@@ -35,8 +37,6 @@ vi.mock('@/src/application/services/download-service', () => ({
 		removeDownload: vi.fn().mockResolvedValue({ success: true, data: undefined }),
 	},
 }));
-
-import { PlaybackService } from '@/src/application/services/playback-service';
 
 function createTestTrack(id: string): Track {
 	return {

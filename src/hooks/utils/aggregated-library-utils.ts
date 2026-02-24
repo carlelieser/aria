@@ -11,10 +11,7 @@ import type {
 	LocalAlbum,
 	LocalArtist,
 } from '@/src/plugins/metadata/local-library/types';
-import type {
-	UniqueArtist,
-	UniqueAlbum,
-} from '@/src/application/state/library-store';
+import type { UniqueArtist, UniqueAlbum } from '@/src/application/state/library-store';
 import { TrackId } from '@/src/domain/value-objects/track-id';
 import { AlbumId } from '@/src/domain/value-objects/album-id';
 import { Duration } from '@/src/domain/value-objects/duration';

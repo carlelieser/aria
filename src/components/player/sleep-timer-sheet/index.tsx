@@ -87,7 +87,10 @@ export function SleepTimerSheet({ isOpen, onClose }: SleepTimerSheetProps) {
 			backdropComponent={renderBackdrop}
 			onChange={handleSheetChanges}
 			backgroundStyle={[styles.background, { backgroundColor: colors.surfaceContainerHigh }]}
-			handleIndicatorStyle={[styles.handleIndicator, { backgroundColor: colors.outlineVariant }]}
+			handleIndicatorStyle={[
+				styles.handleIndicator,
+				{ backgroundColor: colors.outlineVariant },
+			]}
 		>
 			<BottomSheetScrollView style={styles.contentContainer}>
 				<View style={styles.header}>
@@ -126,7 +129,10 @@ export function SleepTimerSheet({ isOpen, onClose }: SleepTimerSheetProps) {
 
 				<Divider style={[styles.divider, { backgroundColor: colors.outlineVariant }]} />
 
-				<EndOfTrackButton isEndOfTrackMode={mode === 'end-of-track'} onPress={handleEndOfTrack} />
+				<EndOfTrackButton
+					isEndOfTrackMode={mode === 'end-of-track'}
+					onPress={handleEndOfTrack}
+				/>
 
 				<View style={styles.bottomPadding} />
 			</BottomSheetScrollView>

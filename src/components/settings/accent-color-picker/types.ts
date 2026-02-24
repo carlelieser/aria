@@ -25,10 +25,7 @@ export const CUSTOM_COLORS = [
 // null = dynamic/Material You colors (wallpaper-extracted on Android 12+)
 export const DYNAMIC_COLOR = { value: null, label: 'Dynamic', color: SEED_COLOR } as const;
 
-export const ALL_COLORS = [
-	...CUSTOM_COLORS.map((c) => ({ ...c, color: c.value })),
-	DYNAMIC_COLOR,
-];
+export const ALL_COLORS = [...CUSTOM_COLORS.map((c) => ({ ...c, color: c.value })), DYNAMIC_COLOR];
 
 export interface AccentColorPickerProps {
 	readonly value: string | null;

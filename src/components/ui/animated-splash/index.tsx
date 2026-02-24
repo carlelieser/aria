@@ -9,11 +9,7 @@
 import { M3Colors } from '@/lib/theme/colors';
 import type { AnimatedSplashProps } from './types';
 import { IS_WEB } from './types';
-import {
-	usePolygonMorph,
-	usePolygonRotation,
-	useBootstrapProgressAnimation,
-} from './hooks';
+import { usePolygonMorph, usePolygonRotation, useBootstrapProgressAnimation } from './hooks';
 import {
 	useDismissAnimation,
 	useDismissReaction,
@@ -34,8 +30,11 @@ export function AnimatedSplash({
 	const colors = isDark ? M3Colors.dark : M3Colors.light;
 	const { segments, polygonScale } = usePolygonMorph();
 	const polygonRotation = usePolygonRotation();
-	const { progress, progressMessage, progressWidth: bootstrapProgressWidth } =
-		useBootstrapProgressAnimation();
+	const {
+		progress,
+		progressMessage,
+		progressWidth: bootstrapProgressWidth,
+	} = useBootstrapProgressAnimation();
 
 	const {
 		screenHeight,

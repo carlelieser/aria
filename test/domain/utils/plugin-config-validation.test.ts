@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-	validateConfigField,
-	validateAllFields,
-} from '@domain/utils/plugin-config-validation';
+import { validateConfigField, validateAllFields } from '@domain/utils/plugin-config-validation';
 
 interface PluginConfigSchema {
 	readonly key: string;
@@ -225,9 +222,7 @@ describe('plugin-config-validation', () => {
 			it('should return error for invalid option value', () => {
 				const schema = makeSchema({
 					type: 'select',
-					options: [
-						{ label: 'Option A', value: 'a' },
-					],
+					options: [{ label: 'Option A', value: 'a' }],
 				});
 
 				const result = validateConfigField(schema, 'c');

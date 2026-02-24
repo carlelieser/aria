@@ -42,12 +42,10 @@ export function mapYouTubeDuration(
 		return Duration.ZERO;
 	}
 
-	// Handle direct number (seconds)
 	if (typeof duration === 'number' && duration > 0) {
 		return Duration.fromSeconds(duration);
 	}
 
-	// Handle direct string (e.g., "3:45")
 	if (typeof duration === 'string') {
 		const parsed = Duration.tryParse(duration);
 		if (parsed) {
@@ -56,21 +54,17 @@ export function mapYouTubeDuration(
 		return Duration.ZERO;
 	}
 
-	// Handle objects (YouTubeDuration or youtubei.js Text objects)
 	if (typeof duration === 'object') {
 		const durationObj = duration as Record<string, unknown>;
 
-		// Handle object with seconds field (number)
 		if (typeof durationObj.seconds === 'number' && durationObj.seconds > 0) {
 			return Duration.fromSeconds(durationObj.seconds);
 		}
 
-		// Handle object with length_seconds field (alternative API format)
 		if (typeof durationObj.length_seconds === 'number' && durationObj.length_seconds > 0) {
 			return Duration.fromSeconds(durationObj.length_seconds);
 		}
 
-		// Handle object with text field (string)
 		if (typeof durationObj.text === 'string' && durationObj.text) {
 			const parsed = Duration.tryParse(durationObj.text);
 			if (parsed) {
@@ -78,7 +72,6 @@ export function mapYouTubeDuration(
 			}
 		}
 
-		// Handle youtubei.js Text objects with toString()
 		if (typeof durationObj.toString === 'function') {
 			const textValue = durationObj.toString();
 			if (textValue && textValue !== '[object Object]') {
@@ -158,7 +151,6 @@ export function mapYouTubeTrack(
 	}
 
 	const trackId = TrackId.create('youtube-music', videoId);
-	// Check multiple possible duration field locations
 	const duration = mapYouTubeDuration(item.duration ?? item.length ?? item.length_seconds);
 	// Check artists, then authors (playlist items use this field name), then fallbacks
 	const itemArtists =
@@ -281,7 +273,6 @@ export function mapYouTubeAlbum(item: YouTubeMusicItem): Album | null {
 		return null;
 	}
 
-	// Extract artists from structured API fields only
 	const artists = extractArtistsFromItem(item);
 
 	const artwork = mapThumbnailsToArtwork(item.thumbnails ?? item.thumbnail);

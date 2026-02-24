@@ -18,9 +18,7 @@ import {
 } from '@/src/application/services/local-library-facade';
 import { createDeferredComputation } from '@/src/hooks/use-deferred-computation';
 import type { Track } from '@/src/domain/entities/track';
-import { AlbumId } from '@/src/domain/value-objects/album-id';
 import {
-	LOCAL_LIBRARY_SOURCE,
 	computeAggregatedTracks,
 	computeAggregatedArtists,
 	computeAggregatedAlbums,

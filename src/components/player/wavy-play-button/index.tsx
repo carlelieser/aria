@@ -8,10 +8,7 @@
 
 import { memo } from 'react';
 import { Pressable, View, StyleSheet } from 'react-native';
-import Animated, {
-	useAnimatedProps,
-	useAnimatedStyle,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedProps, useAnimatedStyle } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 import { Play, Pause } from 'lucide-react-native';
 import { ICON_SIZE, buildWavyCirclePath } from './constants';

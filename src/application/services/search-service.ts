@@ -102,7 +102,12 @@ export class SearchService {
 		const searchVersion = this._searchVersion;
 
 		const optionsWithSignal: SearchOptions = { ...options, signal: abortController.signal };
-		const searchPromise = this._executeSearch(query, optionsWithSignal, cacheKey, searchVersion);
+		const searchPromise = this._executeSearch(
+			query,
+			optionsWithSignal,
+			cacheKey,
+			searchVersion
+		);
 		this.pendingSearches.set(cacheKey, searchPromise);
 
 		try {
@@ -198,8 +203,10 @@ export class SearchService {
 			return await this._fetchProviderResults(provider, query, options, signal);
 		} catch (error) {
 			if (signal?.aborted) return EMPTY_PROVIDER_RESULT;
-			logger.warn(`Search failed for provider ${provider.manifest.id}`,
-				error instanceof Error ? error : undefined);
+			logger.warn(
+				`Search failed for provider ${provider.manifest.id}`,
+				error instanceof Error ? error : undefined
+			);
 			return EMPTY_PROVIDER_RESULT;
 		}
 	}

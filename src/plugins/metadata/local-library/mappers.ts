@@ -170,7 +170,6 @@ export function buildArtistsFromTracks(tracks: LocalTrack[]): Map<string, LocalA
 		}
 	}
 
-	// Update album counts
 	for (const [artistId, albumSet] of albumsByArtist) {
 		const artist = artists.get(artistId);
 		if (artist) {
@@ -197,7 +196,6 @@ export async function cacheArtwork(
 
 		const filePath = `${cacheDir}${trackId}.${extension}`;
 
-		// Convert Uint8Array to base64
 		const base64 = _uint8ArrayToBase64(data);
 
 		await FileSystem.writeAsStringAsync(filePath, base64, {

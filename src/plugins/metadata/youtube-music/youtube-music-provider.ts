@@ -124,7 +124,6 @@ export class YouTubeMusicProvider implements YouTubeMusicLibraryProvider {
 		try {
 			this.status = 'initializing';
 
-			// Load any stored authentication
 			await this._authManager.loadStoredAuth();
 
 			const mergedConfig: YouTubeMusicConfig = {

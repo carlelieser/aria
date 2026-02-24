@@ -4,14 +4,16 @@ import { createTrack } from '@domain/entities/track';
 import { TrackId } from '@domain/value-objects/track-id';
 import { Duration } from '@domain/value-objects/duration';
 
-function makeTrack(overrides: {
-	title?: string;
-	artistName?: string;
-	artistId?: string;
-	albumId?: string;
-	albumName?: string;
-	artwork?: { url: string; width?: number; height?: number }[];
-} = {}) {
+function makeTrack(
+	overrides: {
+		title?: string;
+		artistName?: string;
+		artistId?: string;
+		albumId?: string;
+		albumName?: string;
+		artwork?: { url: string; width?: number; height?: number }[];
+	} = {}
+) {
 	return createTrack({
 		id: TrackId.create('youtube-music', overrides.title ?? 'test-id'),
 		title: overrides.title ?? 'Test Track',
