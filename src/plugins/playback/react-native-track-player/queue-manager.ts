@@ -10,30 +10,30 @@ import { ok, err, type Result } from '@shared/types/result';
 import type { PlaybackState } from './playback-state';
 
 export class QueueManager {
-	constructor(private readonly state: PlaybackState) {}
+	constructor(private readonly _state: PlaybackState) {}
 
 	getQueue(): QueueItem[] {
-		return this.state.queue.map((track, index) => ({
+		return this._state.queue.map((track, index) => ({
 			track,
-			isActive: index === this.state.currentIndex,
+			isActive: index === this._state.currentIndex,
 			position: index,
 		}));
 	}
 
 	setQueue(tracks: Track[], startIndex: number = 0): Result<void, Error> {
-		this.state.queue = [...tracks];
-		this.state.currentIndex = startIndex;
+		this._state.queue = [...tracks];
+		this._state.currentIndex = startIndex;
 		return ok(undefined);
 	}
 
 	addToQueue(tracks: Track[], atIndex?: number): Result<void, Error> {
-		const queue = this.state.queue;
-		const currentIndex = this.state.currentIndex;
+		const queue = this._state.queue;
+		const currentIndex = this._state.currentIndex;
 
 		if (atIndex !== undefined && atIndex >= 0 && atIndex <= queue.length) {
 			queue.splice(atIndex, 0, ...tracks);
 			if (currentIndex >= atIndex) {
-				this.state.currentIndex += tracks.length;
+				this._state.currentIndex += tracks.length;
 			}
 		} else {
 			queue.push(...tracks);
@@ -43,16 +43,16 @@ export class QueueManager {
 	}
 
 	removeFromQueue(index: number): Result<void, Error> {
-		const queue = this.state.queue;
-		const currentIndex = this.state.currentIndex;
+		const queue = this._state.queue;
+		const currentIndex = this._state.currentIndex;
 
 		if (index >= 0 && index < queue.length) {
 			queue.splice(index, 1);
 
 			if (index < currentIndex) {
-				this.state.currentIndex--;
+				this._state.currentIndex--;
 			} else if (index === currentIndex) {
-				this.state.reset();
+				this._state.reset();
 			}
 		}
 
@@ -60,22 +60,22 @@ export class QueueManager {
 	}
 
 	clearQueue(): Result<void, Error> {
-		this.state.queue = [];
-		this.state.currentIndex = -1;
+		this._state.queue = [];
+		this._state.currentIndex = -1;
 		return ok(undefined);
 	}
 
 	canSkipNext(): boolean {
-		return this.state.currentIndex < this.state.queue.length - 1;
+		return this._state.currentIndex < this._state.queue.length - 1;
 	}
 
 	canSkipPrevious(): boolean {
-		return this.state.currentIndex > 0;
+		return this._state.currentIndex > 0;
 	}
 
 	skipToNext(): Result<void, Error> {
 		if (this.canSkipNext()) {
-			this.state.currentIndex++;
+			this._state.currentIndex++;
 			return ok(undefined);
 		}
 		return err(new Error('No next track'));
@@ -83,7 +83,7 @@ export class QueueManager {
 
 	skipToPrevious(): Result<void, Error> {
 		if (this.canSkipPrevious()) {
-			this.state.currentIndex--;
+			this._state.currentIndex--;
 			return ok(undefined);
 		}
 		return err(new Error('No previous track'));

@@ -38,36 +38,36 @@ export class RNTPPlaybackProvider implements PlaybackProvider {
 
 	status: PluginStatus = 'uninitialized';
 
-	private isSetup: boolean = false;
-	private readonly state: PlaybackState;
-	private readonly eventHandler: EventHandler;
-	private readonly queueHandler: QueueHandler;
-	private readonly playbackOps: PlaybackOperations;
-	private readonly progressTracker: ProgressTracker;
-	private readonly initializer: PlayerInitializer;
-	private readonly urlValidator: UrlValidator;
+	private _isSetup: boolean = false;
+	private readonly _state: PlaybackState;
+	private readonly _eventHandler: EventHandler;
+	private readonly _queueHandler: QueueHandler;
+	private readonly _playbackOps: PlaybackOperations;
+	private readonly _progressTracker: ProgressTracker;
+	private readonly _initializer: PlayerInitializer;
+	private readonly _urlValidator: UrlValidator;
 
 	constructor() {
-		this.state = new PlaybackState();
-		this.progressTracker = new ProgressTracker(this.state, this.emitEvent.bind(this));
-		this.eventHandler = new EventHandler(
-			this.state,
-			this.progressTracker,
-			this.updateStatus.bind(this)
+		this._state = new PlaybackState();
+		this._progressTracker = new ProgressTracker(this._state, this._emitEvent.bind(this));
+		this._eventHandler = new EventHandler(
+			this._state,
+			this._progressTracker,
+			this._updateStatus.bind(this)
 		);
-		const queueManager = new QueueManager(this.state);
-		this.queueHandler = new QueueHandler(queueManager, this.state, this.emitEvent.bind(this));
-		this.playbackOps = new PlaybackOperations(
-			this.state,
-			this.emitEvent.bind(this),
-			this.updateStatus.bind(this)
+		const queueManager = new QueueManager(this._state);
+		this._queueHandler = new QueueHandler(queueManager, this._state, this._emitEvent.bind(this));
+		this._playbackOps = new PlaybackOperations(
+			this._state,
+			this._emitEvent.bind(this),
+			this._updateStatus.bind(this)
 		);
-		this.initializer = new PlayerInitializer();
-		this.urlValidator = new UrlValidator();
+		this._initializer = new PlayerInitializer();
+		this._urlValidator = new UrlValidator();
 	}
 
 	async onInit(_context?: PluginInitContext): AsyncResult<void, Error> {
-		if (this.isSetup) {
+		if (this._isSetup) {
 			this.status = 'ready';
 			return ok(undefined);
 		}
@@ -75,10 +75,10 @@ export class RNTPPlaybackProvider implements PlaybackProvider {
 		try {
 			this.status = 'initializing';
 
-			await this.initializer.setup(this.state.volume);
-			this.eventHandler.setupEventListeners();
+			await this._initializer.setup(this._state.volume);
+			this._eventHandler.setupEventListeners();
 
-			this.isSetup = true;
+			this._isSetup = true;
 			this.status = 'ready';
 			return ok(undefined);
 		} catch (error) {
@@ -99,18 +99,18 @@ export class RNTPPlaybackProvider implements PlaybackProvider {
 	};
 
 	async onDestroy(): AsyncResult<void, Error> {
-		this.eventHandler.removeEventListeners();
-		await this.playbackOps.stop();
-		this.eventHandler.clearListeners();
-		this.state.clear();
-		this.isSetup = false;
+		this._eventHandler.removeEventListeners();
+		await this._playbackOps.stop();
+		this._eventHandler.clearListeners();
+		this._state.clear();
+		this._isSetup = false;
 		this.status = 'disabled';
 		return ok(undefined);
 	}
 
 	hasCapability = (capability: PlaybackCapability): boolean => this.capabilities.has(capability);
 
-	canHandle = (url: string): boolean => this.urlValidator.canHandle(url);
+	canHandle = (url: string): boolean => this._urlValidator.canHandle(url);
 
 	async play(
 		track: Track,
@@ -118,79 +118,79 @@ export class RNTPPlaybackProvider implements PlaybackProvider {
 		startPosition?: Duration,
 		headers?: Record<string, string>
 	): AsyncResult<void, Error> {
-		if (!this.isSetup) {
+		if (!this._isSetup) {
 			const initResult = await this.onInit();
 			if (!initResult.success) return initResult;
 		}
-		return this.playbackOps.play(track, streamUrl, startPosition, headers);
+		return this._playbackOps.play(track, streamUrl, startPosition, headers);
 	}
 
-	pause = (): AsyncResult<void, Error> => this.playbackOps.pause();
+	pause = (): AsyncResult<void, Error> => this._playbackOps.pause();
 
-	resume = (): AsyncResult<void, Error> => this.playbackOps.resume();
+	resume = (): AsyncResult<void, Error> => this._playbackOps.resume();
 
-	stop = (): AsyncResult<void, Error> => this.playbackOps.stop();
+	stop = (): AsyncResult<void, Error> => this._playbackOps.stop();
 
-	seek = (position: Duration): AsyncResult<void, Error> => this.playbackOps.seek(position);
+	seek = (position: Duration): AsyncResult<void, Error> => this._playbackOps.seek(position);
 
 	setPlaybackRate = (rate: number): AsyncResult<void, Error> =>
-		this.playbackOps.setPlaybackRate(rate);
+		this._playbackOps.setPlaybackRate(rate);
 
-	setVolume = (volume: number): AsyncResult<void, Error> => this.playbackOps.setVolume(volume);
+	setVolume = (volume: number): AsyncResult<void, Error> => this._playbackOps.setVolume(volume);
 
-	getVolume = (): number => this.state.volume;
+	getVolume = (): number => this._state.volume;
 
-	getStatus = (): PlaybackStatus => this.state.playbackStatus;
+	getStatus = (): PlaybackStatus => this._state.playbackStatus;
 
-	getPosition = (): Duration => this.state.position;
+	getPosition = (): Duration => this._state.position;
 
-	getDuration = (): Duration => this.state.duration;
+	getDuration = (): Duration => this._state.duration;
 
-	getCurrentTrack = (): Track | null => this.state.currentTrack;
+	getCurrentTrack = (): Track | null => this._state.currentTrack;
 
-	getQueue = (): QueueItem[] => this.queueHandler.getQueue();
+	getQueue = (): QueueItem[] => this._queueHandler.getQueue();
 
 	setQueue = (tracks: Track[], startIndex: number = 0): AsyncResult<void, Error> =>
-		this.queueHandler.setQueue(tracks, startIndex);
+		this._queueHandler.setQueue(tracks, startIndex);
 
 	addToQueue = (tracks: Track[], atIndex?: number): Result<void, Error> =>
-		this.queueHandler.addToQueue(tracks, atIndex);
+		this._queueHandler.addToQueue(tracks, atIndex);
 
 	removeFromQueue = (index: number): Result<void, Error> =>
-		this.queueHandler.removeFromQueue(index);
+		this._queueHandler.removeFromQueue(index);
 
-	clearQueue = (): Result<void, Error> => this.queueHandler.clearQueue();
+	clearQueue = (): Result<void, Error> => this._queueHandler.clearQueue();
 
-	skipToNext = (): AsyncResult<void, Error> => this.queueHandler.skipToNext();
+	skipToNext = (): AsyncResult<void, Error> => this._queueHandler.skipToNext();
 
 	skipToPrevious = async (): AsyncResult<void, Error> =>
-		(await this.playbackOps.shouldSeekToStart(this.state.position))
-			? this.playbackOps.seek(Duration.ZERO)
-			: this.queueHandler.skipToPrevious();
+		(await this._playbackOps.shouldSeekToStart(this._state.position))
+			? this._playbackOps.seek(Duration.ZERO)
+			: this._queueHandler.skipToPrevious();
 
-	setRepeatMode = (mode: RepeatMode): Result<void, Error> => this.playbackOps.setRepeatMode(mode);
+	setRepeatMode = (mode: RepeatMode): Result<void, Error> => this._playbackOps.setRepeatMode(mode);
 
-	getRepeatMode = (): RepeatMode => this.state.repeatMode;
+	getRepeatMode = (): RepeatMode => this._state.repeatMode;
 
-	setShuffle = (enabled: boolean): Result<void, Error> => this.playbackOps.setShuffle(enabled);
+	setShuffle = (enabled: boolean): Result<void, Error> => this._playbackOps.setShuffle(enabled);
 
-	isShuffle = (): boolean => this.state.isShuffled;
+	isShuffle = (): boolean => this._state.isShuffled;
 
 	addEventListener = (listener: PlaybackEventListener): (() => void) =>
-		this.eventHandler.addEventListener(listener);
+		this._eventHandler.addEventListener(listener);
 
 	removeEventListener = (listener: PlaybackEventListener): void =>
-		this.eventHandler.removeEventListener(listener);
+		this._eventHandler.removeEventListener(listener);
 
-	private updateStatus = (newStatus: PlaybackStatus): void => {
-		if (this.state.playbackStatus !== newStatus) {
-			this.state.playbackStatus = newStatus;
-			this.emitEvent({ type: 'status-change', status: newStatus, timestamp: Date.now() });
+	private _updateStatus = (newStatus: PlaybackStatus): void => {
+		if (this._state.playbackStatus !== newStatus) {
+			this._state.playbackStatus = newStatus;
+			this._emitEvent({ type: 'status-change', status: newStatus, timestamp: Date.now() });
 		}
 	};
 
-	private emitEvent = (event: Parameters<PlaybackEventListener>[0]): void =>
-		this.eventHandler.emitEvent(event);
+	private _emitEvent = (event: Parameters<PlaybackEventListener>[0]): void =>
+		this._eventHandler.emitEvent(event);
 }
 
 export const rntpPlaybackProvider = new RNTPPlaybackProvider();

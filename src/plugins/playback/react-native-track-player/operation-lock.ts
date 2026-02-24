@@ -5,13 +5,13 @@
  */
 
 export class OperationLock {
-	private lock: Promise<void> = Promise.resolve();
+	private _lock: Promise<void> = Promise.resolve();
 
 	async withLock<T>(operation: () => Promise<T>): Promise<T> {
-		const previousLock = this.lock;
+		const previousLock = this._lock;
 		let resolve: (() => void) | undefined;
 
-		this.lock = new Promise((r) => {
+		this._lock = new Promise((r) => {
 			resolve = r;
 		});
 

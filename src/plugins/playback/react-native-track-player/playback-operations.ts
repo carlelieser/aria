@@ -25,12 +25,12 @@ import {
 const logger = getLogger('PlaybackOperations');
 
 export class PlaybackOperations {
-	private readonly lock = new OperationLock();
+	private readonly _lock = new OperationLock();
 
 	constructor(
-		private readonly state: PlaybackState,
-		private readonly emitEvent: (event: PlaybackEvent) => void,
-		private readonly updateStatus: (
+		private readonly _state: PlaybackState,
+		private readonly _emitEvent: (event: PlaybackEvent) => void,
+		private readonly _updateStatus: (
 			status: 'idle' | 'loading' | 'playing' | 'paused' | 'error'
 		) => void
 	) {}
@@ -45,7 +45,7 @@ export class PlaybackOperations {
 		logger.debug('Stream URL:', streamUrl.substring(0, 100) + '...');
 		logger.debug('Headers present:', headers ? Object.keys(headers).join(', ') : 'none');
 
-		return this.lock.withLock(async () => {
+		return this._lock.withLock(async () => {
 			try {
 				logger.debug('Acquired lock, resetting player...');
 
@@ -53,16 +53,16 @@ export class PlaybackOperations {
 				logger.debug('Player reset complete');
 
 				const rntpTrack = mapToRNTPTrack(track, streamUrl, headers);
-				this.state.trackMap.set(rntpTrack.id, track);
+				this._state.trackMap.set(rntpTrack.id, track);
 				logger.debug('Adding track to player...');
 
 				await TrackPlayer.add(rntpTrack);
 				logger.debug('Track added successfully');
 
-				this.state.currentTrack = track;
-				this.state.position = Duration.ZERO;
-				this.state.duration = track.duration;
-				this.updateStatus('loading');
+				this._state.currentTrack = track;
+				this._state.position = Duration.ZERO;
+				this._state.duration = track.duration;
+				this._updateStatus('loading');
 
 				if (startPosition && startPosition.totalMilliseconds > 0) {
 					await TrackPlayer.seekTo(startPosition.totalSeconds);
@@ -72,9 +72,9 @@ export class PlaybackOperations {
 				await TrackPlayer.play();
 				logger.debug('TrackPlayer.play() returned');
 
-				this.updateStatus('playing');
-				this.emitEvent({ type: 'track-change', track, timestamp: Date.now() });
-				this.emitEvent({
+				this._updateStatus('playing');
+				this._emitEvent({ type: 'track-change', track, timestamp: Date.now() });
+				this._emitEvent({
 					type: 'duration-change',
 					duration: track.duration,
 					timestamp: Date.now(),
@@ -83,36 +83,36 @@ export class PlaybackOperations {
 				return ok(undefined);
 			} catch (error) {
 				logger.error('Error during playback', error instanceof Error ? error : undefined);
-				this.updateStatus('error');
+				this._updateStatus('error');
 				const errorObj = error instanceof Error ? error : new Error(String(error));
-				this.emitEvent({ type: 'error', error: errorObj, timestamp: Date.now() });
+				this._emitEvent({ type: 'error', error: errorObj, timestamp: Date.now() });
 				return err(errorObj);
 			}
 		});
 	}
 
 	async pause(): AsyncResult<void, Error> {
-		return this.lock.withLock(async () => {
-			if (this.state.playbackStatus === 'playing') {
+		return this._lock.withLock(async () => {
+			if (this._state.playbackStatus === 'playing') {
 				await TrackPlayer.pause();
-				this.updateStatus('paused');
+				this._updateStatus('paused');
 			}
 			return ok(undefined);
 		});
 	}
 
 	async resume(): AsyncResult<void, Error> {
-		return this.lock.withLock(async () => {
-			if (this.state.playbackStatus === 'paused') {
+		return this._lock.withLock(async () => {
+			if (this._state.playbackStatus === 'paused') {
 				await TrackPlayer.play();
-				this.updateStatus('playing');
+				this._updateStatus('playing');
 			}
 			return ok(undefined);
 		});
 	}
 
 	async stop(): AsyncResult<void, Error> {
-		return this.lock.withLock(async () => {
+		return this._lock.withLock(async () => {
 			try {
 				await TrackPlayer.reset();
 			} catch (error) {
@@ -121,26 +121,26 @@ export class PlaybackOperations {
 					error instanceof Error ? error : undefined
 				);
 			}
-			this.state.reset();
-			this.updateStatus('idle');
+			this._state.reset();
+			this._updateStatus('idle');
 			return ok(undefined);
 		});
 	}
 
 	async seek(position: Duration): AsyncResult<void, Error> {
-		return this.lock.withLock(async () => {
+		return this._lock.withLock(async () => {
 			const targetSeconds = position.totalSeconds;
 			logger.debug(`seek() called: target=${targetSeconds}s`);
 
 			await TrackPlayer.seekTo(targetSeconds);
-			this.state.position = position;
+			this._state.position = position;
 
 			return ok(undefined);
 		});
 	}
 
 	async setPlaybackRate(rate: number): AsyncResult<void, Error> {
-		return this.lock.withLock(async () => {
+		return this._lock.withLock(async () => {
 			const clampedRate = Math.max(MIN_PLAYBACK_RATE, Math.min(MAX_PLAYBACK_RATE, rate));
 			await TrackPlayer.setRate(clampedRate);
 			return ok(undefined);
@@ -148,22 +148,22 @@ export class PlaybackOperations {
 	}
 
 	async setVolume(volume: number): AsyncResult<void, Error> {
-		return this.lock.withLock(async () => {
-			this.state.volume = Math.max(MIN_VOLUME, Math.min(MAX_VOLUME, volume));
-			await TrackPlayer.setVolume(this.state.volume);
+		return this._lock.withLock(async () => {
+			this._state.volume = Math.max(MIN_VOLUME, Math.min(MAX_VOLUME, volume));
+			await TrackPlayer.setVolume(this._state.volume);
 			return ok(undefined);
 		});
 	}
 
 	setRepeatMode(mode: RepeatMode): Result<void, Error> {
-		this.state.repeatMode = mode;
-		const rntpMode = this.mapRepeatMode(mode);
+		this._state.repeatMode = mode;
+		const rntpMode = this._mapRepeatMode(mode);
 		TrackPlayer.setRepeatMode(rntpMode);
 		return ok(undefined);
 	}
 
 	setShuffle(enabled: boolean): Result<void, Error> {
-		this.state.isShuffled = enabled;
+		this._state.isShuffled = enabled;
 		return ok(undefined);
 	}
 
@@ -171,7 +171,7 @@ export class PlaybackOperations {
 		return position.totalSeconds > SKIP_PREVIOUS_THRESHOLD_SECONDS;
 	}
 
-	private mapRepeatMode(mode: RepeatMode): RNTPRepeatMode {
+	private _mapRepeatMode(mode: RepeatMode): RNTPRepeatMode {
 		switch (mode) {
 			case 'one':
 				return RNTPRepeatMode.Track;

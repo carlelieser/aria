@@ -25,30 +25,30 @@ import { mapRNTPStateToStatus } from './event-mapper';
 const logger = getLogger('RNTPEventHandler');
 
 export class EventHandler {
-	private readonly listeners: Set<PlaybackEventListener> = new Set();
-	private eventSubscriptions: (() => void)[] = [];
+	private readonly _listeners: Set<PlaybackEventListener> = new Set();
+	private _eventSubscriptions: (() => void)[] = [];
 
 	constructor(
-		private readonly state: PlaybackState,
-		private readonly progressTracker: ProgressTracker,
-		private readonly updateStatus: (status: PlaybackStatus) => void
+		private readonly _state: PlaybackState,
+		private readonly _progressTracker: ProgressTracker,
+		private readonly _updateStatus: (status: PlaybackStatus) => void
 	) {}
 
 	addEventListener(listener: PlaybackEventListener): () => void {
-		this.listeners.add(listener);
+		this._listeners.add(listener);
 		return () => this.removeEventListener(listener);
 	}
 
 	removeEventListener(listener: PlaybackEventListener): void {
-		this.listeners.delete(listener);
+		this._listeners.delete(listener);
 	}
 
 	clearListeners(): void {
-		this.listeners.clear();
+		this._listeners.clear();
 	}
 
 	emitEvent(event: PlaybackEvent): void {
-		this.listeners.forEach((listener) => {
+		this._listeners.forEach((listener) => {
 			try {
 				listener(event);
 			} catch (error) {
@@ -60,40 +60,40 @@ export class EventHandler {
 	setupEventListeners(): void {
 		const playbackStateSubscription = TrackPlayer.addEventListener(
 			Event.PlaybackState,
-			this.onPlaybackState.bind(this)
+			this._onPlaybackState.bind(this)
 		);
 
 		const trackChangedSubscription = TrackPlayer.addEventListener(
 			Event.PlaybackActiveTrackChanged,
-			this.onTrackChanged.bind(this)
+			this._onTrackChanged.bind(this)
 		);
 
 		const errorSubscription = TrackPlayer.addEventListener(
 			Event.PlaybackError,
-			this.onPlaybackError.bind(this)
+			this._onPlaybackError.bind(this)
 		);
 
 		const endSubscription = TrackPlayer.addEventListener(
 			Event.PlaybackQueueEnded,
-			this.onQueueEnded.bind(this)
+			this._onQueueEnded.bind(this)
 		);
 
 		const progressSubscription = TrackPlayer.addEventListener(
 			Event.PlaybackProgressUpdated,
-			this.onProgressUpdate.bind(this)
+			this._onProgressUpdate.bind(this)
 		);
 
 		const remoteNextSubscription = TrackPlayer.addEventListener(
 			Event.RemoteNext,
-			this.onRemoteNext.bind(this)
+			this._onRemoteNext.bind(this)
 		);
 
 		const remotePreviousSubscription = TrackPlayer.addEventListener(
 			Event.RemotePrevious,
-			this.onRemotePrevious.bind(this)
+			this._onRemotePrevious.bind(this)
 		);
 
-		this.eventSubscriptions = [
+		this._eventSubscriptions = [
 			playbackStateSubscription.remove.bind(playbackStateSubscription),
 			trackChangedSubscription.remove.bind(trackChangedSubscription),
 			errorSubscription.remove.bind(errorSubscription),
@@ -105,7 +105,7 @@ export class EventHandler {
 	}
 
 	removeEventListeners(): void {
-		this.eventSubscriptions.forEach((unsubscribe) => {
+		this._eventSubscriptions.forEach((unsubscribe) => {
 			try {
 				unsubscribe();
 			} catch (error) {
@@ -115,47 +115,47 @@ export class EventHandler {
 				);
 			}
 		});
-		this.eventSubscriptions = [];
+		this._eventSubscriptions = [];
 	}
 
-	private onPlaybackState(event: RNTPPlaybackState): void {
+	private _onPlaybackState(event: RNTPPlaybackState): void {
 		const newStatus = mapRNTPStateToStatus(event.state);
-		if (newStatus !== this.state.playbackStatus) {
-			this.updateStatus(newStatus);
+		if (newStatus !== this._state.playbackStatus) {
+			this._updateStatus(newStatus);
 		}
 	}
 
-	private onTrackChanged(event: PlaybackActiveTrackChangedEvent): void {
+	private _onTrackChanged(event: PlaybackActiveTrackChangedEvent): void {
 		if (event.track) {
-			const track = this.state.trackMap.get(event.track.id);
-			if (track && track !== this.state.currentTrack) {
-				this.state.currentTrack = track;
+			const track = this._state.trackMap.get(event.track.id);
+			if (track && track !== this._state.currentTrack) {
+				this._state.currentTrack = track;
 				this.emitEvent({ type: 'track-change', track, timestamp: Date.now() });
 			}
 		}
 	}
 
-	private onPlaybackError(event: PlaybackErrorEvent): void {
+	private _onPlaybackError(event: PlaybackErrorEvent): void {
 		logger.error(`PlaybackError: ${event.message} (code: ${event.code})`);
 		const error = new Error(event.message || 'Playback error');
-		this.updateStatus('error');
+		this._updateStatus('error');
 		this.emitEvent({ type: 'error', error, timestamp: Date.now() });
 	}
 
-	private onQueueEnded(): void {
+	private _onQueueEnded(): void {
 		this.emitEvent({ type: 'ended', timestamp: Date.now() });
 	}
 
-	private onProgressUpdate(event: PlaybackProgressUpdatedEvent): void {
-		this.progressTracker.handleProgressUpdate(event.position, event.duration);
+	private _onProgressUpdate(event: PlaybackProgressUpdatedEvent): void {
+		this._progressTracker.handleProgressUpdate(event.position, event.duration);
 	}
 
-	private onRemoteNext(): void {
+	private _onRemoteNext(): void {
 		logger.debug('RemoteNext received - emitting remote-skip-next event');
 		this.emitEvent({ type: 'remote-skip-next', timestamp: Date.now() });
 	}
 
-	private onRemotePrevious(): void {
+	private _onRemotePrevious(): void {
 		logger.debug('RemotePrevious received - emitting remote-skip-previous event');
 		this.emitEvent({ type: 'remote-skip-previous', timestamp: Date.now() });
 	}

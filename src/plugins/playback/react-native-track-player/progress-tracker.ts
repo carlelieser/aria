@@ -11,23 +11,23 @@ import type { PlaybackState } from './playback-state';
 
 export class ProgressTracker {
 	constructor(
-		private readonly state: PlaybackState,
-		private readonly emitEvent: (event: PlaybackEvent) => void
+		private readonly _state: PlaybackState,
+		private readonly _emitEvent: (event: PlaybackEvent) => void
 	) {}
 
 	handleProgressUpdate(position: number, duration: number): void {
-		this.state.position = Duration.fromSeconds(position);
-		this.emitEvent({
+		this._state.position = Duration.fromSeconds(position);
+		this._emitEvent({
 			type: 'position-change',
-			position: this.state.position,
+			position: this._state.position,
 			timestamp: Date.now(),
 		});
 
 		if (duration > 0) {
 			const newDuration = Duration.fromSeconds(duration);
-			if (newDuration.totalMilliseconds !== this.state.duration.totalMilliseconds) {
-				this.state.duration = newDuration;
-				this.emitEvent({
+			if (newDuration.totalMilliseconds !== this._state.duration.totalMilliseconds) {
+				this._state.duration = newDuration;
+				this._emitEvent({
 					type: 'duration-change',
 					duration: newDuration,
 					timestamp: Date.now(),
