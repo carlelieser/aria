@@ -8,9 +8,10 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { OAuthLoginWebView, type OAuthLoginConfig, type WebViewNavigation } from '@shared/auth';
-import { SPOTIFY_REDIRECT_URI } from '@/src/plugins/metadata/spotify/config';
-import { PluginRegistry } from '@/src/plugins/core/registry/plugin-registry';
-import type { SpotifyLibraryProvider } from '@/src/plugins/metadata/spotify/spotify-provider';
+import {
+	SPOTIFY_OAUTH_REDIRECT_URI,
+	getSpotifyAuthManager,
+} from '@/src/hooks/use-spotify-auth';
 import { getLogger } from '@shared/services/logger';
 
 const logger = getLogger('SpotifyLogin');
@@ -21,12 +22,6 @@ interface SpotifyLoginWebViewProps {
 	readonly onSuccess: (authCode: string) => void;
 	readonly onCancel: () => void;
 	readonly onNavigate?: (navState: WebViewNavigation) => void;
-}
-
-function getSpotifyAuthManager() {
-	const registry = PluginRegistry.getInstance();
-	const plugin = registry.getPlugin('spotify') as SpotifyLibraryProvider | undefined;
-	return plugin?.getClient().getAuthManager();
 }
 
 export const SpotifyLoginWebView = memo(function SpotifyLoginWebView({
@@ -114,7 +109,7 @@ export const SpotifyLoginWebView = memo(function SpotifyLoginWebView({
 			checkCookies,
 			isLoginPage,
 			isSuccessDomain,
-			redirectUri: SPOTIFY_REDIRECT_URI,
+			redirectUri: SPOTIFY_OAUTH_REDIRECT_URI,
 		};
 	}, [authUrl, checkCookies, isLoginPage, isSuccessDomain]);
 

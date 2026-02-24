@@ -15,16 +15,17 @@ import { Icon } from '@/src/components/ui/icon';
 import { EmptyState } from '@/src/components/ui/empty-state';
 import { useAppTheme } from '@/lib/theme';
 import type { PluginConfigSchema } from '@shared/types/plugin-config-schema';
-import {
-	useFolders,
-	useIsScanning,
-} from '@/src/plugins/metadata/local-library/storage/local-library-store';
-import { pickFolder } from '@/src/plugins/metadata/local-library/scanner/folder-scanner';
-import { PluginRegistry } from '@/src/plugins/core/registry/plugin-registry';
-import type { LocalLibraryProvider } from '@/src/plugins/metadata/local-library/local-library-provider';
+import { useFolders, useIsScanning, pickLibraryFolder } from '@/src/hooks/use-local-library';
+import { getTypedPlugin } from '@/src/hooks/use-plugin-registry';
 import { getLogger } from '@shared/services/logger';
 
 const logger = getLogger('PluginFolderListField');
+
+interface FolderCapablePlugin {
+	addFolder(uri: string, name: string): Promise<void>;
+	removeFolder(uri: string): Promise<void>;
+	rescanFolder(uri: string): Promise<void>;
+}
 
 interface PluginFolderListFieldProps {
 	readonly schema: PluginConfigSchema;
@@ -40,10 +41,8 @@ export const PluginFolderListField = memo(function PluginFolderListField({
 	const isScanning = useIsScanning();
 	const [isAddingFolder, setIsAddingFolder] = useState(false);
 
-	const getProvider = useCallback((): LocalLibraryProvider | null => {
-		const registry = PluginRegistry.getInstance();
-		const plugin = registry.getPlugin(pluginId);
-		return plugin as LocalLibraryProvider | null;
+	const getProvider = useCallback((): FolderCapablePlugin | null => {
+		return getTypedPlugin<FolderCapablePlugin>(pluginId);
 	}, [pluginId]);
 
 	const handleAddFolder = useCallback(async () => {
@@ -62,7 +61,7 @@ export const PluginFolderListField = memo(function PluginFolderListField({
 		logger.debug('Opening folder picker...');
 		setIsAddingFolder(true);
 		try {
-			const result = await pickFolder();
+			const result = await pickLibraryFolder();
 
 			if (result.success) {
 				logger.info(`Adding folder: ${result.data.name} (${result.data.uri})`);

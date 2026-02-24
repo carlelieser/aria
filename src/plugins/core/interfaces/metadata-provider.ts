@@ -5,6 +5,11 @@ import type { Album } from '@domain/entities/album';
 import type { Artist } from '@domain/entities/artist';
 import type { Playlist } from '@domain/entities/playlist';
 import type { TrackId } from '@domain/value-objects/track-id';
+import type { LyricsLine as SharedLyricsLine, Lyrics as SharedLyrics } from '@shared/types/lyrics';
+
+// Re-export shared types for backward compatibility
+export type LyricsLine = SharedLyricsLine;
+export type Lyrics = SharedLyrics;
 
 export type MetadataCapability =
 	| 'search-tracks'
@@ -61,30 +66,6 @@ export interface SearchResults<T> {
 	readonly hasMore: boolean;
 
 	readonly nextPageToken?: string;
-}
-
-export interface LyricsLine {
-	readonly startTime: number;
-
-	readonly endTime?: number;
-
-	readonly text: string;
-}
-
-export interface Lyrics {
-	readonly trackId: TrackId;
-
-	readonly language?: string;
-
-	readonly syncedLyrics?: LyricsLine[];
-
-	readonly plainLyrics?: string;
-
-	readonly source?: string;
-
-	readonly isVerified?: boolean;
-
-	readonly attribution?: string;
 }
 
 export interface RecommendationSeed {

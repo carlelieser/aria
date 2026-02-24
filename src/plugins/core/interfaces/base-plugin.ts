@@ -1,26 +1,12 @@
 import type { Result } from '@shared/types/result';
 import type { PluginConfigSchema } from '@shared/types/plugin-config-schema';
+import type { PluginStatus, PluginCategory } from '@shared/types/plugin-types';
 import type { PluginManifest as BasePluginManifest } from './plugin';
 
+// Re-export shared types for backward compatibility with existing plugin importers
+export type { PluginStatus } from '@shared/types/plugin-types';
+export type { PluginCategory } from '@shared/types/plugin-types';
 export type { PluginConfigSchema } from '@shared/types/plugin-config-schema';
-
-export type PluginStatus =
-	| 'uninitialized'
-	| 'initializing'
-	| 'ready'
-	| 'active'
-	| 'error'
-	| 'disabled';
-
-export type PluginCategory =
-	| 'metadata-provider'
-	| 'audio-source-provider'
-	| 'playback-provider'
-	| 'sync-provider'
-	| 'lyrics-provider'
-	| 'recommendation'
-	| 'visualizer'
-	| 'actions-provider';
 
 export interface PluginCapabilities {
 	readonly canSearch?: boolean;

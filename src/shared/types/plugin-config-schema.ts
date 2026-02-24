@@ -1,9 +1,9 @@
 /**
  * Plugin Configuration Schema
  *
- * Defines the shape of a single plugin configuration field.
- * Lives in shared/types so that both domain and plugin layers
- * can reference it without introducing prohibited dependencies.
+ * Defines the structure of plugin configuration fields.
+ * Shared across layers: used by domain (validation), application (services),
+ * and presentation (config UI components).
  */
 
 export interface PluginConfigSchema {

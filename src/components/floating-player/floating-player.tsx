@@ -30,10 +30,11 @@ import { getLargestArtwork } from '@/src/domain/value-objects/artwork';
 import { AudioWaveform } from '@/src/components/ui/audio-waveform';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 import { TAB_BAR_HEIGHT, TAB_ROUTES } from '@/lib/tab-config';
+import { FLOATING_PLAYER_HEIGHT } from '@shared/constants/layout';
 
 const AnimatedSurface = Animated.createAnimatedComponent(Surface);
 
-export const FLOATING_PLAYER_HEIGHT = 64;
+export { FLOATING_PLAYER_HEIGHT };
 
 export function FloatingPlayer() {
 	const pathname = usePathname();

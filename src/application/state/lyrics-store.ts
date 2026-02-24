@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Lyrics } from '../../plugins/core/interfaces/metadata-provider';
+import type { Lyrics } from '@shared/types/lyrics';
 import type { TrackId } from '../../domain/value-objects/track-id';
 
 interface LyricsState {

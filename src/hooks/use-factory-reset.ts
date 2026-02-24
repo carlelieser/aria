@@ -6,14 +6,14 @@ import { useSearchStore } from '@/src/application/state/search-store';
 import { useSearchFilterStore } from '@/src/application/state/search-filter-store';
 import { useEqualizerStore } from '@/src/application/state/equalizer-store';
 import { useSettingsStore } from '@/src/application/state/settings-store';
-import { clearAllDownloads } from '@/src/infrastructure/filesystem/download-manager';
+import { clearDownloadedFiles } from '@/src/application/services/download-cleanup-service';
 import { useToast } from '@/src/hooks/use-toast';
 
 export function useFactoryReset() {
 	const { success } = useToast();
 
 	const factoryReset = useCallback(async () => {
-		await clearAllDownloads();
+		await clearDownloadedFiles();
 		useDownloadStore.getState().clearAll();
 		useLibraryStore.getState().clearLibrary();
 		useHistoryStore.getState().clearHistory();

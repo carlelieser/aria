@@ -5,11 +5,8 @@
  */
 
 import { memo } from 'react';
-import {
-	useIsScanning,
-	useScanProgress,
-} from '@/src/plugins/metadata/local-library/storage/local-library-store';
-import type { ScanProgress } from '@/src/plugins/metadata/local-library/types';
+import { useIsScanning, useScanProgress } from '@/src/hooks/use-local-library';
+import type { ScanProgress } from '@shared/types/local-library-types';
 import { truncateFilename } from '@/src/domain/utils/formatting';
 import { ProgressToast } from './progress-toast';
 
