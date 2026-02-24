@@ -56,7 +56,11 @@ export class RNTPPlaybackProvider implements PlaybackProvider {
 			this._updateStatus.bind(this)
 		);
 		const queueManager = new QueueManager(this._state);
-		this._queueHandler = new QueueHandler(queueManager, this._state, this._emitEvent.bind(this));
+		this._queueHandler = new QueueHandler(
+			queueManager,
+			this._state,
+			this._emitEvent.bind(this)
+		);
 		this._playbackOps = new PlaybackOperations(
 			this._state,
 			this._emitEvent.bind(this),
@@ -168,7 +172,8 @@ export class RNTPPlaybackProvider implements PlaybackProvider {
 			? this._playbackOps.seek(Duration.ZERO)
 			: this._queueHandler.skipToPrevious();
 
-	setRepeatMode = (mode: RepeatMode): Result<void, Error> => this._playbackOps.setRepeatMode(mode);
+	setRepeatMode = (mode: RepeatMode): Result<void, Error> =>
+		this._playbackOps.setRepeatMode(mode);
 
 	getRepeatMode = (): RepeatMode => this._state.repeatMode;
 

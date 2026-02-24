@@ -10,6 +10,7 @@
  */
 
 import { useCallback, useMemo, useRef, useEffect, type ReactNode } from 'react';
+import { View, StyleSheet } from 'react-native';
 import BottomSheet, {
 	BottomSheetBackdrop,
 	BottomSheetView,
@@ -18,7 +19,6 @@ import BottomSheet, {
 } from '@gorhom/bottom-sheet';
 import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { Portal } from '@rn-primitives/portal';
-import { StyleSheet } from 'react-native';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 
 interface ManagedBottomSheetProps {
@@ -34,12 +34,16 @@ interface ManagedBottomSheetProps {
 	readonly children: ReactNode;
 	/** Use scrollable content view instead of fixed view */
 	readonly scrollable?: boolean;
+	/** Render children directly inside the sheet without a BottomSheetView wrapper. Use when children contain their own scrollable content (e.g. FlatList). */
+	readonly raw?: boolean;
 	/** Callback when sheet is opened (after animation) */
 	readonly onOpen?: () => void;
 	/** Keyboard behavior: 'extend' pushes sheet up, 'interactive' follows keyboard, 'fillParent' expands to full height */
 	readonly keyboardBehavior?: 'extend' | 'interactive' | 'fillParent';
 	/** What happens when keyboard is dismissed by tapping outside the input */
 	readonly keyboardBlurBehavior?: 'none' | 'restore';
+	/** Whether panning on the content area moves the sheet (default true). Set false when content has its own gesture handling (e.g. draggable lists). */
+	readonly enableContentPanningGesture?: boolean;
 }
 
 export function ManagedBottomSheet({
@@ -49,9 +53,11 @@ export function ManagedBottomSheet({
 	snapPoints: snapPointsProp,
 	children,
 	scrollable = false,
+	raw = false,
 	onOpen,
 	keyboardBehavior,
 	keyboardBlurBehavior,
+	enableContentPanningGesture,
 }: ManagedBottomSheetProps) {
 	const { colors } = useAppTheme();
 	const sheetRef = useRef<BottomSheetMethods>(null);
@@ -90,7 +96,13 @@ export function ManagedBottomSheet({
 		return null;
 	}
 
-	const ContentWrapper = scrollable ? BottomSheetScrollView : BottomSheetView;
+	const renderContent = () => {
+		if (raw) {
+			return <View style={styles.content}>{children}</View>;
+		}
+		const ContentWrapper = scrollable ? BottomSheetScrollView : BottomSheetView;
+		return <ContentWrapper style={styles.content}>{children}</ContentWrapper>;
+	};
 
 	return (
 		<Portal name={portalName}>
@@ -99,6 +111,7 @@ export function ManagedBottomSheet({
 				index={0}
 				snapPoints={snapPoints}
 				enablePanDownToClose
+				enableContentPanningGesture={enableContentPanningGesture}
 				backdropComponent={renderBackdrop}
 				onChange={handleSheetChanges}
 				keyboardBehavior={keyboardBehavior}
@@ -112,7 +125,7 @@ export function ManagedBottomSheet({
 					{ backgroundColor: colors.outlineVariant },
 				]}
 			>
-				<ContentWrapper style={styles.content}>{children}</ContentWrapper>
+				{renderContent()}
 			</BottomSheet>
 		</Portal>
 	);

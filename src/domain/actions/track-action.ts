@@ -56,6 +56,7 @@ export const CORE_ACTION_IDS = {
 	REMOVE_DOWNLOAD: 'remove-download',
 	SLEEP_TIMER: 'sleep-timer',
 	TOGGLE_LYRICS: 'toggle-lyrics',
+	VIEW_QUEUE: 'view-queue',
 } as const;
 
 export type CoreActionId = (typeof CORE_ACTION_IDS)[keyof typeof CORE_ACTION_IDS];

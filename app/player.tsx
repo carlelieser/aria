@@ -8,19 +8,19 @@ import { router, usePathname } from 'expo-router';
 import { Text, IconButton } from 'react-native-paper';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { Icon } from '@/src/components/ui/icon';
-import { ChevronLeftIcon, Heart } from 'lucide-react-native';
+import { ChevronLeftIcon, Heart, ListMusic } from 'lucide-react-native';
 import { PlayerControls } from '@/src/components/player/player-controls';
 import { ProgressBar } from '@/src/components/player/progress-bar';
 import { TrackOptionsMenu } from '@/src/components/track-options-menu';
 import { LyricsDisplay } from '@/src/components/player/lyrics-display';
 import { PlayerThemeProvider, usePlayerTheme } from '@/src/components/player/player-theme-context';
-import { usePlayer } from '@/src/hooks/use-player';
 import { useLyrics } from '@/src/hooks/use-lyrics';
 import { getLargestArtwork } from '@/src/domain/value-objects/artwork';
 import { getArtistNames } from '@/src/domain/entities/track';
 import { useAppTheme } from '@/lib/theme';
-import { useShowLyrics } from '@/src/application/state/player-ui-store';
+import { useShowLyrics, usePlayerUIStore } from '@/src/application/state/player-ui-store';
 import { useLibraryStore, useIsFavorite } from '@/src/application/state/library-store';
+import { useCurrentTrack, usePlayerError } from '@/src/application/state/player-store';
 
 const BLUR_INTENSITY = 120;
 const FAVORITE_ICON_SIZE = 24;
@@ -28,7 +28,7 @@ const FAVORITE_SPRING_CONFIG = { damping: 8, stiffness: 300 };
 const DARK_SCRIM_OPACITY = 0.6;
 
 export default function PlayerScreen() {
-	const { currentTrack } = usePlayer();
+	const currentTrack = useCurrentTrack();
 	const artwork = currentTrack ? getLargestArtwork(currentTrack.artwork) : undefined;
 	const artworkUrl = artwork?.url;
 
@@ -41,10 +41,12 @@ export default function PlayerScreen() {
 
 function PlayerScreenContent() {
 	const pathname = usePathname();
-	const { currentTrack, error } = usePlayer();
+	const currentTrack = useCurrentTrack();
+	const error = usePlayerError();
 	const { colors: appColors, isDark } = useAppTheme();
 	const { colors, backgroundStyle, dominantColor } = usePlayerTheme();
 	const showLyrics = useShowLyrics();
+	const openQueueSheet = usePlayerUIStore((s) => s.openQueueSheet);
 	const [artworkLoaded, setArtworkLoaded] = useState(false);
 
 	useLyrics();
@@ -114,12 +116,26 @@ function PlayerScreenContent() {
 						<Text variant={'labelLarge'} style={{ color: colors.onSurfaceVariant }}>
 							{showLyrics ? 'Lyrics' : 'Now Playing'}
 						</Text>
-						<TrackOptionsMenu
-							track={currentTrack}
-							source={'player'}
-							orientation={'horizontal'}
-							iconColor={colors.onSurfaceVariant}
-						/>
+						<View style={styles.headerActions}>
+							<IconButton
+								icon={() => (
+									<Icon
+										as={ListMusic}
+										size={20}
+										color={colors.onSurfaceVariant}
+									/>
+								)}
+								onPress={openQueueSheet}
+								size={20}
+								accessibilityLabel={'Open queue'}
+							/>
+							<TrackOptionsMenu
+								track={currentTrack}
+								source={'player'}
+								orientation={'horizontal'}
+								iconColor={colors.onSurfaceVariant}
+							/>
+						</View>
 					</View>
 
 					<View style={styles.artworkContainer}>
@@ -323,5 +339,9 @@ const styles = StyleSheet.create({
 	},
 	progressContainer: {
 		marginBottom: 24,
+	},
+	headerActions: {
+		flexDirection: 'row',
+		alignItems: 'center',
 	},
 });

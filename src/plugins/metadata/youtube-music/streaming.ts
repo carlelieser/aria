@@ -35,7 +35,13 @@ async function handleDownloadableStream(
 		if (cached) return cached;
 	}
 
-	const hlsResult = await tryHlsDownloadFallback(clientManager, videoId, quality, cookies, onProgress);
+	const hlsResult = await tryHlsDownloadFallback(
+		clientManager,
+		videoId,
+		quality,
+		cookies,
+		onProgress
+	);
 	if (hlsResult) return hlsResult;
 
 	logger.debug('All download attempts failed');
@@ -51,7 +57,11 @@ async function tryAdaptiveFormats(
 	let client = await clientManager.getClient();
 	logger.debug('Preferring downloadable format...');
 	let { result, loginRequired } = await tryMultipleClientTypes(
-		client, videoId, quality, ADAPTIVE_CLIENT_TYPES, cookies
+		client,
+		videoId,
+		quality,
+		ADAPTIVE_CLIENT_TYPES,
+		cookies
 	);
 	if (loginRequired && !result) {
 		result = await retryWithFreshClient(clientManager, videoId, quality);
@@ -67,7 +77,12 @@ async function retryWithFreshClient(
 	logger.warn('Cookies are bot-flagged -- retrying with unauthenticated client');
 	await clientManager.refreshAuth();
 	const client = await clientManager.createFreshClient({ skipAuth: true });
-	const { result } = await tryMultipleClientTypes(client, videoId, quality, ADAPTIVE_CLIENT_TYPES);
+	const { result } = await tryMultipleClientTypes(
+		client,
+		videoId,
+		quality,
+		ADAPTIVE_CLIENT_TYPES
+	);
 	return result;
 }
 
@@ -77,11 +92,16 @@ async function cacheAdaptiveStream(
 	quality: StreamQuality,
 	cookies: string | undefined
 ): Promise<Result<AudioStream, Error> | null> {
-	logger.debug(`Attempting to cache downloaded audio (expected: ${contentLength ?? 'unknown'} bytes)...`);
+	logger.debug(
+		`Attempting to cache downloaded audio (expected: ${contentLength ?? 'unknown'} bytes)...`
+	);
 	const cachedFile = await downloadToCache({
-		url: adaptiveStream.url, videoId,
-		format: adaptiveStream.format, headers: adaptiveStream.headers,
-		cookies, expectedSize: contentLength,
+		url: adaptiveStream.url,
+		videoId,
+		format: adaptiveStream.format,
+		headers: adaptiveStream.headers,
+		cookies,
+		expectedSize: contentLength,
 	});
 	if (!cachedFile) {
 		logger.debug('Adaptive caching failed, will try HLS fallback...');
@@ -104,16 +124,25 @@ async function tryHlsDownloadFallback(
 
 	logger.debug('Found HLS manifest, downloading segments...');
 	const hlsResult = await downloadHlsToCache(hlsUrl, videoId, cookies, onProgress);
-	if (!hlsResult) { logger.debug('HLS download failed'); return null; }
+	if (!hlsResult) {
+		logger.debug('HLS download failed');
+		return null;
+	}
 
-	return ok(createAudioStream({ url: hlsResult.path, format: hlsResult.format as AudioFormat, quality }));
+	return ok(
+		createAudioStream({ url: hlsResult.path, format: hlsResult.format as AudioFormat, quality })
+	);
 }
 
 async function resolveHlsUrl(
 	client: Awaited<ReturnType<ClientManager['getClient']>>,
 	videoId: string
 ): Promise<string | null> {
-	return (await tryHlsStream(client, videoId, 'IOS')) || (await tryHlsStream(client, videoId, 'TV')) || null;
+	return (
+		(await tryHlsStream(client, videoId, 'IOS')) ||
+		(await tryHlsStream(client, videoId, 'TV')) ||
+		null
+	);
 }
 
 async function handleStreamingPlayback(
@@ -156,7 +185,10 @@ export function createStreamingOperations(clientManager: ClientManager): Streami
 				return await resolveStreamUrl(clientManager, trackId, options);
 			} catch (error) {
 				logger.error('getStreamUrl error', error instanceof Error ? error : undefined);
-				const wrapped = error instanceof Error ? error : new Error(`Failed to get stream URL: ${String(error)}`);
+				const wrapped =
+					error instanceof Error
+						? error
+						: new Error(`Failed to get stream URL: ${String(error)}`);
 				return err(wrapped);
 			}
 		},
@@ -179,7 +211,13 @@ async function resolveStreamUrl(
 	if (cookies) logger.debug('Using authenticated download with cookies');
 	// HLS manifests cannot be saved as files, so downloads need direct URLs
 	if (options?.preferDownloadable) {
-		return handleDownloadableStream(clientManager, videoId, quality, cookies, options.onProgress);
+		return handleDownloadableStream(
+			clientManager,
+			videoId,
+			quality,
+			cookies,
+			options.onProgress
+		);
 	}
 	return handleStreamingPlayback(clientManager, videoId, quality, cookies);
 }
@@ -192,5 +230,7 @@ async function tryCachedStream(
 	if (!cached) return null;
 
 	logger.debug(`Using cached audio file for playback (format: ${cached.format})`);
-	return ok(createAudioStream({ url: cached.path, format: cached.format as AudioFormat, quality }));
+	return ok(
+		createAudioStream({ url: cached.path, format: cached.format as AudioFormat, quality })
+	);
 }

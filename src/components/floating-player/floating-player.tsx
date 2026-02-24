@@ -22,8 +22,14 @@ import { Surface } from 'react-native-paper';
 import { FloatingProgressBar } from './floating-progress-bar';
 import { PlayerContent } from './player-content';
 
-import { usePlayer } from '@/src/hooks/use-player';
-import { useCurrentTrack, usePlaybackStatus } from '@/src/application/state/player-store';
+import { usePlayerActions } from '@/src/hooks/use-player';
+import {
+	useCurrentTrack,
+	useIsPlaying,
+	useIsLoading,
+	useIsBuffering,
+} from '@/src/application/state/player-store';
+import { usePlayerUIStore } from '@/src/application/state/player-ui-store';
 import { getArtistNames } from '@/src/domain/entities/track';
 import { getLargestArtwork } from '@/src/domain/value-objects/artwork';
 import { M3Shapes } from '@/lib/theme';
@@ -38,8 +44,6 @@ export function FloatingPlayer() {
 	const pathname = usePathname();
 	const insets = useSafeAreaInsets();
 	const currentTrack = useCurrentTrack();
-	const status = usePlaybackStatus();
-	const { togglePlayPause, skipToNext, isLoading, isBuffering } = usePlayer();
 	const shouldShow = pathname !== '/player' && currentTrack !== null;
 	const isTabRoute = TAB_ROUTES.includes(pathname);
 	const bottomOffset = isTabRoute ? TAB_BAR_HEIGHT + insets.bottom + 8 : insets.bottom + 8;
@@ -64,33 +68,14 @@ export function FloatingPlayer() {
 		opacity: visibility.value,
 		transform: [
 			{
-				translateY: interpolate(
-					visibility.value,
-					[0, 1],
-					[100, 0],
-					Extrapolation.CLAMP
-				),
+				translateY: interpolate(visibility.value, [0, 1], [100, 0], Extrapolation.CLAMP),
 			},
 		],
 	}));
 
-	const artwork = currentTrack ? getLargestArtwork(currentTrack.artwork) : null;
-	const artworkUrl = artwork?.url;
-	const artistNames = currentTrack ? getArtistNames(currentTrack) : '';
-	const isPlaying = status === 'playing';
-	const showLoadingIndicator = isLoading || isBuffering;
-
 	const handlePress = useCallback(() => {
 		router.push('/player');
 	}, []);
-
-	const handlePlayPause = useCallback(() => {
-		togglePlayPause();
-	}, [togglePlayPause]);
-
-	const handleSkipNext = useCallback(() => {
-		skipToNext();
-	}, [skipToNext]);
 
 	const containerStyle = useMemo(
 		() => [styles.container, { bottom: bottomOffset }, animatedStyle],
@@ -114,19 +99,58 @@ export function FloatingPlayer() {
 					<FloatingProgressBar />
 				</View>
 
-				<PlayerContent
-					artworkUrl={artworkUrl}
-					trackId={currentTrack?.id.value}
-					title={currentTrack?.title}
-					artistNames={artistNames}
-					isPlaying={isPlaying}
-					showLoadingIndicator={showLoadingIndicator}
-					isLoading={isLoading}
-					onPlayPause={handlePlayPause}
-					onSkipNext={handleSkipNext}
-				/>
+				<FloatingTrackInfo />
 			</Pressable>
 		</AnimatedSurface>
+	);
+}
+
+/**
+ * Isolated zone for track info + controls.
+ * Re-renders only on track change or playback status change, NOT on progress ticks.
+ */
+function FloatingTrackInfo() {
+	const currentTrack = useCurrentTrack();
+	const isPlaying = useIsPlaying();
+	const isLoading = useIsLoading();
+	const isBuffering = useIsBuffering();
+	const { togglePlayPause, skipToPrevious, skipToNext } = usePlayerActions();
+
+	const artwork = currentTrack ? getLargestArtwork(currentTrack.artwork) : null;
+	const artworkUrl = artwork?.url;
+	const artistNames = currentTrack ? getArtistNames(currentTrack) : '';
+	const showLoadingIndicator = isLoading || isBuffering;
+
+	const handlePlayPause = useCallback(() => {
+		togglePlayPause();
+	}, [togglePlayPause]);
+
+	const handleSkipPrevious = useCallback(() => {
+		skipToPrevious();
+	}, [skipToPrevious]);
+
+	const handleSkipNext = useCallback(() => {
+		skipToNext();
+	}, [skipToNext]);
+
+	const handleOpenQueue = useCallback(() => {
+		usePlayerUIStore.getState().openQueueSheet();
+	}, []);
+
+	return (
+		<PlayerContent
+			artworkUrl={artworkUrl}
+			trackId={currentTrack?.id.value}
+			title={currentTrack?.title}
+			artistNames={artistNames}
+			isPlaying={isPlaying}
+			showLoadingIndicator={showLoadingIndicator}
+			isLoading={isLoading}
+			onPlayPause={handlePlayPause}
+			onSkipPrevious={handleSkipPrevious}
+			onSkipNext={handleSkipNext}
+			onOpenQueue={handleOpenQueue}
+		/>
 	);
 }
 

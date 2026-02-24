@@ -18,6 +18,15 @@ export function getPlayerActions(context: TrackActionContext): TrackAction[] {
 	const hasLyrics = _hasLyrics();
 
 	actions.push({
+		id: CORE_ACTION_IDS.VIEW_QUEUE,
+		label: 'Queue',
+		icon: 'ListMusic',
+		group: 'secondary',
+		priority: 46,
+		enabled: true,
+	});
+
+	actions.push({
 		id: CORE_ACTION_IDS.SLEEP_TIMER,
 		label: sleepTimerActive ? 'Sleep Timer (On)' : 'Sleep Timer',
 		icon: 'Timer',
@@ -47,6 +56,10 @@ export async function executePlayerAction(
 	_context: TrackActionContext
 ): Promise<TrackActionResult> {
 	switch (actionId) {
+		case CORE_ACTION_IDS.VIEW_QUEUE:
+			usePlayerUIStore.getState().openQueueSheet();
+			return { handled: true };
+
 		case CORE_ACTION_IDS.SLEEP_TIMER:
 			usePlayerUIStore.getState().openSleepTimerSheet();
 			return { handled: true };

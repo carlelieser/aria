@@ -15,13 +15,18 @@ import { useAppState } from '@/src/hooks/use-app-state';
 import { FloatingPlayer } from '@/src/components/floating-player';
 import { TrackOptionsSheet } from '@/src/components/track-options-menu';
 import { SleepTimerSheet } from '@/src/components/player/sleep-timer-sheet';
+import { QueueSheet } from '@/src/components/player/queue-sheet';
 import { ToastContainer } from '@/src/components/ui/toast';
 import { ScanProgressToast } from '@/src/components/ui/scan-progress-toast';
 import { ImportProgressToast } from '@/src/components/ui/import-progress-toast';
 import { AnimatedSplash } from '@/src/components/ui/animated-splash';
 import { AppThemeProvider, useAppTheme } from '@/lib/theme';
 import { ErrorBoundary, useGlobalErrorHandlers } from '@/lib/error-capture';
-import { useSleepTimerSheetOpen, usePlayerUIStore } from '@/src/application/state/player-ui-store';
+import {
+	useSleepTimerSheetOpen,
+	useQueueSheetOpen,
+	usePlayerUIStore,
+} from '@/src/application/state/player-ui-store';
 import { enableFreeze } from 'react-native-screens';
 
 const PORTAL_Z_INDEX = 9999;
@@ -36,6 +41,8 @@ function AppContent() {
 	const [showSplash, setShowSplash] = useState(true);
 	const sleepTimerSheetOpen = useSleepTimerSheetOpen();
 	const closeSleepTimerSheet = usePlayerUIStore((state) => state.closeSleepTimerSheet);
+	const queueSheetOpen = useQueueSheetOpen();
+	const closeQueueSheet = usePlayerUIStore((state) => state.closeQueueSheet);
 
 	useGlobalErrorHandlers();
 
@@ -69,7 +76,12 @@ function AppContent() {
 				}}
 			>
 				<Stack.Screen name={'(tabs)'} />
-				<Stack.Screen name={'player'} />
+				<Stack.Screen
+					name={'player'}
+					options={{
+						animation: 'fade_from_bottom',
+					}}
+				/>
 				<Stack.Screen name={'plugins'} />
 				<Stack.Screen name={'plugin/[id]'} />
 				<Stack.Screen name={'library/settings'} />
@@ -82,6 +94,7 @@ function AppContent() {
 				<Stack.Screen name={'playlist-picker'} options={{ presentation: 'modal' }} />
 			</Stack>
 			<FloatingPlayer />
+			<QueueSheet isOpen={queueSheetOpen} onClose={closeQueueSheet} />
 			<SleepTimerSheet isOpen={sleepTimerSheetOpen} onClose={closeSleepTimerSheet} />
 			<TrackOptionsSheet />
 			<ToastContainer />

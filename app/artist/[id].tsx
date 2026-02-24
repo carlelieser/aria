@@ -2,8 +2,10 @@ import { useEffect, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { SearchIcon, UserIcon } from 'lucide-react-native';
-import { Text, Button, ActivityIndicator, IconButton } from 'react-native-paper';
+import { Text, Button, IconButton } from 'react-native-paper';
 import { Icon } from '@/src/components/ui/icon';
+import { Skeleton } from '@/src/components/ui/skeleton';
+import { TrackListSkeleton } from '@/src/components/skeletons';
 import { DetailsPage, useDetailsPageHeaderColors } from '@/src/components/details-page';
 import { TrackListItem } from '@/src/components/media-list/track-list-item';
 import { AlbumCard } from '@/src/components/media-list/album-card';
@@ -140,11 +142,11 @@ export default function ArtistScreen() {
 		return result;
 	}, [albums, libraryTracks]);
 
-	const renderLoadingOrError = () => {
+	const emptyContent = (() => {
 		if (isLoading && !hasData) {
 			return (
 				<View style={styles.loadingState}>
-					<ActivityIndicator size={'large'} color={colors.primary} />
+					<TrackListSkeleton count={6} />
 				</View>
 			);
 		}
@@ -178,17 +180,25 @@ export default function ArtistScreen() {
 			);
 		}
 
-		return null;
-	};
+		return undefined;
+	})();
 
-	const loadingOrError = renderLoadingOrError();
+	const headerSkeleton = (
+		<View style={styles.headerSkeleton}>
+			<Skeleton width={200} height={200} rounded={'full'} />
+			<Skeleton width={160} height={24} rounded={'md'} />
+			<Skeleton width={120} height={14} rounded={'md'} />
+		</View>
+	);
 
 	return (
 		<DetailsPage
 			headerInfo={headerInfo}
 			headerRightActions={headerRightActions}
-			sections={loadingOrError ? [] : sections}
-			emptyContent={loadingOrError}
+			isLoading={isLoading && !hasData}
+			loadingContent={headerSkeleton}
+			sections={emptyContent ? [] : sections}
+			emptyContent={emptyContent}
 		/>
 	);
 }
@@ -208,9 +218,13 @@ const styles = StyleSheet.create({
 		gap: 8,
 		paddingHorizontal: 24,
 	},
-	loadingState: {
-		paddingVertical: 48,
+	headerSkeleton: {
 		alignItems: 'center',
+		paddingVertical: 48,
+		gap: 8,
+	},
+	loadingState: {
+		paddingHorizontal: 24,
 	},
 	emptyState: {
 		paddingVertical: 48,

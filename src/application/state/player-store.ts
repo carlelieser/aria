@@ -34,6 +34,8 @@ interface PlayerState {
 	setQueue: (tracks: Track[], startIndex?: number) => void;
 	insertIntoQueue: (track: Track, index: number) => void;
 	appendToQueue: (track: Track) => void;
+	removeFromQueue: (index: number) => void;
+	moveInQueue: (fromIndex: number, toIndex: number) => void;
 	toggleShuffle: () => void;
 	cycleRepeatMode: () => void;
 	setVolume: (volume: number) => void;
@@ -213,6 +215,56 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 		});
 	},
 
+	removeFromQueue: (index: number) => {
+		const state = get();
+		if (index < 0 || index >= state.queue.length) return;
+
+		const newQueue = state.queue.filter((_, i) => i !== index);
+
+		if (index === state.queueIndex) {
+			// Removing the currently playing track — advance or stop
+			const nextIndex = Math.min(index, newQueue.length - 1);
+			set({
+				queue: newQueue,
+				queueIndex: nextIndex,
+				currentTrack: newQueue[nextIndex] ?? null,
+				status: newQueue.length === 0 ? 'idle' : state.status,
+			});
+		} else {
+			set({
+				queue: newQueue,
+				queueIndex: index < state.queueIndex ? state.queueIndex - 1 : state.queueIndex,
+			});
+		}
+	},
+
+	moveInQueue: (fromIndex: number, toIndex: number) => {
+		const state = get();
+		if (
+			fromIndex === toIndex ||
+			fromIndex < 0 ||
+			fromIndex >= state.queue.length ||
+			toIndex < 0 ||
+			toIndex >= state.queue.length
+		)
+			return;
+
+		const newQueue = [...state.queue];
+		const [moved] = newQueue.splice(fromIndex, 1);
+		newQueue.splice(toIndex, 0, moved);
+
+		let newQueueIndex = state.queueIndex;
+		if (fromIndex === state.queueIndex) {
+			newQueueIndex = toIndex;
+		} else if (fromIndex < state.queueIndex && toIndex >= state.queueIndex) {
+			newQueueIndex--;
+		} else if (fromIndex > state.queueIndex && toIndex <= state.queueIndex) {
+			newQueueIndex++;
+		}
+
+		set({ queue: newQueue, queueIndex: newQueueIndex });
+	},
+
 	toggleShuffle: () => {
 		const state = get();
 		const newShuffleState = !state.isShuffled;
@@ -278,6 +330,9 @@ export const useCurrentTrack = () => usePlayerStore((state) => state.currentTrac
 export const usePlaybackStatus = () => usePlayerStore((state) => state.status);
 export const useIsPlaying = () => usePlayerStore((state) => state.status === 'playing');
 export const useIsPaused = () => usePlayerStore((state) => state.status === 'paused');
+export const useIsLoading = () => usePlayerStore((state) => state.status === 'loading');
+export const useIsBuffering = () => usePlayerStore((state) => state.status === 'buffering');
+export const usePlayerError = () => usePlayerStore((state) => state.error);
 export const useQueue = () => usePlayerStore((state) => state.queue);
 export const useQueueIndex = () => usePlayerStore((state) => state.queueIndex);
 export const useVolume = () =>

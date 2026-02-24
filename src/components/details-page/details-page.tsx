@@ -60,7 +60,12 @@ export function DetailsPage({
 	);
 
 	const headerBgStyle = useAnimatedStyle(() => ({
-		opacity: interpolate(scrollY.value, [0, HEADER_SCROLL_THRESHOLD], [0, 1], Extrapolation.CLAMP),
+		opacity: interpolate(
+			scrollY.value,
+			[0, HEADER_SCROLL_THRESHOLD],
+			[0, 1],
+			Extrapolation.CLAMP
+		),
 	}));
 
 	const { isDark } = useAppTheme();
@@ -99,7 +104,10 @@ export function DetailsPage({
 	const renderMainContent = () => {
 		if (disableScroll) {
 			if (renderContent) {
-				return renderContent({ ListHeaderComponent: scrollableHeader, onScroll: handleScroll });
+				return renderContent({
+					ListHeaderComponent: scrollableHeader,
+					onScroll: handleScroll,
+				});
 			}
 			return (
 				<View style={styles.disabledScrollContainer}>
@@ -121,7 +129,12 @@ export function DetailsPage({
 		);
 	};
 
-	const contextValue = { colors, headerColors, headerSolid, hasCustomColors: pageTheme.hasCustomColors };
+	const contextValue = {
+		colors,
+		headerColors,
+		headerSolid,
+		hasCustomColors: pageTheme.hasCustomColors,
+	};
 
 	return (
 		<DetailsPageContext.Provider value={contextValue}>
@@ -134,7 +147,11 @@ export function DetailsPage({
 					transparent: true,
 					transparentBackground: (
 						<Animated.View
-							style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }, headerBgStyle]}
+							style={[
+								StyleSheet.absoluteFill,
+								{ backgroundColor: colors.background },
+								headerBgStyle,
+							]}
 						/>
 					),
 					tintColor,

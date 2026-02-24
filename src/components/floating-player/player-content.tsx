@@ -4,16 +4,16 @@
  * The inner content of the floating player: artwork, track info, and controls.
  */
 
-import { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { IconButton, Text } from 'react-native-paper';
-import { Play, Pause, SkipForward } from 'lucide-react-native';
+import { Play, Pause, SkipBack, SkipForward, ListMusic } from 'lucide-react-native';
 import { AudioWaveform } from '@/src/components/ui/audio-waveform';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 import type { PlayerContentProps } from './types';
 
-export function PlayerContent({
+export const PlayerContent = React.memo(function PlayerContent({
 	artworkUrl,
 	trackId,
 	title,
@@ -22,9 +22,16 @@ export function PlayerContent({
 	showLoadingIndicator,
 	isLoading,
 	onPlayPause,
+	onSkipPrevious,
 	onSkipNext,
+	onOpenQueue,
 }: PlayerContentProps) {
 	const { colors } = useAppTheme();
+	const titleStyle = useMemo(() => ({ color: colors.onSurface }), [colors.onSurface]);
+	const subtitleStyle = useMemo(
+		() => ({ color: colors.onSurfaceVariant }),
+		[colors.onSurfaceVariant]
+	);
 
 	const playPauseIcon = useCallback(
 		({ size, color }: { size: number; color: string }) =>
@@ -36,9 +43,23 @@ export function PlayerContent({
 		[isPlaying]
 	);
 
+	const skipBackIcon = useCallback(
+		({ size, color }: { size: number; color: string }) => (
+			<SkipBack size={size} color={color} fill={color} />
+		),
+		[]
+	);
+
 	const skipForwardIcon = useCallback(
 		({ size, color }: { size: number; color: string }) => (
 			<SkipForward size={size} color={color} fill={color} />
+		),
+		[]
+	);
+
+	const queueIcon = useCallback(
+		({ size, color }: { size: number; color: string }) => (
+			<ListMusic size={size} color={color} />
 		),
 		[]
 	);
@@ -63,23 +84,27 @@ export function PlayerContent({
 			</View>
 
 			<View style={styles.trackInfo}>
-				<Text
-					variant={'titleSmall'}
-					numberOfLines={1}
-					style={{ color: colors.onSurface }}
-				>
+				<Text variant={'titleSmall'} numberOfLines={1} style={titleStyle}>
 					{title}
 				</Text>
-				<Text
-					variant={'bodySmall'}
-					numberOfLines={1}
-					style={{ color: colors.onSurfaceVariant }}
-				>
+				<Text variant={'bodySmall'} numberOfLines={1} style={subtitleStyle}>
 					{artistNames}
 				</Text>
 			</View>
 
 			<View style={styles.controls}>
+				<IconButton
+					icon={queueIcon}
+					size={20}
+					onPress={onOpenQueue}
+					accessibilityLabel={'Open queue'}
+				/>
+				<IconButton
+					icon={skipBackIcon}
+					size={20}
+					onPress={onSkipPrevious}
+					accessibilityLabel={'Skip to previous track'}
+				/>
 				<IconButton
 					icon={playPauseIcon}
 					size={24}
@@ -88,14 +113,14 @@ export function PlayerContent({
 				/>
 				<IconButton
 					icon={skipForwardIcon}
-					size={24}
+					size={20}
 					onPress={onSkipNext}
 					accessibilityLabel={'Skip to next track'}
 				/>
 			</View>
 		</View>
 	);
-}
+});
 
 const styles = StyleSheet.create({
 	content: {
@@ -111,8 +136,8 @@ const styles = StyleSheet.create({
 		borderRadius: M3Shapes.small,
 	},
 	artwork: {
-		width: 48,
-		height: 48,
+		width: 40,
+		height: 40,
 		borderRadius: M3Shapes.small,
 	},
 	loadingOverlay: {

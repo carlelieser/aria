@@ -13,5 +13,7 @@ export interface PlayerContentProps {
 	readonly showLoadingIndicator: boolean;
 	readonly isLoading: boolean;
 	readonly onPlayPause: () => void;
+	readonly onSkipPrevious: () => void;
 	readonly onSkipNext: () => void;
+	readonly onOpenQueue: () => void;
 }
