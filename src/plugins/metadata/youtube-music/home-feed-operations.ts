@@ -29,8 +29,6 @@ export type {
 
 const logger = getLogger('YouTubeMusic:HomeFeed');
 
-const ENRICH_NUM_BATCHES = 3;
-
 interface Continuable {
 	has_continuation: boolean;
 	getContinuation(): Promise<Continuable & { contents?: unknown[] }>;
@@ -170,145 +168,6 @@ function mapHomeFeedResponse(feed: HomeFeedInstance): HomeFeedData {
 	};
 }
 
-function collectTracksNeedingEnrichment(sections: FeedSection[]): Map<string, Track> {
-	const tracks = new Map<string, Track>();
-	for (const section of sections) {
-		for (const item of section.items) {
-			if (item.type === 'track' && needsEnrichment(item.data)) {
-				tracks.set(item.data.id.sourceId, item.data);
-			}
-		}
-	}
-	return tracks;
-}
-
-function normalizeTitle(title: string): string {
-	return title.toLowerCase().replace(/[^a-z0-9]/g, '');
-}
-
-function isTitleMatch(a: string, b: string): boolean {
-	const na = normalizeTitle(a);
-	const nb = normalizeTitle(b);
-	return na === nb || na.includes(nb) || nb.includes(na);
-}
-
-function applyEnrichedTracks(
-	sections: FeedSection[],
-	enrichedMap: Map<string, Track>
-): FeedSection[] {
-	return sections.map((section) => ({
-		...section,
-		items: section.items.map((item): FeedItem => {
-			if (item.type !== 'track') return item;
-			const enriched = enrichedMap.get(item.data.id.sourceId);
-			return enriched ? { type: 'track', data: enriched } : item;
-		}),
-	}));
-}
-
-/**
- * Searches for the song variant of each track using "title artist" queries,
- * takes the top result, and validates it matches the original title before
- * accepting it. Returns a map of sourceId → enriched Track.
- */
-async function fetchEnrichedTrackMap(
-	clientManager: ClientManager,
-	tracksToEnrich: Map<string, Track>
-): Promise<Map<string, Track>> {
-	const client = await clientManager.getClient();
-	const enrichedMap = new Map<string, Track>();
-	const entries = Array.from(tracksToEnrich.entries());
-
-	async function enrichEntry([videoId, original]: [string, Track]): Promise<void> {
-		const artistName = original.artists[0]?.name ?? '';
-		const cleanTitle = original.title.replace(/\s*\(official\s+\w+\)/gi, '').trim();
-		const query = artistName ? `${cleanTitle} ${artistName}` : cleanTitle;
-
-		const searchResult = await client.music.search(query, { type: 'song' });
-		const contents = (searchResult as { contents?: unknown[] }).contents;
-		if (!contents) return;
-
-		for (const shelf of contents) {
-			const items = (shelf as { contents?: unknown[] })?.contents;
-			if (!items) continue;
-			for (const item of items) {
-				const track = mapYouTubeTrack(item as YouTubeMusicItem);
-				if (track && isTitleMatch(track.title, original.title)) {
-					enrichedMap.set(videoId, track);
-					return;
-				}
-			}
-		}
-
-		logger.debug(`No confident song match for "${original.title}"`);
-	}
-
-	const batchSize = Math.ceil(entries.length / ENRICH_NUM_BATCHES);
-	for (let i = 0; i < entries.length; i += batchSize) {
-		const batch = entries.slice(i, i + batchSize);
-		const results = await Promise.allSettled(batch.map(enrichEntry));
-		for (let j = 0; j < results.length; j++) {
-			if (results[j].status === 'rejected') {
-				logger.debug(`Failed to enrich track "${batch[j][1].title}"`);
-			}
-		}
-	}
-
-	return enrichedMap;
-}
-
-/**
- * Returns true if the track needs enrichment: either it has a video-frame thumbnail
- * (i.ytimg.com) or it has no duration. Tracks with proper album art and duration
- * are already fully enriched by the API.
- */
-function needsEnrichment(track: Track): boolean {
-	if (track.duration.isZero()) return true;
-	if (!track.artwork || track.artwork.length === 0) return true;
-	return track.artwork.some((art) => art.url.includes('i.ytimg.com'));
-}
-
-/**
- * Enriches a flat list of tracks that have video thumbnails or zero duration
- * with proper YouTube Music metadata.
- */
-async function enrichTrackList(clientManager: ClientManager, tracks: Track[]): Promise<Track[]> {
-	const tracksToEnrich = new Map<string, Track>();
-	for (const track of tracks) {
-		if (needsEnrichment(track)) {
-			tracksToEnrich.set(track.id.sourceId, track);
-		}
-	}
-
-	if (tracksToEnrich.size === 0) return tracks;
-
-	logger.debug(`Enriching ${tracksToEnrich.size} playlist tracks`);
-	const enrichedMap = await fetchEnrichedTrackMap(clientManager, tracksToEnrich);
-	logger.debug(`Enriched ${enrichedMap.size}/${tracksToEnrich.size} playlist tracks`);
-
-	return tracks.map((track) => enrichedMap.get(track.id.sourceId) ?? track);
-}
-
-/**
- * Enriches feed tracks that have zero duration or video thumbnails (i.ytimg.com).
- *
- * Home feed carousel items don't include duration, and video-type tracks have
- * stretched video frame thumbnails instead of real album art. This fetches full
- * YouTube Music track info for those tracks to replace them with proper metadata.
- */
-async function enrichTracks(
-	clientManager: ClientManager,
-	sections: FeedSection[]
-): Promise<FeedSection[]> {
-	const tracksToEnrich = collectTracksNeedingEnrichment(sections);
-	if (tracksToEnrich.size === 0) return sections;
-
-	logger.debug(`Enriching ${tracksToEnrich.size} feed tracks`);
-	const enrichedMap = await fetchEnrichedTrackMap(clientManager, tracksToEnrich);
-	logger.debug(`Enriched ${enrichedMap.size}/${tracksToEnrich.size} feed tracks`);
-
-	return applyEnrichedTracks(sections, enrichedMap);
-}
 
 function mapPlaylistPage(playlistObj: Continuable): PlaylistTracksPage {
 	const tracks: Track[] = [];
@@ -337,10 +196,9 @@ export function createHomeFeedOperations(clientManager: ClientManager): HomeFeed
 				currentFeed = originalFeed;
 
 				const data = mapHomeFeedResponse(currentFeed);
-				const enrichedSections = await enrichTracks(clientManager, data.sections);
 
 				logger.info(`Home feed loaded: ${currentFeed.sections?.length ?? 0} sections`);
-				return ok({ ...data, sections: enrichedSections });
+				return ok(data);
 			} catch (error) {
 				originalFeed = null;
 				currentFeed = null;
@@ -364,10 +222,9 @@ export function createHomeFeedOperations(clientManager: ClientManager): HomeFeed
 				currentFeed = filtered;
 
 				const data = mapHomeFeedResponse(currentFeed);
-				const enrichedSections = await enrichTracks(clientManager, data.sections);
 
 				logger.info(`Filter applied: "${chipText}"`);
-				return ok({ ...data, sections: enrichedSections });
+				return ok(data);
 			} catch (error) {
 				return err(
 					error instanceof Error
@@ -389,10 +246,9 @@ export function createHomeFeedOperations(clientManager: ClientManager): HomeFeed
 				currentFeed = continuation;
 
 				const data = mapHomeFeedResponse(currentFeed);
-				const enrichedSections = await enrichTracks(clientManager, data.sections);
 
 				logger.info(`Continuation loaded: ${currentFeed.sections?.length ?? 0} sections`);
-				return ok({ ...data, sections: enrichedSections });
+				return ok(data);
 			} catch (error) {
 				return err(
 					error instanceof Error
@@ -411,13 +267,12 @@ export function createHomeFeedOperations(clientManager: ClientManager): HomeFeed
 
 				currentPlaylist = playlistObj;
 				const page = mapPlaylistPage(playlistObj);
-				const enrichedTracks = await enrichTrackList(clientManager, page.tracks);
 
 				const totalMs = Date.now() - startMs;
 				logger.info(
-					`Playlist ready: ${enrichedTracks.length} tracks in ${totalMs}ms (hasMore: ${page.hasMore})`
+					`Playlist ready: ${page.tracks.length} tracks in ${totalMs}ms (hasMore: ${page.hasMore})`
 				);
-				return ok({ tracks: enrichedTracks, hasMore: page.hasMore });
+				return ok(page);
 			} catch (error) {
 				currentPlaylist = null;
 				return err(
@@ -437,12 +292,11 @@ export function createHomeFeedOperations(clientManager: ClientManager): HomeFeed
 				const next = await currentPlaylist.getContinuation();
 				currentPlaylist = next;
 				const page = mapPlaylistPage(next);
-				const enrichedTracks = await enrichTrackList(clientManager, page.tracks);
 
 				logger.info(
 					`Loaded ${page.tracks.length} more playlist tracks (hasMore: ${page.hasMore})`
 				);
-				return ok({ tracks: enrichedTracks, hasMore: page.hasMore });
+				return ok(page);
 			} catch (error) {
 				return err(
 					error instanceof Error

@@ -247,11 +247,12 @@ export class YouTubeMusicProvider implements YouTubeMusicLibraryProvider {
 	}
 
 	async getStreamUrl(track: Track, options?: StreamOptions): Promise<Result<AudioStream, Error>> {
-		if (track.id.sourceType === 'youtube-music') {
+		if (track.id.sourceType === 'youtube-music' && !this._needsEnrichment(track)) {
 			return this._getStreamingOps().getStreamUrl(track.id, options);
 		}
 
-		// Non-YouTube track: search by title + artist to find a matching video
+		// Non-YouTube track or unenriched YouTube track (video thumbnail / zero duration):
+		// search by title + artist to find the proper song match before streaming.
 		const query = `${track.title} ${getArtistNames(track)}`;
 		logger.debug(`Resolving non-YouTube track via search: "${query}"`);
 
@@ -263,6 +264,12 @@ export class YouTubeMusicProvider implements YouTubeMusicLibraryProvider {
 		const matched = searchResult.data.items[0];
 		logger.debug(`Resolved to YouTube video: ${matched.id.sourceId}`);
 		return this._getStreamingOps().getStreamUrl(matched.id, options);
+	}
+
+	private _needsEnrichment(track: Track): boolean {
+		if (track.duration.isZero()) return true;
+		if (!track.artwork || track.artwork.length === 0) return true;
+		return track.artwork.some((art) => art.url.includes('i.ytimg.com'));
 	}
 
 	getRecommendations(
