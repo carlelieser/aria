@@ -80,9 +80,7 @@ export class HomeFeedService {
 
 		useHomeFeedStore.setState({ isLoading: true, error: null });
 
-		await this._fetchAllProviders();
-
-		useHomeFeedStore.setState({ isLoading: false });
+		await this._fetchAllProviders({ isLoading: false });
 	}
 
 	async refresh(): Promise<void> {
@@ -90,9 +88,7 @@ export class HomeFeedService {
 
 		useHomeFeedStore.setState({ isRefreshing: true });
 
-		await this._fetchAllProviders();
-
-		useHomeFeedStore.setState({ isRefreshing: false });
+		await this._fetchAllProviders({ isRefreshing: false });
 	}
 
 	async applyFilter(chipText: string, chipIndex: number): Promise<void> {
@@ -123,8 +119,11 @@ export class HomeFeedService {
 			}
 		}
 
-		this._pushMergedState();
-		useHomeFeedStore.setState({ activeFilterIndex: chipIndex, isLoading: false });
+		useHomeFeedStore.setState({
+			...this._buildMergedState(),
+			activeFilterIndex: chipIndex,
+			isLoading: false,
+		});
 	}
 
 	async loadMore(): Promise<void> {
@@ -161,8 +160,10 @@ export class HomeFeedService {
 			}
 		}
 
-		this._pushMergedState();
-		useHomeFeedStore.setState({ isLoadingMore: false });
+		useHomeFeedStore.setState({
+			...this._buildMergedState(),
+			isLoadingMore: false,
+		});
 	}
 
 	async getPlaylistTracks(playlistId: string): Promise<Result<PlaylistTracksPage, Error>> {
@@ -189,7 +190,9 @@ export class HomeFeedService {
 		return err(new Error('No provider could load more playlist tracks'));
 	}
 
-	private async _fetchAllProviders(): Promise<void> {
+	private async _fetchAllProviders(
+		callerState: Partial<{ isLoading: boolean; isRefreshing: boolean }>
+	): Promise<void> {
 		const results = await Promise.allSettled(
 			Array.from(this._providers.entries()).map(async ([id, state]) => {
 				const result = await state.operations.getHomeFeed();
@@ -222,19 +225,20 @@ export class HomeFeedService {
 			await this._fillToMinSections();
 		}
 
-		this._pushMergedState();
-
 		if (hasAnySuccess) {
 			useHomeFeedStore.setState({
+				...this._buildMergedState(),
+				...callerState,
 				lastFetchedAt: Date.now(),
 				activeFilterIndex: null,
 			});
 		} else {
 			useHomeFeedStore.setState({
-				error: 'Failed to load home feed from all providers',
+				...this._buildMergedState(),
 				isLoading: false,
 				isRefreshing: false,
 				isLoadingMore: false,
+				error: 'Failed to load home feed from all providers',
 			});
 		}
 	}
@@ -261,7 +265,7 @@ export class HomeFeedService {
 		return count;
 	}
 
-	private _pushMergedState(): void {
+	private _buildMergedState() {
 		const allSections: FeedSection[] = [];
 		const allChips: FeedFilterChip[] = [];
 		let anyContinuation = false;
@@ -272,12 +276,16 @@ export class HomeFeedService {
 			if (state.hasContinuation) anyContinuation = true;
 		}
 
-		useHomeFeedStore.setState({
+		return {
 			sections: allSections,
 			filterChips: allChips,
 			hasContinuation: anyContinuation,
 			error: null,
-		});
+		};
+	}
+
+	private _pushMergedState(): void {
+		useHomeFeedStore.setState(this._buildMergedState());
 	}
 }
 

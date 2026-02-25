@@ -1,5 +1,12 @@
-import { useCallback, useRef } from 'react';
-import { RefreshControl, StyleSheet, View } from 'react-native';
+import { useCallback, useMemo, useRef } from 'react';
+import {
+	RefreshControl,
+	StyleSheet,
+	View,
+	type LayoutChangeEvent,
+	type NativeSyntheticEvent,
+	type NativeScrollEvent,
+} from 'react-native';
 import { AlertCircleIcon, MusicIcon } from 'lucide-react-native';
 import { PageLayout } from '@/src/components/ui/page-layout';
 import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
@@ -50,17 +57,51 @@ export default function HomeScreen() {
 		[handleLoadMore]
 	);
 
-	const visibleLocalSections = localSections.filter((s) => s.items.length > 0);
-	const visibleRemoteSections = remoteSections.filter((s) => s.items.length > 0);
-	const totalVisible = visibleLocalSections.length + visibleRemoteSections.length;
-	const skeletonCount =
-		!hasCompletedInitialLoad && isLoading
-			? Math.max(0, MIN_VISIBLE_SECTIONS - totalVisible)
-			: 0;
-	const hasData = localSections.length > 0 || remoteSections.length > 0;
-	const showSkeleton = isLoading && !hasData;
-	const showError = !isLoading && !hasData && error !== null;
-	const showEmpty = !isLoading && !hasData && error === null;
+	const visibleLocalSections = useMemo(
+		() => localSections.filter((s) => s.items.length > 0),
+		[localSections]
+	);
+	const visibleRemoteSections = useMemo(
+		() => remoteSections.filter((s) => s.items.length > 0),
+		[remoteSections]
+	);
+
+	const { skeletonCount, hasData, showSkeleton, showError, showEmpty } = useMemo(() => {
+		const totalVisible =
+			localSections.filter((s) => s.items.length > 0).length +
+			remoteSections.filter((s) => s.items.length > 0).length;
+		const _skeletonCount =
+			!hasCompletedInitialLoad && isLoading
+				? Math.max(0, MIN_VISIBLE_SECTIONS - totalVisible)
+				: 0;
+		const _hasData = localSections.length > 0 || remoteSections.length > 0;
+		return {
+			skeletonCount: _skeletonCount,
+			hasData: _hasData,
+			showSkeleton: isLoading && !_hasData,
+			showError: !isLoading && !_hasData && error !== null,
+			showEmpty: !isLoading && !_hasData && error === null,
+		};
+	}, [hasCompletedInitialLoad, isLoading, localSections, remoteSections, error]);
+
+	const handleLayout = useCallback((e: LayoutChangeEvent) => {
+		viewportHeight.current = e.nativeEvent.layout.height;
+	}, []);
+
+	const handleScroll = useCallback(
+		({ nativeEvent }: NativeSyntheticEvent<NativeScrollEvent>) => {
+			scrollOffset.current = nativeEvent.contentOffset.y;
+			checkPrefetch(nativeEvent.contentSize.height);
+		},
+		[checkPrefetch]
+	);
+
+	const handleContentSizeChange = useCallback(
+		(_w: number, h: number) => {
+			checkPrefetch(h);
+		},
+		[checkPrefetch]
+	);
 
 	return (
 		<PageLayout edges={[]}>
@@ -74,16 +115,9 @@ export default function HomeScreen() {
 					/>
 				}
 				showsVerticalScrollIndicator={false}
-				onLayout={(e) => {
-					viewportHeight.current = e.nativeEvent.layout.height;
-				}}
-				onScroll={({ nativeEvent }) => {
-					scrollOffset.current = nativeEvent.contentOffset.y;
-					checkPrefetch(nativeEvent.contentSize.height);
-				}}
-				onContentSizeChange={(_w, h) => {
-					checkPrefetch(h);
-				}}
+				onLayout={handleLayout}
+				onScroll={handleScroll}
+				onContentSizeChange={handleContentSizeChange}
 				scrollEventThrottle={200}
 			>
 				{showSkeleton && <HomeFeedSkeleton />}

@@ -9,7 +9,7 @@ import { View, StyleSheet } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { FAB, Badge } from 'react-native-paper';
 import { ListFilter } from 'lucide-react-native';
-import { useCurrentTrack } from '@/src/application/state/player-store';
+import { useHasActiveTrack } from '@/src/application/state/player-store';
 import { useAppTheme } from '@/lib/theme';
 
 const FLOATING_PLAYER_HEIGHT = 64;
@@ -22,9 +22,8 @@ interface SortFilterFABProps {
 }
 
 export function SortFilterFAB({ filterCount, onPress }: SortFilterFABProps) {
-	const currentTrack = useCurrentTrack();
+	const isFloatingPlayerVisible = useHasActiveTrack();
 	const { colors } = useAppTheme();
-	const isFloatingPlayerVisible = currentTrack !== null;
 
 	const animatedStyle = useAnimatedStyle(() => {
 		const floatingPlayerOffset = isFloatingPlayerVisible

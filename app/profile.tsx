@@ -10,7 +10,7 @@ import { Icon } from '@/src/components/ui/icon';
 import { AccountsSection } from '@/src/components/profile/accounts-section';
 import { FLOATING_PLAYER_HEIGHT } from '@/src/components/floating-player';
 import { useProfileStore } from '@/src/application/state/profile-store';
-import { useCurrentTrack } from '@/src/application/state/player-store';
+import { useHasActiveTrack } from '@/src/application/state/player-store';
 import { useAppTheme, FontFamily } from '@/lib/theme';
 import { useToast } from '@/src/hooks/use-toast';
 
@@ -19,7 +19,7 @@ const AVATAR_SIZE = 120;
 export default function ProfileScreen() {
 	const { colors } = useAppTheme();
 	const { success } = useToast();
-	const hasActiveTrack = useCurrentTrack() !== null;
+	const hasActiveTrack = useHasActiveTrack();
 	const { name, email, avatarUri, setName, setEmail, setAvatarUri } = useProfileStore();
 
 	const [isEditing, setIsEditing] = useState(false);

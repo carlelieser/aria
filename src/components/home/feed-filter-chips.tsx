@@ -17,6 +17,13 @@ export const FeedFilterChips = memo(function FeedFilterChips({
 	onSelect,
 	onDeselect,
 }: FeedFilterChipsProps) {
+	const handlePress = useCallback(
+		(index: number) => {
+			onSelect(chips[index].text, index);
+		},
+		[chips, onSelect]
+	);
+
 	if (chips.length === 0) return null;
 
 	return (
@@ -28,15 +35,11 @@ export const FeedFilterChips = memo(function FeedFilterChips({
 			{chips.map((chip, index) => (
 				<FilterChip
 					key={chip.text}
+					index={index}
 					text={chip.text}
 					isActive={activeIndex === index}
-					onPress={() => {
-						if (activeIndex === index) {
-							onDeselect?.();
-						} else {
-							onSelect(chip.text, index);
-						}
-					}}
+					onPress={handlePress}
+					onDeselect={onDeselect}
 				/>
 			))}
 		</ScrollView>
@@ -44,17 +47,29 @@ export const FeedFilterChips = memo(function FeedFilterChips({
 });
 
 interface FilterChipProps {
+	readonly index: number;
 	readonly text: string;
 	readonly isActive: boolean;
-	readonly onPress: () => void;
+	readonly onPress: (index: number) => void;
+	readonly onDeselect?: () => void;
 }
 
-const FilterChip = memo(function FilterChip({ text, isActive, onPress }: FilterChipProps) {
+const FilterChip = memo(function FilterChip({
+	index,
+	text,
+	isActive,
+	onPress,
+	onDeselect,
+}: FilterChipProps) {
 	const { colors } = useAppTheme();
 
 	const handlePress = useCallback(() => {
-		onPress();
-	}, [onPress]);
+		if (isActive) {
+			onDeselect?.();
+		} else {
+			onPress(index);
+		}
+	}, [isActive, onPress, onDeselect, index]);
 
 	return (
 		<Pressable

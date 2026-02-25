@@ -5,7 +5,7 @@
  * Uses M3 theming.
  */
 
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { Text } from 'react-native-paper';
@@ -36,86 +36,92 @@ interface TrackCardProps {
 	readonly queueIndex?: number;
 }
 
-export const TrackCard = memo(function TrackCard({
-	track,
-	onPress,
-	queue,
-	queueIndex,
-}: TrackCardProps) {
-	const { play, playQueue } = usePlayerActions();
-	const { colors } = useAppTheme();
-	const { isActiveTrack, isCurrentlyPlaying } = useTrackPlaybackInfo(track.id.value);
-	const openPlayerOnTrackClick = useOpenPlayerOnTrackClick();
-	const showProviderLabel = useShowProviderLabel();
+export const TrackCard = memo(
+	function TrackCard({ track, onPress, queue, queueIndex }: TrackCardProps) {
+		const { play, playQueue } = usePlayerActions();
+		const { colors } = useAppTheme();
+		const { isActiveTrack, isCurrentlyPlaying } = useTrackPlaybackInfo(track.id.value);
+		const openPlayerOnTrackClick = useOpenPlayerOnTrackClick();
+		const showProviderLabel = useShowProviderLabel();
 
-	const handlePress = useCallback(() => {
-		if (onPress) {
-			onPress(track);
-			return;
-		}
-		if (queue && queueIndex !== undefined) {
-			playQueue(queue, queueIndex);
-		} else {
-			play(track);
-		}
-		if (!onPress && openPlayerOnTrackClick) {
-			router.push('/player');
-		}
-	}, [onPress, track, play, playQueue, queue, queueIndex, openPlayerOnTrackClick]);
+		const handlePress = useCallback(() => {
+			if (onPress) {
+				onPress(track);
+				return;
+			}
+			if (queue && queueIndex !== undefined) {
+				playQueue(queue, queueIndex);
+			} else {
+				play(track);
+			}
+			if (!onPress && openPlayerOnTrackClick) {
+				router.push('/player');
+			}
+		}, [onPress, track, play, playQueue, queue, queueIndex, openPlayerOnTrackClick]);
 
-	const pluginManifest = usePluginManifest(track.id.sourceType);
+		const pluginManifest = usePluginManifest(track.id.sourceType);
 
-	const artwork = getBestArtwork(track.artwork, 300);
-	const artworkUrl = artwork?.url;
-	const artistNames = getArtistNames(track);
+		const artworkUrl = useMemo(() => getBestArtwork(track.artwork, 300)?.url, [track.artwork]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- getArtistNames only reads track.artists
+		const artistNames = useMemo(() => getArtistNames(track), [track.artists]);
+		const artworkSource = useMemo(
+			() => (artworkUrl ? { uri: artworkUrl } : undefined),
+			[artworkUrl]
+		);
 
-	return (
-		<TouchableOpacity style={styles.container} onPress={handlePress} activeOpacity={0.7}>
-			<View style={styles.artworkWrapper}>
-				<View
-					style={[
-						styles.artworkContainer,
-						!artworkUrl && { backgroundColor: colors.surfaceContainerHighest },
-					]}
-				>
-					{artworkUrl ? (
-						<Image
-							source={{ uri: artworkUrl }}
-							style={styles.artwork}
-							contentFit={'cover'}
-							transition={200}
-							cachePolicy={'memory-disk'}
-							recyclingKey={track.id.value}
-						/>
-					) : (
-						<Icon as={Music} size={48} color={colors.onSurfaceVariant} />
-					)}
-					{isCurrentlyPlaying && <AudioWaveform />}
+		return (
+			<TouchableOpacity style={styles.container} onPress={handlePress} activeOpacity={0.7}>
+				<View style={styles.artworkWrapper}>
+					<View
+						style={[
+							styles.artworkContainer,
+							!artworkUrl && { backgroundColor: colors.surfaceContainerHighest },
+						]}
+					>
+						{artworkUrl ? (
+							<Image
+								source={artworkSource}
+								style={styles.artwork}
+								contentFit={'cover'}
+								transition={200}
+								cachePolicy={'memory-disk'}
+								recyclingKey={track.id.value}
+							/>
+						) : (
+							<Icon as={Music} size={48} color={colors.onSurfaceVariant} />
+						)}
+						{isCurrentlyPlaying && <AudioWaveform />}
+					</View>
+					<DownloadIndicator trackId={track.id.value} size={'lg'} />
 				</View>
-				<DownloadIndicator trackId={track.id.value} size={'lg'} />
-			</View>
-			<View style={styles.infoContainer}>
-				<Text
-					variant={'labelLarge'}
-					numberOfLines={1}
-					style={{ color: isActiveTrack ? colors.primary : colors.onSurface }}
-				>
-					{track.title}
-				</Text>
-				<Text
-					variant={'bodySmall'}
-					numberOfLines={1}
-					style={{ color: colors.onSurfaceVariant }}
-				>
-					{artistNames}
-					{showProviderLabel && pluginManifest
-						? ` · ${pluginManifest.shortName ?? pluginManifest.name}`
-						: ''}
-				</Text>
-			</View>
-		</TouchableOpacity>
-	);
-});
+				<View style={styles.infoContainer}>
+					<Text
+						variant={'labelLarge'}
+						numberOfLines={1}
+						style={{ color: isActiveTrack ? colors.primary : colors.onSurface }}
+					>
+						{track.title}
+					</Text>
+					<Text
+						variant={'bodySmall'}
+						numberOfLines={1}
+						style={{ color: colors.onSurfaceVariant }}
+					>
+						{artistNames}
+						{showProviderLabel && pluginManifest
+							? ` · ${pluginManifest.shortName ?? pluginManifest.name}`
+							: ''}
+					</Text>
+				</View>
+			</TouchableOpacity>
+		);
+	},
+	(prevProps, nextProps) =>
+		prevProps.track.id.value === nextProps.track.id.value &&
+		prevProps.track.title === nextProps.track.title &&
+		prevProps.queueIndex === nextProps.queueIndex &&
+		prevProps.onPress === nextProps.onPress
+);
 
 const styles = StyleSheet.create({
 	container: {

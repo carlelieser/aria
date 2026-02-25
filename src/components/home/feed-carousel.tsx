@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import { router } from 'expo-router';
@@ -17,9 +17,11 @@ interface FeedCarouselProps {
 export const FeedCarousel = memo(function FeedCarousel({ section }: FeedCarouselProps) {
 	const { colors } = useAppTheme();
 
-	const trackItems = section.items
-		.filter((item) => item.type === 'track')
-		.map((item) => item.data as Track);
+	const trackItems = useMemo(
+		() =>
+			section.items.filter((item) => item.type === 'track').map((item) => item.data as Track),
+		[section.items]
+	);
 
 	return (
 		<View style={styles.container}>

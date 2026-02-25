@@ -327,6 +327,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 }));
 
 export const useCurrentTrack = () => usePlayerStore((state) => state.currentTrack);
+export const useHasActiveTrack = () => usePlayerStore((state) => state.currentTrack !== null);
 export const usePlaybackStatus = () => usePlayerStore((state) => state.status);
 export const useIsPlaying = () => usePlayerStore((state) => state.status === 'playing');
 export const useIsPaused = () => usePlayerStore((state) => state.status === 'paused');
