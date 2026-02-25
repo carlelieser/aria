@@ -35,9 +35,13 @@ interface Continuable {
 	getContinuation(): Promise<Continuable>;
 }
 
+interface TextNode {
+	readonly text?: string;
+}
+
 interface HomeFeedSectionHeader {
-	readonly title?: { readonly text?: string };
-	readonly strapline?: { readonly text?: string };
+	readonly title?: TextNode;
+	readonly strapline?: TextNode;
 }
 
 interface HomeFeedSection {
