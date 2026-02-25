@@ -200,7 +200,6 @@ const styles = StyleSheet.create({
 	scrollContent: {
 		alignItems: 'center',
 		paddingTop: 32,
-		paddingBottom: 100,
 	},
 	avatarContainer: {
 		width: AVATAR_SIZE,

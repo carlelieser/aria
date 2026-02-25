@@ -110,6 +110,7 @@ export function ManagedBottomSheet({
 				ref={sheetRef}
 				index={0}
 				snapPoints={snapPoints}
+				enableDynamicSizing={false}
 				enablePanDownToClose
 				enableContentPanningGesture={enableContentPanningGesture}
 				backdropComponent={renderBackdrop}
