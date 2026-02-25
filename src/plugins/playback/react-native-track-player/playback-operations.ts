@@ -49,7 +49,9 @@ export class PlaybackOperations {
 			try {
 				logger.debug('Acquired lock, resetting player...');
 
+				this._state.isTransitioning = true;
 				await TrackPlayer.reset();
+				this._state.isTransitioning = false;
 				logger.debug('Player reset complete');
 
 				const rntpTrack = mapToRNTPTrack(track, streamUrl, headers);
@@ -82,6 +84,7 @@ export class PlaybackOperations {
 
 				return ok(undefined);
 			} catch (error) {
+				this._state.isTransitioning = false;
 				logger.error('Error during playback', error instanceof Error ? error : undefined);
 				this._updateStatus('error');
 				const errorObj = error instanceof Error ? error : new Error(String(error));

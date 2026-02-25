@@ -7,6 +7,7 @@
  */
 
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { StyleSheet } from 'react-native';
 import { ProgressTrack } from '@/src/components/ui/progress-track';
 import { usePlayerActions } from '@/src/hooks/use-player';
 import {
@@ -18,6 +19,16 @@ import { Duration } from '@/src/domain/value-objects/duration';
 import { useCallback } from 'react';
 import { usePlayerTheme } from '@/src/components/player/player-theme-context';
 import { useProgressBarStyle } from '@/src/application/state/settings-store';
+import { THUMB_SIZE } from '@/src/components/ui/progress-track/types';
+
+const THUMB_HALF = THUMB_SIZE / 2;
+
+const styles = StyleSheet.create({
+	container: {
+		marginHorizontal: -THUMB_HALF,
+		paddingHorizontal: THUMB_HALF,
+	},
+});
 
 interface ProgressBarProps {
 	readonly seekable?: boolean;
@@ -55,7 +66,7 @@ export function ProgressBar({ seekable = true }: ProgressBarProps) {
 	);
 
 	return (
-		<Animated.View style={animatedStyle} needsOffscreenAlphaCompositing>
+		<Animated.View style={[animatedStyle, styles.container]} needsOffscreenAlphaCompositing>
 			<ProgressTrack
 				variant={barStyle}
 				progress={progress}

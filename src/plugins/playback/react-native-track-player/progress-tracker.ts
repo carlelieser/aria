@@ -16,6 +16,8 @@ export class ProgressTracker {
 	) {}
 
 	handleProgressUpdate(position: number, duration: number): void {
+		if (this._state.isTransitioning) return;
+
 		this._state.position = Duration.fromSeconds(position);
 		this._emitEvent({
 			type: 'position-change',

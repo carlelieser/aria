@@ -21,6 +21,7 @@ export class PlaybackState {
 	private _queue: Track[] = [];
 	private _currentIndex: number = -1;
 	private _isSeeking: boolean = false;
+	private _isTransitioning: boolean = false;
 
 	get playbackStatus(): PlaybackStatus {
 		return this._playbackStatus;
@@ -104,6 +105,14 @@ export class PlaybackState {
 
 	set isSeeking(seeking: boolean) {
 		this._isSeeking = seeking;
+	}
+
+	get isTransitioning(): boolean {
+		return this._isTransitioning;
+	}
+
+	set isTransitioning(transitioning: boolean) {
+		this._isTransitioning = transitioning;
 	}
 
 	reset(): void {
