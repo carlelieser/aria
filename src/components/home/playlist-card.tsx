@@ -26,7 +26,7 @@ export const PlaylistCard = memo(function PlaylistCard({ playlist, onPress }: Pl
 				<Image
 					source={{ uri: artwork.url }}
 					style={styles.artwork}
-					contentFit={'cover'}
+					contentFit={'contain'}
 					transition={200}
 				/>
 			) : (

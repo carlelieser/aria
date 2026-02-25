@@ -25,7 +25,7 @@ export function AlbumCard({ album, onPress }: AlbumCardProps) {
 				<Image
 					source={{ uri: artwork.url }}
 					style={styles.albumArtwork}
-					contentFit={'cover'}
+					contentFit={'contain'}
 					transition={200}
 				/>
 			) : (

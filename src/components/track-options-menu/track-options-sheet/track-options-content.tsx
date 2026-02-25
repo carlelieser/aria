@@ -90,7 +90,7 @@ export function TrackOptionsContent({
 				<Image
 					source={{ uri: artwork?.url }}
 					style={styles.headerArtwork}
-					contentFit={'cover'}
+					contentFit={'contain'}
 				/>
 				<View style={styles.headerText}>
 					<Text

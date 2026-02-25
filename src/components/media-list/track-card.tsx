@@ -98,7 +98,7 @@ export const TrackCard = memo(
 							<Image
 								source={artworkSource}
 								style={styles.artwork}
-								contentFit={'cover'}
+								contentFit={'contain'}
 								transition={200}
 								cachePolicy={'memory-disk'}
 								recyclingKey={track.id.value}

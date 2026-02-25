@@ -92,7 +92,7 @@ export function DetailsHeader({
 							{ width: artworkSize, height: artworkSize },
 							isCircular ? { borderRadius: artworkSize / 2 } : styles.squareArtwork,
 						]}
-						contentFit={'cover'}
+						contentFit={'contain'}
 						transition={200}
 					/>
 				) : (

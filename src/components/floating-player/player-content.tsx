@@ -70,7 +70,7 @@ export const PlayerContent = React.memo(function PlayerContent({
 				<Image
 					source={{ uri: artworkUrl }}
 					style={styles.artwork}
-					contentFit={'cover'}
+					contentFit={'contain'}
 					transition={200}
 					cachePolicy={'memory-disk'}
 					recyclingKey={trackId}

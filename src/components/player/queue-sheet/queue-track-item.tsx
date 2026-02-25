@@ -54,7 +54,7 @@ export const QueueTrackItem = memo(function QueueTrackItem({
 					<Image
 						source={{ uri: artworkUrl }}
 						style={styles.artwork}
-						contentFit={'cover'}
+						contentFit={'contain'}
 						transition={200}
 						cachePolicy={'memory-disk'}
 						recyclingKey={track.id.value}

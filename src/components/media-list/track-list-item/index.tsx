@@ -121,7 +121,7 @@ export const TrackListItem = memo(function TrackListItem({
 						<Image
 							source={{ uri: artworkUrl }}
 							style={styles.artwork}
-							contentFit={'cover'}
+							contentFit={'contain'}
 							transition={200}
 							cachePolicy={'memory-disk'}
 							recyclingKey={track.id.value}
