@@ -2,16 +2,18 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ListMusicIcon, PlayIcon, Shuffle } from 'lucide-react-native';
-import { Text, Button } from 'react-native-paper';
+import { ListMusicIcon, PlayIcon, Shuffle, BookmarkIcon, BookmarkCheckIcon } from 'lucide-react-native';
+import { Text, Button, IconButton } from 'react-native-paper';
 import { Icon } from '@/src/components/ui/icon';
-import { DetailsPage } from '@/src/components/details-page';
+import { DetailsPage, useDetailsPageHeaderColors } from '@/src/components/details-page';
 import { CollectionDownloadButton } from '@/src/components/downloads/collection-download-button';
 import { TrackListItem } from '@/src/components/media-list/track-list-item';
 import { TrackListItemSkeleton } from '@/src/components/skeletons/track-list-item-skeleton';
 import { useBatchActions } from '@/src/hooks/use-batch-actions';
 import { usePlayer } from '@/src/hooks/use-player';
 import { homeFeedService } from '@/src/application/services/home-feed-service';
+import { libraryService } from '@/src/application/services/library-service';
+import { usePlaylist } from '@/src/application/state/library-store';
 import { useAppTheme } from '@/lib/theme';
 import type { Track } from '@/src/domain/entities/track';
 import type { ReactNode } from 'react';
@@ -25,8 +27,12 @@ export default function RemotePlaylistScreen() {
 		artwork?: string;
 	}>();
 	const { colors } = useAppTheme();
+	const headerColors = useDetailsPageHeaderColors();
 	const { playQueue, shufflePlay } = usePlayer();
 	const { downloadSelected, cancelDownload, isDownloading } = useBatchActions();
+
+	const libraryPlaylistId = `remote_${id}`;
+	const savedPlaylist = usePlaylist(libraryPlaylistId);
 
 	const [tracks, setTracks] = useState<Track[]>([]);
 	const [hasMore, setHasMore] = useState(false);
@@ -87,14 +93,49 @@ export default function RemotePlaylistScreen() {
 		}
 	}, [tracks, downloadSelected]);
 
+	const handleSaveToLibrary = useCallback(() => {
+		if (savedPlaylist) {
+			libraryService.removePlaylist(libraryPlaylistId);
+			return;
+		}
+
+		const now = new Date();
+		libraryService.addPlaylist({
+			id: libraryPlaylistId,
+			name: name ?? 'Playlist',
+			artwork: artwork ? [{ url: artwork }] : undefined,
+			tracks: tracks.map((track, index) => ({
+				track,
+				addedAt: now,
+				position: index,
+			})),
+			createdAt: now,
+			updatedAt: now,
+			isSmartPlaylist: false,
+		});
+	}, [savedPlaylist, libraryPlaylistId, name, artwork, tracks]);
+
 	const headerRightActions =
 		tracks.length > 0 ? (
-			<CollectionDownloadButton
-				tracks={tracks}
-				isDownloading={isDownloading}
-				onDownload={handleDownloadAll}
-				onCancel={cancelDownload}
-			/>
+			<View style={styles.headerActions}>
+				<IconButton
+					icon={() => (
+						<Icon
+							as={savedPlaylist ? BookmarkCheckIcon : BookmarkIcon}
+							size={22}
+							color={savedPlaylist ? headerColors.primary : headerColors.onSurface}
+						/>
+					)}
+					onPress={handleSaveToLibrary}
+					accessibilityLabel={savedPlaylist ? 'Remove from library' : 'Save to library'}
+				/>
+				<CollectionDownloadButton
+					tracks={tracks}
+					isDownloading={isDownloading}
+					onDownload={handleDownloadAll}
+					onCancel={cancelDownload}
+				/>
+			</View>
 		) : undefined;
 
 	const trackCountLabel = hasMore
@@ -241,6 +282,10 @@ export default function RemotePlaylistScreen() {
 }
 
 const styles = StyleSheet.create({
+	headerActions: {
+		flexDirection: 'row',
+		alignItems: 'center',
+	},
 	actionButtons: {
 		flexDirection: 'row',
 		gap: 12,

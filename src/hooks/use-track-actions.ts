@@ -6,7 +6,6 @@ import { trackActionsService } from '@/src/application/services/track-actions-se
 import { useIsFavorite } from '@/src/application/state/library-store';
 import { useIsDownloaded, useIsDownloading } from '@/src/application/state/download-store';
 import { setNavigationTrack } from '@/src/application/state/navigation-context-store';
-import { useToast } from '@/src/hooks/use-toast';
 
 interface UseTrackActionsOptions {
 	track: Track;
@@ -30,7 +29,6 @@ export function useTrackActions({
 }: UseTrackActionsOptions): UseTrackActionsResult {
 	const [actions, setActions] = useState<TrackAction[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
-	const { success, error } = useToast();
 
 	const trackRef = useRef(track);
 	trackRef.current = track;
@@ -80,20 +78,11 @@ export function useTrackActions({
 				});
 			}
 
-			if (result.feedback) {
-				const { message, description, type } = result.feedback;
-				if (type === 'error') {
-					error(message, description);
-				} else {
-					success(message, description);
-				}
-			}
-
 			if (result.handled) {
 				await loadActions();
 			}
 		},
-		[source, loadActions, success, error, playlistId, trackPosition]
+		[source, loadActions, playlistId, trackPosition]
 	);
 
 	return {

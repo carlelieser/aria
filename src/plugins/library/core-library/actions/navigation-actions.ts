@@ -12,7 +12,7 @@ export function getNavigationActions(context: TrackActionContext): TrackAction[]
 	if (hasArtist) {
 		actions.push({
 			id: CORE_ACTION_IDS.VIEW_ARTIST,
-			label: 'View Artist',
+			label: 'Artist',
 			icon: 'User',
 			group: 'navigation',
 			priority: 70,
@@ -23,7 +23,7 @@ export function getNavigationActions(context: TrackActionContext): TrackAction[]
 	if (hasAlbum) {
 		actions.push({
 			id: CORE_ACTION_IDS.VIEW_ALBUM,
-			label: 'View Album',
+			label: 'Album',
 			icon: 'Disc3',
 			group: 'navigation',
 			priority: 60,

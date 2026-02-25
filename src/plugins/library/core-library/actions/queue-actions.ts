@@ -10,7 +10,7 @@ export function getQueueActions(_context: TrackActionContext): TrackAction[] {
 			label: 'Play Next',
 			icon: 'ListStart',
 			group: 'primary',
-			priority: 105,
+			priority: 20,
 			enabled: true,
 		},
 		{
@@ -18,7 +18,7 @@ export function getQueueActions(_context: TrackActionContext): TrackAction[] {
 			label: 'Add to Queue',
 			icon: 'ListEnd',
 			group: 'primary',
-			priority: 100,
+			priority: 10,
 			enabled: true,
 		},
 	];

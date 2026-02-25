@@ -10,14 +10,17 @@ import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { Text } from 'react-native-paper';
 import { Music } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 
 import { Icon } from '@/src/components/ui/icon';
 import { AudioWaveform } from '@/src/components/ui/audio-waveform';
 import { usePlayerActions } from '@/src/hooks/use-player';
 import type { Track } from '@/src/domain/entities/track';
+import type { TrackActionSource } from '@/src/domain/actions/track-action';
 import { getBestArtwork } from '@/src/domain/value-objects/artwork';
 import { getArtistNames } from '@/src/domain/entities/track';
 import { useTrackPlaybackInfo } from '@/src/application/state/player-store';
+import { useOpenTrackOptions } from '@/src/application/state/track-options-store';
 import { DownloadIndicator } from './download-indicator';
 import { useAppTheme, M3Shapes } from '@/lib/theme';
 import { usePluginManifest } from '@/src/hooks/use-plugin-registry';
@@ -29,6 +32,7 @@ import { router } from 'expo-router';
 
 interface TrackCardProps {
 	readonly track: Track;
+	readonly source?: TrackActionSource;
 	readonly onPress?: (track: Track) => void;
 	/** Queue of tracks for skip next/previous functionality */
 	readonly queue?: Track[];
@@ -37,12 +41,13 @@ interface TrackCardProps {
 }
 
 export const TrackCard = memo(
-	function TrackCard({ track, onPress, queue, queueIndex }: TrackCardProps) {
+	function TrackCard({ track, source = 'library', onPress, queue, queueIndex }: TrackCardProps) {
 		const { play, playQueue } = usePlayerActions();
 		const { colors } = useAppTheme();
 		const { isActiveTrack, isCurrentlyPlaying } = useTrackPlaybackInfo(track.id.value);
 		const openPlayerOnTrackClick = useOpenPlayerOnTrackClick();
 		const showProviderLabel = useShowProviderLabel();
+		const openTrackOptions = useOpenTrackOptions();
 
 		const handlePress = useCallback(() => {
 			if (onPress) {
@@ -59,6 +64,11 @@ export const TrackCard = memo(
 			}
 		}, [onPress, track, play, playQueue, queue, queueIndex, openPlayerOnTrackClick]);
 
+		const handleLongPress = useCallback(() => {
+			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+			openTrackOptions(track, source);
+		}, [openTrackOptions, track, source]);
+
 		const pluginManifest = usePluginManifest(track.id.sourceType);
 
 		const artworkUrl = useMemo(() => getBestArtwork(track.artwork, 300)?.url, [track.artwork]);
@@ -70,7 +80,13 @@ export const TrackCard = memo(
 		);
 
 		return (
-			<TouchableOpacity style={styles.container} onPress={handlePress} activeOpacity={0.7}>
+			<TouchableOpacity
+				style={styles.container}
+				onPress={handlePress}
+				onLongPress={handleLongPress}
+				delayLongPress={300}
+				activeOpacity={0.7}
+			>
 				<View style={styles.artworkWrapper}>
 					<View
 						style={[

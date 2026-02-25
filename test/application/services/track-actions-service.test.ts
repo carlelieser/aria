@@ -190,8 +190,8 @@ describe('TrackActionsService', () => {
 			const result = await actionsPromise;
 
 			expect(result[0].group).toBe('primary');
-			expect(result[1].group).toBe('navigation');
-			expect(result[2].group).toBe('secondary');
+			expect(result[1].group).toBe('secondary');
+			expect(result[2].group).toBe('navigation');
 		});
 
 		it('should sort by priority within the same group (higher first)', async () => {

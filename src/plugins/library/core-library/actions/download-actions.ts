@@ -15,7 +15,7 @@ export function getDownloadActions(context: TrackActionContext): TrackAction[] {
 				label: 'Downloading...',
 				icon: 'Loader',
 				group: 'secondary',
-				priority: 50,
+				priority: 10,
 				enabled: false,
 			},
 		];
@@ -27,8 +27,8 @@ export function getDownloadActions(context: TrackActionContext): TrackAction[] {
 				id: CORE_ACTION_IDS.REMOVE_DOWNLOAD,
 				label: 'Remove Download',
 				icon: 'Trash2',
-				group: 'secondary',
-				priority: 50,
+				group: 'danger',
+				priority: 10,
 				enabled: true,
 				variant: 'destructive',
 			},
@@ -41,7 +41,7 @@ export function getDownloadActions(context: TrackActionContext): TrackAction[] {
 			label: 'Download',
 			icon: 'Download',
 			group: 'secondary',
-			priority: 50,
+			priority: 10,
 			enabled: true,
 		},
 	];

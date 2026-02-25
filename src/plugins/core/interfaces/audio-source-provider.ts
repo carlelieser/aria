@@ -57,7 +57,7 @@ export interface AudioSourceProvider extends BasePlugin {
 	preloadStream?(trackId: TrackId): AsyncResult<void, Error>;
 
 	/** Called when a playback error occurs so providers can invalidate stale clients/tokens. */
-	onStreamError?(): void;
+	onStreamError?(): void | Promise<void>;
 
 	hasAudioCapability(capability: AudioSourceCapability): boolean;
 }

@@ -513,9 +513,19 @@ export class PlaybackService {
 		logger.debug(`Error event: ${event.error.message}`);
 		store._setError(event.error.message);
 		this._streamCache.clear();
-		for (const provider of this.audioSourceProviders) {
-			provider.onStreamError?.();
-		}
+		this._refreshProvidersAndRetry(store);
+	}
+
+	private async _refreshProvidersAndRetry(
+		store: ReturnType<typeof usePlayerStore.getState>
+	): Promise<void> {
+		await Promise.all(this.audioSourceProviders.map((p) => p.onStreamError?.()));
+
+		const track = store.currentTrack;
+		if (!track) return;
+
+		logger.info(`Retrying playback after auth refresh: ${track.title}`);
+		await this.play(track);
 	}
 
 	async dispose(): Promise<void> {

@@ -29,7 +29,7 @@ function extractColorsFromResult(
 	switch (result.platform) {
 		case 'android':
 			return {
-				dominant: result.dominant ?? result.vibrant ?? null,
+				dominant: result.average ?? result.vibrant ?? null,
 				secondary: result.muted ?? result.darkVibrant ?? null,
 			};
 		case 'ios':

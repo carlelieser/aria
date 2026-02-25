@@ -6,7 +6,7 @@ export function getLyricsActions(_context: TrackActionContext): TrackAction[] {
 	return [
 		{
 			id: LYRICS_ACTION_IDS.VIEW_LYRICS,
-			label: 'View Lyrics',
+			label: 'Lyrics',
 			icon: 'MicVocal',
 			group: 'navigation',
 			priority: 50,

@@ -22,7 +22,7 @@ export function getPlayerActions(context: TrackActionContext): TrackAction[] {
 		label: 'Queue',
 		icon: 'ListMusic',
 		group: 'secondary',
-		priority: 46,
+		priority: 30,
 		enabled: true,
 	});
 
@@ -31,7 +31,7 @@ export function getPlayerActions(context: TrackActionContext): TrackAction[] {
 		label: sleepTimerActive ? 'Sleep Timer (On)' : 'Sleep Timer',
 		icon: 'Timer',
 		group: 'secondary',
-		priority: 45,
+		priority: 20,
 		enabled: true,
 		checked: sleepTimerActive,
 	});
@@ -42,7 +42,7 @@ export function getPlayerActions(context: TrackActionContext): TrackAction[] {
 			label: showLyrics ? 'Hide Lyrics' : 'Show Lyrics',
 			icon: 'MicVocal',
 			group: 'secondary',
-			priority: 44,
+			priority: 10,
 			enabled: true,
 			checked: showLyrics,
 		});

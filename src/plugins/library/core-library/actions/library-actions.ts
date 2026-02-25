@@ -4,20 +4,16 @@ import { CORE_ACTION_IDS } from '../../../../domain/actions/track-action';
 import { libraryService } from '../../../../application/services/library-service';
 
 export function getLibraryActions(context: TrackActionContext): TrackAction[] {
-	const { track, source } = context;
+	const { track } = context;
 	const isInLibrary = libraryService.isInLibrary(track.id.value);
-
-	if (source !== 'search' && !isInLibrary) {
-		return [];
-	}
 
 	return [
 		{
 			id: isInLibrary ? CORE_ACTION_IDS.REMOVE_FROM_LIBRARY : CORE_ACTION_IDS.ADD_TO_LIBRARY,
-			label: isInLibrary ? 'Remove from Library' : 'Add to Library',
-			icon: 'LibraryBig',
-			group: 'primary',
-			priority: 110,
+			label: isInLibrary ? 'Remove' : 'Save',
+			icon: isInLibrary ? 'BookmarkCheck' : 'Bookmark',
+			group: isInLibrary ? 'danger' : 'secondary',
+			priority: 30,
 			enabled: true,
 			variant: isInLibrary ? 'destructive' : 'default',
 		},

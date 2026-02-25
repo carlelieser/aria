@@ -7,6 +7,7 @@ import {
 	useHomeFeedRefreshing,
 	useHomeFeedError,
 	useHomeFeedHasContinuation,
+	useHomeFeedStore,
 } from '@/src/application/state/home-feed-store';
 import { homeFeedService } from '@/src/application/services/home-feed-service';
 import { useCuratedContent } from './use-curated-content';
@@ -88,6 +89,7 @@ export function useHomeFeed(): HomeFeedResult {
 	}, []);
 
 	const handleClearFilter = useCallback(() => {
+		useHomeFeedStore.setState({ activeFilterIndex: null });
 		homeFeedService.fetchHomeFeed({ force: true });
 	}, []);
 
