@@ -5,7 +5,7 @@
  * Uses M3 theming.
  */
 
-import { memo, useCallback, useMemo } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { router } from 'expo-router';
 import { ListMusic } from 'lucide-react-native';
 
@@ -16,11 +16,15 @@ import { MediaListItem } from './media-list-item';
 export interface PlaylistListItemProps {
 	readonly playlist: Playlist;
 	readonly onPress?: (playlist: Playlist) => void;
+	readonly accessory?: React.ReactNode;
+	readonly disabled?: boolean;
 }
 
 export const PlaylistListItem = memo(function PlaylistListItem({
 	playlist,
 	onPress,
+	accessory,
+	disabled,
 }: PlaylistListItemProps) {
 	const handlePress = useCallback(() => {
 		if (onPress) {
@@ -48,12 +52,14 @@ export const PlaylistListItem = memo(function PlaylistListItem({
 			title={playlist.name}
 			subtitle={subtitle}
 			onPress={handlePress}
+			disabled={disabled}
 			artwork={{
 				url: artworkUrl,
 				shape: 'rounded',
 				fallbackIcon: ListMusic,
 				recyclingKey: playlist.id,
 			}}
+			accessory={accessory}
 		/>
 	);
 });
