@@ -6,9 +6,10 @@
  * No player/store dependencies -- colors and state are injected via props.
  */
 
+import { memo, useEffect } from 'react';
 import { View } from 'react-native';
 import { Text } from 'react-native-paper';
-import Animated from 'react-native-reanimated';
+import Animated, { useSharedValue } from 'react-native-reanimated';
 import { GestureDetector } from 'react-native-gesture-handler';
 import type { ProgressTrackProps } from './types';
 import {
@@ -33,7 +34,7 @@ import { styles } from './styles';
 
 export type { ProgressTrackProps } from './types';
 
-export function ProgressTrack({
+export const ProgressTrack = memo(function ProgressTrack({
 	variant,
 	progress,
 	colors,
@@ -57,14 +58,27 @@ export function ProgressTrack({
 		onSeek
 	);
 
-	const phase = useWaveAnimation(shouldAnimate);
+	// Keep a shared value in sync with the JS progress prop so the wave worklet
+	// can read the latest value without needing a new closure on every tick.
+	const progressSv = useSharedValue(progress);
+	useEffect(() => {
+		progressSv.value = progress;
+	}, [progressSv, progress]);
 
 	const displayProgress = localProgress ?? progress;
 	const activeEnd = displayProgress * trackWidth;
 	const activeWidth = Math.max(0, activeEnd);
 
-	const animatedAmplitude = useAmplitude(displayProgress, shouldAnimate);
-	const waveAnimatedProps = useWaveAnimatedProps(activeWidth, animatedAmplitude, phase);
+	// Shared value for activeWidth keeps the useAnimatedProps closure stable
+	// across progress ticks — only the shared value is updated, not the closure.
+	const activeWidthSv = useSharedValue(activeWidth);
+	useEffect(() => {
+		activeWidthSv.value = activeWidth;
+	}, [activeWidthSv, activeWidth]);
+
+	const phase = useWaveAnimation(shouldAnimate);
+	const animatedAmplitude = useAmplitude(progressSv, shouldAnimate);
+	const waveAnimatedProps = useWaveAnimatedProps(activeWidthSv, animatedAmplitude, phase);
 
 	const cy = TRACK_HEIGHT / 2;
 	const inactiveStart = activeEnd + GAP_SIZE + INACTIVE_INSET;
@@ -124,7 +138,7 @@ export function ProgressTrack({
 			)}
 		</View>
 	);
-}
+});
 
 function computeThumbOffset(activeEnd: number, isBasic: boolean, isVariant: boolean): number {
 	if (isBasic) return activeEnd - BASIC_THUMB_SIZE / 2;

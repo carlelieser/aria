@@ -4,18 +4,20 @@
  * Custom hooks for wave animation, amplitude, and gesture handling.
  */
 
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import type { LayoutChangeEvent } from 'react-native';
 import {
 	useSharedValue,
 	useAnimatedStyle,
 	useAnimatedProps,
+	useDerivedValue,
 	withSpring,
 	withRepeat,
 	withTiming,
 	cancelAnimation,
 	runOnJS,
 	Easing,
+	type SharedValue,
 } from 'react-native-reanimated';
 import { Gesture } from 'react-native-gesture-handler';
 import { WAVE_AMPLITUDE, WAVELENGTH } from './types';
@@ -40,30 +42,29 @@ export function useWaveAnimation(shouldAnimate: boolean) {
 	return phase;
 }
 
-export function useAmplitude(displayProgress: number, shouldAnimate: boolean) {
-	const targetAmplitude = useMemo(() => {
-		if (!shouldAnimate) return 0;
-		if (displayProgress < 0.1) return displayProgress / 0.1;
-		if (displayProgress > 0.95) return (1 - displayProgress) / 0.05;
-		return 1;
-	}, [displayProgress, shouldAnimate]);
-
-	const animatedAmplitude = useSharedValue(0);
-
-	useEffect(() => {
-		animatedAmplitude.value = withTiming(targetAmplitude * WAVE_AMPLITUDE, { duration: 300 });
-	}, [targetAmplitude, animatedAmplitude]);
-
-	return animatedAmplitude;
+export function useAmplitude(
+	displayProgress: ReturnType<typeof useSharedValue<number>>,
+	shouldAnimate: boolean
+) {
+	// Derive target amplitude on the UI thread: taper near 0% and 100%, full amplitude in between.
+	return useDerivedValue(() => {
+		if (!shouldAnimate) return withTiming(0, { duration: 300 });
+		const p = displayProgress.value;
+		let target: number;
+		if (p < 0.1) target = (p / 0.1) * WAVE_AMPLITUDE;
+		else if (p > 0.95) target = ((1 - p) / 0.05) * WAVE_AMPLITUDE;
+		else target = WAVE_AMPLITUDE;
+		return withTiming(target, { duration: 300 });
+	});
 }
 
 export function useWaveAnimatedProps(
-	activeWidth: number,
-	animatedAmplitude: ReturnType<typeof useSharedValue<number>>,
-	phase: ReturnType<typeof useSharedValue<number>>
+	activeWidth: SharedValue<number>,
+	animatedAmplitude: SharedValue<number>,
+	phase: SharedValue<number>
 ) {
 	return useAnimatedProps(() => ({
-		d: buildAnimatedWavePath(activeWidth, animatedAmplitude.value, phase.value),
+		d: buildAnimatedWavePath(activeWidth.value, animatedAmplitude.value, phase.value),
 	}));
 }
 
