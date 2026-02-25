@@ -9,7 +9,7 @@ import { getLogger } from '@shared/services/logger';
 import type { ClientManager } from './client';
 import { checkCache } from './cache-operations';
 import { downloadToCache } from './download-operations';
-import { tryHlsStream, downloadHlsToCache } from './hls-operations';
+import { tryHlsStream, downloadHlsToCache, rewriteHlsManifest } from './hls-operations';
 import { tryMultipleClientTypes } from './adaptive-format-operations';
 import type { AdaptiveFormatResult, InnertubeClientType } from './adaptive-format-operations';
 
@@ -152,28 +152,22 @@ async function handleStreamingPlayback(
 	cookies: string | undefined
 ): Promise<Result<AudioStream, Error>> {
 	const client = await clientManager.getClient();
-	// HLS streaming works for both authenticated and unauthenticated users
 	const hlsUrl = await resolveHlsUrl(client, videoId);
 
-	if (hlsUrl) {
-		logger.debug('Using direct HLS streaming');
-		const headers = buildHlsPlaybackHeaders(cookies);
-		return ok(createAudioStream({ url: hlsUrl, format: 'hls', quality, headers }));
+	if (!hlsUrl) {
+		return err(new Error('No streaming data available - all format attempts failed'));
 	}
 
-	return err(new Error('No streaming data available - all format attempts failed'));
+	logger.debug('Rewriting HLS manifest with remote segment URLs');
+	const localManifest = await rewriteHlsManifest(hlsUrl, videoId, cookies);
+
+	if (!localManifest) {
+		return err(new Error('No streaming data available - failed to rewrite HLS manifest'));
+	}
+
+	return ok(createAudioStream({ url: localManifest, format: 'hls', quality }));
 }
 
-function buildHlsPlaybackHeaders(cookies: string | undefined): Record<string, string> {
-	const headers: Record<string, string> = {
-		Accept: '*/*',
-		Origin: 'https://www.youtube.com',
-		Referer: 'https://www.youtube.com/',
-		'User-Agent': 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version',
-	};
-	if (cookies) headers['Cookie'] = cookies;
-	return headers;
-}
 
 export function createStreamingOperations(clientManager: ClientManager): StreamingOperations {
 	return {

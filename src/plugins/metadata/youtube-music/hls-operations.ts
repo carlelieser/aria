@@ -6,7 +6,7 @@ import {
 	concatenateSegmentsToFile,
 	downloadSegments,
 	downloadInitSegment,
-	generateLocalManifest,
+	generateHlsManifest,
 } from './hls-segment-handler';
 import {
 	getTempDirectory,
@@ -66,6 +66,30 @@ async function downloadFullHls(
 	onProgress?.(95);
 	logger.debug(`HLS download complete: ${cachedFilePath}`);
 	return cachedFilePath;
+}
+
+export async function rewriteHlsManifest(
+	manifestUrl: string,
+	videoId: string,
+	cookies?: string
+): Promise<string | null> {
+	const fetchHeaders: Record<string, string> = {};
+	if (cookies) fetchHeaders['Cookie'] = cookies;
+
+	const parsed = await parseHlsManifest(manifestUrl, fetchHeaders);
+	if (!parsed) return null;
+
+	const { segmentUrls, segmentDurations } = parsed;
+	if (segmentUrls.length === 0) return null;
+
+	await ensureCacheDirectory();
+	const manifestPath = `${getTempDirectory(videoId)}playlist.m3u8`;
+	await FileSystem.makeDirectoryAsync(getTempDirectory(videoId), { intermediates: true }).catch(
+		() => {}
+	);
+
+	const ok = await generateHlsManifest(segmentUrls, segmentDurations, manifestPath);
+	return ok ? manifestPath : null;
 }
 
 export interface HlsDownloadResult {
@@ -154,8 +178,8 @@ export async function downloadHlsToCache(
 		}
 
 		const manifestPath = `${tempDir}playlist.m3u8`;
-		const manifestOk = await generateLocalManifest(
-			segmentPaths,
+		const manifestOk = await generateHlsManifest(
+			segmentPaths.map((p) => p.substring(p.lastIndexOf('/') + 1)),
 			segmentDurations,
 			manifestPath
 		);

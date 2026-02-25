@@ -7,7 +7,7 @@ import type { PlaybackCapability } from '@plugins/core/interfaces/playback-provi
 
 export const PLUGIN_MANIFEST: PluginManifest = {
 	id: 'react-native-track-player',
-	name: 'Track Player',
+	name: 'RNTP',
 	version: '1.0.0',
 	description: 'Audio playback using react-native-track-player with background support',
 	author: 'Aria',

@@ -8,6 +8,7 @@ import type {
 	PlaybackProvider,
 } from '@plugins/core';
 import { usePlayerStore } from '@/src/application';
+import { useToastStore } from '@/src/application/state/toast-store';
 import { err, ok, type Result } from '@/src/shared';
 import { getLogger } from '@shared/services/logger';
 import { playbackTimer } from '@shared/services/playback-timer';
@@ -135,7 +136,7 @@ export class PlaybackService {
 
 			const streamResult = await this._resolveStreamForTrack(track);
 			if (!streamResult.success) {
-				return this._handlePlayError(streamResult.error);
+				return this._handlePlayError(streamResult.error, track);
 			}
 
 			return this._startPlaybackWithProvider(track, streamResult.data);
@@ -164,7 +165,8 @@ export class PlaybackService {
 		const provider = this.getProviderForUrl(audioStream.url);
 		if (!provider) {
 			return this._handlePlayError(
-				new Error('No playback provider available for this stream type')
+				new Error('No playback provider available for this stream type'),
+				track
 			);
 		}
 
@@ -181,7 +183,7 @@ export class PlaybackService {
 			return await this._invokeProviderPlay(track, audioStream, provider);
 		} catch (error) {
 			const wrapped = error instanceof Error ? error : new Error('Unknown error');
-			return this._handlePlayError(wrapped);
+			return this._handlePlayError(wrapped, track);
 		}
 	}
 
@@ -199,16 +201,23 @@ export class PlaybackService {
 		);
 		playbackTimer.endPhase();
 
-		if (!playResult.success) return this._handlePlayError(playResult.error);
+		if (!playResult.success) return this._handlePlayError(playResult.error, track);
 
 		playbackTimer.finish();
-		this._preloadNextTrackStream();
 		return ok(undefined);
 	}
 
-	private _handlePlayError(error: Error): Result<void, Error> {
+	private _handlePlayError(error: Error, track: Track): Result<void, Error> {
 		playbackTimer.cancel();
 		usePlayerStore.getState()._setError(error.message);
+		this._streamCache.clear();
+		logger.warn(`Playback failed for: ${track.title} — ${error.message}`);
+		useToastStore.getState().show({
+			title: 'Playback failed',
+			description: 'Could not play this track.',
+			variant: 'error',
+			duration: 4000,
+		});
 		return err(error);
 	}
 
@@ -445,33 +454,6 @@ export class PlaybackService {
 		}
 	}
 
-	/**
-	 * Preload the next track's stream URL in the background so that
-	 * skipping to it is near-instant.
-	 */
-	private _preloadNextTrackStream(): void {
-		const nextTrack = this._getNextQueueTrack();
-		if (!nextTrack) return;
-		if (this._getCachedStream(nextTrack.id.value)) return;
-
-		this._getAudioStream(nextTrack)
-			.then((result) => {
-				if (result.success) {
-					logger.debug(`Preloaded stream for next track: ${nextTrack.title}`);
-				}
-			})
-			.catch(() => {
-				// Preload failures are non-critical
-			});
-	}
-
-	private _getNextQueueTrack(): Track | null {
-		const state = usePlayerStore.getState();
-		const nextIndex = state.queueIndex + 1;
-		if (nextIndex >= state.queue.length) return null;
-		return state.queue[nextIndex] ?? null;
-	}
-
 	private setupEventListener(): void {
 		this.eventListener = (event: PlaybackEvent) => {
 			this._handlePlaybackEvent(event);
@@ -513,19 +495,12 @@ export class PlaybackService {
 		logger.debug(`Error event: ${event.error.message}`);
 		store._setError(event.error.message);
 		this._streamCache.clear();
-		this._refreshProvidersAndRetry(store);
-	}
-
-	private async _refreshProvidersAndRetry(
-		store: ReturnType<typeof usePlayerStore.getState>
-	): Promise<void> {
-		await Promise.all(this.audioSourceProviders.map((p) => p.onStreamError?.()));
-
-		const track = store.currentTrack;
-		if (!track) return;
-
-		logger.info(`Retrying playback after auth refresh: ${track.title}`);
-		await this.play(track);
+		useToastStore.getState().show({
+			title: 'Playback failed',
+			description: 'Could not play this track.',
+			variant: 'error',
+			duration: 4000,
+		});
 	}
 
 	async dispose(): Promise<void> {

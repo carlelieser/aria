@@ -7,7 +7,7 @@ import type { PlaybackCapability } from '@plugins/core/interfaces/playback-provi
 
 export const PLUGIN_MANIFEST: PluginManifest = {
 	id: 'dash-player',
-	name: 'DASH Playback',
+	name: 'DASH',
 	version: '1.0.0',
 	description: 'DASH audio playback using expo-video',
 	author: 'Aria',

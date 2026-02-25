@@ -59,8 +59,8 @@ export async function concatenateSegmentsToFile(
 	return finalInfo.exists && 'size' in finalInfo && (finalInfo.size as number) > 10000;
 }
 
-export async function generateLocalManifest(
-	segmentPaths: readonly string[],
+export async function generateHlsManifest(
+	segmentEntries: readonly string[],
 	durations: readonly number[],
 	manifestPath: string
 ): Promise<boolean> {
@@ -74,26 +74,23 @@ export async function generateLocalManifest(
 		'#EXT-X-MEDIA-SEQUENCE:0',
 	];
 
-	for (let i = 0; i < segmentPaths.length; i++) {
-		const filename = segmentPaths[i].substring(segmentPaths[i].lastIndexOf('/') + 1);
-		const duration = durations[i] ?? 0;
-		lines.push(`#EXTINF:${duration.toFixed(6)},`);
-		lines.push(filename);
+	for (let i = 0; i < segmentEntries.length; i++) {
+		lines.push(`#EXTINF:${(durations[i] ?? 0).toFixed(6)},`);
+		lines.push(segmentEntries[i]);
 	}
 
 	lines.push('#EXT-X-ENDLIST');
 	lines.push('');
 
-	const content = lines.join('\n');
-	await FileSystem.writeAsStringAsync(manifestPath, content);
+	await FileSystem.writeAsStringAsync(manifestPath, lines.join('\n'));
 
 	const info = await FileSystem.getInfoAsync(manifestPath);
 	if (info.exists) {
-		logger.debug(`Local HLS manifest created: ${manifestPath}`);
+		logger.debug(`HLS manifest created: ${manifestPath}`);
 		return true;
 	}
 
-	logger.warn('Failed to write local HLS manifest');
+	logger.warn('Failed to write HLS manifest');
 	return false;
 }
 

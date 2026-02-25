@@ -6,7 +6,7 @@
  * of setInterval polling for position tracking.
  */
 
-import type { VideoPlayer, VideoPlayerStatus } from 'expo-video';
+import type { VideoPlayer, VideoPlayerStatus, PlayerError } from 'expo-video';
 import { Duration } from '@domain/value-objects/duration';
 import type { PlaybackStatus } from '@domain/value-objects/playback-state';
 import type {
@@ -58,7 +58,7 @@ export class EventHandler {
 
 		this._eventSubscriptions = [
 			player.addListener('statusChange', (payload) => {
-				this._onStatusChange(payload.status);
+				this._onStatusChange(payload);
 			}),
 			player.addListener('playingChange', (payload) => {
 				this._onPlayingChange(payload.isPlaying);
@@ -89,21 +89,27 @@ export class EventHandler {
 		this._eventSubscriptions = [];
 	}
 
-	private _onStatusChange(status: VideoPlayerStatus): void {
-		logger.debug('Status changed', status);
+	private _onStatusChange(payload: { status: VideoPlayerStatus; error?: PlayerError }): void {
+		logger.debug('Status changed', payload.status);
 
-		switch (status) {
+		switch (payload.status) {
 			case 'loading':
 				this._updateStatus('loading');
 				break;
-			case 'error':
+			case 'error': {
+				const playerError = payload.error;
+				logger.error(
+					'Player error:',
+					playerError ? new Error(playerError.message) : undefined
+				);
 				this._updateStatus('error');
 				this.emitEvent({
 					type: 'error',
-					error: new Error('Playback failed: video player entered error state'),
+					error: new Error(playerError?.message ?? 'Playback failed: video player entered error state'),
 					timestamp: Date.now(),
 				});
 				break;
+			}
 		}
 	}
 
