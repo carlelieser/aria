@@ -30,21 +30,27 @@ export type {
 const logger = getLogger('YouTubeMusic:HomeFeed');
 
 interface Continuable {
-	has_continuation: boolean;
-	getContinuation(): Promise<Continuable & { contents?: unknown[] }>;
-	contents?: unknown[];
+	readonly has_continuation: boolean;
+	readonly contents?: unknown[];
+	getContinuation(): Promise<Continuable>;
+}
+
+interface HomeFeedSectionHeader {
+	readonly title?: { readonly text?: string };
+	readonly strapline?: { readonly text?: string };
+}
+
+interface HomeFeedSection {
+	readonly header?: HomeFeedSectionHeader;
+	readonly contents?: unknown[];
 }
 
 interface HomeFeedInstance {
-	sections?: {
-		header?: { title?: { text?: string }; strapline?: { text?: string } };
-		contents?: unknown[];
-	}[];
-	header?: { chips?: { as: (type: unknown) => { text?: string; is_selected?: boolean }[] } };
-	has_continuation: boolean;
+	readonly sections?: HomeFeedSection[];
+	readonly has_continuation: boolean;
+	readonly filters?: string[];
 	getContinuation(): Promise<HomeFeedInstance>;
 	applyFilter(target: string): Promise<HomeFeedInstance>;
-	filters?: string[];
 }
 
 function extractTitle(item: YouTubeMusicItem): string | undefined {

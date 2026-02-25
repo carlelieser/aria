@@ -234,6 +234,37 @@ const event = nativeEvent as unknown as GestureEvent; // RN gesture handler type
 
 ---
 
+## Interfaces and Types
+
+### No Inline Nested Types
+
+Interfaces MUST NOT contain inline nested object types. Every distinct shape MUST be extracted to a named interface or type alias. This applies at any depth — inline nesting is prohibited even for seemingly small types.
+
+```ts
+// DO — each shape has a name
+interface TrackMetadata {
+  readonly title: string;
+  readonly duration: number;
+}
+
+interface TrackHeader {
+  readonly metadata?: TrackMetadata;
+}
+
+interface TrackSection {
+  readonly header?: TrackHeader;
+  readonly contents?: unknown[];
+}
+
+// DON'T — inline nesting obscures structure
+interface TrackSection {
+  header?: { metadata?: { title?: string; duration?: number } };
+  contents?: unknown[];
+}
+```
+
+---
+
 ## Immutability
 
 ### Const by Default
@@ -307,3 +338,4 @@ const PLAYBACK_STATES = ['idle', 'playing', 'paused', 'buffering'];
 | Mutable state updates | Use immutable patterns (spread, filter, map) |
 | Direct mutation of props/state | Return new references |
 | Nested ternaries | Extract to variable or lookup object |
+| Inline nested types in interfaces | Extract to named interfaces |
