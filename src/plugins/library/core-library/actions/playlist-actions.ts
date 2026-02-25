@@ -42,7 +42,7 @@ export async function executePlaylistAction(
 			return {
 				handled: true,
 				navigation: {
-					pathname: '/playlist-picker',
+					pathname: '/add-to-playlist',
 					params: { trackId: track.id.value, trackData: JSON.stringify(track) },
 				},
 			};

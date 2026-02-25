@@ -91,7 +91,7 @@ function AppContent() {
 				<Stack.Screen name={'remote-playlist/[id]'} />
 				<Stack.Screen name={'profile'} />
 				<Stack.Screen name={'settings'} options={{ presentation: 'modal' }} />
-				<Stack.Screen name={'playlist-picker'} options={{ presentation: 'modal' }} />
+				<Stack.Screen name={'add-to-playlist'} options={{ presentation: 'modal' }} />
 			</Stack>
 			<FloatingPlayer />
 			<QueueSheet isOpen={queueSheetOpen} onClose={closeQueueSheet} />
