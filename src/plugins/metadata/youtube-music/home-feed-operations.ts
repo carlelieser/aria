@@ -1,7 +1,4 @@
 import type { Track } from '@domain/entities/track';
-import { createTrack } from '@domain/entities/track';
-import type { AlbumReference } from '@domain/entities/album';
-import type { ArtistReference } from '@domain/entities/artist';
 import type {
 	FeedSection,
 	FeedItem,
@@ -9,8 +6,6 @@ import type {
 	FeedFilterChip,
 	HomeFeedData,
 } from '@domain/entities/feed-section';
-import { AlbumId } from '@domain/value-objects/album-id';
-import { Duration } from '@domain/value-objects/duration';
 import type { Result } from '@shared/types/result';
 import { ok, err } from '@shared/types/result';
 import {
@@ -18,7 +13,6 @@ import {
 	mapYouTubeAlbum,
 	mapYouTubeArtist,
 	mapThumbnailsToArtwork,
-	mapYouTubeArtistReferences,
 } from './mappers';
 import type { ClientManager } from './client';
 import type { YouTubeMusicItem } from './types';
@@ -35,8 +29,7 @@ export type {
 
 const logger = getLogger('YouTubeMusic:HomeFeed');
 
-const DURATION_ENRICH_BATCH_SIZE = 10;
-const METADATA_ENRICH_BATCH_SIZE = 5;
+const ENRICH_NUM_BATCHES = 3;
 
 interface Continuable {
 	has_continuation: boolean;
@@ -177,11 +170,11 @@ function mapHomeFeedResponse(feed: HomeFeedInstance): HomeFeedData {
 	};
 }
 
-function collectZeroDurationTracks(sections: FeedSection[]): Map<string, Track> {
+function collectTracksNeedingEnrichment(sections: FeedSection[]): Map<string, Track> {
 	const tracks = new Map<string, Track>();
 	for (const section of sections) {
 		for (const item of section.items) {
-			if (item.type === 'track' && item.data.duration.isZero()) {
+			if (item.type === 'track' && needsEnrichment(item.data)) {
 				tracks.set(item.data.id.sourceId, item.data);
 			}
 		}
@@ -189,211 +182,132 @@ function collectZeroDurationTracks(sections: FeedSection[]): Map<string, Track> 
 	return tracks;
 }
 
-function rebuildTrackWithDuration(track: Track, seconds: number): Track {
-	return createTrack({
-		id: track.id,
-		title: track.title,
-		artists: track.artists,
-		album: track.album,
-		duration: Duration.fromSeconds(seconds),
-		artwork: track.artwork,
-		source: track.source,
-		metadata: track.metadata,
-	});
+function normalizeTitle(title: string): string {
+	return title.toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
-function applySectionDurations(
+function isTitleMatch(a: string, b: string): boolean {
+	const na = normalizeTitle(a);
+	const nb = normalizeTitle(b);
+	return na === nb || na.includes(nb) || nb.includes(na);
+}
+
+function applyEnrichedTracks(
 	sections: FeedSection[],
-	durationsMap: Map<string, number>
+	enrichedMap: Map<string, Track>
 ): FeedSection[] {
 	return sections.map((section) => ({
 		...section,
 		items: section.items.map((item): FeedItem => {
-			if (item.type !== 'track' || !item.data.duration.isZero()) return item;
-			const seconds = durationsMap.get(item.data.id.sourceId);
-			if (!seconds) return item;
-			return { type: 'track', data: rebuildTrackWithDuration(item.data, seconds) };
+			if (item.type !== 'track') return item;
+			const enriched = enrichedMap.get(item.data.id.sourceId);
+			return enriched ? { type: 'track', data: enriched } : item;
 		}),
 	}));
 }
 
 /**
- * Fetches durations for feed tracks that lack them.
- *
- * Home feed carousel items (MusicTwoRowItem) don't include duration in
- * their API response. This function resolves them via getBasicInfo which
- * makes a single lightweight /player call per track.
+ * Searches for the song variant of each track using "title artist" queries,
+ * takes the top result, and validates it matches the original title before
+ * accepting it. Returns a map of sourceId → enriched Track.
  */
-async function enrichTrackDurations(
+async function fetchEnrichedTrackMap(
 	clientManager: ClientManager,
-	sections: FeedSection[]
-): Promise<FeedSection[]> {
-	const zeroDurationTracks = collectZeroDurationTracks(sections);
-	if (zeroDurationTracks.size === 0) return sections;
-
-	logger.debug(`Enriching duration for ${zeroDurationTracks.size} feed tracks`);
-
+	tracksToEnrich: Map<string, Track>
+): Promise<Map<string, Track>> {
 	const client = await clientManager.getClient();
-	const durationsMap = new Map<string, number>();
-	const videoIds = Array.from(zeroDurationTracks.keys());
+	const enrichedMap = new Map<string, Track>();
+	const entries = Array.from(tracksToEnrich.entries());
 
-	for (let i = 0; i < videoIds.length; i += DURATION_ENRICH_BATCH_SIZE) {
-		const batch = videoIds.slice(i, i + DURATION_ENRICH_BATCH_SIZE);
-		const results = await Promise.allSettled(
-			batch.map(async (videoId) => {
-				const info = await client.getBasicInfo(videoId);
-				const seconds = (info as { basic_info?: { duration?: number } }).basic_info
-					?.duration;
-				if (seconds && seconds > 0) {
-					durationsMap.set(videoId, seconds);
+	async function enrichEntry([videoId, original]: [string, Track]): Promise<void> {
+		const artistName = original.artists[0]?.name ?? '';
+		const cleanTitle = original.title.replace(/\s*\(official\s+\w+\)/gi, '').trim();
+		const query = artistName ? `${cleanTitle} ${artistName}` : cleanTitle;
+
+		const searchResult = await client.music.search(query, { type: 'song' });
+		const contents = (searchResult as { contents?: unknown[] }).contents;
+		if (!contents) return;
+
+		for (const shelf of contents) {
+			const items = (shelf as { contents?: unknown[] })?.contents;
+			if (!items) continue;
+			for (const item of items) {
+				const track = mapYouTubeTrack(item as YouTubeMusicItem);
+				if (track && isTitleMatch(track.title, original.title)) {
+					enrichedMap.set(videoId, track);
+					return;
 				}
-			})
-		);
+			}
+		}
 
+		logger.debug(`No confident song match for "${original.title}"`);
+	}
+
+	const batchSize = Math.ceil(entries.length / ENRICH_NUM_BATCHES);
+	for (let i = 0; i < entries.length; i += batchSize) {
+		const batch = entries.slice(i, i + batchSize);
+		const results = await Promise.allSettled(batch.map(enrichEntry));
 		for (let j = 0; j < results.length; j++) {
 			if (results[j].status === 'rejected') {
-				logger.debug(`Failed to fetch duration for ${batch[j]}`);
+				logger.debug(`Failed to enrich track "${batch[j][1].title}"`);
 			}
 		}
 	}
 
-	logger.debug(`Resolved ${durationsMap.size}/${zeroDurationTracks.size} track durations`);
-	return applySectionDurations(sections, durationsMap);
-}
-
-interface UpNextItem {
-	type: string;
-	video_id?: string;
-	thumbnail?: { url: string; width: number; height: number }[];
-	album?: { id?: string; name: string; year?: string };
-	artists?: { name: string; channel_id?: string }[];
-	primary?: UpNextItem | null;
-}
-
-function extractPanelVideo(item: UpNextItem): UpNextItem | null {
-	if (item.type === 'PlaylistPanelVideo') return item;
-	if (item.type === 'PlaylistPanelVideoWrapper') return item.primary ?? null;
-	return null;
-}
-
-function rebuildTrackWithMetadata(track: Track, panelVideo: UpNextItem): Track {
-	const artwork =
-		panelVideo.thumbnail && panelVideo.thumbnail.length > 0
-			? mapThumbnailsToArtwork(panelVideo.thumbnail)
-			: undefined;
-
-	let album: AlbumReference | undefined;
-	let year: number | undefined;
-
-	if (panelVideo.album?.name) {
-		const albumBrowseId = panelVideo.album.id?.startsWith('MPR')
-			? panelVideo.album.id
-			: undefined;
-		album = {
-			id: albumBrowseId
-				? AlbumId.create('youtube-music', albumBrowseId).value
-				: `youtube-music:${panelVideo.album.name}`,
-			name: panelVideo.album.name,
-		};
-
-		if (panelVideo.album.year) {
-			const parsed = parseInt(panelVideo.album.year, 10);
-			if (!isNaN(parsed)) year = parsed;
-		}
-	}
-
-	const artists: ArtistReference[] | undefined =
-		panelVideo.artists && panelVideo.artists.length > 0
-			? mapYouTubeArtistReferences(panelVideo.artists)
-			: undefined;
-
-	return createTrack({
-		id: track.id,
-		title: track.title,
-		artists: artists ?? track.artists,
-		album: album ?? track.album,
-		duration: track.duration,
-		artwork: artwork && artwork.length > 0 ? artwork : track.artwork,
-		source: track.source,
-		metadata: year ? { ...track.metadata, year } : track.metadata,
-	});
+	return enrichedMap;
 }
 
 /**
- * Enriches video-type playlist tracks with music metadata (album art, album, artists).
- *
- * YouTube Music playlists mix songs (with album art) and videos (with video frame
- * thumbnails). This function fetches the "Up Next" panel for video-type tracks,
- * which contains proper music metadata including album art, album references,
- * and artist data.
+ * Returns true if the track needs enrichment: either it has a video-frame thumbnail
+ * (i.ytimg.com) or it has no duration. Tracks with proper album art and duration
+ * are already fully enriched by the API.
  */
-async function enrichPlaylistTrackMetadata(
+function needsEnrichment(track: Track): boolean {
+	if (track.duration.isZero()) return true;
+	if (!track.artwork || track.artwork.length === 0) return true;
+	return track.artwork.some((art) => art.url.includes('i.ytimg.com'));
+}
+
+/**
+ * Enriches a flat list of tracks that have video thumbnails or zero duration
+ * with proper YouTube Music metadata.
+ */
+async function enrichTrackList(clientManager: ClientManager, tracks: Track[]): Promise<Track[]> {
+	const tracksToEnrich = new Map<string, Track>();
+	for (const track of tracks) {
+		if (needsEnrichment(track)) {
+			tracksToEnrich.set(track.id.sourceId, track);
+		}
+	}
+
+	if (tracksToEnrich.size === 0) return tracks;
+
+	logger.debug(`Enriching ${tracksToEnrich.size} playlist tracks`);
+	const enrichedMap = await fetchEnrichedTrackMap(clientManager, tracksToEnrich);
+	logger.debug(`Enriched ${enrichedMap.size}/${tracksToEnrich.size} playlist tracks`);
+
+	return tracks.map((track) => enrichedMap.get(track.id.sourceId) ?? track);
+}
+
+/**
+ * Enriches feed tracks that have zero duration or video thumbnails (i.ytimg.com).
+ *
+ * Home feed carousel items don't include duration, and video-type tracks have
+ * stretched video frame thumbnails instead of real album art. This fetches full
+ * YouTube Music track info for those tracks to replace them with proper metadata.
+ */
+async function enrichTracks(
 	clientManager: ClientManager,
-	tracks: Track[]
-): Promise<Track[]> {
-	const videoTracks = new Map<string, number[]>();
-	for (let i = 0; i < tracks.length; i++) {
-		const artworkUrl = tracks[i].artwork?.[0]?.url;
-		if (artworkUrl && artworkUrl.includes('i.ytimg.com')) {
-			const sourceId = tracks[i].id.sourceId;
-			const indices = videoTracks.get(sourceId) ?? [];
-			indices.push(i);
-			videoTracks.set(sourceId, indices);
-		}
-	}
+	sections: FeedSection[]
+): Promise<FeedSection[]> {
+	const tracksToEnrich = collectTracksNeedingEnrichment(sections);
+	if (tracksToEnrich.size === 0) return sections;
 
-	if (videoTracks.size === 0) return tracks;
+	logger.debug(`Enriching ${tracksToEnrich.size} feed tracks`);
+	const enrichedMap = await fetchEnrichedTrackMap(clientManager, tracksToEnrich);
+	logger.debug(`Enriched ${enrichedMap.size}/${tracksToEnrich.size} feed tracks`);
 
-	logger.debug(`Enriching metadata for ${videoTracks.size} video-type playlist tracks`);
-
-	const client = await clientManager.getClient();
-	const enriched = [...tracks];
-	const videoIds = Array.from(videoTracks.keys());
-	let enrichedCount = 0;
-
-	for (let i = 0; i < videoIds.length; i += METADATA_ENRICH_BATCH_SIZE) {
-		const batch = videoIds.slice(i, i + METADATA_ENRICH_BATCH_SIZE);
-		const results = await Promise.allSettled(
-			batch.map(async (videoId) => {
-				const upNext = await client.music.getUpNext(videoId);
-				return { videoId, upNext };
-			})
-		);
-
-		for (let j = 0; j < results.length; j++) {
-			const result = results[j];
-			if (result.status === 'rejected') {
-				logger.debug(`Failed to fetch upNext for ${batch[j]}`);
-				continue;
-			}
-
-			const { videoId, upNext } = result.value;
-			const contents = (upNext as { contents?: UpNextItem[] }).contents;
-			if (!contents) continue;
-
-			let panelVideo: UpNextItem | null = null;
-			for (const item of contents) {
-				const extracted = extractPanelVideo(item);
-				if (extracted && extracted.video_id === videoId) {
-					panelVideo = extracted;
-					break;
-				}
-			}
-
-			if (!panelVideo) continue;
-
-			const indices = videoTracks.get(videoId);
-			if (!indices) continue;
-
-			for (const idx of indices) {
-				enriched[idx] = rebuildTrackWithMetadata(enriched[idx], panelVideo);
-				enrichedCount++;
-			}
-		}
-	}
-
-	logger.debug(`Enriched ${enrichedCount}/${videoTracks.size} video-type tracks`);
-	return enriched;
+	return applyEnrichedTracks(sections, enrichedMap);
 }
 
 function mapPlaylistPage(playlistObj: Continuable): PlaylistTracksPage {
@@ -423,7 +337,7 @@ export function createHomeFeedOperations(clientManager: ClientManager): HomeFeed
 				currentFeed = originalFeed;
 
 				const data = mapHomeFeedResponse(currentFeed);
-				const enrichedSections = await enrichTrackDurations(clientManager, data.sections);
+				const enrichedSections = await enrichTracks(clientManager, data.sections);
 
 				logger.info(`Home feed loaded: ${currentFeed.sections?.length ?? 0} sections`);
 				return ok({ ...data, sections: enrichedSections });
@@ -450,7 +364,7 @@ export function createHomeFeedOperations(clientManager: ClientManager): HomeFeed
 				currentFeed = filtered;
 
 				const data = mapHomeFeedResponse(currentFeed);
-				const enrichedSections = await enrichTrackDurations(clientManager, data.sections);
+				const enrichedSections = await enrichTracks(clientManager, data.sections);
 
 				logger.info(`Filter applied: "${chipText}"`);
 				return ok({ ...data, sections: enrichedSections });
@@ -475,7 +389,7 @@ export function createHomeFeedOperations(clientManager: ClientManager): HomeFeed
 				currentFeed = continuation;
 
 				const data = mapHomeFeedResponse(currentFeed);
-				const enrichedSections = await enrichTrackDurations(clientManager, data.sections);
+				const enrichedSections = await enrichTracks(clientManager, data.sections);
 
 				logger.info(`Continuation loaded: ${currentFeed.sections?.length ?? 0} sections`);
 				return ok({ ...data, sections: enrichedSections });
@@ -489,6 +403,7 @@ export function createHomeFeedOperations(clientManager: ClientManager): HomeFeed
 		},
 
 		async getPlaylistTracks(playlistId: string): Promise<Result<PlaylistTracksPage, Error>> {
+			const startMs = Date.now();
 			try {
 				const client = await clientManager.getClient();
 				const playlist = await client.music.getPlaylist(playlistId);
@@ -496,13 +411,11 @@ export function createHomeFeedOperations(clientManager: ClientManager): HomeFeed
 
 				currentPlaylist = playlistObj;
 				const page = mapPlaylistPage(playlistObj);
-				const enrichedTracks = await enrichPlaylistTrackMetadata(
-					clientManager,
-					page.tracks
-				);
+				const enrichedTracks = await enrichTrackList(clientManager, page.tracks);
 
+				const totalMs = Date.now() - startMs;
 				logger.info(
-					`Fetched ${page.tracks.length} tracks from playlist ${playlistId} (hasMore: ${page.hasMore})`
+					`Playlist ready: ${enrichedTracks.length} tracks in ${totalMs}ms (hasMore: ${page.hasMore})`
 				);
 				return ok({ tracks: enrichedTracks, hasMore: page.hasMore });
 			} catch (error) {
@@ -524,10 +437,7 @@ export function createHomeFeedOperations(clientManager: ClientManager): HomeFeed
 				const next = await currentPlaylist.getContinuation();
 				currentPlaylist = next;
 				const page = mapPlaylistPage(next);
-				const enrichedTracks = await enrichPlaylistTrackMetadata(
-					clientManager,
-					page.tracks
-				);
+				const enrichedTracks = await enrichTrackList(clientManager, page.tracks);
 
 				logger.info(
 					`Loaded ${page.tracks.length} more playlist tracks (hasMore: ${page.hasMore})`
