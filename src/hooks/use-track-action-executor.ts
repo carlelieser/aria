@@ -67,7 +67,10 @@ export function useTrackActionExecutor({
 				case CORE_ACTION_IDS.ADD_TO_PLAYLIST:
 					router.push({
 						pathname: '/playlist-picker',
-						params: { trackId: currentTrack.id.value },
+						params: {
+							trackId: currentTrack.id.value,
+							trackData: JSON.stringify(currentTrack),
+						},
 					});
 					return;
 
