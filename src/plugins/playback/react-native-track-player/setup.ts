@@ -93,6 +93,7 @@ async function _doSetup(): Promise<boolean> {
 				Capability.Pause,
 				Capability.SkipToNext,
 				Capability.SkipToPrevious,
+				Capability.SeekTo,
 			],
 			compactCapabilities: [
 				Capability.Play,
