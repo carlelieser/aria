@@ -11,8 +11,8 @@ export function getPlaylistActions(context: TrackActionContext): TrackAction[] {
 		id: CORE_ACTION_IDS.ADD_TO_PLAYLIST,
 		label: 'Add to Playlist',
 		icon: 'ListMusic',
-		group: 'primary',
-		priority: 90,
+		group: 'secondary',
+		priority: 10,
 		enabled: true,
 	});
 
@@ -21,8 +21,8 @@ export function getPlaylistActions(context: TrackActionContext): TrackAction[] {
 			id: CORE_ACTION_IDS.REMOVE_FROM_PLAYLIST,
 			label: 'Remove from Playlist',
 			icon: 'ListMinus',
-			group: 'secondary',
-			priority: 10,
+			group: 'danger',
+			priority: 20,
 			enabled: true,
 			variant: 'destructive',
 		});
@@ -43,7 +43,7 @@ export async function executePlaylistAction(
 				handled: true,
 				navigation: {
 					pathname: '/playlist-picker',
-					params: { trackId: track.id.value },
+					params: { trackId: track.id.value, trackData: JSON.stringify(track) },
 				},
 			};
 

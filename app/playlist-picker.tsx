@@ -13,6 +13,7 @@ import { useLibraryStore, usePlaylists, useTrack } from '@/src/application/state
 import { useToast } from '@/src/hooks/use-toast';
 import { useAppTheme } from '@/lib/theme';
 import type { Playlist } from '@/src/domain/entities/playlist';
+import type { Track } from '@/src/domain/entities/track';
 
 interface PlaylistItemProps {
 	playlist: Playlist;
@@ -57,13 +58,14 @@ function PlaylistItem({ playlist, onSelect, trackAlreadyIn }: PlaylistItemProps)
 
 export default function PlaylistPickerScreen() {
 	const insets = useSafeAreaInsets();
-	const { trackId } = useLocalSearchParams<{ trackId: string }>();
+	const { trackId, trackData } = useLocalSearchParams<{ trackId: string; trackData?: string }>();
 	const { success, error } = useToast();
 	const { colors } = useAppTheme();
 
 	const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
 
-	const track = useTrack(trackId);
+	const trackFromStore = useTrack(trackId);
+	const track = trackFromStore ?? (trackData ? (JSON.parse(trackData) as Track) : undefined);
 	const playlists = usePlaylists();
 	const addTrackToPlaylist = useLibraryStore((state) => state.addTrackToPlaylist);
 

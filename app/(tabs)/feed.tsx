@@ -153,9 +153,13 @@ export default function HomeScreen() {
 								onDeselect={handleClearFilter}
 							/>
 						)}
-						{visibleRemoteSections.map((section) => (
-							<FeedCarousel key={section.id} section={section} />
-						))}
+						{isLoading
+							? Array.from({ length: MIN_VISIBLE_SECTIONS }, (_, i) => (
+									<FeedSectionSkeleton key={`filter-skeleton-${i}`} />
+								))
+							: visibleRemoteSections.map((section) => (
+									<FeedCarousel key={section.id} section={section} />
+								))}
 						{skeletonCount > 0 &&
 							Array.from({ length: skeletonCount }, (_, i) => (
 								<FeedSectionSkeleton key={`skeleton-${i}`} />

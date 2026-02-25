@@ -94,7 +94,7 @@ export class HomeFeedService {
 	async applyFilter(chipText: string, chipIndex: number): Promise<void> {
 		if (this._providers.size === 0) return;
 
-		useHomeFeedStore.setState({ isLoading: true });
+		useHomeFeedStore.setState({ isLoading: true, activeFilterIndex: chipIndex });
 
 		const results = await Promise.allSettled(
 			Array.from(this._providers.entries())
