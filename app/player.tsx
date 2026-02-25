@@ -3,12 +3,16 @@ import { StatusBar } from 'expo-status-bar';
 import { Image } from 'expo-image';
 import { BlurView } from 'expo-blur';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { router, usePathname } from 'expo-router';
 import { Text, IconButton } from 'react-native-paper';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import LottieView from 'lottie-react-native';
+import type { AnimationObject } from 'lottie-react-native';
 import { Icon } from '@/src/components/ui/icon';
-import { ChevronLeftIcon, Heart, ListMusic } from 'lucide-react-native';
+import { ChevronLeftIcon, ListMusic } from 'lucide-react-native';
+
+const thumbUpRegular = require('@/assets/animation/system-regular-124-thumb-up-hover-thumb-up.json') as AnimationObject;
+const thumbUpSolid = require('@/assets/animation/system-solid-124-thumb-up-hover-thumb-up.json') as AnimationObject;
 import { PlayerControls } from '@/src/components/player/player-controls';
 import { ProgressBar } from '@/src/components/player/progress-bar';
 import { TrackOptionsMenu } from '@/src/components/track-options-menu';
@@ -23,9 +27,27 @@ import { useLibraryStore, useIsFavorite } from '@/src/application/state/library-
 import { useCurrentTrack, usePlayerError } from '@/src/application/state/player-store';
 
 const BLUR_INTENSITY = 120;
-const FAVORITE_ICON_SIZE = 24;
-const FAVORITE_SPRING_CONFIG = { damping: 8, stiffness: 300 };
 const DARK_SCRIM_OPACITY = 0.6;
+function hexToRgbArray(hex: string): [number, number, number, number] {
+	const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+	if (!result) return [0, 0, 0, 1];
+	return [
+		parseInt(result[1], 16) / 255,
+		parseInt(result[2], 16) / 255,
+		parseInt(result[3], 16) / 255,
+		1,
+	];
+}
+
+function replaceColorsInSource(source: AnimationObject, color: string): AnimationObject {
+	const rgbArray = hexToRgbArray(color);
+	const json = JSON.stringify(source);
+	const replaced = json.replace(
+		/"c"\s*:\s*\{\s*"a"\s*:\s*0\s*,\s*"k"\s*:\s*\[\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*\]/g,
+		`"c":{"a":0,"k":[${rgbArray.join(',')}]`
+	);
+	return JSON.parse(replaced) as AnimationObject;
+}
 
 export default function PlayerScreen() {
 	const currentTrack = useCurrentTrack();
@@ -53,22 +75,27 @@ function PlayerScreenContent() {
 
 	const trackId = currentTrack?.id.value ?? '';
 	const isFavorite = useIsFavorite(trackId);
-	const favoriteScale = useSharedValue(1);
+	const lottieRef = useRef<LottieView>(null);
+
+	const coloredSource = useMemo(
+		() => replaceColorsInSource(
+			isFavorite ? thumbUpSolid : thumbUpRegular,
+			isFavorite ? colors.primary : colors.onSurfaceVariant
+		),
+		[isFavorite, colors.primary, colors.onSurfaceVariant]
+	);
 
 	const handleToggleFavorite = useCallback(() => {
 		const store = useLibraryStore.getState();
-		if (currentTrack && !store.isFavorite(currentTrack.id.value)) {
+		if (currentTrack && !isFavorite) {
 			store.addTrack(currentTrack);
 		}
 		store.toggleFavorite(trackId);
-		favoriteScale.value = withSpring(1.3, FAVORITE_SPRING_CONFIG, () => {
-			favoriteScale.value = withSpring(1, FAVORITE_SPRING_CONFIG);
+		requestAnimationFrame(() => {
+			lottieRef.current?.reset();
+			lottieRef.current?.play();
 		});
-	}, [currentTrack, trackId, favoriteScale]);
-
-	const favoriteAnimatedStyle = useAnimatedStyle(() => ({
-		transform: [{ scale: favoriteScale.value }],
-	}));
+	}, [currentTrack, trackId, isFavorite]);
 
 	const artwork = currentTrack ? getLargestArtwork(currentTrack.artwork) : undefined;
 	const artworkUrl = artwork?.url;
@@ -188,24 +215,22 @@ function PlayerScreenContent() {
 								{albumName ? `${artistNames} \u2022 ${albumName}` : artistNames}
 							</Text>
 						</View>
-						<Animated.View style={favoriteAnimatedStyle}>
-							<IconButton
-								icon={() => (
-									<Heart
-										size={FAVORITE_ICON_SIZE}
-										color={
-											isFavorite ? colors.primary : colors.onSurfaceVariant
-										}
-										fill={isFavorite ? colors.primary : 'transparent'}
-									/>
-								)}
-								onPress={handleToggleFavorite}
-								size={FAVORITE_ICON_SIZE}
-								accessibilityLabel={
-									isFavorite ? 'Remove from favorites' : 'Add to favorites'
-								}
-							/>
-						</Animated.View>
+						<IconButton
+							icon={() => (
+								<LottieView
+									ref={lottieRef}
+									source={coloredSource}
+									style={styles.favoriteIcon}
+									autoPlay={false}
+									loop={false}
+								/>
+							)}
+							onPress={handleToggleFavorite}
+	
+							accessibilityLabel={
+								isFavorite ? 'Remove from favorites' : 'Add to favorites'
+							}
+						/>
 					</View>
 
 					{error && (
@@ -343,5 +368,9 @@ const styles = StyleSheet.create({
 	headerActions: {
 		flexDirection: 'row',
 		alignItems: 'center',
+	},
+	favoriteIcon: {
+		width: 32,
+		height: 32,
 	},
 });

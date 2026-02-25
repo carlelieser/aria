@@ -18,6 +18,7 @@ export interface ActionItem {
 	readonly variant?: 'default' | 'destructive';
 	readonly disabled?: boolean;
 	readonly checked?: boolean;
+	readonly iconFill?: boolean;
 }
 
 export interface TrackOptionsContentProps {

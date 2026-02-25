@@ -1,12 +1,12 @@
 import type { Track } from '../entities/track';
 
-export type TrackActionGroup = 'primary' | 'navigation' | 'source' | 'secondary';
+export type TrackActionGroup = 'primary' | 'secondary' | 'navigation' | 'danger';
 
 export const ACTION_GROUP_ORDER: readonly TrackActionGroup[] = [
 	'primary',
-	'navigation',
-	'source',
 	'secondary',
+	'navigation',
+	'danger',
 ] as const;
 
 export interface TrackAction {
@@ -25,6 +25,8 @@ export interface TrackAction {
 	readonly variant?: 'default' | 'destructive';
 
 	readonly checked?: boolean;
+
+	readonly iconFill?: boolean;
 
 	readonly sourcePlugin?: string;
 }

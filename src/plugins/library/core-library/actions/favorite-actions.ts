@@ -10,12 +10,13 @@ export function getFavoriteActions(context: TrackActionContext): TrackAction[] {
 	return [
 		{
 			id: CORE_ACTION_IDS.TOGGLE_FAVORITE,
-			label: isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
-			icon: isFavorite ? 'HeartOff' : 'Heart',
-			group: 'primary',
-			priority: 80,
+			label: isFavorite ? 'Dislike' : 'Like',
+			icon: 'ThumbsUp',
+			group: isFavorite ? 'danger' : 'secondary',
+			priority: isFavorite ? 40 : 20,
 			enabled: true,
 			checked: isFavorite,
+			iconFill: isFavorite,
 		},
 	];
 }

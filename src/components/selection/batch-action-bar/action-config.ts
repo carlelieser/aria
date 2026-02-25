@@ -4,7 +4,7 @@
  * Maps batch action contexts to their available actions.
  */
 
-import { Download, Library, ListPlus, Trash2, Heart, ListMusic, Minus } from 'lucide-react-native';
+import { Download, Library, ListPlus, Trash2, ThumbsUp, ListMusic, Minus } from 'lucide-react-native';
 import type { BatchActionContext, BatchActionBarProps, ActionConfig } from './types';
 
 export function getActionsForContext(
@@ -23,7 +23,7 @@ export function getActionsForContext(
 			return [
 				{ icon: ListPlus, label: 'Queue', handler: props.onAddToQueue },
 				{ icon: ListMusic, label: 'Playlist', handler: props.onAddToPlaylist },
-				{ icon: Heart, label: 'Favorite', handler: props.onToggleFavorites },
+				{ icon: ThumbsUp, label: 'Favorite', handler: props.onToggleFavorites },
 				{
 					icon: Trash2,
 					label: 'Remove',

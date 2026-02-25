@@ -66,6 +66,7 @@ export function TrackOptionsContent({
 						variant: action.variant,
 						disabled: !action.enabled,
 						checked: action.checked,
+					iconFill: action.iconFill,
 					})),
 				},
 			];

@@ -19,6 +19,8 @@ interface IconProps {
 	readonly size?: IconSize;
 	/** Icon color (defaults to onSurface) */
 	readonly color?: string;
+	/** Fill color */
+	readonly fill?: string;
 	/** Stroke width */
 	readonly strokeWidth?: number;
 	/** Additional style */
@@ -55,6 +57,7 @@ export function Icon({
 	as: IconComponent,
 	size = 'md',
 	color,
+	fill = 'none',
 	strokeWidth = 2,
 	style,
 	accessibilityLabel,
@@ -68,6 +71,7 @@ export function Icon({
 		<IconComponent
 			size={sizeValue}
 			color={iconColor}
+			fill={fill}
 			strokeWidth={strokeWidth}
 			style={style as LucideProps['style']}
 			accessibilityLabel={accessibilityLabel}

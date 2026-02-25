@@ -39,7 +39,12 @@ export function ActionSheetItem({ item, onPress, colors }: ActionSheetItemProps)
 			<View style={styles.itemContent}>
 				{IconComponent && (
 					<View style={styles.iconWrapper}>
-						<Icon as={IconComponent} size={22} color={iconColor} />
+						<Icon
+							as={IconComponent}
+							size={22}
+							color={iconColor}
+							fill={item.iconFill ? iconColor : 'transparent'}
+						/>
 					</View>
 				)}
 				<Text
