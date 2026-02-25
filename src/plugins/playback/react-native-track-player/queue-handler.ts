@@ -59,11 +59,27 @@ export class QueueHandler {
 	}
 
 	async skipToNext(): AsyncResult<void, Error> {
-		return this._queueManager.skipToNext();
+		const result = this._queueManager.skipToNext();
+		if (result.success) {
+			this._emitQueueChangeEvent();
+			const track = this._state.queue[this._state.currentIndex];
+			if (track) {
+				this._emitEvent({ type: 'track-change', track, timestamp: Date.now() });
+			}
+		}
+		return result;
 	}
 
 	async skipToPrevious(): AsyncResult<void, Error> {
-		return this._queueManager.skipToPrevious();
+		const result = this._queueManager.skipToPrevious();
+		if (result.success) {
+			this._emitQueueChangeEvent();
+			const track = this._state.queue[this._state.currentIndex];
+			if (track) {
+				this._emitEvent({ type: 'track-change', track, timestamp: Date.now() });
+			}
+		}
+		return result;
 	}
 
 	private _emitQueueChangeEvent(): void {

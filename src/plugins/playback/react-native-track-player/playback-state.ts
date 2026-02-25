@@ -111,6 +111,8 @@ export class PlaybackState {
 		this._position = Duration.ZERO;
 		this._duration = Duration.ZERO;
 		this._playbackStatus = 'idle';
+		this._isSeeking = false;
+		this._trackMap.clear();
 	}
 
 	clear(): void {

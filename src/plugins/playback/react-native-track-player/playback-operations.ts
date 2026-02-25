@@ -133,12 +133,19 @@ export class PlaybackOperations {
 			const targetSeconds = position.totalSeconds;
 			logger.debug(`seek() called: target=${targetSeconds}s`);
 
-			this._state.isSeeking = true;
-			await TrackPlayer.seekTo(targetSeconds);
-			this._state.position = position;
-			this._state.isSeeking = false;
-
-			return ok(undefined);
+			try {
+				this._state.isSeeking = true;
+				await TrackPlayer.seekTo(targetSeconds);
+				this._state.position = position;
+				this._emitEvent({ type: 'position-change', position, timestamp: Date.now() });
+				return ok(undefined);
+			} catch (error) {
+				const errorObj = error instanceof Error ? error : new Error(String(error));
+				logger.error('Seek failed', errorObj);
+				return err(errorObj);
+			} finally {
+				this._state.isSeeking = false;
+			}
 		});
 	}
 
@@ -146,6 +153,7 @@ export class PlaybackOperations {
 		return this._lock.withLock(async () => {
 			const clampedRate = Math.max(MIN_PLAYBACK_RATE, Math.min(MAX_PLAYBACK_RATE, rate));
 			await TrackPlayer.setRate(clampedRate);
+			this._emitEvent({ type: 'rate-change', rate: clampedRate, timestamp: Date.now() });
 			return ok(undefined);
 		});
 	}
@@ -154,6 +162,7 @@ export class PlaybackOperations {
 		return this._lock.withLock(async () => {
 			this._state.volume = Math.max(MIN_VOLUME, Math.min(MAX_VOLUME, volume));
 			await TrackPlayer.setVolume(this._state.volume);
+			this._emitEvent({ type: 'volume-change', volume: this._state.volume, timestamp: Date.now() });
 			return ok(undefined);
 		});
 	}
@@ -162,11 +171,13 @@ export class PlaybackOperations {
 		this._state.repeatMode = mode;
 		const rntpMode = this._mapRepeatMode(mode);
 		TrackPlayer.setRepeatMode(rntpMode);
+		this._emitEvent({ type: 'repeat-mode-change', mode, timestamp: Date.now() });
 		return ok(undefined);
 	}
 
 	setShuffle(enabled: boolean): Result<void, Error> {
 		this._state.isShuffled = enabled;
+		this._emitEvent({ type: 'shuffle-change', enabled, timestamp: Date.now() });
 		return ok(undefined);
 	}
 
@@ -179,6 +190,7 @@ export class PlaybackOperations {
 			case 'one':
 				return RNTPRepeatMode.Track;
 			case 'all':
+				return RNTPRepeatMode.Queue;
 			case 'off':
 			default:
 				return RNTPRepeatMode.Off;

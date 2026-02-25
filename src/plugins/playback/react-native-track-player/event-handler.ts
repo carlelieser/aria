@@ -122,8 +122,6 @@ export class EventHandler {
 		const newStatus = mapRNTPStateToStatus(event.state);
 		if (newStatus === this._state.playbackStatus) return;
 
-		if (this._state.isSeeking && newStatus === 'paused') return;
-
 		this._updateStatus(newStatus);
 	}
 
@@ -145,7 +143,9 @@ export class EventHandler {
 	}
 
 	private _onQueueEnded(): void {
-		this.emitEvent({ type: 'ended', timestamp: Date.now() });
+		if (this._state.repeatMode !== 'all') {
+			this.emitEvent({ type: 'ended', timestamp: Date.now() });
+		}
 	}
 
 	private _onProgressUpdate(event: PlaybackProgressUpdatedEvent): void {

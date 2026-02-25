@@ -8,7 +8,7 @@ const SUPPORTED_EXTENSIONS = ['.mp3', '.m4a', '.aac', '.wav', '.ogg', '.flac'];
 
 export class UrlValidator {
 	canHandle(url: string): boolean {
-		if (url.startsWith('data:application/dash+xml')) {
+		if (this._isDashStream(url)) {
 			return false;
 		}
 
@@ -29,6 +29,14 @@ export class UrlValidator {
 		}
 
 		return false;
+	}
+
+	private _isDashStream(url: string): boolean {
+		return (
+			url.startsWith('data:application/dash+xml') ||
+			url.endsWith('.mpd') ||
+			url.includes('manifest/dash')
+		);
 	}
 
 	private _isHlsStream(url: string): boolean {

@@ -21,6 +21,14 @@ export default defineConfig({
 				'**/*.config.*',
 			],
 		},
+		server: {
+			deps: {
+				// react-native uses Flow syntax (import typeof) which Rollup cannot parse.
+				// Marking it as external prevents Vite from attempting to transform it;
+				// vi.mock() in test files / setup.ts intercepts the module at runtime.
+				external: ['react-native'],
+			},
+		},
 	},
 	resolve: {
 		alias: {
