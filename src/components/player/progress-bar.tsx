@@ -55,7 +55,7 @@ export function ProgressBar({ seekable = true }: ProgressBarProps) {
 	);
 
 	return (
-		<Animated.View style={animatedStyle}>
+		<Animated.View style={animatedStyle} needsOffscreenAlphaCompositing>
 			<ProgressTrack
 				variant={barStyle}
 				progress={progress}
