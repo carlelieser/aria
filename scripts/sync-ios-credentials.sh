@@ -28,4 +28,17 @@ find "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" -name "*.mob
   fi
 done
 
-echo "[sync-ios-credentials] Done. ios/certs/ is up to date."
+echo "[sync-ios-credentials] Writing credentials.json..."
+cat > "$(dirname "$0")/../credentials.json" << JSON
+{
+  "ios": {
+    "provisioningProfilePath": "ios/certs/profile.mobileprovision",
+    "distributionCertificate": {
+      "path": "ios/certs/dist-cert.p12",
+      "password": "iex3shi9Lohl"
+    }
+  }
+}
+JSON
+
+echo "[sync-ios-credentials] Done. ios/certs/ and credentials.json are up to date."
