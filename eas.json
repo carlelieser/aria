@@ -29,7 +29,8 @@
 			},
 			"ios": {
 				"distribution": "store",
-				"simulator": false
+				"simulator": false,
+				"credentialsSource": "local"
 			}
 		},
 		"production": {
