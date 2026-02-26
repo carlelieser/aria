@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aria — Free, Open-Source Music Player</title>
+  <meta name="description" content="Aria is a free, open-source music player with YouTube Music, Spotify, and local file support. Material Design 3, dynamic theming, and offline downloads." />
+  <meta name="theme-color" content="#0F0D13" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Aria — Free, Open-Source Music Player" />
+  <meta property="og:description" content="Modular music player with YouTube Music, Spotify, and local file support." />
+  <meta property="og:image" content="images/icon.png" />
+  <meta property="og:url" content="https://carlelieser.github.io/aria/" />
+  <meta property="og:type" content="website" />
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://carlelieser.github.io/aria/" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png" />
+
+  <!-- Preload LCP images -->
+  <link rel="preload" as="image" href="images/icon.png" />
+  <link rel="preload" as="image" href="screenshots/ss_player.png" />
+  <link rel="preload" as="image" href="screenshots/ss_feed.webp" type="image/webp" />
+  <link rel="preload" as="image" href="screenshots/ss_feed.png" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Google+Sans:wght@400;500;700&display=swap" as="style" />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <style>:root{--void:#0A0810;--surface:#0F0D13;--surface-raised:#18151F;--surface-float:#201C2B;--border:rgba(255,255,255,0.06);--border-accent:rgba(124,58,237,0.35);--violet:#7C3AED;--violet-bright:#9F6EFF;--violet-glow:rgba(124,58,237,0.25);--violet-dim:rgba(124,58,237,0.10);--text-primary:#F0EBF8;--text-secondary:#9B94AB;--text-muted:#5A5368;--font-display:'Oswald',sans-serif;--font-body:'Google Sans','Product Sans',system-ui,sans-serif;--radius-sm:8px;--radius-md:16px;--radius-lg:24px;--radius-xl:32px;--transition:0.25s cubic-bezier(0.4,0,0.2,1)}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth;background:var(--void)}body{font-family:var(--font-body);background:var(--surface);color:var(--text-primary);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}img{display:block;max-width:100%}a{color:inherit;text-decoration:none}body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:1000;opacity:0.4}.container{max-width:1120px;margin:0 auto;padding:0 24px}.section{padding:96px 0}.section--tight{padding:64px 0}.gradient-bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}.gradient-orb{position:absolute;border-radius:50%;filter:blur(120px);opacity:0.15;animation:float-orb 20s ease-in-out infinite alternate}.gradient-orb--1{width:600px;height:600px;background:radial-gradient(circle,#7C3AED 0%,transparent 70%);top:-200px;left:-100px;animation-duration:25s}.gradient-orb--2{width:500px;height:500px;background:radial-gradient(circle,#4F46E5 0%,transparent 70%);top:40%;right:-150px;animation-duration:30s;animation-delay:-8s}.gradient-orb--3{width:400px;height:400px;background:radial-gradient(circle,#DB2777 0%,transparent 70%);bottom:10%;left:20%;animation-duration:22s;animation-delay:-14s;opacity:0.08}@keyframes float-orb{0%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,30px) scale(1.05)}100%{transform:translate(-20px,60px) scale(0.95)}}.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 0;transition:background var(--transition),backdrop-filter var(--transition),border-color var(--transition)}.nav.scrolled{background:rgba(15,13,19,0.85);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);border-bottom:1px solid var(--border)}.nav__inner{display:flex;align-items:center;justify-content:space-between}.nav__logo{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-size:20px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--text-primary)}.nav__logo img{width:30px;height:30px;border-radius:8px}.nav__links{display:flex;align-items:center;gap:32px;list-style:none}.nav__links a{font-size:14px;font-weight:500;color:var(--text-secondary);transition:color var(--transition);letter-spacing:0.01em}.nav__links a:hover{color:var(--text-primary)}.nav__cta{display:flex;align-items:center;gap:8px}.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all var(--transition);text-decoration:none;white-space:nowrap}.btn--primary{background:var(--violet);color:#fff;box-shadow:0 0 20px var(--violet-glow),0 2px 8px rgba(0,0,0,0.4)}.btn--primary:hover{background:var(--violet-bright);box-shadow:0 0 32px rgba(124,58,237,0.45),0 4px 16px rgba(0,0,0,0.5);transform:translateY(-1px)}.btn--ghost{background:transparent;color:var(--text-secondary);border:1px solid var(--border)}.btn--ghost:hover{border-color:rgba(255,255,255,0.15);color:var(--text-primary);background:rgba(255,255,255,0.04)}.btn--large{padding:14px 28px;font-size:15px;border-radius:var(--radius-md)}.btn svg{width:18px;height:18px;flex-shrink:0}.btn--large svg{width:20px;height:20px}.hero{position:relative;min-height:100svh;display:flex;align-items:center;padding:120px 0 80px;overflow:hidden}.hero__inner{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}.hero__content{position:relative;z-index:2}.hero__badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px 6px 8px;background:var(--violet-dim);border:1px solid var(--border-accent);border-radius:100px;font-size:12px;font-weight:500;color:var(--violet-bright);letter-spacing:0.04em;text-transform:uppercase;margin-bottom:28px;animation:fade-up 0.6s ease both}.hero__badge-dot{width:6px;height:6px;border-radius:50%;background:var(--violet-bright);box-shadow:0 0 8px var(--violet-bright);animation:pulse-dot 2s ease-in-out infinite}@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(0.8)}}.hero__title{font-family:var(--font-display);font-size:clamp(48px,6vw,80px);font-weight:700;line-height:1.0;letter-spacing:-0.01em;text-transform:uppercase;margin-bottom:24px;animation:fade-up 0.6s 0.1s ease both}.hero__title-accent{color:transparent;background:linear-gradient(135deg,var(--violet-bright) 0%,#C084FC 50%,#DB2777 100%);-webkit-background-clip:text;background-clip:text}.hero__desc{font-size:17px;color:var(--text-secondary);line-height:1.7;max-width:480px;margin-bottom:40px;animation:fade-up 0.6s 0.2s ease both}.hero__actions{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:48px;animation:fade-up 0.6s 0.3s ease both}.hero__meta{display:flex;align-items:center;gap:20px;animation:fade-up 0.6s 0.4s ease both}.hero__meta-item{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-muted)}.hero__meta-item svg{width:14px;height:14px;color:var(--text-muted)}.hero__meta-sep{width:1px;height:14px;background:var(--border)}.hero__visual{position:relative;z-index:2;display:flex;justify-content:center;align-items:center}.phone-glow{position:absolute;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,0.4) 0%,transparent 70%);filter:blur(60px);animation:glow-pulse 4s ease-in-out infinite alternate;pointer-events:none}@keyframes glow-pulse{0%{opacity:0.6;transform:scale(1)}100%{opacity:1;transform:scale(1.15)}}.phone-mockup{position:relative;width:280px;animation:fade-up 0.8s 0.15s ease both,float 6s ease-in-out infinite}@keyframes float{0%,100%{transform:translateY(0px)}50%{transform:translateY(-12px)}}.phone-mockup__frame{position:relative;border-radius:44px;background:var(--surface-raised);border:1.5px solid rgba(255,255,255,0.12);box-shadow:0 0 0 1px rgba(0,0,0,0.5),0 40px 80px rgba(0,0,0,0.7),0 0 60px rgba(124,58,237,0.2),inset 0 1px 0 rgba(255,255,255,0.08);overflow:hidden;aspect-ratio:1080/2424}.phone-mockup__screen{width:100%;height:100%;object-fit:fill;display:block}.phone-mockup::before,.phone-mockup::after{content:'';position:absolute;background:rgba(255,255,255,0.08);border-radius:3px}.phone-mockup::before{width:3px;height:60px;left:-4px;top:100px;box-shadow:0 40px 0 rgba(255,255,255,0.08)}.phone-mockup::after{width:3px;height:80px;right:-4px;top:110px}@keyframes fade-up{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}.section-label{display:inline-flex;align-items:center;gap:10px;font-size:12px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--violet-bright);margin-bottom:20px}.section-label::before{content:'';width:24px;height:1px;background:var(--violet);display:block}.section-title{font-family:var(--font-display);font-size:clamp(32px,4vw,52px);font-weight:700;line-height:1.05;text-transform:uppercase;letter-spacing:-0.01em;margin-bottom:16px}.section-subtitle{font-size:16px;color:var(--text-secondary);line-height:1.7;max-width:520px}.providers{padding:40px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);position:relative;z-index:2}.providers__label{text-align:center;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:28px}.providers__logos{display:flex;align-items:center;justify-content:center;gap:48px;flex-wrap:wrap}.provider-chip{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:500;color:var(--text-secondary);transition:color var(--transition)}.provider-chip:hover{color:var(--text-primary)}.provider-chip svg{width:24px;height:24px;flex-shrink:0}.features__header{margin-bottom:56px}.features-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}.feature-card{background:var(--surface);padding:32px 28px;transition:background var(--transition);position:relative;overflow:hidden}.feature-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,var(--violet-dim) 0%,transparent 60%);opacity:0;transition:opacity var(--transition)}.feature-card:hover{background:var(--surface-raised)}.feature-card:hover::before{opacity:1}.feature-card__icon{width:44px;height:44px;border-radius:var(--radius-sm);background:var(--violet-dim);border:1px solid var(--border-accent);display:flex;align-items:center;justify-content:center;margin-bottom:20px;transition:all var(--transition)}.feature-card:hover .feature-card__icon{background:rgba(124,58,237,0.2);box-shadow:0 0 16px var(--violet-glow)}.feature-card__icon svg{width:22px;height:22px;color:var(--violet-bright)}.feature-card__title{font-family:var(--font-display);font-size:16px;font-weight:600;letter-spacing:0.03em;text-transform:uppercase;margin-bottom:10px;color:var(--text-primary)}.feature-card__desc{font-size:13.5px;color:var(--text-secondary);line-height:1.65}.gallery{position:relative;z-index:2}.gallery__header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:48px;gap:24px;flex-wrap:wrap}.gallery__track{display:flex;gap:24px;overflow-x:auto;overflow-y:visible;padding:16px 24px 24px;margin:0 -24px;scroll-snap-type:x mandatory;scrollbar-width:none;-ms-overflow-style:none;cursor:grab}.gallery__track::-webkit-scrollbar{display:none}.gallery__track:active{cursor:grabbing}.gallery__item{flex-shrink:0;scroll-snap-align:start;width:220px;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border);transition:all 0.35s ease;box-shadow:0 20px 60px rgba(0,0,0,0.4)}.gallery__item:hover{transform:translateY(-8px) scale(1.02);border-color:var(--border-accent);box-shadow:0 30px 80px rgba(0,0,0,0.5),0 0 30px var(--violet-glow)}.gallery__item img{width:100%;height:auto;display:block}.gallery__label{background:var(--surface-raised);padding:12px 16px;font-size:12px;font-weight:500;color:var(--text-secondary);letter-spacing:0.03em;border-top:1px solid var(--border)}.open-source{position:relative;z-index:2}.oss-card{background:var(--surface-raised);border:1px solid var(--border-accent);border-radius:var(--radius-xl);padding:64px;display:grid;grid-template-columns:1fr auto;gap:48px;align-items:center;position:relative;overflow:hidden}.oss-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(124,58,237,0.12) 0%,transparent 60%);pointer-events:none}.oss-card__badges{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:100px;font-size:12px;font-weight:500;letter-spacing:0.04em}.badge--violet{background:var(--violet-dim);border:1px solid var(--border-accent);color:var(--violet-bright)}.badge--green{background:rgba(5,150,105,0.12);border:1px solid rgba(5,150,105,0.3);color:#34D399}.badge--blue{background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.3);color:#60A5FA}.oss-card__visual{flex-shrink:0}.oss-stat-grid{display:grid;gap:16px}.oss-stat{background:var(--surface-float);border:1px solid var(--border);border-radius:var(--radius-md);padding:20px 24px;text-align:center;min-width:140px}.oss-stat__value{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--violet-bright);letter-spacing:0.02em}.oss-stat__label{font-size:12px;color:var(--text-muted);margin-top:4px;letter-spacing:0.04em;text-transform:uppercase}.cta-section{position:relative;z-index:2;text-align:center}.cta-card{background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius-xl);padding:80px 48px;position:relative;overflow:hidden}.cta-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(124,58,237,0.18) 0%,transparent 60%);pointer-events:none}.cta-card__line{width:1px;height:80px;background:linear-gradient(to bottom,transparent,var(--violet),transparent);margin:0 auto 40px}.cta-card__title{font-family:var(--font-display);font-size:clamp(32px,4vw,52px);font-weight:700;text-transform:uppercase;letter-spacing:-0.01em;margin-bottom:16px}.cta-card__desc{font-size:16px;color:var(--text-secondary);margin-bottom:40px;max-width:440px;margin-left:auto;margin-right:auto}.cta-card__actions{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}.footer{background:var(--void);border-top:1px solid var(--border);position:relative;z-index:2;padding:64px 0 0}.footer__body{display:grid;grid-template-columns:2fr 1fr 1fr;gap:48px;padding-bottom:48px}.footer__brand-logo{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-size:20px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--text-primary);margin-bottom:14px}.footer__brand-logo img{width:28px;height:28px;border-radius:7px}.footer__tagline{font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:16px;max-width:280px}.footer__mit{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:var(--violet-dim);border:1px solid var(--border-accent);border-radius:100px;font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:var(--violet-bright)}.footer__col-label{font-family:var(--font-display);font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px}.footer__col-links{list-style:none;display:flex;flex-direction:column;gap:10px}.footer__col-links a{font-family:var(--font-body);font-size:14px;color:var(--text-secondary);transition:color var(--transition);display:inline-flex;align-items:center;gap:6px}.footer__col-links a:hover{color:var(--text-primary)}.footer__col-links a svg{width:12px;height:12px;opacity:0.5;flex-shrink:0}.footer__bottom{border-top:1px solid var(--border);padding:20px 0}.footer__bottom-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.footer__copy{font-size:13px;color:var(--text-muted)}.footer__built{font-size:13px;color:var(--text-muted)}@media (max-width:900px){.footer__body{grid-template-columns:1fr 1fr;gap:40px}.footer__brand{grid-column:1 / -1}}@media (max-width:600px){.footer{padding-top:48px}.footer__body{grid-template-columns:1fr;gap:32px}.footer__brand{grid-column:auto}.footer__bottom-inner{flex-direction:column;text-align:center;gap:8px}}.reveal{opacity:0;transform:translateY(32px);transition:opacity 0.7s ease,transform 0.7s ease}.reveal.visible{opacity:1;transform:translateY(0)}.reveal--delay-1{transition-delay:0.1s}.reveal--delay-2{transition-delay:0.2s}.reveal--delay-3{transition-delay:0.3s}.reveal--delay-4{transition-delay:0.4s}@media (max-width:900px){.hero__inner{grid-template-columns:1fr;gap:48px;text-align:center}.hero__desc{margin:0 auto 40px}.hero__actions{justify-content:center}.hero__meta{justify-content:center}.hero__visual{order:-1}.phone-mockup{width:220px}.features-grid{grid-template-columns:repeat(2,1fr)}.oss-card{grid-template-columns:1fr;padding:40px 32px}.oss-stat-grid{grid-template-columns:repeat(2,1fr)}}@media (max-width:600px){.section{padding:64px 0}.features-grid{grid-template-columns:1fr}.nav__links{display:none}.cta-card{padding:48px 24px}.footer__bottom-inner{flex-direction:column;text-align:center;gap:8px}.providers__logos{gap:28px}.oss-stat-grid{grid-template-columns:1fr}}.accent-dots{display:flex;align-items:center;gap:8px;margin-top:16px}.accent-dot{width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.15);transition:transform 0.2s ease,box-shadow 0.2s ease;cursor:pointer}.accent-dot:hover{transform:scale(1.3)}.accent-dot--active{box-shadow:0 0 0 2px rgba(255,255,255,0.3)}.waveform{display:flex;align-items:center;gap:3px;height:32px}.waveform__bar{width:3px;background:var(--violet-bright);border-radius:100px;opacity:0.6;animation:wave-bar 1.2s ease-in-out infinite alternate}.waveform__bar:nth-child(1){height:30%;animation-delay:0s}.waveform__bar:nth-child(2){height:65%;animation-delay:0.15s}.waveform__bar:nth-child(3){height:100%;animation-delay:0.3s}.waveform__bar:nth-child(4){height:70%;animation-delay:0.45s}.waveform__bar:nth-child(5){height:45%;animation-delay:0.6s}.waveform__bar:nth-child(6){height:85%;animation-delay:0.75s}.waveform__bar:nth-child(7){height:55%;animation-delay:0.9s}.waveform__bar:nth-child(8){height:40%;animation-delay:1.05s}@keyframes wave-bar{from{opacity:0.3;transform:scaleY(0.6)}to{opacity:0.9;transform:scaleY(1)}}.divider{border:none;height:1px;background:var(--border);margin:0}.skip-link{position:absolute;top:-40px;left:0;background:#7C3AED;color:#fff;padding:8px 16px;text-decoration:none;font-size:14px;z-index:9999;border-radius:0 0 4px 0}.skip-link:focus{top:0}</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<!-- ANIMATED BACKGROUND ORBS -->
+<div class="gradient-bg" aria-hidden="true">
+  <div class="gradient-orb gradient-orb--1"></div>
+  <div class="gradient-orb gradient-orb--2"></div>
+  <div class="gradient-orb gradient-orb--3"></div>
+</div>
+
+<!-- NAVIGATION -->
+<nav class="nav" id="nav">
+  <div class="container">
+    <div class="nav__inner">
+      <a href="#" class="nav__logo">
+        <img src="images/icon.png" alt="Aria icon" width="256" height="256" />
+        Aria
+      </a>
+      <ul class="nav__links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#screenshots">Screenshots</a></li>
+        <li><a href="#open-source">Open Source</a></li>
+        <li><a href="#download">Download</a></li>
+      </ul>
+      <div class="nav__cta">
+        <a href="https://github.com/carlelieser/aria" target="_blank" rel="noopener" class="btn btn--ghost">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.483 0-.237-.009-.868-.013-1.703-2.782.605-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.026A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.337 1.909-1.295 2.747-1.026 2.747-1.026.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.744 0 .268.18.58.688.481A10.003 10.003 0 0022 12c0-5.523-4.477-10-10-10z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main id="main-content">
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="container">
+    <div class="hero__inner">
+      <div class="hero__content">
+        <div class="hero__badge">
+          <span class="hero__badge-dot"></span>
+          v0.8.0-beta &nbsp;·&nbsp; Free &amp; Open Source
+        </div>
+
+        <h1 class="hero__title">
+          Music,<br />
+          <span class="hero__title-accent">Without</span><br />
+          Limits
+        </h1>
+
+        <p class="hero__desc">
+          Aria is a free, open-source, and extensible music player.
+          Stream from YouTube Music, Spotify, and your local library —
+          all in one beautifully crafted app.
+        </p>
+
+        <div class="hero__actions">
+          <a href="https://github.com/carlelieser/aria/releases" target="_blank" rel="noopener" class="btn btn--primary btn--large">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            Download Aria
+          </a>
+          <a href="https://github.com/carlelieser/aria" target="_blank" rel="noopener" class="btn btn--ghost btn--large">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.483 0-.237-.009-.868-.013-1.703-2.782.605-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.026A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.337 1.909-1.295 2.747-1.026 2.747-1.026.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.744 0 .268.18.58.688.481A10.003 10.003 0 0022 12c0-5.523-4.477-10-10-10z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+
+        <div class="hero__meta">
+          <div class="hero__meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            MIT License
+          </div>
+          <div class="hero__meta-sep"></div>
+          <div class="hero__meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Privacy First
+          </div>
+          <div class="hero__meta-sep"></div>
+          <div class="hero__meta-item">
+            <!-- android + ios icon -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18" stroke-linecap="round" stroke-width="2.5"/></svg>
+            Android &amp; iOS
+          </div>
+        </div>
+      </div>
+
+      <!-- PHONE MOCKUP -->
+      <div class="hero__visual">
+        <div class="phone-glow"></div>
+        <div class="phone-mockup">
+          <div class="phone-mockup__frame">
+            <img
+              src="screenshots/ss_player.png"
+              alt="Aria player screen"
+              class="phone-mockup__screen"
+              width="1080"
+              height="2424"
+              loading="eager"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROVIDERS STRIP -->
+<div class="providers">
+  <div class="container">
+    <p class="providers__label">Supported providers</p>
+    <div class="providers__logos">
+      <!-- YouTube Music -->
+      <div class="provider-chip">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.376 0 0 5.376 0 12s5.376 12 12 12 12-5.376 12-12S18.624 0 12 0zm0 19.104c-3.924 0-7.104-3.18-7.104-7.104S8.076 4.896 12 4.896s7.104 3.18 7.104 7.104-3.18 7.104-7.104 7.104zm0-13.332c-3.432 0-6.228 2.796-6.228 6.228S8.568 18.228 12 18.228s6.228-2.796 6.228-6.228S15.432 5.772 12 5.772zM9.684 15.54V8.46L15.816 12l-6.132 3.54z" fill="#FF0000"/></svg>
+        YouTube Music
+      </div>
+      <!-- Spotify -->
+      <div class="provider-chip">
+        <svg viewBox="0 0 24 24" fill="#1DB954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+        Spotify
+      </div>
+      <!-- Local Files -->
+      <div class="provider-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 15v4c0 1.1.9 2 2 2h14a2 2 0 002-2v-4M17 9l-5 5-5-5M12 12.8V2.5"/>
+        </svg>
+        Local Files
+      </div>
+      <!-- SoundCloud -->
+      <div class="provider-chip" style="opacity:0.45;">
+        <svg viewBox="0 0 24 24" fill="#FF5500"><path d="M11.56 8.87V17h8.76c.62-.01 1.68-.56 1.68-1.94 0-1.38-1.12-2.04-1.82-2.1-.21-2.14-1.63-2.83-2.34-2.83-.26 0-.46.07-.65.18-.54-1.33-1.62-2.14-2.9-2.14-.28 0-.57.05-.73.1V8.87zM0 15.27c0 .96.78 1.73 1.73 1.73.96 0 1.73-.78 1.73-1.73V10.7c0-.96-.77-1.73-1.73-1.73-.95 0-1.73.77-1.73 1.73v4.57zm4.03 1.17c0 .96.78 1.73 1.73 1.73.96 0 1.73-.78 1.73-1.73V9c0-.96-.77-1.73-1.73-1.73-.95 0-1.73.77-1.73 1.73v7.44zm3.49.33c0 .96.78 1.73 1.73 1.73.96 0 1.73-.78 1.73-1.73V9.7c0-.96-.77-1.73-1.73-1.73-.95 0-1.73.77-1.73 1.73v6.07z"/></svg>
+        SoundCloud <span style="font-size:12px;color:var(--text-muted);margin-left:4px;">(soon)</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="container">
+    <div class="features__header reveal">
+      <div class="section-label">What's inside</div>
+      <h2 class="section-title">Everything a<br />music player needs</h2>
+      <p class="section-subtitle">A carefully considered feature set built around how people actually listen to music.</p>
+    </div>
+
+    <div class="features-grid">
+      <!-- Plugin Architecture -->
+      <div class="feature-card reveal">
+        <div class="feature-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6L6 18M6 6l12 12M14 5l5 5-5 5M10 19l-5-5 5-5"/>
+          </svg>
+        </div>
+        <h3 class="feature-card__title">Plugin Architecture</h3>
+        <p class="feature-card__desc">Extend Aria with first-class provider plugins. YouTube Music, Spotify, and local files out of the box.</p>
+      </div>
+
+      <!-- Material Design 3 -->
+      <div class="feature-card reveal reveal--delay-1">
+        <div class="feature-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="10" stroke-opacity="0.3"/>
+            <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
+          </svg>
+        </div>
+        <h3 class="feature-card__title">Material You</h3>
+        <p class="feature-card__desc">Adaptive theming powered by Material Design 3 — accent colors, light/dark modes, and dynamic wallpaper color on Android 12+.</p>
+        <div class="accent-dots" style="margin-top:20px;">
+          <div class="accent-dot accent-dot--active" style="background:#7C3AED;" title="Violet"></div>
+          <div class="accent-dot" style="background:#2563EB;" title="Blue"></div>
+          <div class="accent-dot" style="background:#0891B2;" title="Cyan"></div>
+          <div class="accent-dot" style="background:#059669;" title="Emerald"></div>
+          <div class="accent-dot" style="background:#DB2777;" title="Pink"></div>
+        </div>
+      </div>
+
+      <!-- Synced Lyrics -->
+      <div class="feature-card reveal reveal--delay-2">
+        <div class="feature-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+          </svg>
+        </div>
+        <h3 class="feature-card__title">Synced Lyrics</h3>
+        <p class="feature-card__desc">Follow along line-by-line with time-synced lyrics. Falls back to plain text when timing isn't available.</p>
+      </div>
+
+      <!-- Offline Downloads -->
+      <div class="feature-card reveal reveal--delay-3">
+        <div class="feature-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+          </svg>
+        </div>
+        <h3 class="feature-card__title">Offline Downloads</h3>
+        <p class="feature-card__desc">Download tracks and listen anywhere. Queue management and storage tracking built in.</p>
+      </div>
+
+      <!-- 10-Band Equalizer -->
+      <div class="feature-card reveal">
+        <div class="feature-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
+            <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
+            <line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/>
+            <line x1="17" y1="16" x2="23" y2="16"/>
+          </svg>
+        </div>
+        <h3 class="feature-card__title">10-Band Equalizer</h3>
+        <p class="feature-card__desc">Fine-tune your sound with a full 10-band EQ. Choose from Flat, Bass Boost, or Treble Boost presets.</p>
+      </div>
+
+      <!-- Library Management -->
+      <div class="feature-card reveal reveal--delay-1">
+        <div class="feature-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2v-4M9 21H5a2 2 0 01-2-2v-4m0 0h18"/>
+          </svg>
+        </div>
+        <h3 class="feature-card__title">Library Management</h3>
+        <p class="feature-card__desc">Organize your entire collection. Browse by songs, albums, artists, and playlists in one cohesive library.</p>
+      </div>
+
+      <!-- Sleep Timer -->
+      <div class="feature-card reveal reveal--delay-2">
+        <div class="feature-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+          </svg>
+        </div>
+        <h3 class="feature-card__title">Sleep Timer</h3>
+        <p class="feature-card__desc">Fall asleep to music. Set presets, custom durations, or auto-stop at the end of the current track.</p>
+      </div>
+
+      <!-- Queue Management -->
+      <div class="feature-card reveal reveal--delay-3">
+        <div class="feature-card__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+            <line x1="8" y1="18" x2="21" y2="18"/>
+            <line x1="3" y1="6" x2="3.01" y2="6" stroke-linecap="round"/>
+            <line x1="3" y1="12" x2="3.01" y2="12" stroke-linecap="round"/>
+            <line x1="3" y1="18" x2="3.01" y2="18" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3 class="feature-card__title">Queue Management</h3>
+        <p class="feature-card__desc">Take control of what plays next. Reorder tracks, shuffle, and set repeat modes on the fly.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- SCREENSHOTS -->
+<section class="section gallery" id="screenshots">
+  <div class="container">
+    <div class="gallery__header reveal">
+      <div>
+        <div class="section-label">In the wild</div>
+        <h2 class="section-title">See it in action</h2>
+      </div>
+      <div class="waveform" aria-hidden="true">
+        <div class="waveform__bar"></div>
+        <div class="waveform__bar"></div>
+        <div class="waveform__bar"></div>
+        <div class="waveform__bar"></div>
+        <div class="waveform__bar"></div>
+        <div class="waveform__bar"></div>
+        <div class="waveform__bar"></div>
+        <div class="waveform__bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="gallery__track" id="galleryTrack">
+      <div class="gallery__item">
+        <picture>
+          <source srcset="screenshots/ss_feed.webp" type="image/webp" />
+          <img src="screenshots/ss_feed.png" alt="Feed screen" width="1080" height="2424" />
+        </picture>
+        <div class="gallery__label">Feed</div>
+      </div>
+      <div class="gallery__item">
+        <img src="screenshots/ss_player.png" alt="Music player screen" width="1080" height="2424" loading="lazy" />
+        <div class="gallery__label">Player</div>
+      </div>
+      <div class="gallery__item">
+        <img src="screenshots/ss_library.png" alt="Library screen" width="1080" height="2424" loading="lazy" />
+        <div class="gallery__label">Library</div>
+      </div>
+      <div class="gallery__item">
+        <img src="screenshots/ss_album.png" alt="Album detail screen" width="1080" height="2424" loading="lazy" />
+        <div class="gallery__label">Album Detail</div>
+      </div>
+      <div class="gallery__item">
+        <img src="screenshots/ss_downloads.png" alt="Downloads screen" width="1080" height="2424" loading="lazy" />
+        <div class="gallery__label">Downloads</div>
+      </div>
+      <div class="gallery__item">
+        <picture>
+          <source srcset="screenshots/ss_feed2.webp" type="image/webp" />
+          <img src="screenshots/ss_feed2.png" alt="Feed with mini player" width="1080" height="2424" loading="lazy" />
+        </picture>
+        <div class="gallery__label">Feed</div>
+      </div>
+      <div class="gallery__item">
+        <img src="screenshots/ss_search.png" alt="Search screen" width="1080" height="2424" loading="lazy" />
+        <div class="gallery__label">Search</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- OPEN SOURCE -->
+<section class="section open-source" id="open-source">
+  <div class="container">
+    <div class="oss-card reveal">
+      <div>
+        <div class="section-label">Community</div>
+        <h2 class="section-title">Open Source,<br />Always Free</h2>
+        <p class="section-subtitle" style="margin-top:16px;">
+          Aria is MIT-licensed and built entirely in the open. Every line of code is yours to read, fork, and build upon.
+          No subscriptions. No tracking. No paywalls.
+        </p>
+        <div class="oss-card__badges">
+          <span class="badge badge--violet">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.483 0-.237-.009-.868-.013-1.703-2.782.605-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.026A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.337 1.909-1.295 2.747-1.026 2.747-1.026.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.744 0 .268.18.58.688.481A10.003 10.003 0 0022 12c0-5.523-4.477-10-10-10z"/></svg>
+            Open Source
+          </span>
+          <span class="badge badge--green">MIT License</span>
+          <span class="badge badge--blue">React Native + Expo</span>
+          <span class="badge badge--violet">Material Design 3</span>
+        </div>
+
+        <div style="margin-top:36px;">
+          <a href="https://github.com/carlelieser/aria" target="_blank" rel="noopener" class="btn btn--primary btn--large">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.483 0-.237-.009-.868-.013-1.703-2.782.605-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.026A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.337 1.909-1.295 2.747-1.026 2.747-1.026.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.744 0 .268.18.58.688.481A10.003 10.003 0 0022 12c0-5.523-4.477-10-10-10z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
+
+      <div class="oss-card__visual">
+        <div class="oss-stat-grid">
+          <div class="oss-stat">
+            <div class="oss-stat__value">MIT</div>
+            <div class="oss-stat__label">License</div>
+          </div>
+          <div class="oss-stat">
+            <div class="oss-stat__value">0.8</div>
+            <div class="oss-stat__label">Beta</div>
+          </div>
+          <div class="oss-stat">
+            <div class="oss-stat__value">3+</div>
+            <div class="oss-stat__label">Providers</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- CTA / DOWNLOAD -->
+<section class="section cta-section" id="download">
+  <div class="container">
+    <div class="cta-card reveal">
+      <div class="cta-card__line"></div>
+      <h2 class="cta-card__title">Start Listening</h2>
+      <p class="cta-card__desc">Download Aria for Android or iOS — free, forever. Or build it yourself from source.</p>
+      <div class="cta-card__actions">
+        <a href="https://github.com/carlelieser/aria/releases" target="_blank" rel="noopener" class="btn btn--primary btn--large">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+          </svg>
+          Download Latest
+        </a>
+        <a href="https://github.com/carlelieser/aria" target="_blank" rel="noopener" class="btn btn--ghost btn--large">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.483 0-.237-.009-.868-.013-1.703-2.782.605-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.026A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.337 1.909-1.295 2.747-1.026 2.747-1.026.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.744 0 .268.18.58.688.481A10.003 10.003 0 0022 12c0-5.523-4.477-10-10-10z"/></svg>
+          View Source
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__body">
+
+      <!-- Column 1: Brand -->
+      <div class="footer__brand">
+        <div class="footer__brand-logo">
+          <img src="images/icon.png" alt="Aria" width="256" height="256" loading="lazy" />
+          Aria
+        </div>
+        <p class="footer__tagline">Free, open-source music player</p>
+        <a href="https://github.com/carlelieser/aria/releases" target="_blank" rel="noopener" class="btn btn--primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download Aria
+        </a>
+      </div>
+
+      <!-- Column 2: Resources -->
+      <div>
+        <p class="footer__col-label">Resources</p>
+        <ul class="footer__col-links">
+          <li>
+            <a href="https://github.com/carlelieser/aria" target="_blank" rel="noopener">
+              GitHub
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            </a>
+          </li>
+          <li>
+            <a href="https://github.com/carlelieser/aria/releases" target="_blank" rel="noopener">
+              Releases
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            </a>
+          </li>
+          <li>
+            <a href="https://github.com/carlelieser/aria/issues" target="_blank" rel="noopener">
+              Issues
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Column 3: Legal -->
+      <div>
+        <p class="footer__col-label">Legal</p>
+        <ul class="footer__col-links">
+          <li>
+            <a href="privacy.html">Privacy Policy</a>
+          </li>
+          <li>
+            <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener">
+              MIT License
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="footer__bottom">
+      <div class="footer__bottom-inner">
+        <p class="footer__copy">&copy; 2026 Carlos Santos</p>
+        <p class="footer__built">Built with React Native &amp; Expo</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- SCRIPT -->
+<script>
+  // Sticky nav on scroll
+  const nav = document.getElementById('nav');
+  const onScroll = () => {
+    if (window.scrollY > 24) nav.classList.add('scrolled');
+    else nav.classList.remove('scrolled');
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  reveals.forEach(el => observer.observe(el));
+
+  // Drag-to-scroll gallery
+  const track = document.getElementById('galleryTrack');
+  let isDragging = false, startX, scrollLeft;
+  track.addEventListener('mousedown', e => {
+    isDragging = true;
+    startX = e.pageX - track.offsetLeft;
+    scrollLeft = track.scrollLeft;
+    track.style.cursor = 'grabbing';
+  });
+  track.addEventListener('mouseleave', () => { isDragging = false; track.style.cursor = 'grab'; });
+  track.addEventListener('mouseup', () => { isDragging = false; track.style.cursor = 'grab'; });
+  track.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - track.offsetLeft;
+    track.scrollLeft = scrollLeft - (x - startX) * 1.5;
+  });
+</script>
+
+</body>
+</html>

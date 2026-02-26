@@ -67,6 +67,8 @@ modules/*/ios/build/
 # Claude Code
 .ai/
 .claude/
+.agents/
+skills-lock.json
 
 # Ruby/Fastlane
 Gemfile.lock
