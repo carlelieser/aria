@@ -45,7 +45,6 @@
 					}
 				}
 			],
-			"./plugins/withTrackPlayer",
 			[
 				"expo-video",
 				{
