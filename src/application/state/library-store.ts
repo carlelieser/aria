@@ -265,6 +265,8 @@ export const useLibraryStore = create<LibraryState>()(
 			storage: createJSONStorage(() => customStorage),
 
 			partialize: (state) => ({
+				tracks: state.tracks,
+				playlists: state.playlists,
 				favorites: Array.from(state.favorites),
 				lastSyncedAt: state.lastSyncedAt,
 			}),
