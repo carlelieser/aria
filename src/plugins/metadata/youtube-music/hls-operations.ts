@@ -88,8 +88,12 @@ export async function rewriteHlsManifest(
 		() => {}
 	);
 
-	const ok = await generateHlsManifest(segmentUrls, segmentDurations, manifestPath);
-	return ok ? manifestPath : null;
+	const success = await generateHlsManifest(segmentUrls, segmentDurations, manifestPath);
+	if (success) {
+		const metaPath = `${getTempDirectory(videoId)}manifest.meta`;
+		await FileSystem.writeAsStringAsync(metaPath, String(Date.now())).catch(() => {});
+	}
+	return success ? manifestPath : null;
 }
 
 export interface HlsDownloadResult {

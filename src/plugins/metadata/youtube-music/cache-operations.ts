@@ -5,6 +5,8 @@ const logger = getLogger('YouTubeMusic:Cache');
 
 export const CACHE_DIR = 'audio/';
 
+const HLS_MANIFEST_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours
+
 const CACHED_EXTENSIONS = ['m4a', 'ts', 'webm', 'ogg'] as const;
 
 export interface CachedFile {
@@ -17,10 +19,28 @@ export async function checkCache(videoId: string): Promise<CachedFile | null> {
 
 	// Check for local HLS manifest (TS-based downloads with segment directory)
 	const manifestPath = getTempDirectory(videoId) + 'playlist.m3u8';
+	const metaPath = getTempDirectory(videoId) + 'manifest.meta';
 	const manifestInfo = await FileSystem.getInfoAsync(manifestPath);
 	if (manifestInfo.exists) {
-		logger.debug(`Using cached HLS manifest: ${manifestPath}`);
-		return { path: manifestPath, format: 'm3u8' };
+		let expired = false;
+		try {
+			const metaContent = await FileSystem.readAsStringAsync(metaPath);
+			const writtenAt = parseInt(metaContent, 10);
+			if (!Number.isFinite(writtenAt) || Date.now() - writtenAt > HLS_MANIFEST_TTL_MS) {
+				expired = true;
+			}
+		} catch {
+			// No meta file — treat as expired
+			expired = true;
+		}
+
+		if (expired) {
+			logger.debug(`HLS manifest expired, evicting: ${manifestPath}`);
+			await FileSystem.deleteAsync(getTempDirectory(videoId), { idempotent: true });
+		} else {
+			logger.debug(`Using cached HLS manifest: ${manifestPath}`);
+			return { path: manifestPath, format: 'm3u8' };
+		}
 	}
 
 	for (const ext of CACHED_EXTENSIONS) {

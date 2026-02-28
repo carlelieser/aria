@@ -406,7 +406,8 @@ export class PlaybackService {
 
 	private async _tryProvider(
 		provider: AudioSourceProvider,
-		track: Track
+		track: Track,
+		allowRetry = true
 	): Promise<Result<AudioStream, Error> | null> {
 		logger.debug('Found supporting provider:', provider.manifest.id);
 		const result = await provider.getStreamUrl(track);
@@ -416,6 +417,13 @@ export class PlaybackService {
 			return ok(result.data);
 		}
 		logger.debug('getStreamUrl failed:', result.error);
+
+		if (allowRetry && provider.onStreamError) {
+			logger.debug('Triggering onStreamError and retrying silently');
+			await provider.onStreamError();
+			return this._tryProvider(provider, track, false);
+		}
+
 		return null;
 	}
 
