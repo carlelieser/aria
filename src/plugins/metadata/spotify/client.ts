@@ -1,7 +1,10 @@
 import type { Result } from '@shared/types/result';
 import { ok, err } from '@shared/types/result';
+import { getLogger } from '@shared/services/logger';
 import { SpotifyAuthManager } from './auth';
 import { SPOTIFY_API_BASE_URL } from './config';
+
+const logger = getLogger('Spotify:Client');
 import type {
 	SpotifyErrorResponse,
 	SpotifySearchResponse,
@@ -90,8 +93,19 @@ export class SpotifyClient {
 			}
 
 			if (!response.ok) {
-				const errorData: SpotifyErrorResponse = await response.json();
-				return err(new Error(errorData.error?.message || `API error: ${response.status}`));
+				const bodyText = await response.text();
+				let errorMessage = `API error: ${response.status}`;
+				try {
+					const errorData: SpotifyErrorResponse = JSON.parse(bodyText);
+					errorMessage = errorData.error?.message || errorMessage;
+				} catch {
+					// Response was not JSON — log the raw body so we can diagnose it
+					logger.error(
+						`Spotify API ${response.status} non-JSON response: ${bodyText.slice(0, 500)}`
+					);
+					errorMessage = `API error: ${response.status} — ${bodyText.slice(0, 200)}`;
+				}
+				return err(new Error(errorMessage));
 			}
 
 			if (response.status === 204) {
