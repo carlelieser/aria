@@ -12,6 +12,7 @@ import {
 	useAnimatedReaction,
 	withTiming,
 	withDelay,
+	withRepeat,
 	Easing,
 	runOnJS,
 	interpolate,
@@ -48,11 +49,10 @@ export function useDismissAnimation(isReady: boolean, onAnimationComplete?: () =
 
 export function useDismissReaction(
 	bootstrapDone: { value: boolean },
-	progressWidth: { value: number },
 	setDismissReady: (ready: boolean) => void
 ) {
 	useAnimatedReaction(
-		() => bootstrapDone.value && progressWidth.value >= 0.99,
+		() => bootstrapDone.value,
 		(ready, prev) => {
 			if (ready && !prev) {
 				runOnJS(setDismissReady)(true);
@@ -113,14 +113,31 @@ export function useNativeDismissReaction(
 	);
 }
 
+// Width of the indeterminate indicator — ~40% of the track
+const INDETERMINATE_FILL_WIDTH = PROGRESS_BAR_WIDTH * 0.4;
+
 export function useAnimatedStyles(
 	translateY: { value: number },
 	opacity: { value: number },
 	polygonScale: { value: number },
 	polygonRotation: { value: number },
-	screenHeight: number,
-	progressWidth: { value: number }
+	screenHeight: number
 ) {
+	// Slides from -fill_width to PROGRESS_BAR_WIDTH, then repeats
+	const indeterminateX = useSharedValue(-INDETERMINATE_FILL_WIDTH);
+
+	useEffect(() => {
+		indeterminateX.value = withRepeat(
+			withTiming(PROGRESS_BAR_WIDTH, {
+				duration: 1000,
+				easing: Easing.inOut(Easing.ease),
+			}),
+			-1,
+			false
+		);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
 	const containerStyle = useAnimatedStyle(() => ({
 		transform: [{ translateY: translateY.value }],
 	}));
@@ -135,7 +152,8 @@ export function useAnimatedStyles(
 	}));
 
 	const progressFillStyle = useAnimatedStyle(() => ({
-		width: progressWidth.value * PROGRESS_BAR_WIDTH,
+		width: INDETERMINATE_FILL_WIDTH,
+		transform: [{ translateX: indeterminateX.value }],
 	}));
 
 	const progressSectionStyle = useAnimatedStyle(() => ({

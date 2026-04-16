@@ -14,7 +14,6 @@ import { styles } from './styles';
 interface SplashWebProps {
 	readonly dismissReady: boolean;
 	readonly screenHeight: number;
-	readonly progress: number;
 	readonly progressMessage: string;
 	readonly segments: number;
 	readonly colors: {
@@ -29,7 +28,6 @@ interface SplashWebProps {
 export function SplashWeb({
 	dismissReady,
 	screenHeight,
-	progress,
 	progressMessage,
 	segments,
 	colors,
@@ -86,7 +84,10 @@ export function SplashWeb({
 							styles.progressFill,
 							{
 								backgroundColor: colors.onSurface,
-								width: progress * PROGRESS_BAR_WIDTH,
+								width: PROGRESS_BAR_WIDTH * 0.4,
+								// @ts-expect-error - web-only CSS properties
+								animation: 'aria-indeterminate 1s ease-in-out infinite',
+								animationName: 'aria-indeterminate',
 							},
 						]}
 					/>

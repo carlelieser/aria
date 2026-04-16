@@ -14,11 +14,8 @@ import {
 	Easing,
 	runOnJS,
 } from 'react-native-reanimated';
-import {
-	useBootstrapProgress,
-	useBootstrapMessage,
-} from '@application/state/bootstrap-progress-store';
-import { MORPH_INTERVAL, ROTATION_DURATION, PROGRESS_TIMING_MS, getRandomSegments } from './types';
+import { useBootstrapMessage } from '@application/state/bootstrap-progress-store';
+import { MORPH_INTERVAL, ROTATION_DURATION, getRandomSegments } from './types';
 
 export function usePolygonMorph() {
 	const [segments, setSegments] = useState(3);
@@ -77,16 +74,6 @@ export function usePolygonRotation() {
 }
 
 export function useBootstrapProgressAnimation() {
-	const progress = useBootstrapProgress();
 	const progressMessage = useBootstrapMessage();
-	const progressWidth = useSharedValue(0);
-
-	useEffect(() => {
-		progressWidth.value = withTiming(progress, {
-			duration: PROGRESS_TIMING_MS,
-			easing: Easing.out(Easing.ease),
-		});
-	}, [progress, progressWidth]);
-
-	return { progress, progressMessage, progressWidth };
+	return { progressMessage };
 }

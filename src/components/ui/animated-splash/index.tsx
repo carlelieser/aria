@@ -30,11 +30,7 @@ export function AnimatedSplash({
 	const colors = isDark ? M3Colors.dark : M3Colors.light;
 	const { segments, polygonScale } = usePolygonMorph();
 	const polygonRotation = usePolygonRotation();
-	const {
-		progress,
-		progressMessage,
-		progressWidth: bootstrapProgressWidth,
-	} = useBootstrapProgressAnimation();
+	const { progressMessage } = useBootstrapProgressAnimation();
 
 	const {
 		screenHeight,
@@ -46,7 +42,7 @@ export function AnimatedSplash({
 		handleAnimationComplete,
 	} = useDismissAnimation(isReady, onAnimationComplete);
 
-	useDismissReaction(bootstrapDone, bootstrapProgressWidth, setDismissReady);
+	useDismissReaction(bootstrapDone, setDismissReady);
 	useDismissEffect(dismissReady, translateY, opacity, handleAnimationComplete, screenHeight);
 	useNativeDismissReaction(translateY, screenHeight, handleAnimationComplete);
 
@@ -56,8 +52,7 @@ export function AnimatedSplash({
 		opacity,
 		polygonScale,
 		polygonRotation,
-		screenHeight,
-		bootstrapProgressWidth
+		screenHeight
 	);
 
 	if (IS_WEB) {
@@ -65,7 +60,6 @@ export function AnimatedSplash({
 			<SplashWeb
 				dismissReady={dismissReady}
 				screenHeight={screenHeight}
-				progress={progress}
 				progressMessage={progressMessage}
 				segments={segments}
 				colors={colors}
