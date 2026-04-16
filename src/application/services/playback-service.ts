@@ -496,19 +496,83 @@ export class PlaybackService {
 		}
 	}
 
+	private _isRetrying = false;
+
 	private _handlePlaybackErrorEvent(
 		event: PlaybackEvent & { readonly type: 'error' },
 		store: ReturnType<typeof usePlayerStore.getState>
 	): void {
 		logger.debug(`Error event: ${event.error.message}`);
-		store._setError(event.error.message);
 		this._streamCache.clear();
+
+		// If a track is active and we haven't already retried, attempt a seamless recovery.
+		// This handles signed URL expiry (YouTube HLS segments expire mid-playback).
+		const track = store.currentTrack;
+		if (track && !this._isRetrying) {
+			const resumePosition = store.position;
+			logger.info(
+				`Attempting stream recovery for "${track.title}" at ${resumePosition.totalSeconds}s`
+			);
+			this._isRetrying = true;
+			this._retryPlayback(track, resumePosition)
+				.catch((err) => {
+					logger.warn('Stream recovery failed', err instanceof Error ? err : undefined);
+				})
+				.finally(() => {
+					this._isRetrying = false;
+				});
+			return;
+		}
+
+		store._setError(event.error.message);
 		useToastStore.getState().show({
 			title: 'Playback failed',
 			description: 'Could not play this track.',
 			variant: 'error',
 			duration: 4000,
 		});
+	}
+
+	private async _retryPlayback(track: Track, resumePosition: Duration): Promise<void> {
+		const streamResult = await this._getAudioStream(track);
+		if (!streamResult.success) {
+			logger.warn(`Stream recovery: could not get new stream — ${streamResult.error.message}`);
+			usePlayerStore.getState()._setError(streamResult.error.message);
+			useToastStore.getState().show({
+				title: 'Playback failed',
+				description: 'Could not play this track.',
+				variant: 'error',
+				duration: 4000,
+			});
+			return;
+		}
+
+		const provider = this.getProviderForUrl(streamResult.data.url);
+		if (!provider) {
+			usePlayerStore.getState()._setError('No playback provider available');
+			return;
+		}
+
+		this.activeProvider = provider;
+		const playResult = await provider.play(
+			track,
+			streamResult.data.url,
+			resumePosition,
+			streamResult.data.headers
+		);
+
+		if (!playResult.success) {
+			logger.warn(`Stream recovery: provider play failed — ${playResult.error.message}`);
+			usePlayerStore.getState()._setError(playResult.error.message);
+			useToastStore.getState().show({
+				title: 'Playback failed',
+				description: 'Could not play this track.',
+				variant: 'error',
+				duration: 4000,
+			});
+		} else {
+			logger.info(`Stream recovery succeeded, resumed at ${resumePosition.totalSeconds}s`);
+		}
 	}
 
 	async dispose(): Promise<void> {

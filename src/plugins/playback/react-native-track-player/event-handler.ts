@@ -143,7 +143,7 @@ export class EventHandler {
 	}
 
 	private _onQueueEnded(): void {
-		if (this._state.repeatMode !== 'all') {
+		if (this._state.repeatMode === 'off') {
 			this.emitEvent({ type: 'ended', timestamp: Date.now() });
 		}
 	}
