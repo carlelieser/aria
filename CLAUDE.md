@@ -64,6 +64,7 @@ All standards are defined in `docs/code/`. These are the **canonical source of t
 - [ ] RUN `eslint .` — MUST BE clean
 - [ ] RUN `prettier --check .` — MUST pass
 - [ ] RUN tests — MUST pass; new code MUST BE covered
+- [ ] RUN the app and drive the affected flow — static checks are NOT sufficient; see [`docs/VERIFYING.md`](docs/VERIFYING.md). (Skip only for pure docs/test/tooling changes with no runtime surface.)
 - [ ] VERIFY public APIs documented
 - [ ] VERIFY no secrets; inputs validated
 - [ ] VERIFY conventional commit; rebased on main
