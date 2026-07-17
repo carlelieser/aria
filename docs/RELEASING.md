@@ -114,6 +114,26 @@ gh run cancel <id>
 - [ ] `gh release create … --prerelease --target main` with both assets
 - [ ] Triggered release-workflow run cancelled
 
+## Known issues / follow-ups
+
+These make the manual flow above necessary. Fixing either would simplify releases:
+
+- **TODO: the release workflow can't run.** `.github/workflows/release.yml`'s
+  `build-ios` job targets `macos-latest`, but there is no macOS runner in the
+  pool (the only one was removed). Until it is re-pointed at an available runner
+  — or the workflow is reworked to build Android on the self-hosted runner and
+  skip/decouple iOS — a `v*` tag push only produces a stuck run. Releasing by
+  tag alone is not possible; use the local flow above.
+- **TODO: Expo SDK dependencies are out of date.** `expo-doctor` /
+  `expo install --check` flag ~14 packages, which keeps the CI Expo Doctor and
+  Expo Dependency Check jobs red on `main` and makes EAS log a (non-fatal)
+  `expo-doctor` error during local builds. Some are downgrades EAS "expects"
+  that the project intentionally moved past (e.g. `@shopify/flash-list`,
+  `react-native-pager-view`, `react-native-worklets`), so the real fix is likely
+  a mix of `expo install --check --fix` and adding deliberate overrides to
+  `expo.install.exclude` in `package.json` — needs a device re-test, so it
+  belongs in its own PR.
+
 ---
 
 For F-Droid store submission specifically, see [PUBLISHING.md](../PUBLISHING.md).
