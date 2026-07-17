@@ -4,12 +4,18 @@ import { getLogger } from '@shared/services/logger';
 import type { AudioStream } from '@domain/value-objects/audio-stream';
 import { createAudioStream } from '@domain/value-objects/audio-stream';
 import type { StreamQuality } from '@domain/value-objects/audio-source';
+import { writeAudioDashManifest } from './dash-manifest';
 
 const logger = getLogger('YouTubeMusic:AdaptiveFormat');
 
 export interface AdaptiveFormatResult {
 	readonly stream: AudioStream;
 	readonly contentLength?: number;
+	/**
+	 * Data-URI DASH manifest wrapping the same format, when the format
+	 * carries the init/index ranges needed for segmented playback.
+	 */
+	readonly dashStream?: AudioStream;
 }
 
 export interface MultiClientResult {
@@ -17,7 +23,7 @@ export interface MultiClientResult {
 	readonly loginRequired: boolean;
 }
 
-export type InnertubeClientType = 'TV' | 'ANDROID' | 'IOS';
+export type InnertubeClientType = 'TV' | 'ANDROID' | 'IOS' | 'ANDROID_VR';
 
 // Must match the User-Agent that youtubei.js sends for each client type
 // during getInfo(). YouTube's CDN validates that stream requests use the
@@ -25,8 +31,10 @@ export type InnertubeClientType = 'TV' | 'ANDROID' | 'IOS';
 const CLIENT_USER_AGENTS: Readonly<Record<InnertubeClientType, string>> = {
 	TV: 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version',
 	ANDROID:
-		'com.google.android.youtube/19.35.36(Linux; U; Android 13; en_US; SM-S908E Build/TP1A.220624.014) gzip',
+		'com.google.android.youtube/21.03.36(Linux; U; Android 16; en_US; SM-S908E Build/TP1A.220624.014) gzip',
 	IOS: 'com.google.ios.youtube/20.11.6 (iPhone10,4; U; CPU iOS 16_7_7 like Mac OS X)',
+	ANDROID_VR:
+		'com.google.android.apps.youtube.vr.oculus/1.65.10 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip',
 };
 
 type AudioFormatType = 'm4a' | 'mp3' | 'webm' | 'ogg' | 'flac' | 'wav';
@@ -57,6 +65,30 @@ function buildStreamHeaders(
 	}
 
 	return headers;
+}
+
+async function buildDashStream(
+	format: Misc.Format,
+	videoId: string,
+	url: string,
+	quality: StreamQuality
+): Promise<AudioStream | undefined> {
+	if (!format.init_range || !format.index_range || !format.approx_duration_ms) {
+		return undefined;
+	}
+
+	const manifestPath = await writeAudioDashManifest(videoId, {
+		url,
+		mimeType: format.mime_type ?? 'audio/mp4',
+		bitrate: format.bitrate ?? 128000,
+		durationMs: format.approx_duration_ms,
+		initRange: format.init_range,
+		indexRange: format.index_range,
+		audioSamplingRate: format.audio_sample_rate,
+	});
+	if (!manifestPath) return undefined;
+
+	return createAudioStream({ url: manifestPath, format: 'dash', quality });
 }
 
 async function extractFormatUrl(
@@ -142,6 +174,7 @@ export async function tryAdaptiveFormat(
 					headers: buildStreamHeaders(clientType, cookies),
 				}),
 				contentLength,
+				dashStream: await buildDashStream(format, videoId, url, quality),
 			},
 			loginRequired: false,
 		};
