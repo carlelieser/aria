@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://github.com/carlelieser/aria/actions/workflows/release.yml/badge.svg" alt="Release Status"  />
+  <img src="https://img.shields.io/github/v/release/carlelieser/aria?include_prereleases&label=release" alt="Latest Release" />
   <img src="https://img.shields.io/github/actions/workflow/status/carlelieser/aria/ci.yml?branch=main&logo=github&label=CI" alt="CI Status" />
   <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS-blue" alt="Android | iOS" />
   <img src="https://img.shields.io/badge/License-MIT-green" alt="MIT License" />
@@ -59,37 +59,20 @@ npm run android    # Build and run on Android
 
 ## Build
 
-<details>
-<summary>Cloud (EAS Build)</summary>
-
-Requires [EAS CLI](https://docs.expo.dev/eas/):
+Builds run **locally** (never on EAS servers). Requires
+[EAS CLI](https://docs.expo.dev/eas/) and an authenticated Expo session:
 
 ```bash
 npm install -g eas-cli
-eas login
+eas login          # or set EXPO_TOKEN
+
+npm run build:android   # → out/aria.apk
+npm run build:ios       # → out/aria.ipa
 ```
 
-```bash
-# Development build (with dev client)
-eas build --profile development --platform android
-eas build --profile development --platform ios
-
-# Production build
-eas build --profile production --platform android
-eas build --profile production --platform ios
-```
-
-</details>
-
-<details>
-<summary>Local</summary>
-
-```bash
-npm run build:android
-npm run build:ios
-```
-
-</details>
+Both run `eas build --profile preview --local`. Version numbers come from
+`app.json`. See [docs/RELEASING.md](docs/RELEASING.md) for the full release flow
+(versioning, artifact verification, and publishing).
 
 ## Project Structure
 
@@ -107,9 +90,11 @@ src/
 
 See [CLAUDE.md](CLAUDE.md) for architecture details and code standards.
 
-## Publishing
+## Releasing
 
-See [PUBLISHING.md](PUBLISHING.md) for app store submission guides (F-Droid, etc.).
+See [docs/RELEASING.md](docs/RELEASING.md) to cut a release (local build +
+`gh release create`), and [PUBLISHING.md](PUBLISHING.md) for app store
+submission guides (F-Droid, etc.).
 
 ## Contributing
 
