@@ -116,7 +116,8 @@ export async function tryAdaptiveFormat(
 	videoId: string,
 	quality: StreamQuality,
 	clientType: InnertubeClientType = 'TV',
-	cookies?: string
+	cookies?: string,
+	wantDash = false
 ): Promise<{ result: AdaptiveFormatResult | null; loginRequired: boolean }> {
 	try {
 		logger.debug(`[Adaptive] Trying ${clientType} client for video: ${videoId}`);
@@ -174,7 +175,9 @@ export async function tryAdaptiveFormat(
 					headers: buildStreamHeaders(clientType, cookies),
 				}),
 				contentLength,
-				dashStream: await buildDashStream(format, videoId, url, quality),
+				dashStream: wantDash
+					? await buildDashStream(format, videoId, url, quality)
+					: undefined,
 			},
 			loginRequired: false,
 		};
@@ -190,7 +193,8 @@ export async function tryMultipleClientTypes(
 	videoId: string,
 	quality: StreamQuality,
 	clientTypes: readonly InnertubeClientType[],
-	cookies?: string
+	cookies?: string,
+	wantDash = false
 ): Promise<MultiClientResult> {
 	let anyLoginRequired = false;
 
@@ -200,7 +204,8 @@ export async function tryMultipleClientTypes(
 			videoId,
 			quality,
 			clientType,
-			cookies
+			cookies,
+			wantDash
 		);
 
 		if (loginRequired) {

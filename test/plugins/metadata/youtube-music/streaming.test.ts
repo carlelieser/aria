@@ -99,7 +99,31 @@ describe('createStreamingOperations', () => {
 				'abc123',
 				'high',
 				['ANDROID_VR', 'IOS'],
-				undefined
+				undefined,
+				true
+			);
+		});
+
+		it('should not request a DASH manifest on the download path', async () => {
+			// Arrange
+			mockTryMultipleClientTypes.mockResolvedValue({
+				result: { stream: DIRECT_STREAM, contentLength: 1000 },
+				loginRequired: false,
+			});
+			mockDownloadToCache.mockResolvedValue('file:///cache/audio/abc123.m4a');
+			const ops = createStreamingOperations(createMockClientManager());
+
+			// Act
+			await ops.getStreamUrl(TRACK_ID, { preferDownloadable: true });
+
+			// Assert
+			expect(mockTryMultipleClientTypes).toHaveBeenCalledWith(
+				expect.anything(),
+				'abc123',
+				'high',
+				['ANDROID_VR', 'IOS'],
+				undefined,
+				false
 			);
 		});
 

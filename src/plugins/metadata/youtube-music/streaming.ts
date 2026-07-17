@@ -38,7 +38,8 @@ async function handleDownloadableStream(
 		videoId,
 		quality,
 		cookies,
-		ADAPTIVE_CLIENT_TYPES
+		ADAPTIVE_CLIENT_TYPES,
+		false
 	);
 
 	if (adaptiveResult) {
@@ -64,7 +65,8 @@ async function tryAdaptiveFormats(
 	videoId: string,
 	quality: StreamQuality,
 	cookies: string | undefined,
-	clientTypes: readonly InnertubeClientType[]
+	clientTypes: readonly InnertubeClientType[],
+	wantDash: boolean
 ): Promise<AdaptiveFormatResult | null> {
 	let client = await clientManager.getClient();
 	logger.debug('Trying adaptive formats...');
@@ -73,10 +75,11 @@ async function tryAdaptiveFormats(
 		videoId,
 		quality,
 		clientTypes,
-		cookies
+		cookies,
+		wantDash
 	);
 	if (loginRequired && !result) {
-		result = await retryWithFreshClient(clientManager, videoId, quality, clientTypes);
+		result = await retryWithFreshClient(clientManager, videoId, quality, clientTypes, wantDash);
 	}
 	return result ?? null;
 }
@@ -85,12 +88,20 @@ async function retryWithFreshClient(
 	clientManager: ClientManager,
 	videoId: string,
 	quality: StreamQuality,
-	clientTypes: readonly InnertubeClientType[]
+	clientTypes: readonly InnertubeClientType[],
+	wantDash: boolean
 ): Promise<AdaptiveFormatResult | null> {
 	logger.warn('Cookies are bot-flagged -- retrying with unauthenticated client');
 	await clientManager.refreshAuth();
 	const client = await clientManager.createFreshClient({ skipAuth: true });
-	const { result } = await tryMultipleClientTypes(client, videoId, quality, clientTypes);
+	const { result } = await tryMultipleClientTypes(
+		client,
+		videoId,
+		quality,
+		clientTypes,
+		undefined,
+		wantDash
+	);
 	return result;
 }
 
@@ -169,7 +180,8 @@ async function handleStreamingPlayback(
 		videoId,
 		quality,
 		cookies,
-		PLAYBACK_CLIENT_TYPES
+		PLAYBACK_CLIENT_TYPES,
+		true
 	);
 	if (adaptiveResult?.dashStream) return ok(adaptiveResult.dashStream);
 
