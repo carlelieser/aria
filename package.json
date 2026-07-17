@@ -104,7 +104,7 @@
 		"shaka-player": "^4.16.13",
 		"text-encoding": "^0.7.0",
 		"web-streams-polyfill": "^4.2.0",
-		"youtubei.js": "^16.0.1",
+		"youtubei.js": "^17.2.0",
 		"zustand": "^5.0.9"
 	},
 	"devDependencies": {
