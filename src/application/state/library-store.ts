@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Track } from '../../domain/entities/track';
 import type { Playlist } from '../../domain/entities/playlist';
 import { TrackId } from '../../domain/value-objects/track-id';
+import { Duration } from '../../domain/value-objects/duration';
 
 interface LibraryState {
 	tracks: Track[];
@@ -49,6 +50,40 @@ const customStorage = {
 		await AsyncStorage.removeItem(name);
 	},
 };
+
+/**
+ * JSON persistence flattens domain objects: TrackId.toJSON() → plain string,
+ * Duration.toJSON() → number of milliseconds, Date → ISO string. Rehydrated
+ * tracks must have those instances reconstructed or every consumer that
+ * calls their methods (sorting by date, duration.isZero(), id.value) breaks.
+ */
+function reviveTrack(track: Track): Track {
+	const revived = { ...track };
+
+	if (typeof track.id === 'string') {
+		const restored = TrackId.tryFromString(track.id as unknown as string);
+		if (restored) revived.id = restored;
+	}
+	if (typeof track.duration === 'number') {
+		revived.duration = Duration.fromMilliseconds(track.duration as unknown as number);
+	}
+	if (typeof track.addedAt === 'string') {
+		revived.addedAt = new Date(track.addedAt as unknown as string);
+	}
+
+	return revived;
+}
+
+function revivePlaylist(playlist: Playlist): Playlist {
+	return {
+		...playlist,
+		tracks: playlist.tracks.map((pt) => ({
+			...pt,
+			addedAt: typeof pt.addedAt === 'string' ? new Date(pt.addedAt) : pt.addedAt,
+			track: reviveTrack(pt.track),
+		})),
+	};
+}
 
 export const useLibraryStore = create<LibraryState>()(
 	persist(
@@ -275,31 +310,11 @@ export const useLibraryStore = create<LibraryState>()(
 			onRehydrateStorage: () => (state) => {
 				if (state) {
 					state.favorites = new Set(state.favorites as unknown as string[]);
-
-					// TrackId.toJSON() serializes to a plain string (e.g. "spotify:trackid").
-					// After rehydration track.id is that string, not a TrackId instance, so
-					// track.id.value === undefined everywhere. Reconstruct TrackId objects here.
-					state.tracks = (state.tracks as Track[]).map((track) => {
-						if (typeof track.id === 'string') {
-							const restored = TrackId.tryFromString(track.id as unknown as string);
-							return restored ? { ...track, id: restored } : track;
-						}
-						return track;
-					});
-
-					// Same fix for tracks nested inside playlists.
-					state.playlists = (state.playlists as Playlist[]).map((playlist) => ({
-						...playlist,
-						tracks: playlist.tracks.map((pt) => {
-							if (typeof pt.track.id === 'string') {
-								const restored = TrackId.tryFromString(
-									pt.track.id as unknown as string
-								);
-								return restored ? { ...pt, track: { ...pt.track, id: restored } } : pt;
-							}
-							return pt;
-						}),
-					}));
+					state.tracks = (state.tracks as Track[]).map(reviveTrack);
+					state.playlists = (state.playlists as Playlist[]).map(revivePlaylist);
+					if (typeof state.lastSyncedAt === 'string') {
+						state.lastSyncedAt = new Date(state.lastSyncedAt);
+					}
 				}
 			},
 		}

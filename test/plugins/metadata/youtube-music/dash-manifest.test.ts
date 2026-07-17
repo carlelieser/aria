@@ -1,5 +1,9 @@
-import { describe, it, expect, vi } from 'vitest';
-import { buildAudioDashManifestXml } from '@plugins/metadata/youtube-music/dash-manifest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { writeAsStringAsync } from 'expo-file-system/legacy';
+import {
+	buildAudioDashManifestXml,
+	writeAudioDashManifest,
+} from '@plugins/metadata/youtube-music/dash-manifest';
 
 vi.mock('expo-file-system/legacy', () => ({
 	writeAsStringAsync: vi.fn(),
@@ -36,7 +40,7 @@ describe('buildAudioDashManifestXml', () => {
 		expect(xml).toContain('<Initialization range="0-631"/>');
 	});
 
-	it('should escape XML special characters in the stream URL', () => {
+	it('should escape XML special characters when the stream URL contains query parameters', () => {
 		// Arrange
 		const params = BASE_PARAMS;
 
@@ -58,7 +62,7 @@ describe('buildAudioDashManifestXml', () => {
 		expect(xml).toBeNull();
 	});
 
-	it('should declare the media presentation duration in seconds', () => {
+	it('should declare the media presentation duration in seconds when given a duration in milliseconds', () => {
 		// Arrange
 		const params = BASE_PARAMS;
 
@@ -67,5 +71,45 @@ describe('buildAudioDashManifestXml', () => {
 
 		// Assert
 		expect(xml).toContain('mediaPresentationDuration="PT277.000S"');
+	});
+});
+
+describe('writeAudioDashManifest', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it('should return the manifest file path when the write succeeds', async () => {
+		// Arrange
+		vi.mocked(writeAsStringAsync).mockResolvedValue(undefined);
+
+		// Act
+		const path = await writeAudioDashManifest('abc123', BASE_PARAMS);
+
+		// Assert
+		expect(path).toBe('file:///cache/audio/abc123.mpd');
+	});
+
+	it('should return null when writing the manifest file fails', async () => {
+		// Arrange
+		vi.mocked(writeAsStringAsync).mockRejectedValue(new Error('disk full'));
+
+		// Act
+		const path = await writeAudioDashManifest('abc123', BASE_PARAMS);
+
+		// Assert
+		expect(path).toBeNull();
+	});
+
+	it('should return null when the manifest cannot be built', async () => {
+		// Arrange
+		const params = { ...BASE_PARAMS, mimeType: 'audio/mp4' };
+
+		// Act
+		const path = await writeAudioDashManifest('abc123', params);
+
+		// Assert
+		expect(path).toBeNull();
+		expect(writeAsStringAsync).not.toHaveBeenCalled();
 	});
 });

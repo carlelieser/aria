@@ -12,7 +12,7 @@ export interface AdaptiveFormatResult {
 	readonly stream: AudioStream;
 	readonly contentLength?: number;
 	/**
-	 * Data-URI DASH manifest wrapping the same format, when the format
+	 * Local .mpd manifest wrapping the same format, when the format
 	 * carries the init/index ranges needed for segmented playback.
 	 */
 	readonly dashStream?: AudioStream;

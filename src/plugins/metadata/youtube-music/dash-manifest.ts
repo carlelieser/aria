@@ -50,6 +50,23 @@ function extractBaseMimeType(mimeType: string): string {
 	return mimeType.split(';')[0].trim();
 }
 
+function buildRepresentation(params: AudioDashManifestParams, codecs: string): string {
+	const samplingRate =
+		params.audioSamplingRate !== undefined
+			? ` audioSamplingRate="${params.audioSamplingRate}"`
+			: '';
+
+	return (
+		`<Representation id="audio-1" mimeType="${escapeXml(extractBaseMimeType(params.mimeType))}"` +
+		` codecs="${escapeXml(codecs)}" bandwidth="${params.bitrate}"${samplingRate}>` +
+		`<BaseURL>${escapeXml(params.url)}</BaseURL>` +
+		`<SegmentBase indexRange="${params.indexRange.start}-${params.indexRange.end}" indexRangeExact="true">` +
+		`<Initialization range="${params.initRange.start}-${params.initRange.end}"/>` +
+		'</SegmentBase>' +
+		'</Representation>'
+	);
+}
+
 /**
  * Build the DASH manifest XML for a single audio representation.
  * Returns null when the mime type carries no codec information.
@@ -59,30 +76,19 @@ export function buildAudioDashManifestXml(params: AudioDashManifestParams): stri
 	if (!codecs) return null;
 
 	const duration = `PT${(params.durationMs / 1000).toFixed(3)}S`;
-	const samplingRate =
-		params.audioSamplingRate !== undefined
-			? ` audioSamplingRate="${params.audioSamplingRate}"`
-			: '';
 
-	const xml =
+	return (
 		'<?xml version="1.0" encoding="UTF-8"?>' +
 		'<MPD xmlns="urn:mpeg:dash:schema:mpd:2011"' +
 		' profiles="urn:mpeg:dash:profile:isoff-on-demand:2011"' +
 		` type="static" mediaPresentationDuration="${duration}" minBufferTime="PT1.5S">` +
 		`<Period duration="${duration}">` +
 		'<AdaptationSet contentType="audio" subsegmentAlignment="true" subsegmentStartsWithSAP="1">' +
-		`<Representation id="audio-1" mimeType="${escapeXml(extractBaseMimeType(params.mimeType))}"` +
-		` codecs="${escapeXml(codecs)}" bandwidth="${params.bitrate}"${samplingRate}>` +
-		`<BaseURL>${escapeXml(params.url)}</BaseURL>` +
-		`<SegmentBase indexRange="${params.indexRange.start}-${params.indexRange.end}" indexRangeExact="true">` +
-		`<Initialization range="${params.initRange.start}-${params.initRange.end}"/>` +
-		'</SegmentBase>' +
-		'</Representation>' +
+		buildRepresentation(params, codecs) +
 		'</AdaptationSet>' +
 		'</Period>' +
-		'</MPD>';
-
-	return xml;
+		'</MPD>'
+	);
 }
 
 /**

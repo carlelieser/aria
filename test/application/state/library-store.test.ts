@@ -433,4 +433,76 @@ describe('LibraryStore', () => {
 			});
 		});
 	});
+
+	describe('Rehydration', () => {
+		const persistTrack = (track: Track) => ({
+			...JSON.parse(JSON.stringify(track)),
+		});
+
+		const seedStorage = async (tracks: Track[]) => {
+			const AsyncStorage = (await import('@react-native-async-storage/async-storage'))
+				.default;
+			vi.mocked(AsyncStorage.getItem).mockResolvedValue(
+				JSON.stringify({
+					state: {
+						tracks: tracks.map(persistTrack),
+						playlists: [],
+						favorites: [],
+						lastSyncedAt: new Date('2024-01-10T00:00:00Z'),
+					},
+					version: 0,
+				})
+			);
+			await useLibraryStore.persist.rehydrate();
+		};
+
+		it('should restore TrackId instances when tracks are rehydrated from storage', async () => {
+			// Arrange
+			const track = createTestTrack('reh-1');
+
+			// Act
+			await seedStorage([track]);
+
+			// Assert
+			expect(useLibraryStore.getState().tracks[0].id).toBeInstanceOf(TrackId);
+		});
+
+		it('should restore Date instances when addedAt was persisted as a string', async () => {
+			// Arrange
+			const track = {
+				...createTestTrack('reh-2'),
+				addedAt: new Date('2024-01-12T00:00:00Z'),
+			};
+
+			// Act
+			await seedStorage([track]);
+
+			// Assert
+			expect(useLibraryStore.getState().tracks[0].addedAt).toBeInstanceOf(Date);
+		});
+
+		it('should restore Duration instances when duration was persisted as milliseconds', async () => {
+			// Arrange
+			const track = createTestTrack('reh-3');
+
+			// Act
+			await seedStorage([track]);
+
+			// Assert
+			const rehydrated = useLibraryStore.getState().tracks[0];
+			expect(rehydrated.duration).toBeInstanceOf(Duration);
+			expect(rehydrated.duration.totalSeconds).toBe(180);
+		});
+
+		it('should restore lastSyncedAt as a Date when rehydrated from storage', async () => {
+			// Arrange
+			const track = createTestTrack('reh-4');
+
+			// Act
+			await seedStorage([track]);
+
+			// Assert
+			expect(useLibraryStore.getState().lastSyncedAt).toBeInstanceOf(Date);
+		});
+	});
 });
