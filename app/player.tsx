@@ -11,8 +11,10 @@ import type { AnimationObject } from 'lottie-react-native';
 import { Icon } from '@/src/components/ui/icon';
 import { ChevronLeftIcon, ListMusic } from 'lucide-react-native';
 
-const thumbUpRegular = require('@/assets/animation/system-regular-124-thumb-up-hover-thumb-up.json') as AnimationObject;
-const thumbUpSolid = require('@/assets/animation/system-solid-124-thumb-up-hover-thumb-up.json') as AnimationObject;
+const thumbUpRegular =
+	require('@/assets/animation/system-regular-124-thumb-up-hover-thumb-up.json') as AnimationObject;
+const thumbUpSolid =
+	require('@/assets/animation/system-solid-124-thumb-up-hover-thumb-up.json') as AnimationObject;
 import { PlayerControls } from '@/src/components/player/player-controls';
 import { ProgressBar } from '@/src/components/player/progress-bar';
 import { TrackOptionsMenu } from '@/src/components/track-options-menu';
@@ -78,10 +80,11 @@ function PlayerScreenContent() {
 	const lottieRef = useRef<LottieView>(null);
 
 	const coloredSource = useMemo(
-		() => replaceColorsInSource(
-			isFavorite ? thumbUpSolid : thumbUpRegular,
-			isFavorite ? colors.primary : colors.onSurfaceVariant
-		),
+		() =>
+			replaceColorsInSource(
+				isFavorite ? thumbUpSolid : thumbUpRegular,
+				isFavorite ? colors.primary : colors.onSurfaceVariant
+			),
 		[isFavorite, colors.primary, colors.onSurfaceVariant]
 	);
 
@@ -226,7 +229,6 @@ function PlayerScreenContent() {
 								/>
 							)}
 							onPress={handleToggleFavorite}
-	
 							accessibilityLabel={
 								isFavorite ? 'Remove from favorites' : 'Add to favorites'
 							}
