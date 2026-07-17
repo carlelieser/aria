@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://carlelieser.github.io/aria/sitemap.xml
