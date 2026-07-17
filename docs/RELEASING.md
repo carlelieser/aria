@@ -136,4 +136,4 @@ These make the manual flow above necessary. Fixing either would simplify release
 
 ---
 
-For F-Droid store submission specifically, see [PUBLISHING.md](../PUBLISHING.md).
+For F-Droid store submission specifically, see [PUBLISHING.md](PUBLISHING.md).

@@ -93,7 +93,7 @@ See [CLAUDE.md](CLAUDE.md) for architecture details and code standards.
 ## Releasing
 
 See [docs/RELEASING.md](docs/RELEASING.md) to cut a release (local build +
-`gh release create`), and [PUBLISHING.md](PUBLISHING.md) for app store
+`gh release create`), and [docs/PUBLISHING.md](docs/PUBLISHING.md) for app store
 submission guides (F-Droid, etc.).
 
 ## Contributing
