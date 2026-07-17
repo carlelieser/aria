@@ -462,9 +462,9 @@ describe('UrlValidator', () => {
 		});
 
 		it('returns false for .m3u8 URL with query string', () => {
-			expect(validator.canHandle('https://cdn.example.com/stream/playlist.m3u8?token=abc')).toBe(
-				false
-			);
+			expect(
+				validator.canHandle('https://cdn.example.com/stream/playlist.m3u8?token=abc')
+			).toBe(false);
 		});
 
 		it('returns false for manifest/hls URL', () => {

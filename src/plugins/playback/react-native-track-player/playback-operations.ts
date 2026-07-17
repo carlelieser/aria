@@ -165,7 +165,11 @@ export class PlaybackOperations {
 		return this._lock.withLock(async () => {
 			this._state.volume = Math.max(MIN_VOLUME, Math.min(MAX_VOLUME, volume));
 			await TrackPlayer.setVolume(this._state.volume);
-			this._emitEvent({ type: 'volume-change', volume: this._state.volume, timestamp: Date.now() });
+			this._emitEvent({
+				type: 'volume-change',
+				volume: this._state.volume,
+				timestamp: Date.now(),
+			});
 			return ok(undefined);
 		});
 	}

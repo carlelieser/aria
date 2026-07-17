@@ -95,7 +95,10 @@ export class PlaybackOperations {
 
 	async setPlaybackRate(rate: number): AsyncResult<void, Error> {
 		if (this._player) {
-			this._player.playbackRate = Math.max(MIN_PLAYBACK_RATE, Math.min(MAX_PLAYBACK_RATE, rate));
+			this._player.playbackRate = Math.max(
+				MIN_PLAYBACK_RATE,
+				Math.min(MAX_PLAYBACK_RATE, rate)
+			);
 		}
 		return ok(undefined);
 	}
@@ -147,11 +150,7 @@ export class PlaybackOperations {
 		this._updateStatus('loading');
 	}
 
-	private _createPlayer(
-		track: Track,
-		streamUrl: string,
-		headers?: Record<string, string>
-	): void {
+	private _createPlayer(track: Track, streamUrl: string, headers?: Record<string, string>): void {
 		const contentType = resolveContentType(streamUrl);
 		logger.debug('Creating video player', contentType);
 

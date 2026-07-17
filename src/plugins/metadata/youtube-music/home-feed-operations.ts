@@ -178,7 +178,6 @@ function mapHomeFeedResponse(feed: HomeFeedInstance): HomeFeedData {
 	};
 }
 
-
 function mapPlaylistPage(playlistObj: Continuable): PlaylistTracksPage {
 	const tracks: Track[] = [];
 	if (playlistObj.contents) {

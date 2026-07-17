@@ -536,7 +536,9 @@ export class PlaybackService {
 	private async _retryPlayback(track: Track, resumePosition: Duration): Promise<void> {
 		const streamResult = await this._getAudioStream(track);
 		if (!streamResult.success) {
-			logger.warn(`Stream recovery: could not get new stream — ${streamResult.error.message}`);
+			logger.warn(
+				`Stream recovery: could not get new stream — ${streamResult.error.message}`
+			);
 			usePlayerStore.getState()._setError(streamResult.error.message);
 			useToastStore.getState().show({
 				title: 'Playback failed',
