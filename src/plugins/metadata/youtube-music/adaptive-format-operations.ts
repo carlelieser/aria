@@ -71,7 +71,8 @@ async function buildDashStream(
 	format: Misc.Format,
 	videoId: string,
 	url: string,
-	quality: StreamQuality
+	quality: StreamQuality,
+	headers: Record<string, string>
 ): Promise<AudioStream | undefined> {
 	if (!format.init_range || !format.index_range || !format.approx_duration_ms) {
 		return undefined;
@@ -88,7 +89,10 @@ async function buildDashStream(
 	});
 	if (!manifestPath) return undefined;
 
-	return createAudioStream({ url: manifestPath, format: 'dash', quality });
+	// The player fetches the googlevideo segments referenced by the manifest;
+	// those requests must carry the same client User-Agent as the getInfo call
+	// that signed the URL, or the CDN 403s partway through playback.
+	return createAudioStream({ url: manifestPath, format: 'dash', quality, headers });
 }
 
 async function extractFormatUrl(
@@ -166,17 +170,18 @@ export async function tryAdaptiveFormat(
 		}
 
 		logger.debug(`[Adaptive] Got URL from ${clientType} (length: ${url.length})`);
+		const streamHeaders = buildStreamHeaders(clientType, cookies);
 		return {
 			result: {
 				stream: createAudioStream({
 					url,
 					format: audioFormat,
 					quality,
-					headers: buildStreamHeaders(clientType, cookies),
+					headers: streamHeaders,
 				}),
 				contentLength,
 				dashStream: wantDash
-					? await buildDashStream(format, videoId, url, quality)
+					? await buildDashStream(format, videoId, url, quality, streamHeaders)
 					: undefined,
 			},
 			loginRequired: false,
