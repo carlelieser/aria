@@ -129,6 +129,11 @@
 	},
 	"private": true,
 	"expo": {
+		"autolinking": {
+			"buildFromSource": [
+				"expo-video"
+			]
+		},
 		"install": {
 			"exclude": [
 				"@react-native-community/slider",
