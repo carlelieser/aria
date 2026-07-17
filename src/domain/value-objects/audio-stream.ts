@@ -11,7 +11,8 @@ export type AudioFormat =
 	| 'ts'
 	| 'wav'
 	| 'hls'
-	| 'm3u8';
+	| 'm3u8'
+	| 'dash';
 
 export interface AudioStream {
 	readonly url: string;
@@ -102,6 +103,7 @@ export function getFormatLabel(format: AudioFormat): string {
 		wav: 'WAV',
 		hls: 'HLS',
 		m3u8: 'HLS (Local)',
+		dash: 'DASH',
 	};
 	return labels[format] || format.toUpperCase();
 }

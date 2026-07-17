@@ -105,7 +105,9 @@ export class EventHandler {
 				this._updateStatus('error');
 				this.emitEvent({
 					type: 'error',
-					error: new Error(playerError?.message ?? 'Playback failed: video player entered error state'),
+					error: new Error(
+						playerError?.message ?? 'Playback failed: video player entered error state'
+					),
 					timestamp: Date.now(),
 				});
 				break;

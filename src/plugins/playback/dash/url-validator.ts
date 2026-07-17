@@ -8,7 +8,7 @@
 import type { ContentType } from 'expo-video';
 
 export function isDashUrl(url: string): boolean {
-	return url.startsWith('data:application/dash+xml');
+	return url.startsWith('data:application/dash+xml') || url.endsWith('.mpd');
 }
 
 export function isHlsUrl(url: string): boolean {

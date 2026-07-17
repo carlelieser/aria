@@ -1,0 +1,1 @@
+Fixes YouTube playback failing with "No audio source available" after YouTube's streaming changes. Tracks now resolve via the ANDROID_VR client and play through DASH manifests. Also fixes a library crash on startup after upgrading from an older version.

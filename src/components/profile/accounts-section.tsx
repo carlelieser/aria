@@ -64,11 +64,9 @@ export function AccountsSection() {
 				title={'Spotify'}
 				subtitleElement={
 					<View style={styles.deprecationSubtitle}>
-						<Text
-							variant={'bodySmall'}
-							style={{ color: colors.onSurfaceVariant }}
-						>
-							Unavailable — Spotify removed library and playlist API access in March 2026.
+						<Text variant={'bodySmall'} style={{ color: colors.onSurfaceVariant }}>
+							Unavailable — Spotify removed library and playlist API access in March
+							2026.
 						</Text>
 					</View>
 				}

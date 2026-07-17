@@ -15,7 +15,12 @@ import type { AdaptiveFormatResult, InnertubeClientType } from './adaptive-forma
 
 const logger = getLogger('YouTubeMusic:Streaming');
 
-const ADAPTIVE_CLIENT_TYPES: readonly InnertubeClientType[] = ['TV', 'ANDROID', 'IOS'];
+// ANDROID_VR first: it is the only client whose stream URLs are exempt from
+// YouTube's PO-token enforcement (mid-2026) — other clients' URLs only serve
+// the first ~1MiB. IOS still returns direct URLs (capped) as a last resort;
+// TV and ANDROID have moved to SABR-only streaming and return no URLs at all.
+const ADAPTIVE_CLIENT_TYPES: readonly InnertubeClientType[] = ['ANDROID_VR', 'IOS'];
+const PLAYBACK_CLIENT_TYPES: readonly InnertubeClientType[] = ['ANDROID_VR', 'IOS'];
 
 export interface StreamingOperations {
 	getStreamUrl(trackId: TrackId, options?: StreamOptions): Promise<Result<AudioStream, Error>>;
@@ -28,7 +33,14 @@ async function handleDownloadableStream(
 	cookies: string | undefined,
 	onProgress?: (progress: number) => void
 ): Promise<Result<AudioStream, Error>> {
-	const adaptiveResult = await tryAdaptiveFormats(clientManager, videoId, quality, cookies);
+	const adaptiveResult = await tryAdaptiveFormats(
+		clientManager,
+		videoId,
+		quality,
+		cookies,
+		ADAPTIVE_CLIENT_TYPES,
+		false
+	);
 
 	if (adaptiveResult) {
 		const cached = await cacheAdaptiveStream(adaptiveResult, videoId, quality, cookies);
@@ -52,19 +64,22 @@ async function tryAdaptiveFormats(
 	clientManager: ClientManager,
 	videoId: string,
 	quality: StreamQuality,
-	cookies: string | undefined
+	cookies: string | undefined,
+	clientTypes: readonly InnertubeClientType[],
+	wantDash: boolean
 ): Promise<AdaptiveFormatResult | null> {
 	let client = await clientManager.getClient();
-	logger.debug('Preferring downloadable format...');
+	logger.debug('Trying adaptive formats...');
 	let { result, loginRequired } = await tryMultipleClientTypes(
 		client,
 		videoId,
 		quality,
-		ADAPTIVE_CLIENT_TYPES,
-		cookies
+		clientTypes,
+		cookies,
+		wantDash
 	);
 	if (loginRequired && !result) {
-		result = await retryWithFreshClient(clientManager, videoId, quality);
+		result = await retryWithFreshClient(clientManager, videoId, quality, clientTypes, wantDash);
 	}
 	return result ?? null;
 }
@@ -72,7 +87,9 @@ async function tryAdaptiveFormats(
 async function retryWithFreshClient(
 	clientManager: ClientManager,
 	videoId: string,
-	quality: StreamQuality
+	quality: StreamQuality,
+	clientTypes: readonly InnertubeClientType[],
+	wantDash: boolean
 ): Promise<AdaptiveFormatResult | null> {
 	logger.warn('Cookies are bot-flagged -- retrying with unauthenticated client');
 	await clientManager.refreshAuth();
@@ -81,7 +98,9 @@ async function retryWithFreshClient(
 		client,
 		videoId,
 		quality,
-		ADAPTIVE_CLIENT_TYPES
+		clientTypes,
+		undefined,
+		wantDash
 	);
 	return result;
 }
@@ -151,23 +170,48 @@ async function handleStreamingPlayback(
 	quality: StreamQuality,
 	cookies: string | undefined
 ): Promise<Result<AudioStream, Error>> {
+	// YouTube stopped serving HLS manifests for most VOD content (mid-2026)
+	// and googlevideo now rejects open-ended or >1MiB ranged requests, which
+	// breaks both direct progressive streaming and full-file downloads. A
+	// DASH manifest makes the player fetch small indexed ranges instead,
+	// which still pass; HLS remains as a last resort for videos exposing it.
+	const adaptiveResult = await tryAdaptiveFormats(
+		clientManager,
+		videoId,
+		quality,
+		cookies,
+		PLAYBACK_CLIENT_TYPES,
+		true
+	);
+	if (adaptiveResult?.dashStream) return ok(adaptiveResult.dashStream);
+
+	if (adaptiveResult) {
+		const cached = await cacheAdaptiveStream(adaptiveResult, videoId, quality, cookies);
+		if (cached) return cached;
+	}
+
+	const hlsResult = await tryHlsPlayback(clientManager, videoId, quality, cookies);
+	if (hlsResult) return hlsResult;
+
+	return err(new Error('No streaming data available - all format attempts failed'));
+}
+
+async function tryHlsPlayback(
+	clientManager: ClientManager,
+	videoId: string,
+	quality: StreamQuality,
+	cookies: string | undefined
+): Promise<Result<AudioStream, Error> | null> {
 	const client = await clientManager.getClient();
 	const hlsUrl = await resolveHlsUrl(client, videoId);
-
-	if (!hlsUrl) {
-		return err(new Error('No streaming data available - all format attempts failed'));
-	}
+	if (!hlsUrl) return null;
 
 	logger.debug('Rewriting HLS manifest with remote segment URLs');
 	const localManifest = await rewriteHlsManifest(hlsUrl, videoId, cookies);
-
-	if (!localManifest) {
-		return err(new Error('No streaming data available - failed to rewrite HLS manifest'));
-	}
+	if (!localManifest) return null;
 
 	return ok(createAudioStream({ url: localManifest, format: 'hls', quality }));
 }
-
 
 export function createStreamingOperations(clientManager: ClientManager): StreamingOperations {
 	return {

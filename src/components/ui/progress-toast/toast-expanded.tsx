@@ -72,7 +72,11 @@ export function ToastExpanded({
 									progress={percentage / 100}
 									color={colors.primary}
 									style={styles.progressBar}
-								theme={{ colors: { surfaceVariant: colors.onPrimaryContainer + '33' } }}
+									theme={{
+										colors: {
+											surfaceVariant: colors.onPrimaryContainer + '33',
+										},
+									}}
 								/>
 
 								<View style={styles.footer}>

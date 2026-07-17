@@ -2,7 +2,13 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ListMusicIcon, PlayIcon, Shuffle, BookmarkIcon, BookmarkCheckIcon } from 'lucide-react-native';
+import {
+	ListMusicIcon,
+	PlayIcon,
+	Shuffle,
+	BookmarkIcon,
+	BookmarkCheckIcon,
+} from 'lucide-react-native';
 import { Text, Button, IconButton } from 'react-native-paper';
 import { Icon } from '@/src/components/ui/icon';
 import { DetailsPage, useDetailsPageHeaderColors } from '@/src/components/details-page';
