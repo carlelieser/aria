@@ -144,16 +144,21 @@ export class PlaybackService {
 	}
 
 	/**
-	 * Stops the active provider and resolves the audio stream in parallel
-	 * to reduce latency when switching tracks.
+	 * Resolves the audio stream for the next track.
+	 *
+	 * Intentionally does NOT stop the active provider here. Which provider the
+	 * next track needs is only known once the stream URL is resolved, and
+	 * stopping speculatively tears down the current provider's native player
+	 * even when the next track will reuse it (e.g. two consecutive DASH/YouTube
+	 * tracks). The DASH provider keeps its player instance alive across track
+	 * changes for background-playback continuity, so eagerly stopping it here
+	 * would release that player before we know it isn't needed — breaking
+	 * queue advance while the app is backgrounded. See _startPlaybackWithProvider,
+	 * which stops the previous provider only when the provider actually changes.
 	 */
 	private async _resolveStreamForTrack(track: Track): Promise<Result<AudioStream, Error>> {
-		playbackTimer.beginPhase('stop+resolve');
-
-		const stopPromise = this._stopActiveProvider();
-		const streamPromise = this._getAudioStream(track);
-		const [, streamResult] = await Promise.all([stopPromise, streamPromise]);
-
+		playbackTimer.beginPhase('resolve');
+		const streamResult = await this._getAudioStream(track);
 		playbackTimer.endPhase();
 		return streamResult;
 	}
@@ -443,11 +448,6 @@ export class PlaybackService {
 			} catch {}
 		}
 		return null;
-	}
-
-	private async _stopActiveProvider(): Promise<void> {
-		if (!this.activeProvider) return;
-		await this._stopProvider(this.activeProvider);
 	}
 
 	private async _stopProvider(provider: PlaybackProvider): Promise<void> {
