@@ -14,7 +14,8 @@
 			"infoPlist": {
 				"UIBackgroundModes": ["audio"],
 				"ITSAppUsesNonExemptEncryption": false
-			}
+			},
+			"buildNumber": "2"
 		},
 		"android": {
 			"package": "com.aria.music.app",
