@@ -5,5 +5,6 @@ build
 android
 ios
 *.lock
+package-lock.json
 .claude
 .profiling
