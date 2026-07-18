@@ -2,7 +2,7 @@
 	"expo": {
 		"name": "Aria",
 		"slug": "aria",
-		"version": "0.8.1-beta",
+		"version": "0.8.2-beta",
 		"orientation": "portrait",
 		"icon": "./assets/images/icon.png",
 		"scheme": "aria",
@@ -15,7 +15,7 @@
 				"UIBackgroundModes": ["audio"],
 				"ITSAppUsesNonExemptEncryption": false
 			},
-			"buildNumber": "2"
+			"buildNumber": "3"
 		},
 		"android": {
 			"package": "com.aria.music.app",
@@ -27,7 +27,7 @@
 			},
 			"edgeToEdgeEnabled": true,
 			"predictiveBackGestureEnabled": false,
-			"versionCode": 2
+			"versionCode": 3
 		},
 		"web": {
 			"output": "static",

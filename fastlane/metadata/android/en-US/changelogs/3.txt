@@ -1,0 +1,1 @@
+Fixes several YouTube (DASH) playback issues. Queued tracks now keep playing when you switch tracks with the app in the background, instead of stopping until you reopen the app. The now-playing notification shows skip-previous and skip-next buttons for streamed tracks, and streams no longer cut out mid-playback with a 403 error.
