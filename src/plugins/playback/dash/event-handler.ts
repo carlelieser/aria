@@ -72,6 +72,12 @@ export class EventHandler {
 			player.addListener('timeUpdate', (payload) => {
 				this._onTimeUpdate(payload.currentTime);
 			}),
+			player.addListener('remoteNext', () => {
+				this._onRemoteNext();
+			}),
+			player.addListener('remotePrevious', () => {
+				this._onRemotePrevious();
+			}),
 		];
 	}
 
@@ -144,5 +150,15 @@ export class EventHandler {
 			position: this._state.position,
 			timestamp: Date.now(),
 		});
+	}
+
+	private _onRemoteNext(): void {
+		logger.debug('RemoteNext received - emitting remote-skip-next event');
+		this.emitEvent({ type: 'remote-skip-next', timestamp: Date.now() });
+	}
+
+	private _onRemotePrevious(): void {
+		logger.debug('RemotePrevious received - emitting remote-skip-previous event');
+		this.emitEvent({ type: 'remote-skip-previous', timestamp: Date.now() });
 	}
 }

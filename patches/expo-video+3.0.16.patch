@@ -1,0 +1,211 @@
+diff --git a/node_modules/expo-video/android/src/main/java/expo/modules/video/playbackService/ExpoVideoPlaybackService.kt b/node_modules/expo-video/android/src/main/java/expo/modules/video/playbackService/ExpoVideoPlaybackService.kt
+index 8761f9c..92ed706 100644
+--- a/node_modules/expo-video/android/src/main/java/expo/modules/video/playbackService/ExpoVideoPlaybackService.kt
++++ b/node_modules/expo-video/android/src/main/java/expo/modules/video/playbackService/ExpoVideoPlaybackService.kt
+@@ -19,7 +19,6 @@ import androidx.media3.session.MediaSession
+ import androidx.media3.session.MediaSessionService
+ import androidx.media3.session.MediaStyleNotificationHelper
+ import androidx.media3.session.SessionCommand
+-import com.google.common.collect.ImmutableList
+ import expo.modules.kotlin.AppContext
+ import expo.modules.kotlin.exception.Exceptions
+ import expo.modules.video.R
+@@ -43,19 +42,17 @@ class ExpoVideoPlaybackService : MediaSessionService() {
+   private var mostRecentInteractionSession: MediaSession? = null
+   private var isForeground: Boolean = false
+ 
+-  private val commandSeekForward = SessionCommand(SEEK_FORWARD_COMMAND, Bundle.EMPTY)
+-  private val commandSeekBackward = SessionCommand(SEEK_BACKWARD_COMMAND, Bundle.EMPTY)
+-  private val seekForwardButton = CommandButton.Builder()
+-    .setDisplayName("rewind")
+-    .setSessionCommand(commandSeekForward)
+-    .setIconResId(R.drawable.seek_forwards_10s)
+-    .build()
+-
+-  private val seekBackwardButton = CommandButton.Builder()
+-    .setDisplayName("forward")
+-    .setSessionCommand(commandSeekBackward)
+-    .setIconResId(R.drawable.seek_backwards_10s)
+-    .build()
++  /**
++   * The no-arg MediaSession.setCustomLayout() only stores the layout on the session; it does
++   * NOT push a PlaybackStateCompat update to the platform session, so the legacy notification
++   * (what the system actually renders) never picks it up. The per-controller overload targeting
++   * the media notification controller does trigger that update, so it's the one that actually
++   * takes effect on the rendered notification.
++   */
++  private fun pushCustomLayout(session: MediaSession) {
++    val notificationController = session.mediaNotificationControllerInfo ?: return
++    session.setCustomLayout(notificationController, listOf(skipPreviousButton, skipNextButton))
++  }
+ 
+   fun setShowNotification(showNotification: Boolean, player: ExoPlayer) {
+     appContext.mainQueue.launch {
+@@ -81,12 +78,13 @@ class ExpoVideoPlaybackService : MediaSessionService() {
+ 
+       val mediaSession = MediaSession.Builder(this@ExpoVideoPlaybackService, player)
+         .setId("ExpoVideoPlaybackService_${player.hashCode()}")
+-        .setCallback(VideoMediaSessionCallback())
+-        .setCustomLayout(ImmutableList.of(seekBackwardButton, seekForwardButton))
++        .setCallback(VideoMediaSessionCallback(videoPlayer))
+         .build()
+ 
+       mediaSessions[player] = mediaSession
+       addSession(mediaSession)
++      pushCustomLayout(mediaSession)
++
+       setShowNotification(videoPlayer.showNowPlayingNotification, player)
+     }
+   }
+@@ -112,6 +110,7 @@ class ExpoVideoPlaybackService : MediaSessionService() {
+ 
+   override fun onUpdateNotification(session: MediaSession, startInForegroundRequired: Boolean) {
+     appContext.mainQueue.launch {
++      pushCustomLayout(session)
+       if (startInForegroundRequired && session.wantsToShowNotification()) {
+         setMostRecentInteractionSession(session)
+       } else {
+@@ -238,10 +237,24 @@ class ExpoVideoPlaybackService : MediaSessionService() {
+   companion object {
+     const val SEEK_FORWARD_COMMAND = "SEEK_FORWARD"
+     const val SEEK_BACKWARD_COMMAND = "SEEK_REWIND"
++    const val SKIP_NEXT_COMMAND = "SKIP_NEXT"
++    const val SKIP_PREVIOUS_COMMAND = "SKIP_PREVIOUS"
+     const val CHANNEL_ID = "PlaybackService"
+     const val SESSION_SHOW_NOTIFICATION = "showNotification"
+     const val SEEK_INTERVAL_MS = 10000L
+ 
++    val skipNextButton: CommandButton = CommandButton.Builder()
++      .setDisplayName("next")
++      .setSessionCommand(SessionCommand(SKIP_NEXT_COMMAND, Bundle.EMPTY))
++      .setIconResId(androidx.media3.session.R.drawable.media3_icon_next)
++      .build()
++
++    val skipPreviousButton: CommandButton = CommandButton.Builder()
++      .setDisplayName("previous")
++      .setSessionCommand(SessionCommand(SKIP_PREVIOUS_COMMAND, Bundle.EMPTY))
++      .setIconResId(androidx.media3.session.R.drawable.media3_icon_previous)
++      .build()
++
+     fun startService(appContext: AppContext, context: Context, serviceConnection: PlaybackServiceConnection): Boolean {
+       appContext.reactContext?.apply {
+         val intent = Intent(context, ExpoVideoPlaybackService::class.java)
+diff --git a/node_modules/expo-video/android/src/main/java/expo/modules/video/playbackService/VideoMediaSessionCallback.kt b/node_modules/expo-video/android/src/main/java/expo/modules/video/playbackService/VideoMediaSessionCallback.kt
+index 1ca90e0..7f39629 100644
+--- a/node_modules/expo-video/android/src/main/java/expo/modules/video/playbackService/VideoMediaSessionCallback.kt
++++ b/node_modules/expo-video/android/src/main/java/expo/modules/video/playbackService/VideoMediaSessionCallback.kt
+@@ -8,9 +8,13 @@ import androidx.media3.session.SessionResult
+ import com.google.common.util.concurrent.ListenableFuture
+ import androidx.annotation.OptIn
+ import androidx.media3.common.util.UnstableApi
++import expo.modules.video.player.VideoPlayer
++import java.lang.ref.WeakReference
+ 
+ @OptIn(UnstableApi::class)
+-class VideoMediaSessionCallback : MediaSession.Callback {
++class VideoMediaSessionCallback(videoPlayer: VideoPlayer) : MediaSession.Callback {
++  private val videoPlayerRef = WeakReference(videoPlayer)
++
+   override fun onConnect(
+     session: MediaSession,
+     controller: MediaSession.ControllerInfo
+@@ -18,6 +22,12 @@ class VideoMediaSessionCallback : MediaSession.Callback {
+     try {
+       // TODO @behenate: For now we're only allowing seek forward and back by 10 seconds and going to the
+       //  beginning of the video. In the future we should add more customization options for the users.
++      //
++      // Skip-next/previous are exposed as custom session commands rather than the standard
++      // Player.COMMAND_SEEK_TO_NEXT/PREVIOUS: those are only ever reported as available by
++      // ExoPlayer when it has a real next/previous item in its own timeline, which a single-item
++      // player never has. The app maintains its own queue outside the native player, so these
++      // buttons are wired to notify JS instead of driving the player's timeline directly.
+       return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
+         .setAvailablePlayerCommands(
+           MediaSession.ConnectionResult.DEFAULT_PLAYER_COMMANDS.buildUpon()
+@@ -29,8 +39,16 @@ class VideoMediaSessionCallback : MediaSession.Callback {
+           MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
+             .add(SessionCommand(ExpoVideoPlaybackService.SEEK_BACKWARD_COMMAND, Bundle.EMPTY))
+             .add(SessionCommand(ExpoVideoPlaybackService.SEEK_FORWARD_COMMAND, Bundle.EMPTY))
++            .add(SessionCommand(ExpoVideoPlaybackService.SKIP_NEXT_COMMAND, Bundle.EMPTY))
++            .add(SessionCommand(ExpoVideoPlaybackService.SKIP_PREVIOUS_COMMAND, Bundle.EMPTY))
+             .build()
+         )
++        .setCustomLayout(
++          listOf(
++            ExpoVideoPlaybackService.skipPreviousButton,
++            ExpoVideoPlaybackService.skipNextButton
++          )
++        )
+         .build()
+     } catch (e: Exception) {
+       return MediaSession.ConnectionResult.reject()
+@@ -41,6 +59,8 @@ class VideoMediaSessionCallback : MediaSession.Callback {
+     when (customCommand.customAction) {
+       ExpoVideoPlaybackService.SEEK_FORWARD_COMMAND -> session.player.seekTo(session.player.currentPosition + ExpoVideoPlaybackService.SEEK_INTERVAL_MS)
+       ExpoVideoPlaybackService.SEEK_BACKWARD_COMMAND -> session.player.seekTo(session.player.currentPosition - ExpoVideoPlaybackService.SEEK_INTERVAL_MS)
++      ExpoVideoPlaybackService.SKIP_NEXT_COMMAND -> videoPlayerRef.get()?.notifyRemoteNext()
++      ExpoVideoPlaybackService.SKIP_PREVIOUS_COMMAND -> videoPlayerRef.get()?.notifyRemotePrevious()
+     }
+     return super.onCustomCommand(session, controller, customCommand, args)
+   }
+diff --git a/node_modules/expo-video/android/src/main/java/expo/modules/video/player/PlayerEvent.kt b/node_modules/expo-video/android/src/main/java/expo/modules/video/player/PlayerEvent.kt
+index 71164bf..6718b40 100644
+--- a/node_modules/expo-video/android/src/main/java/expo/modules/video/player/PlayerEvent.kt
++++ b/node_modules/expo-video/android/src/main/java/expo/modules/video/player/PlayerEvent.kt
+@@ -141,6 +141,14 @@ sealed class PlayerEvent {
+     override val name = "playToEnd"
+   }
+ 
++  class RemoteNext : PlayerEvent() {
++    override val name = "remoteNext"
++  }
++
++  class RemotePrevious : PlayerEvent() {
++    override val name = "remotePrevious"
++  }
++
+   fun emit(player: VideoPlayer, listeners: List<VideoPlayerListener>) {
+     when (this) {
+       is StatusChanged -> listeners.forEach { it.onStatusChanged(player, status, oldStatus, error) }
+diff --git a/node_modules/expo-video/android/src/main/java/expo/modules/video/player/VideoPlayer.kt b/node_modules/expo-video/android/src/main/java/expo/modules/video/player/VideoPlayer.kt
+index 1c7a55c..5965ff3 100644
+--- a/node_modules/expo-video/android/src/main/java/expo/modules/video/player/VideoPlayer.kt
++++ b/node_modules/expo-video/android/src/main/java/expo/modules/video/player/VideoPlayer.kt
+@@ -470,6 +470,14 @@ class VideoPlayer(val context: Context, appContext: AppContext, source: VideoSou
+     }
+   }
+ 
++  fun notifyRemoteNext() {
++    sendEvent(PlayerEvent.RemoteNext())
++  }
++
++  fun notifyRemotePrevious() {
++    sendEvent(PlayerEvent.RemotePrevious())
++  }
++
+   private fun createFirstFrameEventGenerator(): FirstFrameEventGenerator {
+     return FirstFrameEventGenerator(player, currentPlayerView) {
+       hasRenderedAFrameOfVideoSource = true
+diff --git a/node_modules/expo-video/build/VideoPlayerEvents.types.d.ts b/node_modules/expo-video/build/VideoPlayerEvents.types.d.ts
+index 6591032..231dff1 100644
+--- a/node_modules/expo-video/build/VideoPlayerEvents.types.d.ts
++++ b/node_modules/expo-video/build/VideoPlayerEvents.types.d.ts
+@@ -27,6 +27,18 @@ export type VideoPlayerEvents = {
+      * Handler for an event emitted when the player plays to the end of the current source.
+      */
+     playToEnd(): void;
++    /**
++     * Handler for an event emitted when the skip-to-next transport control is pressed
++     * (e.g. from the now-playing notification or lock screen).
++     * @platform android
++     */
++    remoteNext(): void;
++    /**
++     * Handler for an event emitted when the skip-to-previous transport control is pressed
++     * (e.g. from the now-playing notification or lock screen).
++     * @platform android
++     */
++    remotePrevious(): void;
+     /**
+      * Handler for an event emitted in a given interval specified by the `timeUpdateEventInterval`.
+      */
