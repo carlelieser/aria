@@ -48,9 +48,18 @@ export class PlaybackOperations {
 		headers?: Record<string, string>
 	): AsyncResult<void, Error> {
 		try {
-			this._releasePlayer();
 			this._prepareState(track);
-			this._createPlayer(track, streamUrl, headers);
+			if (this._player) {
+				// Reuse the existing native player instead of releasing and recreating
+				// it. Constructing a brand-new player while the app is backgrounded
+				// does not reliably re-acquire audio focus / the background session,
+				// which is what caused playback to stop after each track ended while
+				// the app was backgrounded. Swapping the source on the live instance
+				// keeps that session intact across track changes.
+				await this._replaceSource(track, streamUrl, headers);
+			} else {
+				this._createPlayer(track, streamUrl, headers);
+			}
 			this._configurePlayer(startPosition);
 			this._emitEvent({ type: 'track-change', track, timestamp: Date.now() });
 			return ok(undefined);
@@ -150,11 +159,9 @@ export class PlaybackOperations {
 		this._updateStatus('loading');
 	}
 
-	private _createPlayer(track: Track, streamUrl: string, headers?: Record<string, string>): void {
+	private _buildSource(track: Track, streamUrl: string, headers?: Record<string, string>) {
 		const contentType = resolveContentType(streamUrl);
-		logger.debug('Creating video player', contentType);
-
-		this._player = createVideoPlayer({
+		return {
 			uri: streamUrl,
 			contentType,
 			metadata: {
@@ -163,7 +170,22 @@ export class PlaybackOperations {
 				artwork: getArtworkUrl(track),
 			},
 			...(headers && Object.keys(headers).length > 0 ? { headers } : {}),
-		});
+		};
+	}
+
+	private _createPlayer(track: Track, streamUrl: string, headers?: Record<string, string>): void {
+		logger.debug('Creating video player', resolveContentType(streamUrl));
+		this._player = createVideoPlayer(this._buildSource(track, streamUrl, headers));
+	}
+
+	private async _replaceSource(
+		track: Track,
+		streamUrl: string,
+		headers?: Record<string, string>
+	): Promise<void> {
+		if (!this._player) return;
+		logger.debug('Replacing video player source', resolveContentType(streamUrl));
+		await this._player.replaceAsync(this._buildSource(track, streamUrl, headers));
 	}
 
 	private _configurePlayer(startPosition?: Duration): void {
