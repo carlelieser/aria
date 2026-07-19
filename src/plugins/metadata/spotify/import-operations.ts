@@ -5,7 +5,8 @@ import { libraryService } from '@/src/application/services/library-service';
 import { useLibraryImportStore } from '@/src/application/state/library-import-store';
 import type { SpotifyAuthManager } from './auth';
 import type { SpotifyProxyClient } from './proxy-client';
-import { mapProxySavedTracks, mapProxyLibrary } from './proxy-mappers';
+import { toAlbumReference } from '@domain/entities/album';
+import { mapProxySavedTracks, mapProxyLibrary, mapProxyAlbumTracks } from './proxy-mappers';
 
 const logger = getLogger('Spotify:Import');
 
@@ -82,22 +83,47 @@ export function createImportOperations(
 					}
 				}
 
-				// NOTE: album import is not yet supported via the proxy. The
-				// library store models tracks and playlists, not standalone
-				// albums, and importing an album's tracks needs an album-tracks
-				// proxy endpoint that does not exist yet. `includeAlbums` is
-				// accepted but currently a no-op.
-				void includeAlbums;
-
-				if (includePlaylists && !cancelled) {
+				if ((includeAlbums || includePlaylists) && !cancelled) {
 					const result = await proxy.getLibrary(session);
 					if (!result.success) {
 						store.addError('Library', result.error.message);
 						logger.error('Failed to fetch library', result.error);
 					} else {
-						const { playlists } = mapProxyLibrary(result.data);
+						const { albums, playlists } = mapProxyLibrary(result.data);
 
-						if (!cancelled) {
+						// Aria derives albums from imported tracks, so importing
+						// a saved album means importing its tracks.
+						if (includeAlbums && !cancelled) {
+							store.updateProgress('albums', 0, albums.length);
+							for (let i = 0; i < albums.length; i++) {
+								if (cancelled) break;
+								const album = albums[i];
+								store.updateProgress('albums', i + 1, albums.length, album.name);
+
+								const tracksResult = await proxy.getAlbumTracks(
+									session,
+									album.id.sourceId
+								);
+								if (!tracksResult.success) {
+									store.addError(album.name, tracksResult.error.message);
+									continue;
+								}
+
+								const tracks = mapProxyAlbumTracks(
+									tracksResult.data,
+									toAlbumReference(album),
+									album.artwork ?? []
+								);
+								const addResult = libraryService.addTracks(tracks);
+								if (addResult.success) {
+									albumsImported++;
+								} else {
+									store.addError(album.name, addResult.error.message);
+								}
+							}
+						}
+
+						if (includePlaylists && !cancelled) {
 							store.updateProgress('playlists', playlists.length, playlists.length);
 							for (const playlist of playlists) {
 								if (cancelled) break;

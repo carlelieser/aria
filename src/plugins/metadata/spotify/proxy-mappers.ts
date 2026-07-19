@@ -141,7 +141,9 @@ export function mapProxySavedTrack(item: RawSavedTrackItem): Track | null {
 	const data = item.track?.data;
 	if (!data) return null;
 
-	const uri = data.uri as string | undefined;
+	// A track's identity lives in `track._uri`; unlike albums/artists, the
+	// track's `data` object carries no `uri` of its own.
+	const uri = item.track?._uri;
 	const name = data.name as string | undefined;
 	if (!name || !uri) return null;
 
@@ -172,6 +174,56 @@ export function mapProxySavedTrack(item: RawSavedTrackItem): Track | null {
 		artwork: artwork.length > 0 ? artwork : undefined,
 		source: createStreamingSource('spotify', sourceId),
 	});
+}
+
+// --- album track mapper (item.track, direct fields) ---
+
+interface RawAlbumTrackItem {
+	readonly track?: Record<string, unknown>;
+}
+
+/**
+ * Map one album-track node. Unlike saved tracks, album tracks expose their
+ * fields directly on `item.track` (no `.data` nesting) and carry their own
+ * `uri`. Album context is supplied by the caller since the node omits it.
+ */
+export function mapProxyAlbumTrack(
+	item: RawAlbumTrackItem,
+	albumRef: AlbumReference | undefined,
+	albumArtwork: Artwork[]
+): Track | null {
+	const track = item.track;
+	if (!track) return null;
+
+	const uri = track.uri as string | undefined;
+	const name = track.name as string | undefined;
+	if (!name || !uri) return null;
+
+	const artists = track.artists as { items?: RawArtistItem[] } | undefined;
+	const duration = track.duration as { totalMilliseconds?: number } | undefined;
+	const sourceId = idFromUri(uri);
+
+	return createTrack({
+		id: TrackId.create('spotify', sourceId),
+		title: name,
+		artists: mapArtistRefs(artists?.items),
+		album: albumRef,
+		duration: Duration.fromMilliseconds(duration?.totalMilliseconds ?? 0),
+		artwork: albumArtwork.length > 0 ? albumArtwork : undefined,
+		source: createStreamingSource('spotify', sourceId),
+	});
+}
+
+/** Map an /album/tracks payload into domain tracks, tagged with album context. */
+export function mapProxyAlbumTracks(
+	payload: unknown,
+	albumRef: AlbumReference | undefined,
+	albumArtwork: Artwork[]
+): Track[] {
+	const items = (payload as { items?: RawAlbumTrackItem[] } | undefined)?.items ?? [];
+	return items
+		.map((it) => mapProxyAlbumTrack(it, albumRef, albumArtwork))
+		.filter((t): t is Track => t !== null);
 }
 
 // --- top-level extractors (handle library / libraryV3 envelope) ---
@@ -227,9 +279,14 @@ export function mapProxyLibrary(payload: unknown): MappedLibrary {
 	return { artists, albums, playlists };
 }
 
-/** Extract and map saved (liked) tracks from a `get_saved_tracks_info` payload. */
+/**
+ * Extract and map saved (liked) tracks.
+ *
+ * The proxy's /library/tracks endpoint flattens SpotAPI's paginated GraphQL
+ * into `{ total, items }`, where each item is already a
+ * `{ __typename, addedAt, track: { data } }` node.
+ */
 export function mapProxySavedTracks(payload: unknown): Track[] {
-	const root = libraryRoot(payload);
-	const tracks = (root?.tracks as { items?: RawSavedTrackItem[] } | undefined)?.items ?? [];
-	return tracks.map(mapProxySavedTrack).filter((t): t is Track => t !== null);
+	const items = (payload as { items?: RawSavedTrackItem[] } | undefined)?.items ?? [];
+	return items.map(mapProxySavedTrack).filter((t): t is Track => t !== null);
 }

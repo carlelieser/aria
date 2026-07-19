@@ -26,9 +26,14 @@ export interface SpotifyProxyClient {
 	verify(session: ProxySession): Promise<Result<string, Error>>;
 	getSavedTracks(session: ProxySession): Promise<Result<unknown, Error>>;
 	getLibrary(session: ProxySession): Promise<Result<unknown, Error>>;
+	getAlbumTracks(session: ProxySession, albumId: string): Promise<Result<unknown, Error>>;
 }
 
-async function post<T>(path: string, session: ProxySession): Promise<Result<T, Error>> {
+async function post<T>(
+	path: string,
+	session: ProxySession,
+	extra?: Record<string, string>
+): Promise<Result<T, Error>> {
 	if (!SPOT_API_URL || !SPOT_API_KEY) {
 		return err(new Error('Spotify proxy is not configured'));
 	}
@@ -40,7 +45,11 @@ async function post<T>(path: string, session: ProxySession): Promise<Result<T, E
 				'Content-Type': 'application/json',
 				'X-API-Key': SPOT_API_KEY,
 			},
-			body: JSON.stringify({ identifier: session.identifier, sp_dc: session.spDc }),
+			body: JSON.stringify({
+				identifier: session.identifier,
+				sp_dc: session.spDc,
+				...extra,
+			}),
 		});
 
 		if (response.status === 401) {
@@ -73,6 +82,10 @@ export function createSpotifyProxyClient(): SpotifyProxyClient {
 
 		getLibrary(session: ProxySession): Promise<Result<unknown, Error>> {
 			return post<unknown>('/library/playlists', session);
+		},
+
+		getAlbumTracks(session: ProxySession, albumId: string): Promise<Result<unknown, Error>> {
+			return post<unknown>('/album/tracks', session, { album_id: albumId });
 		},
 	};
 }
