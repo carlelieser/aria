@@ -10,7 +10,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/github/v/release/carlelieser/aria?include_prereleases&label=release" alt="Latest Release" />
-  <img src="https://img.shields.io/github/actions/workflow/status/carlelieser/aria/ci.yml?branch=main&logo=github&label=CI" alt="CI Status" />
+  <img src="https://github.com/carlelieser/aria/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI Status" />
   <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS-blue" alt="Android | iOS" />
   <img src="https://img.shields.io/badge/License-MIT-green" alt="MIT License" />
 </p>
