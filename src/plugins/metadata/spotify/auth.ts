@@ -1,227 +1,96 @@
-import {
-	getRandomBytes,
-	digestStringAsync,
-	CryptoDigestAlgorithm,
-	CryptoEncoding,
-} from 'expo-crypto';
+/**
+ * Spotify Authentication Manager
+ *
+ * Holds the user's Spotify web session (the `sp_dc` cookie captured by the
+ * login WebView, plus the account identifier) and validates it against the
+ * spot-api proxy. Unlike the official OAuth flow, no access tokens are minted
+ * on-device: the proxy performs the browser-impersonation handshake and all
+ * authenticated reads server-side. This manager only persists the session and
+ * answers "are we logged in".
+ */
+
 import { BaseAuthManager, type BaseAuthState } from '@shared/auth';
 import type { Result } from '@shared/types/result';
 import { ok, err } from '@shared/types/result';
-import { getLogger } from '@shared/services/logger';
-import {
-	SPOTIFY_CLIENT_ID,
-	SPOTIFY_REDIRECT_URI,
-	SPOTIFY_TOKEN_URL,
-	SPOTIFY_AUTH_URL,
-	SPOTIFY_SCOPES,
-} from './config';
+import { SPOTIFY_LOGIN_URL } from './config';
+import { createSpotifyProxyClient, type ProxySession } from './proxy-client';
 
-const logger = getLogger('SpotifyAuth');
+const STORAGE_KEY = 'spotify_web_session';
 
-const STORAGE_KEY = 'spotify_oauth';
-const TOKEN_BUFFER_MS = 60 * 1000;
-const PKCE_VERIFIER_BYTE_LENGTH = 64;
-
-function base64UrlEncode(bytes: Uint8Array): string {
-	let binary = '';
-	for (const byte of bytes) {
-		binary += String.fromCharCode(byte);
-	}
-	return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
+// The upstream session requires a non-empty identifier to construct, but the
+// real username is resolved from `sp_dc`; any placeholder works.
+const SESSION_IDENTIFIER_PLACEHOLDER = 'aria';
 
 interface StoredAuth {
-	readonly refreshToken: string;
-	readonly accessToken?: string;
-	readonly expiresAt?: number;
-}
-
-interface SpotifyTokenResponse {
-	readonly access_token: string;
-	readonly token_type: string;
-	readonly scope: string;
-	readonly expires_in: number;
-	readonly refresh_token?: string;
+	readonly identifier: string;
+	readonly spDc: string;
 }
 
 export interface AuthState extends BaseAuthState {
-	readonly accessToken: string | null;
-	readonly expiresAt: number | null;
+	readonly identifier: string | null;
 }
 
 export class SpotifyAuthManager extends BaseAuthManager<StoredAuth, AuthState> {
-	private refreshToken: string | null = null;
-	private accessToken: string | null = null;
-	private expiresAt: number | null = null;
-	private _codeVerifier: string | null = null;
+	private identifier: string | null = null;
+	private spDc: string | null = null;
+	private readonly proxy = createSpotifyProxyClient();
 
 	constructor() {
 		super({
 			storageKey: STORAGE_KEY,
-			loginUrl: 'https://accounts.spotify.com/authorize',
+			loginUrl: SPOTIFY_LOGIN_URL,
 		});
 	}
 
-	async generateAuthUrl(): Promise<string> {
-		const verifierBytes = getRandomBytes(PKCE_VERIFIER_BYTE_LENGTH);
-		this._codeVerifier = base64UrlEncode(verifierBytes);
+	/**
+	 * Stores the captured `sp_dc` cookie and validates it against the proxy.
+	 * The account identifier is resolved from `sp_dc` alone by the proxy
+	 * (a placeholder is sent upstream), so the login WebView only needs to
+	 * capture the cookie.
+	 */
+	async setSession(spDc: string): Promise<Result<void, Error>> {
+		const session: ProxySession = { identifier: SESSION_IDENTIFIER_PLACEHOLDER, spDc };
+		const result = await this.proxy.verify(session);
+		if (!result.success) {
+			this.clearCredentials();
+			return err(result.error);
+		}
 
-		const codeChallenge = await digestStringAsync(
-			CryptoDigestAlgorithm.SHA256,
-			this._codeVerifier,
-			{ encoding: CryptoEncoding.BASE64 }
-		);
-		const codeChallengeSafe = codeChallenge
-			.replace(/\+/g, '-')
-			.replace(/\//g, '_')
-			.replace(/=+$/, '');
+		this.spDc = spDc;
+		this.identifier = result.data;
+		await this.persistCredentials();
+		return ok(undefined);
+	}
 
-		const params = new URLSearchParams({
-			client_id: SPOTIFY_CLIENT_ID,
-			response_type: 'code',
-			redirect_uri: SPOTIFY_REDIRECT_URI,
-			scope: SPOTIFY_SCOPES,
-			show_dialog: 'true',
-			code_challenge_method: 'S256',
-			code_challenge: codeChallengeSafe,
-		});
-
-		return `${SPOTIFY_AUTH_URL}?${params.toString()}`;
+	/** Returns the current session for proxy calls, or null if not logged in. */
+	getSession(): ProxySession | null {
+		if (!this.spDc || !this.identifier) return null;
+		return { identifier: this.identifier, spDc: this.spDc };
 	}
 
 	isAuthenticated(): boolean {
-		return this.refreshToken !== null;
+		return this.spDc !== null && this.identifier !== null;
 	}
 
 	getAuthState(): AuthState {
 		return {
-			isAuthenticated: this.refreshToken !== null,
-			accessToken: this.accessToken,
-			expiresAt: this.expiresAt,
+			isAuthenticated: this.isAuthenticated(),
+			identifier: this.identifier,
 		};
 	}
 
 	protected clearCredentials(): void {
-		this.refreshToken = null;
-		this.accessToken = null;
-		this.expiresAt = null;
+		this.spDc = null;
+		this.identifier = null;
 	}
 
 	protected serializeForStorage(): StoredAuth | null {
-		if (!this.refreshToken) return null;
-		return {
-			refreshToken: this.refreshToken,
-			accessToken: this.accessToken ?? undefined,
-			expiresAt: this.expiresAt ?? undefined,
-		};
+		if (!this.spDc || !this.identifier) return null;
+		return { identifier: this.identifier, spDc: this.spDc };
 	}
 
 	protected deserializeFromStorage(stored: StoredAuth): void {
-		this.refreshToken = stored.refreshToken;
-		this.accessToken = stored.accessToken ?? null;
-		this.expiresAt = stored.expiresAt ?? null;
-	}
-
-	async exchangeAuthCode(code: string): Promise<Result<void, Error>> {
-		if (!this._codeVerifier) {
-			return err(new Error('No PKCE code verifier — call generateAuthUrl() first'));
-		}
-
-		try {
-			const result = await this._tokenRequest({
-				grant_type: 'authorization_code',
-				code,
-				redirect_uri: SPOTIFY_REDIRECT_URI,
-				code_verifier: this._codeVerifier,
-			});
-
-			this._codeVerifier = null;
-
-			if (!result.success) return result;
-
-			await this.persistCredentials();
-			return ok(undefined);
-		} catch (error) {
-			this._codeVerifier = null;
-			this.clearCredentials();
-			return err(this.wrapError(error));
-		}
-	}
-
-	async getAccessToken(): Promise<Result<string, Error>> {
-		if (!this.refreshToken) {
-			const loadResult = await this._loadStoredAuth();
-			if (!loadResult.success || !loadResult.data) {
-				return err(new Error('Not authenticated'));
-			}
-		}
-
-		if (!this.refreshToken) {
-			return err(new Error('Not authenticated'));
-		}
-
-		if (this.accessToken && this.expiresAt && Date.now() + TOKEN_BUFFER_MS < this.expiresAt) {
-			return ok(this.accessToken);
-		}
-
-		return this._refreshAccessToken();
-	}
-
-	private async _refreshAccessToken(): Promise<Result<string, Error>> {
-		if (!this.refreshToken) {
-			return err(new Error('No refresh token available'));
-		}
-
-		const result = await this._tokenRequest({
-			grant_type: 'refresh_token',
-			refresh_token: this.refreshToken,
-		});
-
-		if (!result.success) return err(result.error);
-
-		this.persistCredentials().catch((e) =>
-			logger.error('Failed to persist credentials', e instanceof Error ? e : undefined)
-		);
-
-		if (!this.accessToken) {
-			return err(new Error('No access token available after refresh'));
-		}
-
-		return ok(this.accessToken);
-	}
-
-	private async _tokenRequest(params: Record<string, string>): Promise<Result<void, Error>> {
-		try {
-			const body = new URLSearchParams({
-				...params,
-				client_id: SPOTIFY_CLIENT_ID,
-			}).toString();
-
-			const response = await fetch(SPOTIFY_TOKEN_URL, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded',
-				},
-				body,
-			});
-
-			if (!response.ok) {
-				const errorBody = await response.text();
-				logger.error(`Token request failed: ${response.status} - ${errorBody}`);
-				return err(new Error(`Token request failed: ${response.status}`));
-			}
-
-			const data: SpotifyTokenResponse = await response.json();
-			this.accessToken = data.access_token;
-			this.expiresAt = Date.now() + data.expires_in * 1000;
-
-			if (data.refresh_token) {
-				this.refreshToken = data.refresh_token;
-			}
-
-			return ok(undefined);
-		} catch (error) {
-			return err(this.wrapError(error));
-		}
+		this.identifier = stored.identifier;
+		this.spDc = stored.spDc;
 	}
 }

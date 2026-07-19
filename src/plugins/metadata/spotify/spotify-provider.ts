@@ -1,9 +1,6 @@
 import type {
 	MetadataCapability,
 	MetadataProvider,
-	RecommendationParams,
-	RecommendationSeed,
-	SearchOptions,
 	SearchResults,
 } from '@plugins/core/interfaces/metadata-provider';
 import type { OAuthCapablePlugin } from '@plugins/core/interfaces/oauth-capable-plugin';
@@ -12,22 +9,23 @@ import type { Track } from '@domain/entities/track';
 import type { Album } from '@domain/entities/album';
 import type { Artist } from '@domain/entities/artist';
 import type { Playlist } from '@domain/entities/playlist';
-import type { TrackId } from '@domain/value-objects/track-id';
 import type { Result } from '@shared/types/result';
 import { ok, err } from '@shared/types/result';
 
 import { PLUGIN_MANIFEST, CONFIG_SCHEMA, METADATA_CAPABILITIES } from './config';
 import { SpotifyClient, createSpotifyClient, type SpotifyClientConfig } from './client';
-import { createSearchOperations, type SearchOperations } from './search';
-import { createInfoOperations, type InfoOperations } from './info';
-import { createLibraryOperations, type LibraryOperations } from './library';
-import { createRecommendationOperations, type RecommendationOperations } from './recommendations';
 import { createImportOperations, type ImportOperations } from './import-operations';
-import { createSpotifyHomeFeedOperations } from './home-feed';
-import type { HomeFeedOperations } from '@plugins/core/interfaces/home-feed-provider';
+
+/**
+ * Only library import is available for Spotify (via the spot-api proxy). Search,
+ * catalog info, and recommendations require direct Spotify API access that is no
+ * longer reachable from the app.
+ */
+const NOT_SUPPORTED_ERROR = new Error(
+	'Spotify supports library import only; search and catalog browsing are unavailable'
+);
 
 export interface SpotifyLibraryProvider extends MetadataProvider, OAuthCapablePlugin {
-	readonly library: LibraryOperations;
 	readonly import: ImportOperations;
 
 	getClient(): SpotifyClient;
@@ -42,22 +40,10 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 
 	private config: SpotifyClientConfig;
 	private client: SpotifyClient | null = null;
-	private searchOps: SearchOperations | null = null;
-	private infoOps: InfoOperations | null = null;
-	private libraryOps: LibraryOperations | null = null;
-	private recommendationOps: RecommendationOperations | null = null;
 	private importOps: ImportOperations | null = null;
-	private homeFeedOps: HomeFeedOperations | null = null;
 
 	constructor(config: SpotifyClientConfig = {}) {
 		this.config = config;
-	}
-
-	get library(): LibraryOperations {
-		if (!this.libraryOps) {
-			throw new Error('Plugin not initialized');
-		}
-		return this.libraryOps;
 	}
 
 	get import(): ImportOperations {
@@ -65,13 +51,6 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 			throw new Error('Plugin not initialized');
 		}
 		return this.importOps;
-	}
-
-	get homeFeed(): HomeFeedOperations {
-		if (!this.homeFeedOps) {
-			throw new Error('Plugin not initialized');
-		}
-		return this.homeFeedOps;
 	}
 
 	async onInit(context: PluginInitContext): Promise<Result<void, Error>> {
@@ -83,12 +62,14 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 			};
 
 			this.client = createSpotifyClient(mergedConfig);
-			this.searchOps = createSearchOperations(this.client);
-			this.infoOps = createInfoOperations(this.client);
-			this.libraryOps = createLibraryOperations(this.client);
-			this.recommendationOps = createRecommendationOperations(this.client);
-			this.importOps = createImportOperations(this.libraryOps, this.infoOps, this.client);
-			this.homeFeedOps = createSpotifyHomeFeedOperations(this.client);
+			// Only library import is supported via the spot-api proxy. Search,
+			// info, recommendations and home-feed require direct Spotify API
+			// access that is no longer available; they remain unbuilt and their
+			// provider methods return NOT_SUPPORTED_ERROR.
+			this.importOps = createImportOperations(
+				this.client.getAuthManager(),
+				this.client.getProxyClient()
+			);
 
 			await this.client.initialize();
 
@@ -117,12 +98,7 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 	async onDestroy(): Promise<Result<void, Error>> {
 		this.client?.destroy();
 		this.client = null;
-		this.searchOps = null;
-		this.infoOps = null;
-		this.libraryOps = null;
-		this.recommendationOps = null;
 		this.importOps = null;
-		this.homeFeedOps = null;
 		this.status = 'uninitialized';
 		return ok(undefined);
 	}
@@ -160,7 +136,9 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 		if (!this.client) {
 			return err(new Error('Plugin not initialized'));
 		}
-		return this.client.getAuthManager().exchangeAuthCode(credential);
+		// `credential` is the `sp_dc` session cookie captured by the login
+		// WebView; the account identifier is resolved from it by the proxy.
+		return this.client.getAuthManager().setSession(credential);
 	}
 
 	async logout(): Promise<Result<void, Error>> {
@@ -170,117 +148,61 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 		return this.client.getAuthManager().logout();
 	}
 
-	searchTracks(
-		query: string,
-		options?: SearchOptions
-	): Promise<Result<SearchResults<Track>, Error>> {
-		if (!this.searchOps) {
-			return Promise.resolve(err(new Error('Plugin not initialized')));
-		}
-		return this.searchOps.searchTracks(query, options);
+	// --- Unsupported catalog operations ---
+	// Search, info, and recommendations required direct Spotify API access,
+	// which is no longer reachable. These satisfy the MetadataProvider contract
+	// but always return NOT_SUPPORTED_ERROR.
+
+	searchTracks(): Promise<Result<SearchResults<Track>, Error>> {
+		return Promise.resolve(err(NOT_SUPPORTED_ERROR));
 	}
 
-	searchAlbums(
-		query: string,
-		options?: SearchOptions
-	): Promise<Result<SearchResults<Album>, Error>> {
-		if (!this.searchOps) {
-			return Promise.resolve(err(new Error('Plugin not initialized')));
-		}
-		return this.searchOps.searchAlbums(query, options);
+	searchAlbums(): Promise<Result<SearchResults<Album>, Error>> {
+		return Promise.resolve(err(NOT_SUPPORTED_ERROR));
 	}
 
-	searchArtists(
-		query: string,
-		options?: SearchOptions
-	): Promise<Result<SearchResults<Artist>, Error>> {
-		if (!this.searchOps) {
-			return Promise.resolve(err(new Error('Plugin not initialized')));
-		}
-		return this.searchOps.searchArtists(query, options);
+	searchArtists(): Promise<Result<SearchResults<Artist>, Error>> {
+		return Promise.resolve(err(NOT_SUPPORTED_ERROR));
 	}
 
-	searchPlaylists(
-		query: string,
-		options?: SearchOptions
-	): Promise<Result<SearchResults<Playlist>, Error>> {
-		if (!this.searchOps) {
-			return Promise.resolve(err(new Error('Plugin not initialized')));
-		}
-		return this.searchOps.searchPlaylists(query, options);
+	searchPlaylists(): Promise<Result<SearchResults<Playlist>, Error>> {
+		return Promise.resolve(err(NOT_SUPPORTED_ERROR));
 	}
 
-	getTrackInfo(trackId: TrackId): Promise<Result<Track, Error>> {
-		if (!this.infoOps) {
-			return Promise.resolve(err(new Error('Plugin not initialized')));
-		}
-		return this.infoOps.getTrackInfo(trackId);
+	getTrackInfo(): Promise<Result<Track, Error>> {
+		return Promise.resolve(err(NOT_SUPPORTED_ERROR));
 	}
 
-	getAlbumInfo(albumId: string): Promise<Result<Album, Error>> {
-		if (!this.infoOps) {
-			return Promise.resolve(err(new Error('Plugin not initialized')));
-		}
-		return this.infoOps.getAlbumInfo(albumId);
+	getAlbumInfo(): Promise<Result<Album, Error>> {
+		return Promise.resolve(err(NOT_SUPPORTED_ERROR));
 	}
 
-	getArtistInfo(artistId: string): Promise<Result<Artist, Error>> {
-		if (!this.infoOps) {
-			return Promise.resolve(err(new Error('Plugin not initialized')));
-		}
-		return this.infoOps.getArtistInfo(artistId);
+	getArtistInfo(): Promise<Result<Artist, Error>> {
+		return Promise.resolve(err(NOT_SUPPORTED_ERROR));
 	}
 
-	getPlaylistInfo(playlistId: string): Promise<Result<Playlist, Error>> {
-		if (!this.infoOps) {
-			return Promise.resolve(err(new Error('Plugin not initialized')));
-		}
-		return this.infoOps.getPlaylistInfo(playlistId);
+	getPlaylistInfo(): Promise<Result<Playlist, Error>> {
+		return Promise.resolve(err(NOT_SUPPORTED_ERROR));
 	}
 
-	getAlbumTracks(
-		albumId: string,
-		options?: Pick<SearchOptions, 'limit' | 'offset'>
-	): Promise<Result<SearchResults<Track>, Error>> {
-		if (!this.infoOps) {
-			return Promise.resolve(err(new Error('Plugin not initialized')));
-		}
-		return this.infoOps.getAlbumTracks(albumId, options);
+	getAlbumTracks(): Promise<Result<SearchResults<Track>, Error>> {
+		return Promise.resolve(err(NOT_SUPPORTED_ERROR));
 	}
 
-	getArtistAlbums(
-		artistId: string,
-		options?: Pick<SearchOptions, 'limit' | 'offset'>
-	): Promise<Result<SearchResults<Album>, Error>> {
-		if (!this.infoOps) {
-			return Promise.resolve(err(new Error('Plugin not initialized')));
-		}
-		return this.infoOps.getArtistAlbums(artistId, options);
+	getArtistAlbums(): Promise<Result<SearchResults<Album>, Error>> {
+		return Promise.resolve(err(NOT_SUPPORTED_ERROR));
 	}
 
-	batchGetTracks(trackIds: TrackId[]): Promise<Result<Track[], Error>> {
-		if (!this.infoOps) {
-			return Promise.resolve(err(new Error('Plugin not initialized')));
-		}
-		return this.infoOps.batchGetTracks(trackIds);
+	batchGetTracks(): Promise<Result<Track[], Error>> {
+		return Promise.resolve(err(NOT_SUPPORTED_ERROR));
 	}
 
-	batchGetAlbums(albumIds: string[]): Promise<Result<Album[], Error>> {
-		if (!this.infoOps) {
-			return Promise.resolve(err(new Error('Plugin not initialized')));
-		}
-		return this.infoOps.batchGetAlbums(albumIds);
+	batchGetAlbums(): Promise<Result<Album[], Error>> {
+		return Promise.resolve(err(NOT_SUPPORTED_ERROR));
 	}
 
-	getRecommendations(
-		seed: RecommendationSeed,
-		params?: RecommendationParams,
-		limit?: number
-	): Promise<Result<Track[], Error>> {
-		if (!this.recommendationOps) {
-			return Promise.resolve(err(new Error('Plugin not initialized')));
-		}
-		return this.recommendationOps.getRecommendations(seed, params, limit);
+	getRecommendations(): Promise<Result<Track[], Error>> {
+		return Promise.resolve(err(NOT_SUPPORTED_ERROR));
 	}
 }
 
