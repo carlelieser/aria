@@ -81,7 +81,7 @@ export function useWavyAnimation({ isLoading, isPlaying, size }: UseWavyAnimatio
 	changePeaksRef.current = changePeaks;
 
 	useEffect(() => {
-		if (isLoading || !isPlaying) {
+		if (isLoading || isPlaying) {
 			activeRef.current = true;
 
 			targetRadius.value = withSpring(loadingRadius, SPRING_CONFIG);
