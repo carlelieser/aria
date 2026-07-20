@@ -40,13 +40,6 @@ export interface ImportOperations {
 	cancelImport(): void;
 }
 
-/**
- * Library import via the spot-api proxy.
- *
- * The proxy returns each collection in a single response (no client-side
- * pagination), which proxy-mappers normalizes into domain entities. Saved
- * tracks and library items (albums/playlists/artists) come from two calls.
- */
 export function createImportOperations(
 	auth: SpotifyAuthManager,
 	proxy: SpotifyProxyClient
@@ -108,8 +101,7 @@ export function createImportOperations(
 					} else {
 						const { albums, playlists } = mapProxyLibrary(result.data);
 
-						// Aria derives albums from imported tracks, so importing
-						// a saved album means importing its tracks.
+						// Albums are derived from tracks, so import the album's tracks.
 						if (includeAlbums && !cancelled) {
 							store.updateProgress('albums', 0, albums.length);
 							for (let i = 0; i < albums.length; i++) {
@@ -157,8 +149,7 @@ export function createImportOperations(
 									playlist.name
 								);
 
-								// Fetch and embed the playlist's tracks — a
-								// playlist stored with no tracks is a broken import.
+								// Embed tracks; a playlist stored empty is a broken import.
 								const tracksResult = await proxy.getAllPlaylistTracks(
 									session,
 									idFromPlaylist(playlist.id)

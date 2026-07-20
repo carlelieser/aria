@@ -1,8 +1,7 @@
 import type { PluginConfigSchema, PluginManifest } from '@plugins/core/interfaces/base-plugin';
 import type { MetadataCapability } from '@plugins/core/interfaces/metadata-provider';
 
-// Library import goes through the spot-api proxy (SpotAPI-backed), not Spotify
-// directly. The key is a public gating token that ships in the client binary.
+// Public gating token for the proxy, not a secret — ships in the client binary.
 export const SPOT_API_URL = process.env.EXPO_PUBLIC_SPOT_API_URL ?? '';
 export const SPOT_API_KEY = process.env.EXPO_PUBLIC_SPOT_API_KEY ?? '';
 

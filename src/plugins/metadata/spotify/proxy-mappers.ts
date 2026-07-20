@@ -1,17 +1,8 @@
 /**
- * Spotify Proxy Mappers
- *
- * Normalizes the raw SpotAPI GraphQL payloads returned by the spot-api proxy
- * into Aria domain entities. Shapes were captured from real responses (see the
- * spot-api repo's reference/library-node-shapes.txt); this file is the single
- * place coupled to SpotAPI's internal format, so a SpotAPI shape change is
- * contained here.
- *
- * Two envelope quirks handled:
- *  - The library root key alternates between `me.library` and `me.libraryV3`
- *    across calls for the same content.
- *  - Library items wrap the entity under `item.data`; saved tracks wrap it
- *    under `track.data`.
+ * The single place coupled to SpotAPI's GraphQL shapes (see spot-api's
+ * reference/library-node-shapes.txt). Mappers fail soft: a shape mismatch
+ * yields null/[], not a throw. Envelope quirks: the library root is `me.library`
+ * or `me.libraryV3`; entities wrap under `item.data`, saved tracks `track.data`.
  */
 
 import { createTrack, type Track } from '@domain/entities/track';
@@ -46,7 +37,6 @@ interface RawLibraryItem {
 	};
 }
 
-/** Extract the last path segment of a `spotify:type:id` URI. */
 function idFromUri(uri: string | undefined): string {
 	if (!uri) return '';
 	const parts = uri.split(':');
@@ -65,9 +55,7 @@ function mapArtistRefs(items: readonly RawArtistItem[] | undefined): ArtistRefer
 	return (
 		items
 			.filter((a) => a.profile?.name)
-			// Prefix with the provider id so artist pages route to the Spotify
-			// provider (artist-service parses `provider:rawId`) and library-track
-			// matching stays consistent.
+			// `provider:rawId` so artist pages route to the Spotify provider.
 			.map((a) => ({ id: `spotify:${idFromUri(a.uri)}`, name: a.profile?.name ?? '' }))
 	);
 }
@@ -146,8 +134,7 @@ export function mapProxySavedTrack(item: RawSavedTrackItem): Track | null {
 	const data = item.track?.data;
 	if (!data) return null;
 
-	// A track's identity lives in `track._uri`; unlike albums/artists, the
-	// track's `data` object carries no `uri` of its own.
+	// Identity is on `track._uri`; `data` here carries no `uri` of its own.
 	const uri = item.track?._uri;
 	const name = data.name as string | undefined;
 	if (!name || !uri) return null;
@@ -180,8 +167,7 @@ export function mapProxySavedTrack(item: RawSavedTrackItem): Track | null {
 		source: createStreamingSource('spotify', sourceId),
 	});
 
-	// Preserve when the user saved the track (createTrack defaults addedAt to
-	// undefined). The isoString sits at item level, sibling to `track`.
+	// createTrack defaults addedAt to undefined; restore the saved-at date.
 	const addedAt = item.addedAt?.isoString;
 	return addedAt ? { ...track, addedAt: new Date(addedAt) } : track;
 }
@@ -192,11 +178,7 @@ interface RawAlbumTrackItem {
 	readonly track?: Record<string, unknown>;
 }
 
-/**
- * Map one album-track node. Unlike saved tracks, album tracks expose their
- * fields directly on `item.track` (no `.data` nesting) and carry their own
- * `uri`. Album context is supplied by the caller since the node omits it.
- */
+// Fields sit directly on `item.track` (no `.data`); album context is the caller's.
 export function mapProxyAlbumTrack(
 	item: RawAlbumTrackItem,
 	albumRef: AlbumReference | undefined,
@@ -227,7 +209,6 @@ export function mapProxyAlbumTrack(
 	});
 }
 
-/** Map collected album-track items into domain tracks, tagged with album context. */
 export function mapProxyAlbumTracks(
 	items: unknown[],
 	albumRef: AlbumReference | undefined,
@@ -240,7 +221,6 @@ export function mapProxyAlbumTracks(
 
 // --- artist overview + discography mappers ---
 
-/** Map a `get_artist` overview (artistUnion) into a full Artist entity. */
 export function mapProxyArtistOverview(data: Record<string, unknown>): Artist | null {
 	const profile = data.profile as { name?: string } | undefined;
 	const uri = data.uri as string | undefined;
@@ -259,7 +239,6 @@ export function mapProxyArtistOverview(data: Record<string, unknown>): Artist | 
 	};
 }
 
-/** Map collected discography releases into Album entities (albums + singles). */
 export function mapProxyArtistAlbums(items: unknown[]): Album[] {
 	return items
 		.map((it) => mapProxyAlbum(it as Record<string, unknown>))
@@ -275,10 +254,7 @@ interface RawPlaylistTrackItem {
 	};
 }
 
-/**
- * Map one playlist-track node. Playlist items wrap the track under
- * `itemV2.data` with the uri present, and use `trackDuration` (not `duration`).
- */
+// Wraps under `itemV2.data`, and uses `trackDuration` (not `duration`).
 export function mapProxyPlaylistTrack(item: RawPlaylistTrackItem): Track | null {
 	const data = item.itemV2?.data;
 	if (!data) return null;
@@ -312,7 +288,6 @@ export function mapProxyPlaylistTrack(item: RawPlaylistTrackItem): Track | null 
 	});
 }
 
-/** Map collected playlist-track items into domain tracks. */
 export function mapProxyPlaylistTracks(items: unknown[]): Track[] {
 	return items
 		.map((it) => mapProxyPlaylistTrack(it as RawPlaylistTrackItem))
@@ -334,7 +309,6 @@ export interface MappedLibrary {
 	readonly playlists: Playlist[];
 }
 
-/** Split a `get_library` payload into typed domain collections. */
 export function mapProxyLibrary(payload: unknown): MappedLibrary {
 	const root = libraryRoot(payload);
 	const items = (root?.items as RawLibraryItem[] | undefined) ?? [];
@@ -362,8 +336,7 @@ export function mapProxyLibrary(payload: unknown): MappedLibrary {
 				if (p) playlists.push(p);
 				break;
 			}
-			// LibraryPseudoPlaylistResponseWrapper ("Liked Songs") is a pointer;
-			// the actual tracks come from the saved-tracks endpoint.
+			// "Liked Songs" is a pointer; its tracks come from the saved-tracks endpoint.
 			default:
 				break;
 		}
@@ -372,10 +345,6 @@ export function mapProxyLibrary(payload: unknown): MappedLibrary {
 	return { artists, albums, playlists };
 }
 
-/**
- * Map collected saved (liked) track items into domain tracks. Each item is a
- * `{ __typename, addedAt, track: { _uri, data } }` node.
- */
 export function mapProxySavedTracks(items: unknown[]): Track[] {
 	return items
 		.map((it) => mapProxySavedTrack(it as RawSavedTrackItem))

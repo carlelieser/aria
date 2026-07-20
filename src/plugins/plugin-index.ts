@@ -16,9 +16,8 @@ import { PLUGIN_MANIFEST as CORE_LIBRARY_MANIFEST } from './library/core-library
 import { PLUGIN_MANIFEST as LYRICS_MANIFEST } from './lyrics/core/config';
 import { PLUGIN_MANIFEST as YOUTUBE_MUSIC_MANIFEST } from './metadata/youtube-music/config';
 // Spotify: the official OAuth app flow was capped to 5 users in dev mode
-// (Feb 2026), so auth rides the web player's `sp_dc` session cookie instead.
-// Library import uses only /me/* reads + public catalog; the removed
-// recommendations/new-releases endpoints are not used.
+// (Feb 2026), so auth rides the web player's `sp_dc` cookie through the
+// spot-api proxy instead. Library import + browse only; see spotify/config.
 import { PLUGIN_MANIFEST as SPOTIFY_MANIFEST } from './metadata/spotify/config';
 // TODO: Re-enable once SoundCloud API credentials are restored
 // import { PLUGIN_MANIFEST as SOUNDCLOUD_MANIFEST } from './metadata/soundcloud/config';

@@ -23,11 +23,7 @@ import { PLUGIN_MANIFEST, CONFIG_SCHEMA, METADATA_CAPABILITIES } from './config'
 import { SpotifyClient, createSpotifyClient, type SpotifyClientConfig } from './client';
 import { createImportOperations, type ImportOperations } from './import-operations';
 
-/**
- * Only library import is available for Spotify (via the spot-api proxy). Search,
- * catalog info, and recommendations require direct Spotify API access that is no
- * longer reachable from the app.
- */
+// Search/info/recommendations need direct Spotify API access we no longer have.
 const NOT_SUPPORTED_ERROR = new Error(
 	'Spotify supports library import only; search and catalog browsing are unavailable'
 );
@@ -69,10 +65,6 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 			};
 
 			this.client = createSpotifyClient(mergedConfig);
-			// Only library import is supported via the spot-api proxy. Search,
-			// info, recommendations and home-feed require direct Spotify API
-			// access that is no longer available; they remain unbuilt and their
-			// provider methods return NOT_SUPPORTED_ERROR.
 			this.importOps = createImportOperations(
 				this.client.getAuthManager(),
 				this.client.getProxyClient()
@@ -143,8 +135,7 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 		if (!this.client) {
 			return err(new Error('Plugin not initialized'));
 		}
-		// `credential` is the `sp_dc` session cookie captured by the login
-		// WebView; the account identifier is resolved from it by the proxy.
+		// `credential` is the `sp_dc` cookie from the login WebView.
 		return this.client.getAuthManager().setSession(credential);
 	}
 
@@ -155,10 +146,7 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 		return this.client.getAuthManager().logout();
 	}
 
-	// --- Unsupported catalog operations ---
-	// Search, info, and recommendations required direct Spotify API access,
-	// which is no longer reachable. These satisfy the MetadataProvider contract
-	// but always return NOT_SUPPORTED_ERROR.
+	// --- Unsupported catalog operations (see NOT_SUPPORTED_ERROR) ---
 
 	searchTracks(): Promise<Result<SearchResults<Track>, Error>> {
 		return Promise.resolve(err(NOT_SUPPORTED_ERROR));

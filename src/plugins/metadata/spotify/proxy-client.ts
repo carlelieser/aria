@@ -1,12 +1,7 @@
 /**
- * Spotify Proxy Client
- *
- * Transport for the spot-api proxy (SpotAPI-backed) that fronts a user's
- * Spotify library. The app cannot talk to Spotify's private web endpoints
- * directly — they reject non-browser TLS fingerprints — so the proxy performs
- * the browser-impersonation handshake server-side and exposes a small REST
- * surface. This client only carries bytes; SpotAPI's GraphQL shapes are
- * normalized to domain entities by proxy-mappers.
+ * Transport for the spot-api proxy. Spotify's private endpoints reject
+ * non-browser TLS fingerprints, so the proxy makes the calls server-side.
+ * This client only carries bytes; proxy-mappers normalizes the shapes.
  */
 
 import type { Result } from '@shared/types/result';
@@ -16,13 +11,11 @@ import { SPOT_API_URL, SPOT_API_KEY } from './config';
 
 const logger = getLogger('Spotify:ProxyClient');
 
-/** Credentials the proxy needs on every authenticated call. */
 export interface ProxySession {
 	readonly identifier: string;
 	readonly spDc: string;
 }
 
-/** One page of track results from a paginated proxy endpoint. */
 export interface ProxyPage {
 	readonly items: unknown[];
 	readonly total: number;
@@ -36,20 +29,15 @@ const PAGE_SIZE = 100;
 export interface SpotifyProxyClient {
 	verify(session: ProxySession): Promise<Result<string, Error>>;
 	getLibrary(session: ProxySession): Promise<Result<unknown, Error>>;
-	/** Fetch one page of an album (carries the `album` metadata field). */
+	/** One page only — reads the `album` metadata field it carries. */
 	getAlbumPage(session: ProxySession, albumId: string): Promise<Result<unknown, Error>>;
-	/** Fetch every saved (liked) track, paging to completion. */
 	getAllSavedTracks(session: ProxySession): Promise<Result<unknown[], Error>>;
-	/** Fetch every track of an album, paging to completion. */
 	getAllAlbumTracks(session: ProxySession, albumId: string): Promise<Result<unknown[], Error>>;
-	/** Fetch every track of a playlist, paging to completion. */
 	getAllPlaylistTracks(
 		session: ProxySession,
 		playlistId: string
 	): Promise<Result<unknown[], Error>>;
-	/** Fetch an artist's overview (profile, image, stats). */
 	getArtistInfo(session: ProxySession, artistId: string): Promise<Result<unknown, Error>>;
-	/** Fetch an artist's full discography, paging to completion. */
 	getAllArtistAlbums(session: ProxySession, artistId: string): Promise<Result<unknown[], Error>>;
 }
 
@@ -106,7 +94,6 @@ function delay(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/** Fetch one page, retrying transient failures with exponential backoff. */
 async function fetchPageWithRetry(
 	path: string,
 	session: ProxySession,
@@ -128,7 +115,6 @@ async function fetchPageWithRetry(
 	return err(lastError ?? new Error('Pagination failed'));
 }
 
-/** Page through a track endpoint until `has_more` is false, collecting all items. */
 async function collectAllPages(
 	path: string,
 	session: ProxySession,

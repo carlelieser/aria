@@ -1,11 +1,4 @@
-/**
- * Spotify Client
- *
- * Holds the Spotify web session (auth manager) and the spot-api proxy client.
- * The direct Spotify Web API is no longer reachable from the app, so this
- * client no longer issues catalog/library requests itself — library import
- * goes through the proxy. Retained methods cover session lifecycle only.
- */
+/** Holds the auth manager and proxy client; issues no catalog requests itself. */
 
 import type { Result } from '@shared/types/result';
 import { SpotifyAuthManager } from './auth';
@@ -44,9 +37,7 @@ export class SpotifyClient {
 		return this.authManager.checkAuthentication();
 	}
 
-	destroy(): void {
-		// No persistent resources to release.
-	}
+	destroy(): void {}
 }
 
 export function createSpotifyClient(config: SpotifyClientConfig = {}): SpotifyClient {

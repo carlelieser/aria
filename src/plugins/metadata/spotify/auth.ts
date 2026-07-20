@@ -1,12 +1,6 @@
 /**
- * Spotify Authentication Manager
- *
- * Holds the user's Spotify web session (the `sp_dc` cookie captured by the
- * login WebView, plus the account identifier) and validates it against the
- * spot-api proxy. Unlike the official OAuth flow, no access tokens are minted
- * on-device: the proxy performs the browser-impersonation handshake and all
- * authenticated reads server-side. This manager only persists the session and
- * answers "are we logged in".
+ * Persists the `sp_dc` web-session cookie and validates it against the proxy.
+ * No tokens are minted on-device; the proxy does all authenticated reads.
  */
 
 import { BaseAuthManager, type BaseAuthState } from '@shared/auth';
@@ -17,8 +11,7 @@ import { createSpotifyProxyClient, type ProxySession } from './proxy-client';
 
 const STORAGE_KEY = 'spotify_web_session';
 
-// The upstream session requires a non-empty identifier to construct, but the
-// real username is resolved from `sp_dc`; any placeholder works.
+// Placeholder: the proxy resolves the real username from `sp_dc`.
 const SESSION_IDENTIFIER_PLACEHOLDER = 'aria';
 
 interface StoredAuth {
@@ -42,12 +35,6 @@ export class SpotifyAuthManager extends BaseAuthManager<StoredAuth, AuthState> {
 		});
 	}
 
-	/**
-	 * Stores the captured `sp_dc` cookie and validates it against the proxy.
-	 * The account identifier is resolved from `sp_dc` alone by the proxy
-	 * (a placeholder is sent upstream), so the login WebView only needs to
-	 * capture the cookie.
-	 */
 	async setSession(spDc: string): Promise<Result<void, Error>> {
 		const session: ProxySession = { identifier: SESSION_IDENTIFIER_PLACEHOLDER, spDc };
 		const result = await this.proxy.verify(session);
@@ -62,7 +49,6 @@ export class SpotifyAuthManager extends BaseAuthManager<StoredAuth, AuthState> {
 		return ok(undefined);
 	}
 
-	/** Returns the current session for proxy calls, or null if not logged in. */
 	getSession(): ProxySession | null {
 		if (!this.spDc || !this.identifier) return null;
 		return { identifier: this.identifier, spDc: this.spDc };

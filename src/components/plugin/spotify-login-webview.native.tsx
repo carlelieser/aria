@@ -1,10 +1,6 @@
 /**
- * Spotify Login WebView Component
- *
  * Opens the Spotify web login in a WebView and captures the `sp_dc` session
- * cookie after the user authenticates. `sp_dc` is the long-lived session cookie
- * the Spotify web player uses to mint short-lived access tokens; it is HttpOnly,
- * so it is read via the native CookieManager rather than page JavaScript.
+ * cookie after the user authenticates.
  */
 
 import { memo, useCallback, useMemo } from 'react';
