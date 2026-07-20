@@ -147,6 +147,18 @@ describe('proxy-mappers', () => {
 			expect(track?.artwork).toHaveLength(2);
 		});
 
+		it('maps addedAt from the item-level isoString', () => {
+			const track = mapProxySavedTrack(savedTrackNode);
+			expect(track?.addedAt).toEqual(new Date('2024-01-15T00:00:00Z'));
+		});
+
+		it('leaves addedAt undefined when the isoString is absent', () => {
+			const track = mapProxySavedTrack({
+				track: { _uri: 'spotify:track:t100', data: { name: 'No Date' } },
+			});
+			expect(track?.addedAt).toBeUndefined();
+		});
+
 		it('returns null when track._uri is missing', () => {
 			expect(
 				mapProxySavedTrack({ track: { data: { name: 'Orphan' } } })

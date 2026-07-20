@@ -178,6 +178,8 @@ export function createImportOperations(
 									...playlist,
 									tracks: tracks.map((track, position) => ({
 										track,
+										// TODO: map the playlist item's real addedAt once the
+										// /playlist/tracks node shape is captured in reference/.
 										addedAt: new Date(),
 										position,
 									})),

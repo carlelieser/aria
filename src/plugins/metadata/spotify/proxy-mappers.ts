@@ -170,7 +170,7 @@ export function mapProxySavedTrack(item: RawSavedTrackItem): Track | null {
 	const artwork = mapImageSources(albumOfTrack?.coverArt?.sources);
 	const sourceId = idFromUri(uri);
 
-	return createTrack({
+	const track = createTrack({
 		id: TrackId.create('spotify', sourceId),
 		title: name,
 		artists: mapArtistRefs(artists?.items),
@@ -179,6 +179,11 @@ export function mapProxySavedTrack(item: RawSavedTrackItem): Track | null {
 		artwork: artwork.length > 0 ? artwork : undefined,
 		source: createStreamingSource('spotify', sourceId),
 	});
+
+	// Preserve when the user saved the track (createTrack defaults addedAt to
+	// undefined). The isoString sits at item level, sibling to `track`.
+	const addedAt = item.addedAt?.isoString;
+	return addedAt ? { ...track, addedAt: new Date(addedAt) } : track;
 }
 
 // --- album track mapper (item.track, direct fields) ---
