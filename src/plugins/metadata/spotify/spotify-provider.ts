@@ -5,7 +5,12 @@ import type {
 } from '@plugins/core/interfaces/metadata-provider';
 import { createSearchResults } from '@plugins/core/interfaces/metadata-provider';
 import { AlbumId } from '@domain/value-objects/album-id';
-import { mapProxyAlbumTracks, mapProxyAlbum } from './proxy-mappers';
+import {
+	mapProxyAlbumTracks,
+	mapProxyAlbum,
+	mapProxyArtistOverview,
+	mapProxyArtistAlbums,
+} from './proxy-mappers';
 import type { OAuthCapablePlugin } from '@plugins/core/interfaces/oauth-capable-plugin';
 import type { PluginInitContext, PluginStatus } from '@plugins/core/interfaces/base-plugin';
 import type { Track } from '@domain/entities/track';
@@ -196,8 +201,21 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 		return ok(album);
 	}
 
-	getArtistInfo(): Promise<Result<Artist, Error>> {
-		return Promise.resolve(err(NOT_SUPPORTED_ERROR));
+	async getArtistInfo(artistId: string): Promise<Result<Artist, Error>> {
+		if (!this.client) {
+			return err(new Error('Plugin not initialized'));
+		}
+		const session = this.client.getAuthManager().getSession();
+		if (!session) {
+			return err(new Error('Not authenticated with Spotify'));
+		}
+
+		const result = await this.client.getProxyClient().getArtistInfo(session, artistId);
+		if (!result.success) return err(result.error);
+
+		const artist = mapProxyArtistOverview(result.data as Record<string, unknown>);
+		if (!artist) return err(new Error('Failed to map artist'));
+		return ok(artist);
 	}
 
 	getPlaylistInfo(): Promise<Result<Playlist, Error>> {
@@ -227,8 +245,27 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 		);
 	}
 
-	getArtistAlbums(): Promise<Result<SearchResults<Album>, Error>> {
-		return Promise.resolve(err(NOT_SUPPORTED_ERROR));
+	async getArtistAlbums(artistId: string): Promise<Result<SearchResults<Album>, Error>> {
+		if (!this.client) {
+			return err(new Error('Plugin not initialized'));
+		}
+		const session = this.client.getAuthManager().getSession();
+		if (!session) {
+			return err(new Error('Not authenticated with Spotify'));
+		}
+
+		const result = await this.client.getProxyClient().getAllArtistAlbums(session, artistId);
+		if (!result.success) return err(result.error);
+
+		const albums = mapProxyArtistAlbums(result.data);
+		return ok(
+			createSearchResults(albums, {
+				total: albums.length,
+				offset: 0,
+				limit: albums.length,
+				hasMore: false,
+			})
+		);
 	}
 
 	batchGetTracks(): Promise<Result<Track[], Error>> {

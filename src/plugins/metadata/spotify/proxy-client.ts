@@ -47,6 +47,10 @@ export interface SpotifyProxyClient {
 		session: ProxySession,
 		playlistId: string
 	): Promise<Result<unknown[], Error>>;
+	/** Fetch an artist's overview (profile, image, stats). */
+	getArtistInfo(session: ProxySession, artistId: string): Promise<Result<unknown, Error>>;
+	/** Fetch an artist's full discography, paging to completion. */
+	getAllArtistAlbums(session: ProxySession, artistId: string): Promise<Result<unknown[], Error>>;
 }
 
 async function post<T>(
@@ -193,6 +197,17 @@ export function createSpotifyProxyClient(): SpotifyProxyClient {
 			playlistId: string
 		): Promise<Result<unknown[], Error>> {
 			return collectAllPages('/playlist/tracks', session, { playlist_id: playlistId });
+		},
+
+		getArtistInfo(session: ProxySession, artistId: string): Promise<Result<unknown, Error>> {
+			return post<unknown>('/artist/info', session, { artist_id: artistId });
+		},
+
+		getAllArtistAlbums(
+			session: ProxySession,
+			artistId: string
+		): Promise<Result<unknown[], Error>> {
+			return collectAllPages('/artist/albums', session, { artist_id: artistId });
 		},
 	};
 }

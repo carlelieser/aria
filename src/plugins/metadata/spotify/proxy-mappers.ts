@@ -62,9 +62,14 @@ function mapImageSources(sources: readonly RawImageSource[] | undefined): Artwor
 
 function mapArtistRefs(items: readonly RawArtistItem[] | undefined): ArtistReference[] {
 	if (!items) return [];
-	return items
-		.filter((a) => a.profile?.name)
-		.map((a) => ({ id: idFromUri(a.uri), name: a.profile?.name ?? '' }));
+	return (
+		items
+			.filter((a) => a.profile?.name)
+			// Prefix with the provider id so artist pages route to the Spotify
+			// provider (artist-service parses `provider:rawId`) and library-track
+			// matching stays consistent.
+			.map((a) => ({ id: `spotify:${idFromUri(a.uri)}`, name: a.profile?.name ?? '' }))
+	);
 }
 
 // --- library node mappers (item.data) ---
@@ -226,6 +231,34 @@ export function mapProxyAlbumTracks(
 	return items
 		.map((it) => mapProxyAlbumTrack(it as RawAlbumTrackItem, albumRef, albumArtwork))
 		.filter((t): t is Track => t !== null);
+}
+
+// --- artist overview + discography mappers ---
+
+/** Map a `get_artist` overview (artistUnion) into a full Artist entity. */
+export function mapProxyArtistOverview(data: Record<string, unknown>): Artist | null {
+	const profile = data.profile as { name?: string } | undefined;
+	const uri = data.uri as string | undefined;
+	const name = profile?.name;
+	if (!name) return null;
+
+	const visuals = data.visuals as { avatarImage?: { sources?: RawImageSource[] } } | undefined;
+	const stats = data.stats as { monthlyListeners?: number } | undefined;
+	const artwork = mapImageSources(visuals?.avatarImage?.sources);
+
+	return {
+		id: `spotify:${idFromUri(uri)}`,
+		name,
+		artwork: artwork.length > 0 ? artwork : undefined,
+		monthlyListeners: stats?.monthlyListeners,
+	};
+}
+
+/** Map collected discography releases into Album entities (albums + singles). */
+export function mapProxyArtistAlbums(items: unknown[]): Album[] {
+	return items
+		.map((it) => mapProxyAlbum(it as Record<string, unknown>))
+		.filter((a): a is Album => a !== null);
 }
 
 // --- playlist track mapper (item.itemV2.data, trackDuration) ---
