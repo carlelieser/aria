@@ -13,7 +13,7 @@ export const PLUGIN_MANIFEST: PluginManifest = {
 	name: 'Spotify',
 	shortName: 'Spotify',
 	description: 'Import your Spotify library — saved tracks, playlists, and followed artists',
-	version: '1.0.0',
+	version: '2.0.0',
 	author: 'Aria',
 	category: 'metadata-provider',
 	capabilities: [
