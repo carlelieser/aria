@@ -15,7 +15,7 @@ import type { WebViewNavigation } from 'react-native-webview';
 export type { WebViewNavigation };
 
 interface SpotifyLoginWebViewProps {
-	readonly onSuccess: (authCode: string) => void;
+	readonly onSuccess: (spDcCookie: string) => void;
 	readonly onCancel: () => void;
 	readonly onNavigate?: (navState: WebViewNavigation) => void;
 }

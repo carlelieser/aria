@@ -3,9 +3,22 @@ import { ok, err } from '@shared/types/result';
 import { getLogger } from '@shared/services/logger';
 import { libraryService } from '@/src/application/services/library-service';
 import { useLibraryImportStore } from '@/src/application/state/library-import-store';
-import type { LibraryOperations } from './library';
-import type { InfoOperations } from './info';
-import type { SpotifyClient } from './client';
+import type { SpotifyAuthManager } from './auth';
+import type { SpotifyProxyClient } from './proxy-client';
+import { toAlbumReference } from '@domain/entities/album';
+import type { Playlist } from '@domain/entities/playlist';
+import {
+	mapProxySavedTracks,
+	mapProxyLibrary,
+	mapProxyAlbumTracks,
+	mapProxyPlaylistTracks,
+} from './proxy-mappers';
+
+/** Playlist ids are stored as `spotify:<id>`; the proxy needs the bare id. */
+function idFromPlaylist(id: string): string {
+	const parts = id.split(':');
+	return parts[parts.length - 1] ?? id;
+}
 
 const logger = getLogger('Spotify:Import');
 
@@ -28,9 +41,8 @@ export interface ImportOperations {
 }
 
 export function createImportOperations(
-	library: LibraryOperations,
-	info: InfoOperations,
-	client: SpotifyClient
+	auth: SpotifyAuthManager,
+	proxy: SpotifyProxyClient
 ): ImportOperations {
 	let cancelled = false;
 
@@ -41,7 +53,8 @@ export function createImportOperations(
 			const includePlaylists = options?.includePlaylists ?? true;
 			const store = useLibraryImportStore.getState();
 
-			if (!client.isAuthenticated()) {
+			const session = auth.getSession();
+			if (!session) {
 				store.startImport('spotify');
 				store.updateProgress('error', 0, 0);
 				store.completeImport();
@@ -58,138 +71,119 @@ export function createImportOperations(
 			try {
 				if (includeTracks && !cancelled) {
 					store.updateProgress('tracks', 0, 0);
-					let offset = 0;
-					const limit = 50;
-					let hasMore = true;
-
-					while (hasMore && !cancelled) {
-						const result = await library.getSavedTracks({ limit, offset });
-						if (!result.success) {
-							store.addError(`Tracks page ${offset}`, result.error.message);
-							logger.error('Failed to fetch saved tracks', result.error);
-							break;
+					const result = await proxy.getAllSavedTracks(session);
+					if (!result.success) {
+						store.addError('Saved tracks', result.error.message);
+						logger.error('Failed to fetch saved tracks', result.error);
+					} else {
+						const tracks = mapProxySavedTracks(result.data);
+						if (result.data.length > 0 && tracks.length === 0) {
+							logger.warn(
+								`Saved tracks: ${result.data.length} raw items mapped to 0 — possible SpotAPI shape drift`
+							);
 						}
-
-						const { items, total } = result.data;
-						const totalCount = total ?? 0;
-						store.updateProgress(
-							'tracks',
-							Math.min(offset + items.length, totalCount),
-							totalCount
-						);
-						const addResult = libraryService.addTracks(items);
-						if (!addResult.success) {
-							store.addError(`Tracks page ${offset}`, addResult.error.message);
+						store.updateProgress('tracks', tracks.length, tracks.length);
+						const addResult = libraryService.addTracks(tracks);
+						if (addResult.success) {
+							tracksImported = tracks.length;
+						} else {
+							store.addError('Saved tracks', addResult.error.message);
 							logger.warn('Failed to add tracks to library', addResult.error);
 						}
-						tracksImported += items.length;
-						hasMore = result.data.hasMore;
-						offset += limit;
 					}
 				}
 
-				if (includeAlbums && !cancelled) {
-					store.updateProgress('albums', 0, 0);
-					let offset = 0;
-					const limit = 20;
-					let hasMore = true;
+				if ((includeAlbums || includePlaylists) && !cancelled) {
+					const result = await proxy.getLibrary(session);
+					if (!result.success) {
+						store.addError('Library', result.error.message);
+						logger.error('Failed to fetch library', result.error);
+					} else {
+						const { albums, playlists } = mapProxyLibrary(result.data);
 
-					while (hasMore && !cancelled) {
-						const albumsResult = await library.getSavedAlbums({ limit, offset });
-						if (!albumsResult.success) {
-							store.addError(`Albums page ${offset}`, albumsResult.error.message);
-							logger.error('Failed to fetch saved albums', albumsResult.error);
-							break;
-						}
+						// Albums are derived from tracks, so import the album's tracks.
+						if (includeAlbums && !cancelled) {
+							store.updateProgress('albums', 0, albums.length);
+							for (let i = 0; i < albums.length; i++) {
+								if (cancelled) break;
+								const album = albums[i];
+								store.updateProgress('albums', i + 1, albums.length, album.name);
 
-						const { items: albums, total } = albumsResult.data;
-						const totalCount = total ?? 0;
+								const tracksResult = await proxy.getAllAlbumTracks(
+									session,
+									album.id.sourceId
+								);
+								if (!tracksResult.success) {
+									store.addError(album.name, tracksResult.error.message);
+									continue;
+								}
 
-						for (let i = 0; i < albums.length; i++) {
-							if (cancelled) break;
-							const album = albums[i];
-							store.updateProgress(
-								'albums',
-								Math.min(offset + i + 1, totalCount),
-								totalCount,
-								album.name
-							);
-
-							const tracksResult = await info.getAlbumTracks(album.id.value, {
-								limit: 50,
-							});
-							if (tracksResult.success) {
-								const addResult = libraryService.addTracks(tracksResult.data.items);
+								const tracks = mapProxyAlbumTracks(
+									tracksResult.data,
+									toAlbumReference(album),
+									album.artwork ?? []
+								);
+								if (tracksResult.data.length > 0 && tracks.length === 0) {
+									logger.warn(
+										`Album "${album.name}": ${tracksResult.data.length} raw items mapped to 0 — possible SpotAPI shape drift`
+									);
+								}
+								const addResult = libraryService.addTracks(tracks);
 								if (addResult.success) {
 									albumsImported++;
 								} else {
 									store.addError(album.name, addResult.error.message);
-									logger.warn(
-										'Failed to add album tracks to library',
-										addResult.error
-									);
 								}
-							} else {
-								store.addError(album.name, tracksResult.error.message);
 							}
 						}
 
-						hasMore = albumsResult.data.hasMore;
-						offset += limit;
-					}
-				}
-
-				if (includePlaylists && !cancelled) {
-					store.updateProgress('playlists', 0, 0);
-					let offset = 0;
-					const limit = 50;
-					let hasMore = true;
-
-					while (hasMore && !cancelled) {
-						const playlistsResult = await library.getUserPlaylists({ limit, offset });
-						if (!playlistsResult.success) {
-							store.addError(
-								`Playlists page ${offset}`,
-								playlistsResult.error.message
-							);
-							logger.error('Failed to fetch user playlists', playlistsResult.error);
-							break;
-						}
-
-						const { items: playlists, total } = playlistsResult.data;
-						const totalCount = total ?? 0;
-
-						for (let i = 0; i < playlists.length; i++) {
-							if (cancelled) break;
-							const playlist = playlists[i];
-							store.updateProgress(
-								'playlists',
-								Math.min(offset + i + 1, totalCount),
-								totalCount,
-								playlist.name
-							);
-
-							const fullPlaylistResult = await library.getPlaylist(playlist.id);
-							if (fullPlaylistResult.success) {
-								const addResult = libraryService.addPlaylist(
-									fullPlaylistResult.data
+						if (includePlaylists && !cancelled) {
+							store.updateProgress('playlists', 0, playlists.length);
+							for (let i = 0; i < playlists.length; i++) {
+								if (cancelled) break;
+								const playlist = playlists[i];
+								store.updateProgress(
+									'playlists',
+									i + 1,
+									playlists.length,
+									playlist.name
 								);
+
+								// Embed tracks; a playlist stored empty is a broken import.
+								const tracksResult = await proxy.getAllPlaylistTracks(
+									session,
+									idFromPlaylist(playlist.id)
+								);
+								if (!tracksResult.success) {
+									store.addError(playlist.name, tracksResult.error.message);
+									continue;
+								}
+
+								const tracks = mapProxyPlaylistTracks(tracksResult.data);
+								if (tracksResult.data.length > 0 && tracks.length === 0) {
+									logger.warn(
+										`Playlist "${playlist.name}": ${tracksResult.data.length} raw items mapped to 0 — possible SpotAPI shape drift`
+									);
+								}
+								const playlistWithTracks: Playlist = {
+									...playlist,
+									tracks: tracks.map((track, position) => ({
+										track,
+										// TODO: map the playlist item's real addedAt once the
+										// /playlist/tracks node shape is captured in reference/.
+										addedAt: new Date(),
+										position,
+									})),
+								};
+
+								const addResult = libraryService.addPlaylist(playlistWithTracks);
 								if (addResult.success) {
 									playlistsImported++;
 								} else {
 									store.addError(playlist.name, addResult.error.message);
-									logger.warn(
-										'Failed to add playlist to library',
-										addResult.error
-									);
 								}
-							} else {
-								store.addError(playlist.name, fullPlaylistResult.error.message);
 							}
 						}
-
-						hasMore = playlistsResult.data.hasMore;
-						offset += limit;
 					}
 				}
 

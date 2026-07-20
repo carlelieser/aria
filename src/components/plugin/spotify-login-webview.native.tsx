@@ -1,22 +1,21 @@
 /**
- * Spotify Login WebView Component
- *
- * Opens the Spotify OAuth authorize page (with PKCE) in a WebView.
- * Intercepts the redirect to the custom URI scheme to extract the authorization code.
+ * Opens the Spotify web login in a WebView and captures the `sp_dc` session
+ * cookie after the user authenticates.
  */
 
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { memo, useCallback, useMemo } from 'react';
+import CookieManager from '@react-native-cookies/cookies';
 import { OAuthLoginWebView, type OAuthLoginConfig, type WebViewNavigation } from '@shared/auth';
-import { SPOTIFY_OAUTH_REDIRECT_URI, getSpotifyAuthManager } from '@/src/hooks/use-spotify-auth';
-import { getLogger } from '@shared/services/logger';
-
-const logger = getLogger('SpotifyLogin');
 
 export type { WebViewNavigation };
 
+const SPOTIFY_WEB_LOGIN_URL =
+	'https://accounts.spotify.com/login?continue=https%3A%2F%2Fopen.spotify.com%2F';
+
+const SESSION_COOKIE = 'sp_dc';
+
 interface SpotifyLoginWebViewProps {
-	readonly onSuccess: (authCode: string) => void;
+	readonly onSuccess: (spDcCookie: string) => void;
 	readonly onCancel: () => void;
 	readonly onNavigate?: (navState: WebViewNavigation) => void;
 }
@@ -26,112 +25,48 @@ export const SpotifyLoginWebView = memo(function SpotifyLoginWebView({
 	onCancel,
 	onNavigate,
 }: SpotifyLoginWebViewProps) {
-	const [authUrl, setAuthUrl] = useState<string | null>(null);
-
-	useEffect(() => {
-		let cancelled = false;
-
-		const loadAuthUrl = async () => {
-			const authManager = getSpotifyAuthManager();
-			if (!authManager) {
-				logger.error('Spotify auth manager not available');
-				onCancel();
-				return;
-			}
-
-			const url = await authManager.generateAuthUrl();
-			if (!cancelled) {
-				setAuthUrl(url);
-			}
-		};
-
-		void loadAuthUrl();
-
-		return () => {
-			cancelled = true;
-		};
-	}, [onCancel]);
-
-	const handleRedirect = useCallback(
-		(callbackUrl: string) => {
-			try {
-				const url = new URL(callbackUrl);
-				const error = url.searchParams.get('error');
-
-				if (error) {
-					logger.error(`Authorization denied: ${error}`);
-					onCancel();
-					return;
-				}
-
-				const code = url.searchParams.get('code');
-				if (!code) {
-					logger.error('No authorization code in callback URL');
-					onCancel();
-					return;
-				}
-
-				onSuccess(code);
-			} catch (e) {
-				logger.error('Failed to parse callback URL', e instanceof Error ? e : undefined);
-				onCancel();
-			}
-		},
-		[onSuccess, onCancel]
-	);
-
 	const checkCookies = useCallback(async (): Promise<string | null> => {
-		return null;
+		try {
+			const cookies = await CookieManager.get('https://open.spotify.com');
+			const spDc = cookies[SESSION_COOKIE]?.value;
+			return spDc ? spDc : null;
+		} catch {
+			// Cookie access failed, continue polling
+			return null;
+		}
 	}, []);
 
 	const isLoginPage = useCallback((url: string): boolean => {
 		return (
+			url.includes('accounts.spotify.com') ||
 			url.includes('/login') ||
-			url.includes('/authorize') ||
 			url.includes('challenge.spotify.com')
 		);
 	}, []);
 
-	const isSuccessDomain = useCallback((_url: string): boolean => {
-		return false;
+	const isSuccessDomain = useCallback((url: string): boolean => {
+		return url.includes('open.spotify.com');
 	}, []);
 
-	const config: OAuthLoginConfig | null = useMemo(() => {
-		if (!authUrl) return null;
-		return {
-			loginUrl: authUrl,
+	const config: OAuthLoginConfig = useMemo(
+		() => ({
+			loginUrl: SPOTIFY_WEB_LOGIN_URL,
 			title: 'Sign in to Spotify',
 			loadingText: 'Loading Spotify...',
 			pollingText: 'Completing sign in...',
 			checkCookies,
 			isLoginPage,
 			isSuccessDomain,
-			redirectUri: SPOTIFY_OAUTH_REDIRECT_URI,
-		};
-	}, [authUrl, checkCookies, isLoginPage, isSuccessDomain]);
-
-	if (!config) {
-		return (
-			<View style={styles.loading}>
-				<ActivityIndicator size={'large'} />
-			</View>
-		);
-	}
+		}),
+		[checkCookies, isLoginPage, isSuccessDomain]
+	);
 
 	return (
 		<OAuthLoginWebView
 			config={config}
-			onSuccess={handleRedirect}
+			onSuccess={onSuccess}
 			onCancel={onCancel}
 			onNavigate={onNavigate}
 		/>
 	);
-});
-
-const styles = StyleSheet.create({
-	loading: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
 });

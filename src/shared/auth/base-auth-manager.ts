@@ -111,6 +111,8 @@ export abstract class BaseAuthManager<TStoredAuth, TAuthState extends BaseAuthSt
 	 * Call this after successfully setting credentials.
 	 */
 	protected async persistCredentials(): Promise<void> {
+		// TODO(security): AsyncStorage is plaintext; session secrets like
+		// Spotify's `sp_dc` should move to expo-secure-store.
 		const stored = this.serializeForStorage();
 		if (stored) {
 			await AsyncStorage.setItem(this.storageKey, JSON.stringify(stored));

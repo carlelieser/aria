@@ -15,10 +15,10 @@ import type { PluginManifestEntry } from './core/interfaces/plugin-module';
 import { PLUGIN_MANIFEST as CORE_LIBRARY_MANIFEST } from './library/core-library/config';
 import { PLUGIN_MANIFEST as LYRICS_MANIFEST } from './lyrics/core/config';
 import { PLUGIN_MANIFEST as YOUTUBE_MUSIC_MANIFEST } from './metadata/youtube-music/config';
-// Spotify disabled: Spotify deprecated broad API access in February 2026.
-// New apps are restricted to 5 users in development mode, and key endpoints
-// (library, playlists, recommendations) were removed on March 9 2026 for existing apps.
-// See: https://developer.spotify.com/blog/2026-02-06-update-on-developer-access-and-platform-security
+// Spotify: the official OAuth app flow was capped to 5 users in dev mode
+// (Feb 2026), so auth rides the web player's `sp_dc` cookie through the
+// spot-api proxy instead. Library import + browse only; see spotify/config.
+import { PLUGIN_MANIFEST as SPOTIFY_MANIFEST } from './metadata/spotify/config';
 // TODO: Re-enable once SoundCloud API credentials are restored
 // import { PLUGIN_MANIFEST as SOUNDCLOUD_MANIFEST } from './metadata/soundcloud/config';
 import { PLUGIN_MANIFEST as LOCAL_LIBRARY_MANIFEST } from './metadata/local-library/config';
@@ -64,6 +64,14 @@ export const PLUGIN_ENTRIES: PluginManifestEntry[] = [
 			return YouTubeMusicPluginModule;
 		},
 		isBuiltIn: true,
+	},
+	{
+		manifest: SPOTIFY_MANIFEST,
+		load: async () => {
+			const { SpotifyPluginModule } = await import('./metadata/spotify/plugin-module');
+			return SpotifyPluginModule;
+		},
+		isBuiltIn: false,
 	},
 	// TODO: Re-enable once SoundCloud API credentials are restored
 	// {
