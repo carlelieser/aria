@@ -164,7 +164,7 @@ export function mapProxySavedTrack(item: RawSavedTrackItem): Track | null {
 
 	const albumRef: AlbumReference | undefined =
 		albumOfTrack?.name && albumOfTrack.uri
-			? { id: idFromUri(albumOfTrack.uri), name: albumOfTrack.name }
+			? { id: `spotify:${idFromUri(albumOfTrack.uri)}`, name: albumOfTrack.name }
 			: undefined;
 
 	const artwork = mapImageSources(albumOfTrack?.coverArt?.sources);
@@ -290,7 +290,7 @@ export function mapProxyPlaylistTrack(item: RawPlaylistTrackItem): Track | null 
 
 	const albumRef: AlbumReference | undefined =
 		albumOfTrack?.name && albumOfTrack.uri
-			? { id: idFromUri(albumOfTrack.uri), name: albumOfTrack.name }
+			? { id: `spotify:${idFromUri(albumOfTrack.uri)}`, name: albumOfTrack.name }
 			: undefined;
 
 	const artwork = mapImageSources(albumOfTrack?.coverArt?.sources);
