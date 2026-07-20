@@ -84,6 +84,11 @@ export function createImportOperations(
 						logger.error('Failed to fetch saved tracks', result.error);
 					} else {
 						const tracks = mapProxySavedTracks(result.data);
+						if (result.data.length > 0 && tracks.length === 0) {
+							logger.warn(
+								`Saved tracks: ${result.data.length} raw items mapped to 0 — possible SpotAPI shape drift`
+							);
+						}
 						store.updateProgress('tracks', tracks.length, tracks.length);
 						const addResult = libraryService.addTracks(tracks);
 						if (addResult.success) {
@@ -126,6 +131,11 @@ export function createImportOperations(
 									toAlbumReference(album),
 									album.artwork ?? []
 								);
+								if (tracksResult.data.length > 0 && tracks.length === 0) {
+									logger.warn(
+										`Album "${album.name}": ${tracksResult.data.length} raw items mapped to 0 — possible SpotAPI shape drift`
+									);
+								}
 								const addResult = libraryService.addTracks(tracks);
 								if (addResult.success) {
 									albumsImported++;
@@ -159,6 +169,11 @@ export function createImportOperations(
 								}
 
 								const tracks = mapProxyPlaylistTracks(tracksResult.data);
+								if (tracksResult.data.length > 0 && tracks.length === 0) {
+									logger.warn(
+										`Playlist "${playlist.name}": ${tracksResult.data.length} raw items mapped to 0 — possible SpotAPI shape drift`
+									);
+								}
 								const playlistWithTracks: Playlist = {
 									...playlist,
 									tracks: tracks.map((track, position) => ({
