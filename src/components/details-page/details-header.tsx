@@ -9,6 +9,7 @@
  * into the surrounding page background at the edges.
  */
 
+import { useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { BlurView } from 'expo-blur';
@@ -29,19 +30,21 @@ const BLUR_INTENSITY = 80;
 interface DetailsHeaderProps {
 	readonly info: DetailsHeaderInfo;
 	readonly colors?: M3ColorScheme;
-	readonly topFadeColor?: string;
 	readonly fadeColor?: string;
+	/** Reports the title's top and bottom Y offsets from the top of the header once laid out. */
+	readonly onTitleBounds?: (bounds: { top: number; bottom: number }) => void;
 }
 
 export function DetailsHeader({
 	info,
 	colors: colorsProp,
-	topFadeColor,
 	fadeColor,
+	onTitleBounds,
 }: DetailsHeaderProps) {
-	const { colors: appColors } = useAppTheme();
+	const { colors: appColors, isDark } = useAppTheme();
 	const colors = colorsProp ?? appColors;
 	const insets = useSafeAreaInsets();
+	const textContentTop = useRef(0);
 
 	const isCircular = info.artworkShape === 'circular';
 	const artworkSize =
@@ -57,25 +60,17 @@ export function DetailsHeader({
 					<Image
 						source={{ uri: info.artworkUrl }}
 						style={StyleSheet.absoluteFill}
-						contentFit={'contain'}
+						contentFit={'cover'}
 					/>
 					<BlurView
 						intensity={BLUR_INTENSITY}
 						experimentalBlurMethod={'dimezisBlurView'}
 						style={StyleSheet.absoluteFill}
-						tint={'dark'}
+						tint={isDark ? 'dark' : 'light'}
 					/>
 				</View>
 			)}
 
-			{/* Gradient layers: top-down from artwork color, bottom-up into page background */}
-			{topFadeColor && (
-				<LinearGradient
-					colors={[topFadeColor, 'transparent']}
-					style={StyleSheet.absoluteFill}
-					locations={[0, 0.5]}
-				/>
-			)}
 			{fadeColor && (
 				<LinearGradient
 					colors={['transparent', fadeColor]}
@@ -92,7 +87,7 @@ export function DetailsHeader({
 							{ width: artworkSize, height: artworkSize },
 							isCircular ? { borderRadius: artworkSize / 2 } : styles.squareArtwork,
 						]}
-						contentFit={'contain'}
+						contentFit={'cover'}
 						transition={200}
 					/>
 				) : (
@@ -108,11 +103,20 @@ export function DetailsHeader({
 					</View>
 				)}
 
-				<View style={styles.textContent}>
+				<View
+					style={styles.textContent}
+					onLayout={(e) => {
+						textContentTop.current = e.nativeEvent.layout.y;
+					}}
+				>
 					<Text
 						variant={'headlineMedium'}
 						style={[styles.title, { color: colors.onSurface }]}
 						numberOfLines={2}
+						onLayout={(e) => {
+							const top = textContentTop.current + e.nativeEvent.layout.y;
+							onTitleBounds?.({ top, bottom: top + e.nativeEvent.layout.height });
+						}}
 					>
 						{info.title}
 					</Text>
