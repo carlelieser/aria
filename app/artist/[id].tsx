@@ -143,7 +143,7 @@ export default function ArtistScreen() {
 	}, [albums, libraryTracks]);
 
 	const emptyContent = (() => {
-		if (isLoading && !hasData) {
+		if (isLoading) {
 			return (
 				<View style={styles.loadingState}>
 					<TrackListSkeleton count={6} />
@@ -195,7 +195,7 @@ export default function ArtistScreen() {
 		<DetailsPage
 			headerInfo={headerInfo}
 			headerRightActions={headerRightActions}
-			isLoading={isLoading && !hasData}
+			isLoading={isLoading}
 			loadingContent={headerSkeleton}
 			sections={emptyContent ? [] : sections}
 			emptyContent={emptyContent}
