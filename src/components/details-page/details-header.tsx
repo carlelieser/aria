@@ -117,6 +117,15 @@ export function DetailsHeader({
 						{info.title}
 					</Text>
 
+					{info.description ? (
+						<Text
+							variant={'bodySmall'}
+							style={[styles.description, { color: colors.onSurfaceVariant }]}
+						>
+							{info.description}
+						</Text>
+					) : null}
+
 					{info.metadata && info.metadata.length > 0 && (
 						<View style={styles.metadataContainer}>
 							{info.metadata.map((line, index) => (
@@ -175,6 +184,10 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		textAlign: 'center',
+	},
+	description: {
+		textAlign: 'center',
+		marginTop: 2,
 	},
 	metadataContainer: {
 		flexDirection: 'row',

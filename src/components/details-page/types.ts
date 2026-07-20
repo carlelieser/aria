@@ -17,6 +17,7 @@ export interface DetailsHeaderInfo {
 	readonly artworkShape?: ArtworkShape;
 	readonly artworkSize?: number;
 	readonly placeholderIcon: LucideIcon;
+	readonly description?: string;
 	readonly metadata?: readonly MetadataLine[];
 	readonly actionButton?: ReactNode;
 }
