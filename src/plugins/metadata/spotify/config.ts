@@ -16,7 +16,7 @@ export const PLUGIN_MANIFEST: PluginManifest = {
 	version: '1.0.0',
 	author: 'Aria',
 	category: 'metadata-provider',
-	capabilities: ['library-import'],
+	capabilities: ['library-import', 'get-album-info', 'get-album-tracks'],
 	capabilitiesDetail: {
 		canSearch: false,
 		requiresAuth: true,
@@ -46,4 +46,4 @@ export const CONFIG_SCHEMA: PluginConfigSchema[] = [
 	},
 ];
 
-export const METADATA_CAPABILITIES: MetadataCapability[] = [];
+export const METADATA_CAPABILITIES: MetadataCapability[] = ['get-album-info', 'get-album-tracks'];

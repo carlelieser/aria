@@ -201,6 +201,8 @@ export function mapProxyAlbumTrack(
 
 	const artists = track.artists as { items?: RawArtistItem[] } | undefined;
 	const duration = track.duration as { totalMilliseconds?: number } | undefined;
+	const trackNumber = track.trackNumber as number | undefined;
+	const discNumber = track.discNumber as number | undefined;
 	const sourceId = idFromUri(uri);
 
 	return createTrack({
@@ -211,18 +213,71 @@ export function mapProxyAlbumTrack(
 		duration: Duration.fromMilliseconds(duration?.totalMilliseconds ?? 0),
 		artwork: albumArtwork.length > 0 ? albumArtwork : undefined,
 		source: createStreamingSource('spotify', sourceId),
+		metadata: { trackNumber, discNumber },
 	});
 }
 
-/** Map an /album/tracks payload into domain tracks, tagged with album context. */
+/** Map collected album-track items into domain tracks, tagged with album context. */
 export function mapProxyAlbumTracks(
-	payload: unknown,
+	items: unknown[],
 	albumRef: AlbumReference | undefined,
 	albumArtwork: Artwork[]
 ): Track[] {
-	const items = (payload as { items?: RawAlbumTrackItem[] } | undefined)?.items ?? [];
 	return items
-		.map((it) => mapProxyAlbumTrack(it, albumRef, albumArtwork))
+		.map((it) => mapProxyAlbumTrack(it as RawAlbumTrackItem, albumRef, albumArtwork))
+		.filter((t): t is Track => t !== null);
+}
+
+// --- playlist track mapper (item.itemV2.data, trackDuration) ---
+
+interface RawPlaylistTrackItem {
+	readonly itemV2?: {
+		readonly __typename?: string;
+		readonly data?: Record<string, unknown>;
+	};
+}
+
+/**
+ * Map one playlist-track node. Playlist items wrap the track under
+ * `itemV2.data` with the uri present, and use `trackDuration` (not `duration`).
+ */
+export function mapProxyPlaylistTrack(item: RawPlaylistTrackItem): Track | null {
+	const data = item.itemV2?.data;
+	if (!data) return null;
+
+	const uri = data.uri as string | undefined;
+	const name = data.name as string | undefined;
+	if (!name || !uri) return null;
+
+	const artists = data.artists as { items?: RawArtistItem[] } | undefined;
+	const duration = data.trackDuration as { totalMilliseconds?: number } | undefined;
+	const albumOfTrack = data.albumOfTrack as
+		| { uri?: string; name?: string; coverArt?: { sources?: RawImageSource[] } }
+		| undefined;
+
+	const albumRef: AlbumReference | undefined =
+		albumOfTrack?.name && albumOfTrack.uri
+			? { id: idFromUri(albumOfTrack.uri), name: albumOfTrack.name }
+			: undefined;
+
+	const artwork = mapImageSources(albumOfTrack?.coverArt?.sources);
+	const sourceId = idFromUri(uri);
+
+	return createTrack({
+		id: TrackId.create('spotify', sourceId),
+		title: name,
+		artists: mapArtistRefs(artists?.items),
+		album: albumRef,
+		duration: Duration.fromMilliseconds(duration?.totalMilliseconds ?? 0),
+		artwork: artwork.length > 0 ? artwork : undefined,
+		source: createStreamingSource('spotify', sourceId),
+	});
+}
+
+/** Map collected playlist-track items into domain tracks. */
+export function mapProxyPlaylistTracks(items: unknown[]): Track[] {
+	return items
+		.map((it) => mapProxyPlaylistTrack(it as RawPlaylistTrackItem))
 		.filter((t): t is Track => t !== null);
 }
 
@@ -280,13 +335,11 @@ export function mapProxyLibrary(payload: unknown): MappedLibrary {
 }
 
 /**
- * Extract and map saved (liked) tracks.
- *
- * The proxy's /library/tracks endpoint flattens SpotAPI's paginated GraphQL
- * into `{ total, items }`, where each item is already a
- * `{ __typename, addedAt, track: { data } }` node.
+ * Map collected saved (liked) track items into domain tracks. Each item is a
+ * `{ __typename, addedAt, track: { _uri, data } }` node.
  */
-export function mapProxySavedTracks(payload: unknown): Track[] {
-	const items = (payload as { items?: RawSavedTrackItem[] } | undefined)?.items ?? [];
-	return items.map(mapProxySavedTrack).filter((t): t is Track => t !== null);
+export function mapProxySavedTracks(items: unknown[]): Track[] {
+	return items
+		.map((it) => mapProxySavedTrack(it as RawSavedTrackItem))
+		.filter((t): t is Track => t !== null);
 }

@@ -6,7 +6,19 @@ import { useLibraryImportStore } from '@/src/application/state/library-import-st
 import type { SpotifyAuthManager } from './auth';
 import type { SpotifyProxyClient } from './proxy-client';
 import { toAlbumReference } from '@domain/entities/album';
-import { mapProxySavedTracks, mapProxyLibrary, mapProxyAlbumTracks } from './proxy-mappers';
+import type { Playlist } from '@domain/entities/playlist';
+import {
+	mapProxySavedTracks,
+	mapProxyLibrary,
+	mapProxyAlbumTracks,
+	mapProxyPlaylistTracks,
+} from './proxy-mappers';
+
+/** Playlist ids are stored as `spotify:<id>`; the proxy needs the bare id. */
+function idFromPlaylist(id: string): string {
+	const parts = id.split(':');
+	return parts[parts.length - 1] ?? id;
+}
 
 const logger = getLogger('Spotify:Import');
 
@@ -66,7 +78,7 @@ export function createImportOperations(
 			try {
 				if (includeTracks && !cancelled) {
 					store.updateProgress('tracks', 0, 0);
-					const result = await proxy.getSavedTracks(session);
+					const result = await proxy.getAllSavedTracks(session);
 					if (!result.success) {
 						store.addError('Saved tracks', result.error.message);
 						logger.error('Failed to fetch saved tracks', result.error);
@@ -100,7 +112,7 @@ export function createImportOperations(
 								const album = albums[i];
 								store.updateProgress('albums', i + 1, albums.length, album.name);
 
-								const tracksResult = await proxy.getAlbumTracks(
+								const tracksResult = await proxy.getAllAlbumTracks(
 									session,
 									album.id.sourceId
 								);
@@ -124,10 +136,39 @@ export function createImportOperations(
 						}
 
 						if (includePlaylists && !cancelled) {
-							store.updateProgress('playlists', playlists.length, playlists.length);
-							for (const playlist of playlists) {
+							store.updateProgress('playlists', 0, playlists.length);
+							for (let i = 0; i < playlists.length; i++) {
 								if (cancelled) break;
-								const addResult = libraryService.addPlaylist(playlist);
+								const playlist = playlists[i];
+								store.updateProgress(
+									'playlists',
+									i + 1,
+									playlists.length,
+									playlist.name
+								);
+
+								// Fetch and embed the playlist's tracks — a
+								// playlist stored with no tracks is a broken import.
+								const tracksResult = await proxy.getAllPlaylistTracks(
+									session,
+									idFromPlaylist(playlist.id)
+								);
+								if (!tracksResult.success) {
+									store.addError(playlist.name, tracksResult.error.message);
+									continue;
+								}
+
+								const tracks = mapProxyPlaylistTracks(tracksResult.data);
+								const playlistWithTracks: Playlist = {
+									...playlist,
+									tracks: tracks.map((track, position) => ({
+										track,
+										addedAt: new Date(),
+										position,
+									})),
+								};
+
+								const addResult = libraryService.addPlaylist(playlistWithTracks);
 								if (addResult.success) {
 									playlistsImported++;
 								} else {
