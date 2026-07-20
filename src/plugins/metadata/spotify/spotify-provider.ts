@@ -4,7 +4,6 @@ import type {
 	SearchResults,
 } from '@plugins/core/interfaces/metadata-provider';
 import { createSearchResults } from '@plugins/core/interfaces/metadata-provider';
-import { AlbumId } from '@domain/value-objects/album-id';
 import {
 	mapProxyAlbumTracks,
 	mapProxyAlbum,
@@ -196,7 +195,7 @@ export class SpotifyProvider implements SpotifyLibraryProvider {
 		const albumData = (result.data as { album?: Record<string, unknown> }).album;
 		const album = albumData ? mapProxyAlbum(albumData) : null;
 		if (!album) {
-			return ok({ id: AlbumId.create('spotify', albumId), name: '', artists: [] });
+			return err(new Error('Album not found'));
 		}
 		return ok(album);
 	}
