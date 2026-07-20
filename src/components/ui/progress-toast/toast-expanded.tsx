@@ -20,6 +20,8 @@ interface ToastExpandedProps {
 	readonly percentage: number;
 	readonly progressText: string;
 	readonly currentItemLabel: string | null;
+	readonly indeterminate: boolean;
+	readonly subtitle: string | null;
 	readonly showComplete: boolean;
 	readonly panGesture: GestureType;
 	readonly animatedStyle: AnimatedStyle<ViewStyle>;
@@ -32,6 +34,8 @@ export function ToastExpanded({
 	percentage,
 	progressText,
 	currentItemLabel,
+	indeterminate,
+	subtitle,
 	showComplete,
 	panGesture,
 	animatedStyle,
@@ -56,7 +60,7 @@ export function ToastExpanded({
 							>
 								{phaseMessage}
 							</Text>
-							{!showComplete && (
+							{!showComplete && !indeterminate && (
 								<Text
 									variant={'labelMedium'}
 									style={{ color: colors.onPrimaryContainer }}
@@ -68,8 +72,21 @@ export function ToastExpanded({
 
 						{!showComplete && (
 							<>
+								{subtitle && (
+									<Text
+										variant={'bodySmall'}
+										style={[
+											styles.subtitle,
+											{ color: colors.onPrimaryContainer },
+										]}
+									>
+										{subtitle}
+									</Text>
+								)}
+
 								<ProgressBar
-									progress={percentage / 100}
+									progress={indeterminate ? undefined : percentage / 100}
+									indeterminate={indeterminate}
 									color={colors.primary}
 									style={styles.progressBar}
 									theme={{
@@ -80,12 +97,6 @@ export function ToastExpanded({
 								/>
 
 								<View style={styles.footer}>
-									<Text
-										variant={'bodySmall'}
-										style={{ color: colors.onPrimaryContainer, opacity: 0.8 }}
-									>
-										{progressText}
-									</Text>
 									{currentItemLabel && (
 										<Text
 											variant={'bodySmall'}
@@ -94,12 +105,21 @@ export function ToastExpanded({
 												color: colors.onPrimaryContainer,
 												opacity: 0.8,
 												flex: 1,
-												textAlign: 'right',
 											}}
 										>
 											{currentItemLabel}
 										</Text>
 									)}
+									<Text
+										variant={'bodySmall'}
+										style={{
+											color: colors.onPrimaryContainer,
+											opacity: 0.8,
+											textAlign: 'right',
+										}}
+									>
+										{progressText}
+									</Text>
 								</View>
 							</>
 						)}
@@ -133,6 +153,10 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
+	},
+	subtitle: {
+		opacity: 0.7,
+		marginTop: -2,
 	},
 	progressBar: {
 		height: 4,

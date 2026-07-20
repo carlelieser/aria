@@ -35,6 +35,8 @@ export const ProgressToast = memo(function ProgressToast({
 	percentage,
 	progressText,
 	currentItemLabel,
+	indeterminate = false,
+	subtitle,
 }: ProgressToastProps) {
 	const bottomOffset = useToastPosition();
 
@@ -128,6 +130,8 @@ export const ProgressToast = memo(function ProgressToast({
 				portalName={portalName}
 				bottomOffset={bottomOffset}
 				percentage={percentage}
+				progressText={progressText}
+				indeterminate={indeterminate}
 				onExpand={handleExpand}
 				animatedStyle={animatedContainerStyle}
 			/>
@@ -142,6 +146,8 @@ export const ProgressToast = memo(function ProgressToast({
 			percentage={percentage}
 			progressText={progressText}
 			currentItemLabel={currentItemLabel}
+			indeterminate={indeterminate}
+			subtitle={subtitle ?? null}
 			showComplete={showComplete}
 			panGesture={panGesture}
 			animatedStyle={animatedContainerStyle}

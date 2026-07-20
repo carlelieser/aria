@@ -68,9 +68,15 @@ export function createImportOperations(
 			let albumsImported = 0;
 			let playlistsImported = 0;
 
+			// The grand total of tracks is unknown up front (album/playlist track
+			// counts only surface after each container is fetched), so progress is
+			// reported as a running tally across all phases with total=0, which the
+			// import toast renders as an indeterminate bar. See import-progress-toast.
+			let tracksSeen = 0;
+
 			try {
 				if (includeTracks && !cancelled) {
-					store.updateProgress('tracks', 0, 0);
+					store.updateProgress('tracks', tracksSeen, 0);
 					const result = await proxy.getAllSavedTracks(session);
 					if (!result.success) {
 						store.addError('Saved tracks', result.error.message);
@@ -82,7 +88,8 @@ export function createImportOperations(
 								`Saved tracks: ${result.data.length} raw items mapped to 0 — possible SpotAPI shape drift`
 							);
 						}
-						store.updateProgress('tracks', tracks.length, tracks.length);
+						tracksSeen += tracks.length;
+						store.updateProgress('tracks', tracksSeen, 0);
 						const addResult = libraryService.addTracks(tracks);
 						if (addResult.success) {
 							tracksImported = tracks.length;
@@ -103,11 +110,11 @@ export function createImportOperations(
 
 						// Albums are derived from tracks, so import the album's tracks.
 						if (includeAlbums && !cancelled) {
-							store.updateProgress('albums', 0, albums.length);
+							store.updateProgress('albums', tracksSeen, 0);
 							for (let i = 0; i < albums.length; i++) {
 								if (cancelled) break;
 								const album = albums[i];
-								store.updateProgress('albums', i + 1, albums.length, album.name);
+								store.updateProgress('albums', tracksSeen, 0, album.name);
 
 								const tracksResult = await proxy.getAllAlbumTracks(
 									session,
@@ -128,6 +135,8 @@ export function createImportOperations(
 										`Album "${album.name}": ${tracksResult.data.length} raw items mapped to 0 — possible SpotAPI shape drift`
 									);
 								}
+								tracksSeen += tracks.length;
+								store.updateProgress('albums', tracksSeen, 0, album.name);
 								const addResult = libraryService.addTracks(tracks);
 								if (addResult.success) {
 									albumsImported++;
@@ -138,16 +147,11 @@ export function createImportOperations(
 						}
 
 						if (includePlaylists && !cancelled) {
-							store.updateProgress('playlists', 0, playlists.length);
+							store.updateProgress('playlists', tracksSeen, 0);
 							for (let i = 0; i < playlists.length; i++) {
 								if (cancelled) break;
 								const playlist = playlists[i];
-								store.updateProgress(
-									'playlists',
-									i + 1,
-									playlists.length,
-									playlist.name
-								);
+								store.updateProgress('playlists', tracksSeen, 0, playlist.name);
 
 								// Embed tracks; a playlist stored empty is a broken import.
 								const tracksResult = await proxy.getAllPlaylistTracks(
@@ -165,6 +169,8 @@ export function createImportOperations(
 										`Playlist "${playlist.name}": ${tracksResult.data.length} raw items mapped to 0 — possible SpotAPI shape drift`
 									);
 								}
+								tracksSeen += tracks.length;
+								store.updateProgress('playlists', tracksSeen, 0, playlist.name);
 								const playlistWithTracks: Playlist = {
 									...playlist,
 									tracks: tracks.map((track, position) => ({
