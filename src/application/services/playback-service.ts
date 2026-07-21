@@ -32,6 +32,16 @@ export class PlaybackService {
 	private playLock: Promise<void> = Promise.resolve();
 	private readonly _streamCache = new Map<string, CachedStream>();
 
+	/**
+	 * Target of an in-flight seek. Until the engine's reported position reaches
+	 * it, stale progress events emitted before the seek can still arrive and
+	 * report an earlier position; we suppress those so a seek to a line's start
+	 * isn't momentarily rewound into the previous line. Cleared once the engine
+	 * catches up (or after a short safety window).
+	 */
+	private _pendingSeekMs: number | null = null;
+	private _pendingSeekAt = 0;
+
 	constructor() {
 		this.setupEventListener();
 	}
@@ -254,6 +264,8 @@ export class PlaybackService {
 		if (!this.activeProvider) {
 			return err(new Error('No playback provider available'));
 		}
+		this._pendingSeekMs = position.totalMilliseconds;
+		this._pendingSeekAt = Date.now();
 		usePlayerStore.getState().seekTo(position);
 		return this.activeProvider.seek(position);
 	}
@@ -468,6 +480,31 @@ export class PlaybackService {
 		};
 	}
 
+	/**
+	 * After a seek, suppress stale progress events that report a position behind
+	 * the seek target. Once the engine reports a position at/after the target the
+	 * seek has landed and the guard clears; a safety window prevents wedging if
+	 * the engine never quite reaches the exact target.
+	 */
+	private _shouldSuppressPosition(position: Duration): boolean {
+		if (this._pendingSeekMs === null) {
+			return false;
+		}
+
+		const SEEK_SETTLE_WINDOW_MS = 1000;
+		if (Date.now() - this._pendingSeekAt > SEEK_SETTLE_WINDOW_MS) {
+			this._pendingSeekMs = null;
+			return false;
+		}
+
+		if (position.totalMilliseconds >= this._pendingSeekMs) {
+			this._pendingSeekMs = null;
+			return false;
+		}
+
+		return true;
+	}
+
 	private _handlePlaybackEvent(event: PlaybackEvent): void {
 		const store = usePlayerStore.getState();
 		switch (event.type) {
@@ -476,6 +513,9 @@ export class PlaybackService {
 				store._setStatus(event.status);
 				break;
 			case 'position-change':
+				if (this._shouldSuppressPosition(event.position)) {
+					break;
+				}
 				store._setPosition(event.position);
 				break;
 			case 'duration-change':

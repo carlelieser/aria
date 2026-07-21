@@ -111,11 +111,13 @@ export function usePlayerActions() {
 }
 
 export function usePlayer() {
+	// NOTE: position/duration are deliberately NOT part of this selector — they
+	// change several times per second and would re-render every usePlayer()
+	// consumer (controls, etc.) on each tick. Components that need live progress
+	// use usePlaybackProgress() instead, which isolates those re-renders.
 	const {
 		currentTrack,
 		status,
-		position,
-		duration,
 		volume,
 		isMuted,
 		repeatMode,
@@ -127,8 +129,6 @@ export function usePlayer() {
 		useShallow((state) => ({
 			currentTrack: state.currentTrack,
 			status: state.status,
-			position: state.position,
-			duration: state.duration,
 			volume: state.volume,
 			isMuted: state.isMuted,
 			repeatMode: state.repeatMode,
@@ -144,8 +144,6 @@ export function usePlayer() {
 	return {
 		currentTrack,
 		status,
-		position,
-		duration,
 		volume,
 		isMuted,
 		repeatMode,
