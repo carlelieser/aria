@@ -1,9 +1,7 @@
 import type { Lyrics } from '@shared/types/lyrics';
 
 /**
- * Stateless helpers for working with fetched lyrics. Lyrics fetching itself
- * lives in the lyrics plugin (see LyricsOrchestrator); this service only
- * provides pure line-matching used by the playback UI.
+ * Maps a playback position to the active synced-lyrics line for the UI.
  */
 export class LyricsService {
 	findCurrentLineIndex(lyrics: Lyrics, positionMs: number): number {
