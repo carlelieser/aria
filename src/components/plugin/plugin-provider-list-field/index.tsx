@@ -49,10 +49,7 @@ export const PluginProviderListField = memo(function PluginProviderListField({
 		return plugin?.getProviders() ?? [];
 	}, [pluginId]);
 
-	const ordered = useMemo(
-		() => orderProviders(providers, value.order),
-		[providers, value.order]
-	);
+	const ordered = useMemo(() => orderProviders(providers, value.order), [providers, value.order]);
 
 	const commit = useCallback(
 		(next: ProviderListValue) => onChange(schema.key, next),

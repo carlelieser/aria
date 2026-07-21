@@ -80,9 +80,7 @@ export function PageHeader({
 						</View>
 					)}
 					{title && (
-						<Animated.View
-							style={[{ flex: showBack ? 1 : undefined }, titleStyle]}
-						>
+						<Animated.View style={[{ flex: showBack ? 1 : undefined }, titleStyle]}>
 							<Text
 								variant={'headlineMedium'}
 								numberOfLines={1}

@@ -53,7 +53,9 @@ describe('proxy-mappers', () => {
 			const album = mapProxyAlbum({
 				uri: 'spotify:album:5xyz',
 				name: 'In Rainbows',
-				artists: { items: [{ uri: 'spotify:artist:1abc', profile: { name: 'Radiohead' } }] },
+				artists: {
+					items: [{ uri: 'spotify:artist:1abc', profile: { name: 'Radiohead' } }],
+				},
 				coverArt: { sources: IMAGE_SOURCES },
 				date: { isoString: '2007-10-10T00:00:00Z' },
 			});
@@ -160,9 +162,7 @@ describe('proxy-mappers', () => {
 		});
 
 		it('returns null when track._uri is missing', () => {
-			expect(
-				mapProxySavedTrack({ track: { data: { name: 'Orphan' } } })
-			).toBeNull();
+			expect(mapProxySavedTrack({ track: { data: { name: 'Orphan' } } })).toBeNull();
 		});
 
 		it('returns null when track.data is missing', () => {
@@ -338,7 +338,10 @@ describe('proxy-mappers', () => {
 							{
 								item: {
 									__typename: 'ArtistResponseWrapper',
-									data: { uri: 'spotify:artist:1abc', profile: { name: 'Radiohead' } },
+									data: {
+										uri: 'spotify:artist:1abc',
+										profile: { name: 'Radiohead' },
+									},
 								},
 							},
 							{

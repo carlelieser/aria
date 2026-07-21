@@ -163,9 +163,7 @@ function PlayerScreenContent() {
 						{showLyrics ? (
 							<LyricsDisplay />
 						) : (
-							<View
-								style={styles.artworkWrapper}
-							>
+							<View style={styles.artworkWrapper}>
 								{artworkUrl ? (
 									<Image
 										source={{ uri: artworkUrl }}

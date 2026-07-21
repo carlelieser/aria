@@ -64,9 +64,7 @@ export class LyricsPlugin extends AbstractBasePlugin implements Omit<ActionsProv
 
 	/** Apply the `providers` config (enabled set + order) to the orchestrator. */
 	private _applyProviderConfig(): void {
-		const cfg = this.config.providers as
-			| { enabled?: string[]; order?: string[] }
-			| undefined;
+		const cfg = this.config.providers as { enabled?: string[]; order?: string[] } | undefined;
 		if (!cfg || !this._orchestrator) return;
 		this._orchestrator.setProviderConfig(cfg.enabled ?? [], cfg.order ?? []);
 	}
