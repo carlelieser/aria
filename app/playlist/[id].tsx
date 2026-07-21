@@ -317,9 +317,8 @@ export default function PlaylistScreen() {
 		artworkUrl,
 		artworkShape: 'square',
 		placeholderIcon: ListMusicIcon,
-		metadata: playlist.description
-			? [{ text: playlist.description, variant: 'primary' }, ...metadata]
-			: metadata,
+		description: playlist.description,
+		metadata,
 		actionButton,
 	};
 

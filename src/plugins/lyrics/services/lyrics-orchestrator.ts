@@ -18,6 +18,9 @@ export class LyricsOrchestrator {
 	private readonly _logger?: PluginLogger;
 	private readonly _pendingRequests = new Map<string, Promise<Lyrics | null>>();
 	private _preferSyncedLyrics: boolean;
+	/** User config overriding each provider's built-in enabled/priority. Null = use provider defaults. */
+	private _enabledOverride: Set<string> | null = null;
+	private _orderOverride: string[] | null = null;
 
 	constructor(options: LyricsOrchestratorOptions = {}) {
 		this._cache = options.cache ?? new LyricsCache();
@@ -44,9 +47,26 @@ export class LyricsOrchestrator {
 	}
 
 	getSortedProviders(): LyricsProvider[] {
+		const order = this._orderOverride;
+		const enabled = this._enabledOverride;
+
+		const isEnabled = (p: LyricsProvider) => (enabled ? enabled.has(p.id) : p.enabled);
+		const rank = (p: LyricsProvider) => {
+			if (!order) return p.priority;
+			const i = order.indexOf(p.id);
+			// Providers absent from the order fall to the end, keeping their relative priority.
+			return i === -1 ? Number.MAX_SAFE_INTEGER + p.priority : i;
+		};
+
 		return this.getProviders()
-			.filter((p) => p.enabled)
-			.sort((a, b) => a.priority - b.priority);
+			.filter(isEnabled)
+			.sort((a, b) => rank(a) - rank(b));
+	}
+
+	/** Apply user config: which providers are enabled and in what order. */
+	setProviderConfig(enabled: string[], order: string[]): void {
+		this._enabledOverride = new Set(enabled);
+		this._orderOverride = order;
 	}
 
 	setPreferSyncedLyrics(prefer: boolean): void {

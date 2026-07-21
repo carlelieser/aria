@@ -29,12 +29,12 @@ export function useDetailsPageColors(): M3ColorScheme {
 }
 
 /**
- * Hook to access the dark-variant colors for elements overlaying
- * the dark-tinted blur header (nav bar icons, action buttons).
+ * Hook to access the colors for elements overlaying the header (nav bar
+ * icons, action buttons). The header blur follows the app theme, so these
+ * track the scoped scheme's on-surface colors in both scroll states.
  */
 export function useDetailsPageHeaderColors(): M3ColorScheme {
 	const context = useContext(DetailsPageContext);
 	const { colors } = useAppTheme();
-	if (!context) return colors;
-	return context.headerSolid ? context.colors : context.headerColors;
+	return context?.colors ?? colors;
 }

@@ -29,6 +29,8 @@ interface SkeletonProps {
 	readonly shimmer?: boolean;
 	/** Animation duration in ms */
 	readonly duration?: number;
+	/** Base color; defaults to the app theme's surfaceContainerHighest. */
+	readonly color?: string;
 	/** Additional style */
 	readonly style?: ViewStyle;
 }
@@ -63,6 +65,7 @@ export function Skeleton({
 	rounded = 'md',
 	shimmer = true,
 	duration = 1500,
+	color,
 	style,
 }: SkeletonProps) {
 	const { colors, isDark } = useAppTheme();
@@ -94,7 +97,7 @@ export function Skeleton({
 	}));
 
 	const borderRadius = getRoundedValue(rounded);
-	const backgroundColor = colors.surfaceContainerHighest;
+	const backgroundColor = color ?? colors.surfaceContainerHighest;
 
 	// Shimmer gradient colors
 	const shimmerColors: [string, string, string] = isDark

@@ -30,13 +30,27 @@ export const ImportProgressToast = memo(function ImportProgressToast() {
 	const isImporting = useIsImporting();
 	const importProgress = useImportProgress();
 
+	const isActivePhase =
+		importProgress.phase === 'tracks' ||
+		importProgress.phase === 'albums' ||
+		importProgress.phase === 'playlists';
+
+	// A running total of 0 during an active phase means the source imports with an
+	// unknown grand total (Spotify): show an indeterminate bar + a cumulative count.
+	const indeterminate = isActivePhase && importProgress.total === 0;
+
 	const percentage =
 		importProgress.total > 0
 			? Math.round((importProgress.current / importProgress.total) * 100)
 			: 0;
 
-	const progressText =
-		importProgress.total > 0 ? `${importProgress.current}/${importProgress.total}` : '';
+	const progressText = indeterminate
+		? importProgress.current > 0
+			? `${importProgress.current} tracks`
+			: ''
+		: importProgress.total > 0
+			? `${importProgress.current}/${importProgress.total}`
+			: '';
 
 	const currentItemLabel = truncateText(importProgress.currentItem) || null;
 	const phaseMessage = getPhaseMessage(importProgress.phase);
@@ -50,6 +64,8 @@ export const ImportProgressToast = memo(function ImportProgressToast() {
 			percentage={percentage}
 			progressText={progressText}
 			currentItemLabel={currentItemLabel}
+			indeterminate={indeterminate}
+			subtitle={'This might take a while depending on the size of your library.'}
 		/>
 	);
 });

@@ -25,7 +25,6 @@ import { playbackService, searchService } from '@application/services';
 import { downloadService } from './services/download-service';
 import { albumService } from './services/album-service';
 import { artistService } from './services/artist-service';
-import { lyricsService } from './services/lyrics-service';
 import { pluginLifecycleService } from './services/plugin-lifecycle-service';
 import { homeFeedService } from './services/home-feed-service';
 import { getLogger } from '@shared/services/logger';
@@ -173,7 +172,6 @@ async function initAllServices(pluginRegistry: PluginRegistry): Promise<void> {
 		searchService,
 		albumService,
 		artistService,
-		lyricsService,
 		playbackService,
 		downloadService,
 		homeFeedService,
@@ -245,7 +243,6 @@ function initMetadataProviders(registry: PluginRegistry): void {
 	searchService.setMetadataProviders(providers);
 	albumService.setMetadataProviders(providers);
 	artistService.setMetadataProviders(providers);
-	lyricsService.setMetadataProviders(providers);
 
 	initFeedService(registry);
 	homeFeedService.markReady();
@@ -313,7 +310,6 @@ async function _registerLegacyMetadataProviders(
 	searchService.setMetadataProviders(initializedProviders);
 	albumService.setMetadataProviders(initializedProviders);
 	artistService.setMetadataProviders(initializedProviders);
-	lyricsService.setMetadataProviders(initializedProviders);
 
 	const audioSources =
 		options.audioSourceProviders ??

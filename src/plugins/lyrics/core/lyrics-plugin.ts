@@ -50,6 +50,7 @@ export class LyricsPlugin extends AbstractBasePlugin implements Omit<ActionsProv
 		});
 
 		this._registerBuiltInProviders();
+		this._applyProviderConfig();
 
 		this.status = 'ready';
 		return ok(undefined);
@@ -59,6 +60,15 @@ export class LyricsPlugin extends AbstractBasePlugin implements Omit<ActionsProv
 		const lrcLibProvider = createLrcLibProvider({ priority: 10 });
 		this._orchestrator?.registerProvider(lrcLibProvider);
 		this.logger.debug('Registered built-in LRCLib provider');
+	}
+
+	/** Apply the `providers` config (enabled set + order) to the orchestrator. */
+	private _applyProviderConfig(): void {
+		const cfg = this.config.providers as
+			| { enabled?: string[]; order?: string[] }
+			| undefined;
+		if (!cfg || !this._orchestrator) return;
+		this._orchestrator.setProviderConfig(cfg.enabled ?? [], cfg.order ?? []);
 	}
 
 	async onActivate(): Promise<Result<void, Error>> {
@@ -92,6 +102,8 @@ export class LyricsPlugin extends AbstractBasePlugin implements Omit<ActionsProv
 		if (this._orchestrator) {
 			this._orchestrator.setPreferSyncedLyrics(preferSynced);
 		}
+
+		this._applyProviderConfig();
 
 		this.logger.debug('Lyrics plugin config updated');
 		return ok(undefined);

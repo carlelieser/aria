@@ -6,14 +6,13 @@
  */
 
 import { useCallback } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { PlayerAwareScrollView } from '@/src/components/ui/player-aware-scroll-view';
+import { View, ScrollView, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useLyrics } from '@/src/hooks/use-lyrics';
 import { usePlayer } from '@/src/hooks/use-player';
 import { Duration } from '@/src/domain/value-objects/duration';
-import { useAppTheme } from '@/lib/theme';
+import { usePlayerTheme } from '@/src/components/player/player-theme-context';
 import { Skeleton } from '@/src/components/ui/skeleton';
 import { LyricLine } from './lyric-line';
 import { useLyricsScroll } from './use-lyrics-scroll';
@@ -22,16 +21,34 @@ import type { LyricsDisplayProps } from './types';
 export type { LyricsDisplayProps } from './types';
 
 const LINE_HEIGHT = 32;
-const VISIBLE_LINES = 5;
+
+/** Placeholder line widths for the loading state — varied like real lyric lines. */
+const LYRIC_SKELETON_WIDTHS: `${number}%`[] = [
+	'70%',
+	'88%',
+	'62%',
+	'95%',
+	'78%',
+	'55%',
+	'84%',
+	'68%',
+	'91%',
+	'60%',
+	'82%',
+	'73%',
+];
 
 export function LyricsDisplay({ maxHeight, onLineTap }: LyricsDisplayProps) {
-	const { colors } = useAppTheme();
+	const { colors } = usePlayerTheme();
 	const { lyrics, currentLineIndex, isLoading, hasAnyLyrics, hasSyncedLyrics } = useLyrics();
 	const { seekTo } = usePlayer();
-	const { scrollViewRef, handleScrollBegin, handleScrollEnd } = useLyricsScroll(
-		currentLineIndex,
-		hasSyncedLyrics
-	);
+	const {
+		scrollViewRef,
+		handleScrollBegin,
+		handleScrollEnd,
+		handleLineLayout,
+		handleViewportLayout,
+	} = useLyricsScroll(currentLineIndex, hasSyncedLyrics);
 
 	const handleLineTap = useCallback(
 		async (timeMs: number) => {
@@ -48,10 +65,15 @@ export function LyricsDisplay({ maxHeight, onLineTap }: LyricsDisplayProps) {
 		return (
 			<View style={styles.container}>
 				<View style={styles.loadingContainer}>
-					<Skeleton width={'80%'} height={20} rounded={'sm'} />
-					<Skeleton width={'60%'} height={20} rounded={'sm'} />
-					<Skeleton width={'70%'} height={20} rounded={'sm'} />
-					<Skeleton width={'50%'} height={20} rounded={'sm'} />
+					{LYRIC_SKELETON_WIDTHS.map((width, index) => (
+						<Skeleton
+							key={index}
+							width={width}
+							height={16}
+							rounded={'sm'}
+							color={colors.surfaceContainerHighest}
+						/>
+					))}
 				</View>
 			</View>
 		);
@@ -73,7 +95,7 @@ export function LyricsDisplay({ maxHeight, onLineTap }: LyricsDisplayProps) {
 	}
 
 	if (hasSyncedLyrics && lyrics?.syncedLyrics) {
-		const effectiveMaxHeight = maxHeight ?? LINE_HEIGHT * VISIBLE_LINES;
+		const scrollSizeStyle = maxHeight ? { maxHeight } : styles.fill;
 
 		return (
 			<Animated.View
@@ -81,25 +103,37 @@ export function LyricsDisplay({ maxHeight, onLineTap }: LyricsDisplayProps) {
 				exiting={FadeOut.duration(200)}
 				style={styles.container}
 			>
-				<PlayerAwareScrollView
+				<ScrollView
 					ref={scrollViewRef}
-					style={[styles.scrollView, { maxHeight: effectiveMaxHeight }]}
+					style={[styles.scrollView, scrollSizeStyle]}
 					contentContainerStyle={styles.scrollContent}
 					showsVerticalScrollIndicator={false}
+					onLayout={(e) => handleViewportLayout(e.nativeEvent.layout.height)}
 					onScrollBeginDrag={handleScrollBegin}
 					onScrollEndDrag={handleScrollEnd}
 					onMomentumScrollEnd={handleScrollEnd}
 				>
 					{lyrics.syncedLyrics.map((line, index) => (
-						<LyricLine
+						<View
 							key={`${index}-${line.startTime}`}
-							text={line.text}
-							isActive={index === currentLineIndex}
-							isPast={index < currentLineIndex}
-							onPress={() => handleLineTap(line.startTime)}
-						/>
+							onLayout={(e) =>
+								handleLineLayout(
+									index,
+									e.nativeEvent.layout.y,
+									e.nativeEvent.layout.height
+								)
+							}
+						>
+							<LyricLine
+								text={line.text}
+								startTime={line.startTime}
+								isActive={index === currentLineIndex}
+								isPast={index < currentLineIndex}
+								onSeek={handleLineTap}
+							/>
+						</View>
 					))}
-				</PlayerAwareScrollView>
+				</ScrollView>
 
 				{lyrics.attribution && (
 					<Text
@@ -119,15 +153,15 @@ export function LyricsDisplay({ maxHeight, onLineTap }: LyricsDisplayProps) {
 			exiting={FadeOut.duration(200)}
 			style={styles.container}
 		>
-			<PlayerAwareScrollView
-				style={[styles.scrollView, { maxHeight: maxHeight ?? 200 }]}
+			<ScrollView
+				style={[styles.scrollView, maxHeight ? { maxHeight } : styles.fill]}
 				contentContainerStyle={styles.plainLyricsContent}
 				showsVerticalScrollIndicator={false}
 			>
 				<Text variant={'bodyMedium'} style={{ color: colors.onSurface, lineHeight: 24 }}>
 					{lyrics?.plainLyrics}
 				</Text>
-			</PlayerAwareScrollView>
+			</ScrollView>
 
 			{lyrics?.attribution && (
 				<Text
@@ -143,21 +177,28 @@ export function LyricsDisplay({ maxHeight, onLineTap }: LyricsDisplayProps) {
 
 const styles = StyleSheet.create({
 	container: {
+		flex: 1,
 		width: '100%',
 	},
+	fill: {
+		flex: 1,
+	},
 	loadingContainer: {
-		gap: 12,
+		flex: 1,
+		gap: 16,
 		alignItems: 'center',
-		paddingVertical: 16,
+		justifyContent: 'center',
+		paddingVertical: 24,
 	},
 	noLyricsContainer: {
-		paddingVertical: 24,
+		flex: 1,
 		alignItems: 'center',
+		justifyContent: 'center',
+		paddingVertical: 24,
 	},
 	scrollView: {
 		width: '100%',
 		borderRadius: 12,
-		overflow: 'hidden',
 	},
 	scrollContent: {
 		paddingVertical: LINE_HEIGHT,

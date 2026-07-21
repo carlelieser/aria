@@ -50,10 +50,6 @@ function createMockServices() {
 			addMetadataProvider: vi.fn(),
 			removeMetadataProvider: vi.fn(),
 		},
-		lyricsService: {
-			addMetadataProvider: vi.fn(),
-			removeMetadataProvider: vi.fn(),
-		},
 		playbackService: {
 			addAudioSourceProvider: vi.fn(),
 			removeAudioSourceProvider: vi.fn(),
@@ -166,9 +162,6 @@ describe('PluginLifecycleService', () => {
 			expect(mockServices.artistService.removeMetadataProvider).toHaveBeenCalledWith(
 				'youtube-music'
 			);
-			expect(mockServices.lyricsService.removeMetadataProvider).toHaveBeenCalledWith(
-				'youtube-music'
-			);
 			expect(mockServices.playbackService.removeAudioSourceProvider).toHaveBeenCalledWith(
 				'youtube-music'
 			);
@@ -199,9 +192,6 @@ describe('PluginLifecycleService', () => {
 				mockMetadataProvider
 			);
 			expect(mockServices.artistService.addMetadataProvider).toHaveBeenCalledWith(
-				mockMetadataProvider
-			);
-			expect(mockServices.lyricsService.addMetadataProvider).toHaveBeenCalledWith(
 				mockMetadataProvider
 			);
 		});

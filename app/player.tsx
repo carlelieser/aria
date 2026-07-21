@@ -3,7 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Image } from 'expo-image';
 import { BlurView } from 'expo-blur';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
+import { useCallback, useEffect, useRef, useMemo } from 'react';
 import { router, usePathname } from 'expo-router';
 import { Text, IconButton } from 'react-native-paper';
 import LottieView from 'lottie-react-native';
@@ -20,7 +20,7 @@ import { ProgressBar } from '@/src/components/player/progress-bar';
 import { TrackOptionsMenu } from '@/src/components/track-options-menu';
 import { LyricsDisplay } from '@/src/components/player/lyrics-display';
 import { PlayerThemeProvider, usePlayerTheme } from '@/src/components/player/player-theme-context';
-import { useLyrics } from '@/src/hooks/use-lyrics';
+import { useLyricsSync } from '@/src/hooks/use-lyrics';
 import { getLargestArtwork } from '@/src/domain/value-objects/artwork';
 import { getArtistNames } from '@/src/domain/entities/track';
 import { useAppTheme } from '@/lib/theme';
@@ -71,9 +71,8 @@ function PlayerScreenContent() {
 	const { colors, backgroundStyle, dominantColor } = usePlayerTheme();
 	const showLyrics = useShowLyrics();
 	const openQueueSheet = usePlayerUIStore((s) => s.openQueueSheet);
-	const [artworkLoaded, setArtworkLoaded] = useState(false);
 
-	useLyrics();
+	useLyricsSync();
 
 	const trackId = currentTrack?.id.value ?? '';
 	const isFavorite = useIsFavorite(trackId);
@@ -109,14 +108,6 @@ function PlayerScreenContent() {
 		}
 	}, [currentTrack, pathname]);
 
-	useEffect(() => {
-		setArtworkLoaded(false);
-	}, [artworkUrl]);
-
-	const handleArtworkLoad = useCallback(() => {
-		setArtworkLoaded(true);
-	}, []);
-
 	if (!currentTrack) {
 		return null;
 	}
@@ -144,7 +135,7 @@ function PlayerScreenContent() {
 							onPress={() => router.back()}
 						/>
 						<Text variant={'labelLarge'} style={{ color: colors.onSurfaceVariant }}>
-							{showLyrics ? 'Lyrics' : 'Now Playing'}
+							Now Playing
 						</Text>
 						<View style={styles.headerActions}>
 							<IconButton
@@ -173,10 +164,7 @@ function PlayerScreenContent() {
 							<LyricsDisplay />
 						) : (
 							<View
-								style={[
-									styles.artworkWrapper,
-									artworkLoaded && styles.artworkShadow,
-								]}
+								style={styles.artworkWrapper}
 							>
 								{artworkUrl ? (
 									<Image
@@ -186,7 +174,6 @@ function PlayerScreenContent() {
 										transition={300}
 										cachePolicy={'memory-disk'}
 										recyclingKey={currentTrack.id.value}
-										onLoad={handleArtworkLoad}
 									/>
 								) : (
 									<View
@@ -330,13 +317,6 @@ const styles = StyleSheet.create({
 	},
 	artworkWrapper: {
 		borderRadius: 16,
-	},
-	artworkShadow: {
-		shadowColor: '#000',
-		shadowOffset: { width: 0, height: 16 },
-		shadowOpacity: 0.35,
-		shadowRadius: 32,
-		elevation: 24,
 	},
 	artwork: {
 		width: '100%',

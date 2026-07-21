@@ -6,6 +6,7 @@
 
 import { View, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { router } from 'expo-router';
+import Animated from 'react-native-reanimated';
 import { Text, IconButton } from 'react-native-paper';
 import { Icon } from '@/src/components/ui/icon';
 import { ChevronLeftIcon } from 'lucide-react-native';
@@ -15,6 +16,8 @@ import type { PageHeaderProps } from './types';
 export function PageHeader({
 	icon: IconComponent,
 	title,
+	titleStyle,
+	titleTextStyle,
 	showBack = false,
 	onBack,
 	rightActions,
@@ -77,16 +80,23 @@ export function PageHeader({
 						</View>
 					)}
 					{title && (
-						<Text
-							variant={'headlineMedium'}
-							style={{
-								fontFamily: resolveDisplayFont('700'),
-								flex: showBack ? 1 : undefined,
-								color: titleColor,
-							}}
+						<Animated.View
+							style={[{ flex: showBack ? 1 : undefined }, titleStyle]}
 						>
-							{title}
-						</Text>
+							<Text
+								variant={'headlineMedium'}
+								numberOfLines={1}
+								style={[
+									{
+										fontFamily: resolveDisplayFont('700'),
+										color: titleColor,
+									},
+									titleTextStyle,
+								]}
+							>
+								{title}
+							</Text>
+						</Animated.View>
 					)}
 				</View>
 				{rightActions && <View style={styles.rightActions}>{rightActions}</View>}

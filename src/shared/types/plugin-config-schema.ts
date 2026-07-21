@@ -9,7 +9,14 @@
 export interface PluginConfigSchema {
 	readonly key: string;
 
-	readonly type: 'string' | 'number' | 'boolean' | 'select' | 'folder-list' | 'oauth';
+	readonly type:
+		| 'string'
+		| 'number'
+		| 'boolean'
+		| 'select'
+		| 'folder-list'
+		| 'provider-list'
+		| 'oauth';
 
 	readonly label: string;
 

@@ -16,6 +16,8 @@ interface ToastPillProps {
 	readonly portalName: string;
 	readonly bottomOffset: number;
 	readonly percentage: number;
+	readonly progressText: string;
+	readonly indeterminate: boolean;
 	readonly onExpand: () => void;
 	readonly animatedStyle: AnimatedStyle<ViewStyle>;
 }
@@ -24,10 +26,13 @@ export function ToastPill({
 	portalName,
 	bottomOffset,
 	percentage,
+	progressText,
+	indeterminate,
 	onExpand,
 	animatedStyle,
 }: ToastPillProps) {
 	const { colors } = useAppTheme();
+	const label = indeterminate ? progressText : `${percentage}%`;
 
 	return (
 		<Portal name={portalName}>
@@ -38,12 +43,14 @@ export function ToastPill({
 						style={[styles.pill, { backgroundColor: colors.primaryContainer }]}
 					>
 						<ActivityIndicator size={'small'} color={colors.onPrimaryContainer} />
-						<Text
-							variant={'labelMedium'}
-							style={[styles.pillText, { color: colors.onPrimaryContainer }]}
-						>
-							{percentage}%
-						</Text>
+						{label.length > 0 && (
+							<Text
+								variant={'labelMedium'}
+								style={[styles.pillText, { color: colors.onPrimaryContainer }]}
+							>
+								{label}
+							</Text>
+						)}
 					</Pressable>
 				</Animated.View>
 			</View>
