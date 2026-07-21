@@ -3,7 +3,14 @@ import { validateConfigField, validateAllFields } from '@domain/utils/plugin-con
 
 interface PluginConfigSchema {
 	readonly key: string;
-	readonly type: 'string' | 'number' | 'boolean' | 'select' | 'folder-list' | 'oauth';
+	readonly type:
+		| 'string'
+		| 'number'
+		| 'boolean'
+		| 'select'
+		| 'folder-list'
+		| 'provider-list'
+		| 'oauth';
 	readonly label: string;
 	readonly description?: string;
 	readonly defaultValue?: unknown;
@@ -246,6 +253,33 @@ describe('plugin-config-validation', () => {
 				const result = validateConfigField(schema, ['/path/to/folder']);
 
 				expect(result).toBeUndefined();
+			});
+		});
+
+		describe('provider-list type', () => {
+			it('should accept a value with enabled and order arrays', () => {
+				const schema = makeSchema({ type: 'provider-list' });
+
+				const result = validateConfigField(schema, {
+					enabled: ['lrclib'],
+					order: ['lrclib'],
+				});
+
+				expect(result).toBeUndefined();
+			});
+
+			it('should reject a non-object value', () => {
+				const schema = makeSchema({ type: 'provider-list', required: false });
+
+				expect(validateConfigField(schema, 'nope')).toBe('Test Field is invalid');
+			});
+
+			it('should reject when enabled or order is missing', () => {
+				const schema = makeSchema({ type: 'provider-list' });
+
+				expect(validateConfigField(schema, { enabled: ['lrclib'] })).toBe(
+					'Test Field is invalid'
+				);
 			});
 		});
 	});

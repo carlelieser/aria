@@ -43,7 +43,12 @@ export function usePluginSettings(pluginId: string) {
 			});
 
 			const schema = configSchema.find((s) => s.key === key);
-			if (schema && (schema.type === 'boolean' || schema.type === 'select')) {
+			if (
+				schema &&
+				(schema.type === 'boolean' ||
+					schema.type === 'select' ||
+					schema.type === 'provider-list')
+			) {
 				const error = validateConfigField(schema, value);
 				if (!error) {
 					updatePluginConfig(pluginId, { [key]: value });

@@ -27,18 +27,11 @@ export const PLUGIN_MANIFEST: PluginManifest = {
 
 export const LYRICS_CONFIG_SCHEMA: PluginConfigSchema[] = [
 	{
-		key: 'enabledProviders',
-		type: 'select',
-		label: 'Enabled Providers',
-		description: 'Select which lyrics providers to use',
-		defaultValue: ['lrclib'],
-	},
-	{
-		key: 'providerPriority',
-		type: 'select',
-		label: 'Provider Priority',
-		description: 'Order providers by preference (first tried first)',
-		defaultValue: ['lrclib'],
+		key: 'providers',
+		type: 'provider-list',
+		label: 'Providers',
+		description: 'Enable providers and order them by preference (first tried first)',
+		defaultValue: { enabled: ['lrclib'], order: ['lrclib'] },
 	},
 	{
 		key: 'cacheDurationMinutes',

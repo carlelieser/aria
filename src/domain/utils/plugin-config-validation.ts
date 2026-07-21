@@ -70,6 +70,17 @@ export function validateConfigField(
 			// Folder lists are managed separately in the local library store
 			// No additional validation needed here
 			break;
+
+		case 'provider-list':
+			if (
+				typeof value !== 'object' ||
+				value === null ||
+				!Array.isArray((value as { enabled?: unknown }).enabled) ||
+				!Array.isArray((value as { order?: unknown }).order)
+			) {
+				return `${schema.label} is invalid`;
+			}
+			break;
 	}
 
 	return undefined;

@@ -11,7 +11,17 @@ import { PluginTextField } from './plugin-text-field';
 import { PluginBooleanField } from './plugin-boolean-field';
 import { PluginSelectField } from './plugin-select-field';
 import { PluginFolderListField } from './plugin-folder-list-field';
+import { PluginProviderListField } from './plugin-provider-list-field';
+import type { ProviderListValue } from './plugin-provider-list-field/types';
 import { PluginOAuthField } from './plugin-oauth-field';
+
+function toProviderListValue(value: unknown): ProviderListValue {
+	const v = (value ?? {}) as Partial<ProviderListValue>;
+	return {
+		enabled: Array.isArray(v.enabled) ? v.enabled : [],
+		order: Array.isArray(v.order) ? v.order : [],
+	};
+}
 
 interface PluginConfigFieldProps {
 	readonly schema: PluginConfigSchema;
@@ -60,6 +70,16 @@ export const PluginConfigField = memo(function PluginConfigField({
 
 		case 'folder-list':
 			return <PluginFolderListField schema={schema} pluginId={pluginId} />;
+
+		case 'provider-list':
+			return (
+				<PluginProviderListField
+					schema={schema}
+					value={toProviderListValue(value)}
+					onChange={onChange}
+					pluginId={pluginId}
+				/>
+			);
 
 		case 'oauth':
 			return <PluginOAuthField schema={schema} pluginId={pluginId} />;

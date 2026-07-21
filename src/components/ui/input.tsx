@@ -20,7 +20,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
 			ref={ref}
 			mode={mode}
 			style={[styles.input, style]}
-			contentStyle={[contentStyle, styles.inputContent]}
+			contentStyle={contentStyle}
 			placeholderTextColor={colors.onSurfaceVariant}
 			underlineColor={colors.outline}
 			activeUnderlineColor={colors.primary}
@@ -33,12 +33,12 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
 });
 
 const styles = StyleSheet.create({
+	// Paper reads the label's lineHeight from the input's `style`; on Android it
+	// otherwise defaults to the font's natural (tall) metrics, which clips the
+	// floated outlined label's top. Pin it to the 16px body size.
 	input: {
 		width: '100%',
-		height: 48,
-	},
-	inputContent: {
-		height: 48,
+		lineHeight: 16,
 	},
 });
 
