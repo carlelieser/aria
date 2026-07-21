@@ -22,7 +22,6 @@ export type MetadataCapability =
 	| 'get-playlist-info'
 	| 'get-album-tracks'
 	| 'get-artist-albums'
-	| 'get-lyrics'
 	| 'get-recommendations'
 	| 'get-charts';
 
@@ -134,8 +133,6 @@ export interface MetadataProvider extends BasePlugin {
 		artistId: string,
 		options?: Pick<SearchOptions, 'limit' | 'offset'>
 	): AsyncResult<SearchResults<Album>, Error>;
-
-	getLyrics?(trackId: TrackId): AsyncResult<Lyrics, Error>;
 
 	getRecommendations?(
 		seed: RecommendationSeed,

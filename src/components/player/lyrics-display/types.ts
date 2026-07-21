@@ -11,7 +11,8 @@ export interface LyricsDisplayProps {
 
 export interface LyricLineProps {
 	readonly text: string;
+	readonly startTime: number;
 	readonly isActive: boolean;
 	readonly isPast: boolean;
-	readonly onPress: () => void;
+	readonly onSeek: (startTime: number) => void;
 }

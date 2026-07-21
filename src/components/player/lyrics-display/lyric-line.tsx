@@ -5,7 +5,7 @@
  * based on active/past state.
  */
 
-import { useEffect } from 'react';
+import { memo, useCallback, useEffect } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import Animated, {
@@ -14,13 +14,19 @@ import Animated, {
 	withSpring,
 	withTiming,
 } from 'react-native-reanimated';
-import { useAppTheme } from '@/lib/theme';
+import { usePlayerTheme } from '@/src/components/player/player-theme-context';
 import type { LyricLineProps } from './types';
 
 const LINE_HEIGHT = 32;
 
-export function LyricLine({ text, isActive, isPast, onPress }: LyricLineProps) {
-	const { colors } = useAppTheme();
+export const LyricLine = memo(function LyricLine({
+	text,
+	startTime,
+	isActive,
+	isPast,
+	onSeek,
+}: LyricLineProps) {
+	const { colors } = usePlayerTheme();
 	const scale = useSharedValue(1);
 	const opacity = useSharedValue(isPast ? 0.5 : isActive ? 1 : 0.7);
 
@@ -41,8 +47,10 @@ export function LyricLine({ text, isActive, isPast, onPress }: LyricLineProps) {
 
 	const textColor = isActive ? colors.primary : colors.onSurface;
 
+	const handlePress = useCallback(() => onSeek(startTime), [onSeek, startTime]);
+
 	return (
-		<Pressable onPress={onPress}>
+		<Pressable onPress={handlePress}>
 			<Animated.View style={[styles.lineContainer, animatedStyle]}>
 				<Text
 					variant={isActive ? 'titleMedium' : 'bodyLarge'}
@@ -59,12 +67,13 @@ export function LyricLine({ text, isActive, isPast, onPress }: LyricLineProps) {
 			</Animated.View>
 		</Pressable>
 	);
-}
+});
 
 const styles = StyleSheet.create({
 	lineContainer: {
-		height: LINE_HEIGHT,
+		minHeight: LINE_HEIGHT,
 		justifyContent: 'center',
+		paddingVertical: 4,
 		paddingHorizontal: 16,
 	},
 	lineText: {

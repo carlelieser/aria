@@ -1,115 +1,11 @@
-import type { MetadataProvider } from '../../plugins/core/interfaces/metadata-provider';
 import type { Lyrics } from '@shared/types/lyrics';
-import type { TrackId } from '../../domain/value-objects/track-id';
-import { ok, type Result } from '../../shared/types/result';
-import { getLogger } from '../../shared/services/logger';
 
-const logger = getLogger('LyricsService');
-
-interface CacheEntry {
-	lyrics: Lyrics | null;
-	timestamp: number;
-}
-
-const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
-
+/**
+ * Stateless helpers for working with fetched lyrics. Lyrics fetching itself
+ * lives in the lyrics plugin (see LyricsOrchestrator); this service only
+ * provides pure line-matching used by the playback UI.
+ */
 export class LyricsService {
-	private metadataProviders: MetadataProvider[] = [];
-	private pendingRequests = new Map<string, Promise<Result<Lyrics | null, Error>>>();
-	private lyricsCache = new Map<string, CacheEntry>();
-
-	setMetadataProviders(providers: MetadataProvider[]): void {
-		this.metadataProviders = providers;
-		this.clearCache();
-	}
-
-	addMetadataProvider(provider: MetadataProvider): void {
-		if (!this.metadataProviders.includes(provider)) {
-			this.metadataProviders = [...this.metadataProviders, provider];
-			this.clearCache();
-		}
-	}
-
-	removeMetadataProvider(providerId: string): void {
-		this.metadataProviders = this.metadataProviders.filter((p) => p.manifest.id !== providerId);
-		this.clearCache();
-	}
-
-	clearCache(): void {
-		this.lyricsCache.clear();
-		logger.debug('Lyrics cache cleared');
-	}
-
-	async getLyrics(trackId: TrackId): Promise<Result<Lyrics | null, Error>> {
-		const cacheKey = trackId.value;
-
-		const cachedEntry = this.lyricsCache.get(cacheKey);
-		if (cachedEntry && Date.now() - cachedEntry.timestamp < CACHE_TTL_MS) {
-			logger.debug(`Returning cached lyrics for track: ${cacheKey}`);
-			return ok(cachedEntry.lyrics);
-		}
-
-		const pendingRequest = this.pendingRequests.get(cacheKey);
-		if (pendingRequest) {
-			logger.debug(`Deduplicating lyrics request for track: ${cacheKey}`);
-			return pendingRequest;
-		}
-
-		const fetchPromise = this._fetchLyrics(trackId, cacheKey);
-		this.pendingRequests.set(cacheKey, fetchPromise);
-
-		try {
-			return await fetchPromise;
-		} finally {
-			this.pendingRequests.delete(cacheKey);
-		}
-	}
-
-	private async _fetchLyrics(
-		trackId: TrackId,
-		cacheKey: string
-	): Promise<Result<Lyrics | null, Error>> {
-		const providersWithLyrics = this.metadataProviders.filter(
-			(p) => p.hasCapability('get-lyrics') && p.getLyrics
-		);
-
-		if (providersWithLyrics.length === 0) {
-			logger.debug('No providers with lyrics capability available');
-			return ok(null);
-		}
-
-		for (const provider of providersWithLyrics) {
-			try {
-				if (!provider.getLyrics) continue;
-				logger.debug(`Fetching lyrics from provider: ${provider.manifest.id}`);
-				const result = await provider.getLyrics(trackId);
-
-				if (result.success && result.data) {
-					logger.debug(`Got lyrics from provider: ${provider.manifest.id}`);
-
-					this.lyricsCache.set(cacheKey, {
-						lyrics: result.data,
-						timestamp: Date.now(),
-					});
-
-					return ok(result.data);
-				}
-			} catch (error) {
-				logger.warn(
-					`Lyrics fetch failed for provider ${provider.manifest.id}`,
-					error instanceof Error ? error : undefined
-				);
-			}
-		}
-
-		this.lyricsCache.set(cacheKey, {
-			lyrics: null,
-			timestamp: Date.now(),
-		});
-
-		return ok(null);
-	}
-
 	findCurrentLineIndex(lyrics: Lyrics, positionMs: number): number {
 		if (!lyrics.syncedLyrics || lyrics.syncedLyrics.length === 0) {
 			return -1;
@@ -117,7 +13,7 @@ export class LyricsService {
 
 		const lines = lyrics.syncedLyrics;
 
-		// Binary search for the current line
+		// The active line is the last one whose start is at or before the position.
 		let left = 0;
 		let right = lines.length - 1;
 		let result = -1;
@@ -138,8 +34,8 @@ export class LyricsService {
 		if (result >= 0) {
 			const line = lines[result];
 			if (line.endTime !== undefined && positionMs > line.endTime) {
-				// Position is past this line's end, but before next line
-				// This can happen in gaps between lines
+				// Position is past this line's end, but before the next line
+				// (this can happen in gaps between lines).
 				return result;
 			}
 		}

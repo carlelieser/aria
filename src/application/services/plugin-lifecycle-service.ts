@@ -34,10 +34,6 @@ interface ServiceRefs {
 		addMetadataProvider: (p: MetadataProvider) => void;
 		removeMetadataProvider: (id: string) => void;
 	};
-	lyricsService: {
-		addMetadataProvider: (p: MetadataProvider) => void;
-		removeMetadataProvider: (id: string) => void;
-	};
 	playbackService: {
 		addAudioSourceProvider: (p: AudioSourceProvider) => void;
 		removeAudioSourceProvider: (id: string) => void;
@@ -148,7 +144,6 @@ export class PluginLifecycleService {
 		this.services.searchService.removeMetadataProvider(pluginId);
 		this.services.albumService.removeMetadataProvider(pluginId);
 		this.services.artistService.removeMetadataProvider(pluginId);
-		this.services.lyricsService.removeMetadataProvider(pluginId);
 
 		this.services.homeFeedService.removeHomeFeedProvider(pluginId);
 
@@ -173,7 +168,6 @@ export class PluginLifecycleService {
 			this.services.searchService.addMetadataProvider(metadataProvider);
 			this.services.albumService.addMetadataProvider(metadataProvider);
 			this.services.artistService.addMetadataProvider(metadataProvider);
-			this.services.lyricsService.addMetadataProvider(metadataProvider);
 
 			// Wire home feed operations if the provider supports it
 			if ('homeFeed' in metadataProvider) {

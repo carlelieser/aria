@@ -2,17 +2,20 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useLyricsStore } from '@/src/application/state/lyrics-store';
 import { usePlayerStore } from '@/src/application/state/player-store';
 import { lyricsService } from '@/src/application/services/lyrics-service';
+import { getLyricsPlugin } from '@/src/plugins/lyrics/core';
 import type { Track } from '@/src/domain/entities/track';
 
-export function useLyrics() {
-	const lyrics = useLyricsStore((state) => state.lyrics);
-	const currentLineIndex = useLyricsStore((state) => state.currentLineIndex);
-	const isLoading = useLyricsStore((state) => state.isLoading);
-	const error = useLyricsStore((state) => state.error);
-	const isExpanded = useLyricsStore((state) => state.isExpanded);
-
+/**
+ * Side-effect driver for lyrics: fetches lyrics on track change and keeps the
+ * active-line index in sync with playback. Mount ONCE (e.g. in the player).
+ *
+ * It deliberately holds no reactive subscription to position/status — those
+ * change many times per second, and subscribing reactively would re-render the
+ * host on every tick. It reads the player store imperatively instead.
+ */
+export function useLyricsSync() {
 	const currentTrack = usePlayerStore((state) => state.currentTrack);
-	const position = usePlayerStore((state) => state.position);
+	const lyrics = useLyricsStore((state) => state.lyrics);
 	const lastTrackIdRef = useRef<string | null>(null);
 
 	useEffect(() => {
@@ -35,13 +38,15 @@ export function useLyrics() {
 		const fetchLyrics = async () => {
 			setLoading(true);
 
+			const plugin = getLyricsPlugin();
+			if (!plugin) {
+				setError('Lyrics plugin is not available');
+				return;
+			}
+
 			try {
-				const result = await lyricsService.getLyrics(currentTrack.id);
-				if (result.success) {
-					setLyrics(result.data, currentTrack.id);
-				} else {
-					setError(result.error.message);
-				}
+				const fetched = await plugin.getLyrics(currentTrack);
+				setLyrics(fetched, currentTrack.id);
 			} catch (err) {
 				setError(err instanceof Error ? err.message : 'Failed to fetch lyrics');
 			}
@@ -50,18 +55,66 @@ export function useLyrics() {
 		fetchLyrics();
 	}, [currentTrack]);
 
+	// Drive the active-line index from playback position WITHOUT subscribing to
+	// position reactively. We subscribe to the player store imperatively: each
+	// position/status change re-anchors a local clock, and a requestAnimationFrame
+	// loop interpolates between the sparse ticks so the active line tracks the
+	// audio smoothly without lagging.
 	useEffect(() => {
 		if (!lyrics?.syncedLyrics) {
 			return;
 		}
 
-		const positionMs = position.totalMilliseconds;
-		const newIndex = lyricsService.findCurrentLineIndex(lyrics, positionMs);
+		let anchorMs = usePlayerStore.getState().position.totalMilliseconds;
+		let anchorAt = Date.now();
+		let frame: number | null = null;
 
-		if (newIndex !== currentLineIndex) {
-			useLyricsStore.getState().setCurrentLineIndex(newIndex);
-		}
-	}, [position, lyrics, currentLineIndex]);
+		const apply = (positionMs: number) => {
+			const newIndex = lyricsService.findCurrentLineIndex(lyrics, positionMs);
+			if (newIndex !== useLyricsStore.getState().currentLineIndex) {
+				useLyricsStore.getState().setCurrentLineIndex(newIndex);
+			}
+		};
+
+		const tick = () => {
+			apply(anchorMs + (Date.now() - anchorAt));
+			frame = requestAnimationFrame(tick);
+		};
+
+		const sync = () => {
+			const { position, status } = usePlayerStore.getState();
+			anchorMs = position.totalMilliseconds;
+			anchorAt = Date.now();
+			apply(anchorMs);
+
+			const shouldRun = status === 'playing';
+			if (shouldRun && frame === null) {
+				frame = requestAnimationFrame(tick);
+			} else if (!shouldRun && frame !== null) {
+				cancelAnimationFrame(frame);
+				frame = null;
+			}
+		};
+
+		sync();
+		const unsubscribe = usePlayerStore.subscribe(sync);
+
+		return () => {
+			unsubscribe();
+			if (frame !== null) {
+				cancelAnimationFrame(frame);
+			}
+		};
+	}, [lyrics]);
+}
+
+/** Reactive lyrics data for display components. */
+export function useLyrics() {
+	const lyrics = useLyricsStore((state) => state.lyrics);
+	const currentLineIndex = useLyricsStore((state) => state.currentLineIndex);
+	const isLoading = useLyricsStore((state) => state.isLoading);
+	const error = useLyricsStore((state) => state.error);
+	const isExpanded = useLyricsStore((state) => state.isExpanded);
 
 	const toggleExpanded = useCallback(() => {
 		useLyricsStore.getState().toggleExpanded();
@@ -102,13 +155,15 @@ export function useLyricsForTrack(track: Track | null) {
 		const fetchLyrics = async () => {
 			setLoading(true);
 
+			const plugin = getLyricsPlugin();
+			if (!plugin) {
+				setError('Lyrics plugin is not available');
+				return;
+			}
+
 			try {
-				const result = await lyricsService.getLyrics(track.id);
-				if (result.success) {
-					setLyrics(result.data, track.id);
-				} else {
-					setError(result.error.message);
-				}
+				const lyrics = await plugin.getLyrics(track);
+				setLyrics(lyrics, track.id);
 			} catch (err) {
 				setError(err instanceof Error ? err.message : 'Failed to fetch lyrics');
 			}
