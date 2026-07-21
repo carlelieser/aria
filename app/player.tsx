@@ -170,7 +170,7 @@ function PlayerScreenContent() {
 									<Image
 										source={{ uri: artworkUrl }}
 										style={styles.artwork}
-										contentFit={'contain'}
+										contentFit={'cover'}
 										transition={300}
 										cachePolicy={'memory-disk'}
 										recyclingKey={currentTrack.id.value}
