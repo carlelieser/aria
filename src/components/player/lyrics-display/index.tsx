@@ -180,13 +180,15 @@ const styles = StyleSheet.create({
 	scrollView: {
 		width: '100%',
 		borderRadius: 12,
-		overflow: 'hidden',
 	},
 	scrollContent: {
 		paddingVertical: LINE_HEIGHT,
 	},
 	plainLyricsContent: {
 		paddingVertical: 16,
+	},
+	plainLine: {
+		lineHeight: 24,
 	},
 	attribution: {
 		textAlign: 'center',
