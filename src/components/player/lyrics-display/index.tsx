@@ -22,6 +22,22 @@ export type { LyricsDisplayProps } from './types';
 
 const LINE_HEIGHT = 32;
 
+/** Placeholder line widths for the loading state — varied like real lyric lines. */
+const LYRIC_SKELETON_WIDTHS: `${number}%`[] = [
+	'70%',
+	'88%',
+	'62%',
+	'95%',
+	'78%',
+	'55%',
+	'84%',
+	'68%',
+	'91%',
+	'60%',
+	'82%',
+	'73%',
+];
+
 export function LyricsDisplay({ maxHeight, onLineTap }: LyricsDisplayProps) {
 	const { colors } = usePlayerTheme();
 	const { lyrics, currentLineIndex, isLoading, hasAnyLyrics, hasSyncedLyrics } = useLyrics();
@@ -49,10 +65,15 @@ export function LyricsDisplay({ maxHeight, onLineTap }: LyricsDisplayProps) {
 		return (
 			<View style={styles.container}>
 				<View style={styles.loadingContainer}>
-					<Skeleton width={'80%'} height={20} rounded={'sm'} />
-					<Skeleton width={'60%'} height={20} rounded={'sm'} />
-					<Skeleton width={'70%'} height={20} rounded={'sm'} />
-					<Skeleton width={'50%'} height={20} rounded={'sm'} />
+					{LYRIC_SKELETON_WIDTHS.map((width, index) => (
+						<Skeleton
+							key={index}
+							width={width}
+							height={16}
+							rounded={'sm'}
+							color={colors.surfaceContainerHighest}
+						/>
+					))}
 				</View>
 			</View>
 		);
@@ -74,8 +95,6 @@ export function LyricsDisplay({ maxHeight, onLineTap }: LyricsDisplayProps) {
 	}
 
 	if (hasSyncedLyrics && lyrics?.syncedLyrics) {
-		// With no explicit maxHeight the scroll view fills its parent (the
-		// player's artwork slot); a provided maxHeight caps it instead.
 		const scrollSizeStyle = maxHeight ? { maxHeight } : styles.fill;
 
 		return (
@@ -166,10 +185,10 @@ const styles = StyleSheet.create({
 	},
 	loadingContainer: {
 		flex: 1,
-		gap: 12,
+		gap: 16,
 		alignItems: 'center',
 		justifyContent: 'center',
-		paddingVertical: 16,
+		paddingVertical: 24,
 	},
 	noLyricsContainer: {
 		flex: 1,
@@ -186,9 +205,6 @@ const styles = StyleSheet.create({
 	},
 	plainLyricsContent: {
 		paddingVertical: 16,
-	},
-	plainLine: {
-		lineHeight: 24,
 	},
 	attribution: {
 		textAlign: 'center',
