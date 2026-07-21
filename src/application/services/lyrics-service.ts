@@ -30,16 +30,6 @@ export class LyricsService {
 			}
 		}
 
-		// Verify the line is still active (check endTime if available)
-		if (result >= 0) {
-			const line = lines[result];
-			if (line.endTime !== undefined && positionMs > line.endTime) {
-				// Position is past this line's end, but before the next line
-				// (this can happen in gaps between lines).
-				return result;
-			}
-		}
-
 		return result;
 	}
 }
